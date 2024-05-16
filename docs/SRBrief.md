@@ -43,12 +43,19 @@ Provide a brief overview of the system or feature being developed.
 
 1. **Resolution Support Tools**
    Interactive tools for mediators to help in generating settlement options, understanding dispute nuances, and guiding parties towards a resolution.
+   - Knowledge base that covers all domains/cultures/entities.
 2. **Resolution Archive**
    A secure, searchable archive of resolved disputes for auditing purposes and to serve as precedents where applicable.
+   - Useful for Core Requirement 2.2
+   - Summary generation for disputes
 3. **Feedback System**
    Post-resolution feedback collection from all parties involved, including satisfaction ratings and suggestions for system improvement.
+   - Feedback form generation per dispute
+   - Profiling for  mediators(?) 
 4. **Language Adaptability**
    Equip the platform with multilingual support to cater to a diverse user base. Implement translation services and local language processing to facilitate dispute resolutions across different linguistic backgrounds.
+   - Google Translate API(?)
+   - Mediators profiling could contain language metadata
 
 ### Wow Factors
 

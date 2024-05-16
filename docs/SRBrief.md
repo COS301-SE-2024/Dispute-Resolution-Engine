@@ -10,8 +10,14 @@ Provide a brief overview of the system or feature being developed.
 
 1. **Two-Party Engagement**
    A system where disputing parties (Party A and Party B) can register, submit their dispute, and provide evidence or statements.
+   - File sharing
+   - Text based forum
+   - Group disputes as individual entities
 2. **Mediator Assignment**
    An algorithm for assigning a neutral mediator based on the dispute type, expertise required, and mediator availability.
+   - Classification of dispute type
+   - Sourcing of expertise (pulling historically similar cases?)
+   - Provide list of available mediators
 3. **Dispute Resolution Workflow**
    A step-by-step process that guides parties through initial submission, mediation sessions, and final resolution. This should include timelines, notification systems, and a checklist of required actions for each party.
 4. **Secure Communication Channel**

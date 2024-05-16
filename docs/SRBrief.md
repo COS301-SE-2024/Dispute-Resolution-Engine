@@ -16,19 +16,28 @@ Provide a brief overview of the system or feature being developed.
 2. **Mediator Assignment**
    An algorithm for assigning a neutral mediator based on the dispute type, expertise required, and mediator availability.
    - Classification of dispute type
-   - Sourcing of expertise (pulling historically similar cases?)
-   - Provide list of available mediators
+   - Sourcing of expertise (pulling docs from historically similar cases?)
+   - Generate lists of available mediators
 3. **Dispute Resolution Workflow**
    A step-by-step process that guides parties through initial submission, mediation sessions, and final resolution. This should include timelines, notification systems, and a checklist of required actions for each party.
+   - "Wizard" like process
+   - Templates for disputes
 4. **Secure Communication Channel**
    Encrypted messaging and document exchange between the parties and the mediator, ensuring confidentiality.
+   - End-to-end encrypted communication channels
 5. **Natural Language Processing**:
-   Process the PDF submissions such that the mediators can have a summary of the dispute statement and evidence
+   Process the PDF submissions such that the mediators can have a summary of the dispute statement and evidence.
+   - PDF files need to be "digested" into text for NLP
+   - Possible application of Sentiment Analysis
 6. **Analytics profile**
-   Create an analytic profile for the mediators and lawyers to
-   see the outcomes, resolutions, summary and statistics of cases in certain areas
+   Create an analytic profile for the mediators and lawyers to see the outcomes, resolutions, summary and statistics of cases in certain areas.
+   - Categorisation and classification of disputes
+   - Archiving of disputes.
+   - Define metrics of disputes for tracking
 7. **Universal Dispute Creator**
    Allow for the dispute system to work with any field/domain.
+   - Further use for templatisation/generic dispute entities
+   - Determine common dispute resolution requirements
 
 ### Optional Requirements
 

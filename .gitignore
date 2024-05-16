@@ -61,6 +61,3 @@ jspm_packages
 
 #! .env
 .env
-
-#! .prettierrc
-.prettierrc

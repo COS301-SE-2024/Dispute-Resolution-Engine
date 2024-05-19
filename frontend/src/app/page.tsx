@@ -1,3 +1,4 @@
+import Button from "@/components/Button";
 import Image from "next/image";
 
 export default function Home() {
@@ -108,6 +109,7 @@ export default function Home() {
           </p>
         </a>
       </div>
+      <Button label="Hello World" />
     </main>
   );
 }

@@ -1,8 +1,8 @@
-# Functional Requirements
+# Brief Functional Requirements
 
-## Overview
+The following enumerates the core, nice-to-have and desirable extra functionalities of the Dispute Resolution Engine. Most have brief lists of approaches one could take to implement/achieve these features and some have references to industry mentors that could assist in these implementations.
 
-Provide a brief overview of the system or feature being developed.
+This is an informal document as of the 21st May 2024, and is intended to aid in the formalisation of the official list.
 
 ## Functional Requirements
 

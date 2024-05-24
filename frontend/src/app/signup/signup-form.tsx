@@ -11,21 +11,29 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ReactElement, JSXElementConstructor } from "react";
-import {
-  ControllerFieldState,
-  ControllerRenderProps,
-  FieldValues,
-  UseFormStateReturn,
-  useForm,
-} from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-const signupSchema = z.object({
-  email: z.string().min(1, "Required").email("Please enter a valid email"),
-  password: z.string().min(1, "Required"),
-  passConfirm: z.string().min(1, "Required"),
-});
+const signupSchema = z
+  .object({
+    email: z.string().min(1, "Required").email("Please enter a valid email"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters long")
+      .regex(/\d/gm, "Password must contain at least one digit")
+      .regex(/[A-Za-z]/gm, "Password must contain at least one letter")
+      .regex(/[^\w\d\s:]/gm, "Password must contain a special character"),
+    passwordConfirm: z.string(),
+  })
+  .superRefine((arg, ctx) => {
+    if (arg.password !== arg.passwordConfirm) {
+      ctx.addIssue({
+        code: "custom",
+        message: "The passwords did not match",
+        path: ["passwordConfirm"],
+      });
+    }
+  });
 
 type SignupData = z.infer<typeof signupSchema>;
 
@@ -35,7 +43,7 @@ export default function SignupForm() {
     defaultValues: {
       email: "",
       password: "",
-      passConfirm: "",
+      passwordConfirm: "",
     },
   });
 
@@ -47,18 +55,19 @@ export default function SignupForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="mx-auto my-20 w-fit flex flex-col gap-2"
+        className="bg-white rounded-xl mx-auto my-10 w-1/2 p-5 shadow-lg gap-2 space-y-3"
       >
+        <h1 className="text-lg font-medium mb-3">Create an Account</h1>
         <FormField
           name="email"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Email</FormLabel>
+            <FormItem>
+              <FormLabel className="block">Email</FormLabel>
               <FormControl>
                 <input
                   placeholder="Email"
                   {...field}
-                  className="py-1 px-2 border-[1px] border-gray-200 rounded-md container"
+                  className="w-full py-2 px-3 border-[1px] border-gray-200 rounded-md"
                 />
               </FormControl>
               <FormMessage />
@@ -68,14 +77,14 @@ export default function SignupForm() {
         <FormField
           name="password"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
+            <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
                 <input
                   type="password"
                   placeholder="Password"
                   {...field}
-                  className="py-1 px-2 border-[1px] border-gray-200 rounded-md container"
+                  className="w-full py-2 px-3 border-[1px] border-gray-200 rounded-md"
                 />
               </FormControl>
               <FormMessage />
@@ -83,23 +92,24 @@ export default function SignupForm() {
           )}
         />
         <FormField
-          name="passConfirm"
+          name="passwordConfirm"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
+            <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
                 <input
                   type="password"
                   placeholder="Confirm Password"
                   {...field}
-                  className="py-1 px-2 border-[1px] border-gray-200 rounded-md container"
+                  className="w-full py-2 px-3 border-[1px] border-gray-200 rounded-md"
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit">Signup</Button>
+
+        <Button type="submit">Create</Button>
       </form>
     </Form>
   );

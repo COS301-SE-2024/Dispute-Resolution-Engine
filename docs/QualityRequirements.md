@@ -4,3 +4,4 @@ Scalability and performance fall hand in hand for this system. In the real-world
 ## Usability
 ## Reliability
 ## Security
+The Dispute Resolution Engine often handles sensitive information, not only from user accounts but also from the parties involved in disputes. This may include evidence documents containing potentially exploitable information. Therefore, a fundamental requirement of the Dispute Resolution Engine is to ensure the protection of both personal and corporate information of our clients.

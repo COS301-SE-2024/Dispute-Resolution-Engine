@@ -24,19 +24,28 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 ### Core Requirements
 
 1. Two-Party Engagement
-   A system where disputing parties (Party A and Party B) can register, submit their dispute, and provide evidence or statements.
-   1. 
+
+    1. User Registration:
+        1. Handles account creation for disputing parties.
+        2. Manages authentication and authorization.
+        3. Includes profile management for each party.
+    2. Dispute Submission:
+       1. Interface for parties to submit their dispute details.
+       2. Form and document upload functionality for evidence and statements.
+    3. Evidence Management:
+       1. Secure storage and retrieval of submitted evidence.
+       2. Metadata tagging and organization of evidence for easy access.
+
 2. Mediator(s) Assignment
-   An algorithm for assigning a neutral mediator based on the dispute type, expertise required, and mediator availability.
+
 3. Dispute Resolution Workflow
-   A step-by-step process that guides parties through initial submission, mediation sessions, and final resolution. This should include timelines, notification systems, and a checklist of required actions for each party.
+
 4. Secure Communication Channel - Louis
-   Encrypted messaging and document exchange between the parties and the mediator, ensuring confidentiality.
+
 5. Natural Language Processing
-   Process the PDF submissions such that the mediators can have a summary of the dispute statement and evidence.
+
 6. Analytics profile
-   Create an analytic profile for the mediators and lawyers to see the outcomes, resolutions, summary and statistics of cases in certain areas.
+
 7. Universal Dispute Creator
-   Allow for the dispute system to work with any field/domain.
 
 ## User Stories - [Link to User Stories](UserStories.md)

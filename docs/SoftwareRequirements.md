@@ -81,7 +81,17 @@ The following high-level objectives of the Dispute Resolution Engine are defined
     3. Sentiment Analysis:
         1. Analyzes the tone and sentiment of submitted statements to provide additional context.
 
-6. Analytics profile
+6. Analytics Profiling
+
+    1. Case Outcomes Analysis:
+        1. Tracks and records the outcomes of resolved disputes.
+        2. Generates statistics on success rates, resolution times, and more.
+        3. Archives resolved disputes for future reference.
+    2. Mediator Performance:
+        1. Compiles data on mediator effectiveness and case history.
+        2. Provides insights into mediator strengths and areas for improvement.
+    3. Reporting Tools:
+        1. Dashboards and visualizations for mediators and lawyers to explore case data.
 
 7. Universal Dispute Creator
 

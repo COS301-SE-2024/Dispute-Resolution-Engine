@@ -10,7 +10,7 @@ The Dispute Resolution Engine is designed to be user-friendly. It aims to enable
 
 ## Reliability
 
-The Dispute Resolution Engine must maintain high uptime due to the nature of the services we provide. Clients should have access to the system at all times. A reliable system with high uptime not only benefits our clients but also increases our throughput.
+The Dispute Resolution Engine must maintain high uptime due to the nature of the services we provide. Clients should have continuous access to the system to ensure they can respond promptly to time-sensitive communications. A reliable system with high uptime not only benefits our clients but also increases our throughput.
 
 ## Security
 

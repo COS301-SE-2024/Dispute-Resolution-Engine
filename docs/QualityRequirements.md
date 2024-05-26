@@ -21,3 +21,8 @@ The Dispute Resolution Engine will handle sensitive information regularly. In ad
 <!--!need to clarify with Neil what should be covered here -->
 
 Disputes involve numerous legal processes, so it is vital to ensure that DRE meets legal, regulatory, and contractual obligations relevant to the handling of disputes.
+
+## 6. Maintainability
+
+The Dispute Resolution Engine must be easy to update and extend. It is essential that expansion of the system allows for the addition of new legal processes, dispute types, and other features. This will ensure that the system remains relevant and up-to-date with the latest legal requirements and dispute resolution practices.
+

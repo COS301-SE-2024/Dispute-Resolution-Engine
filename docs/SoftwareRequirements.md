@@ -61,6 +61,15 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 
 4. Secure Communication Channel
 
+    1. Encrypted Messaging:
+        1. Real-time messaging system for parties and mediators.
+        2. End-to-end encryption to ensure message confidentiality.
+    2. Document Exchange:
+        1. Secure document upload and download capabilities.
+        2. Encryption for all documents in transit and at rest.
+    3. Access Control:
+        1. Role-based access control to ensure only authorized users can access specific messages and documents.
+
 5. Natural Language Processing
 
 6. Analytics profile

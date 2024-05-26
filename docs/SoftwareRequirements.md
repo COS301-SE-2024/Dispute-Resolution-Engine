@@ -72,6 +72,15 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 
 5. Natural Language Processing
 
+    1. Document Processing:
+        1. Extracts text from submitted documents.
+        2. Converts scanned documents to text using OCR (Optical Character Recognition) if needed.
+    2. Summary Generation:
+        1. Uses NLP techniques to summarize dispute statements and evidence.
+        2. Highlights key points and relevant information for mediators.
+    3. Sentiment Analysis:
+        1. Analyzes the tone and sentiment of submitted statements to provide additional context.
+
 6. Analytics profile
 
 7. Universal Dispute Creator

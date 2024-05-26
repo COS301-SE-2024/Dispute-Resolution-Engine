@@ -4,5 +4,6 @@ Scalability and performance fall hand in hand for this system. In the real-world
 ## Usability
 The Dispute Resolution Engine is designed to be user-friendly. It aims to facilitate easy navigation through the implementation of simple and intuitive user interfaces. This ensures that users can operate the system efficiently without extensive training or technical knowledge.
 ## Reliability
+The Dispute Resolution Engine must maintain high uptime due to the nature of the services we provide. Clients should have access to the system at all times. A reliable system with high uptime not only benefits our clients but also increases our throughput.
 ## Security
 The Dispute Resolution Engine often handles sensitive information, not only from user accounts but also from the parties involved in disputes. This may include evidence documents containing potentially exploitable information. Therefore, a fundamental requirement of the Dispute Resolution Engine is to ensure the protection of both personal and corporate information of our clients.

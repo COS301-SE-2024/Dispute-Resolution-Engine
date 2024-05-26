@@ -95,4 +95,11 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 
 7. Universal Dispute Creator
 
+    1. Domain Configuration:
+        1. Allows customization of dispute parameters for different fields or domains.
+        2. Supports templates and presets for common dispute types.
+    2. Integration Layer: <!--TODO Ask Client for integration need relevance -->
+        1. Interfaces with external systems and databases to import/export dispute data.
+        2. Supports APIs and data exchange standards for interoperability.
+
 ## User Stories - [Link to User Stories](UserStories.md)

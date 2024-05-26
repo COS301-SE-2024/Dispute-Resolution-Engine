@@ -49,7 +49,17 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 
 3. Dispute Resolution Workflow
 
-4. Secure Communication Channel - Louis
+    1. Workflow Engine:
+        1. Manages the progression of disputes through defined stages (submission, mediation, resolution, etc.).
+        2. Configurable timelines and automated advancement through stages.
+    2. Notification System:
+        1. Sends alerts and reminders to parties and mediators about upcoming deadlines, sessions, and required actions.
+        2. Supports multiple methods such as email, SMS, etc.
+    3. Action Checklist:
+        1. Provides a detailed checklist of required actions for each party at each stage.
+        2. Tracks completion status and compliance with required steps.
+
+4. Secure Communication Channel
 
 5. Natural Language Processing
 

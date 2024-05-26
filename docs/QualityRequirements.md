@@ -18,4 +18,6 @@ The Dispute Resolution Engine will handle sensitive information regularly. In ad
 
 ## 5. Compliance
 
+<!--!need to clarify with Neil what should be covered here -->
+
 Disputes involve numerous legal processes, so it is vital to ensure that DRE meets legal, regulatory, and contractual obligations relevant to the handling of disputes.

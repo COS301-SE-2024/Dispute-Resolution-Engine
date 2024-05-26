@@ -15,3 +15,6 @@ The Dispute Resolution Engine must maintain high uptime due to the nature of the
 ## 4. Security
 
 The Dispute Resolution Engine will handle sensitive information regularly. In addition to user credentials, participants in disputes will expect a high level of confidentiality when exchanging information. This is mainly due to documented evidence or communications that can contain exploitable or otherwise sensitive information. Therefore, a fundamental requirement of the Dispute Resolution Engine is to ensure the protection of both the personal and dispute-related information of our clients.
+
+## 5. Compliance
+Disputes involve numerous legal processes, so it is vital to ensure that DRE complies with all relevant legislation. 

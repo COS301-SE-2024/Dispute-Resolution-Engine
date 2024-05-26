@@ -30,13 +30,22 @@ The following high-level objectives of the Dispute Resolution Engine are defined
         2. Manages authentication and authorization.
         3. Includes profile management for each party.
     2. Dispute Submission:
-       1. Interface for parties to submit their dispute details.
-       2. Form and document upload functionality for evidence and statements.
+        1. Interface for parties to submit their dispute details.
+        2. Form and document upload functionality for evidence and statements.
     3. Evidence Management:
-       1. Secure storage and retrieval of submitted evidence.
-       2. Metadata tagging and organization of evidence for easy access.
+        1. Secure storage and retrieval of submitted evidence.
+        2. Metadata tagging and organization of evidence for easy access.
 
 2. Mediator(s) Assignment
+
+    1. Mediator Data Store:
+        1. Stores information on mediators, including expertise, availability, and historical performance.
+    2. Assignment Algorithm:
+        1. Logic for matching mediators to disputes based on type, expertise, and availability.
+        2. Includes load balancing to ensure fair distribution of cases among mediators.
+    3. Availability Management:
+        1. Tracks and updates mediator availability in real-time.
+        2. Syncs with mediator schedules and appointment systems.
 
 3. Dispute Resolution Workflow
 

@@ -6,7 +6,7 @@ Scalability and performance go hand-in-hand in this system. Disputes are common 
 
 ## Usability
 
-The Dispute Resolution Engine is designed to be user-friendly. It aims to facilitate easy navigation through the implementation of simple and intuitive user interfaces. This ensures that users can operate the system efficiently without extensive training or technical knowledge.
+The Dispute Resolution Engine is designed to be user-friendly. It aims to enable easy navigation through simple and intuitive user interfaces. This ensures that users can operate the system effectively without extensive training or technical knowledge. This is crucial for a platform that is intended to accommodate users from a wide range of domains.
 
 ## Reliability
 

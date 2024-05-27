@@ -1,0 +1,6 @@
+# action.yml
+name: 'Cypress Docker test'
+description: 'Runs cypress in a docker container'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

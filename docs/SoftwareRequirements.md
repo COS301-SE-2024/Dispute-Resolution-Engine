@@ -150,15 +150,30 @@ The following high-level objectives of the Dispute Resolution Engine are defined
         2. Ensures accurate text analysis, sentiment analysis, and summary generation in various languages.
 
 ### Wow Factors
-1. Advanced Analytics 
-   1. Comprehensive Analytics Engine
-      1. Aggregates data from resolved disputes.
-      2. Uses statistical analysis and machine learning to identify trends, commonalities, and anomalies in dispute resolution processes.
-      3. Generates visual reports and dashboards that provide actionable insights for mediators, legal professionals, and system administrators.
-      4. Supports predictive analytics to forecast dispute outcomes and identify factors that influence successful resolutions.
+
+1. Advanced Analytics
+
+    1. Comprehensive Analytics Engine
+        1. Aggregates data from resolved disputes.
+        2. Uses statistical analysis and machine learning to identify trends, commonalities, and anomalies in dispute resolution processes.
+        3. Generates visual reports and dashboards that provide actionable insights for mediators, legal professionals, and system administrators.
+        4. Supports predictive analytics to forecast dispute outcomes and identify factors that influence successful resolutions.
 
 2. Customizable dispute resolution workflows.
 
-3. AI-driven mediation suggestions.
+    1. Dynamic Workflow Designer
+        1. Provides a user-friendly interface for designing workflows with swappable elements.
+        2. Supports the creation of multiple workflow templates for different types of disputes and user roles.
+        3. Enables customization of each step in the workflow, including timelines, required actions, notifications, and approval processes.
+        4. Integrates with the core workflow engine to ensure seamless execution of custom workflows.
+
+3. AI-driven Mediation Suggestions.
+
+    1. AI Mediation Assistance
+        1. Analyzes the details of the dispute, including evidence, statements, and historical data.
+        2. Uses natural language processing and machine learning algorithms to generate suggestions for potential settlement options and negotiation strategies.
+        3. Provides real-time recommendations to mediators during sessions, helping them navigate complex issues and guide parties towards resolution.
+        4. Continuously learns from past mediation sessions to improve the accuracy and relevance of its suggestions.
+        5. Integrates with the Resolution Support Tools to offer a cohesive mediation assistance experience.
 
 ## User Stories - [Link to User Stories](UserStories.md)

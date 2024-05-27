@@ -1,16 +1,32 @@
 # User Stories
-## User types
-The system has several users which are involved in multiple aspects that are clarified here for simplicity.
-- Party A. This user is the user that initiates the dispute
-- Party B. This user is the user that has the dispute initiated against them
-# Stories
-- As Party A I want to initiate a dispute so that I can begin resolving the dispute
-- As Party B I want to receive a notification about the dispute so that I can begin resolving the dispute
-- As Mediator I want to be assigned a dispute so that I can begin mediation
-- As Party A I want to upload documents to provide evidence for my claim
-- As Party B I want to upload documents to refute evidence provided by Party A
-- As Mediator I want to see the documents provided by Party A and B
-- As Party A I want to talk to Party B and the Mediator so that I can elaborate on my dispute
-- As Party A I want to talk privately to Mediator so that I can discuss the dispute in more depth
-- As Mediator I want to customise the workflow of the dispute so that I can ensure the fairest way to hear from both Parties
-- As Mediator I want to see cultural information of each party so that I can be more sensitive to the Parties
+
+## Complainants
+> As a Complainant I want to initiate a dispute so that I can begin resolving the dispute
+
+> As a Complainant I want to upload documents to provide evidence for my claim
+
+> As a Complainant I want to talk privately to Mediator so that I can discuss the dispute in more depth
+
+> As a Complainant I want to receive a notification when the respondant responds with evidence so that I can  - *To be confirmed by Neil*
+
+> As a Complainant I want to upload documents to refute counter-evidence provided by the Respondant to ensure that the dispute *so that I am heard*
+
+
+## Respondants
+> As a Respondant I want to receive a notification about the dispute so that I can begin resolving the dispute
+
+> As a Respondant I want to upload documents to refute evidence provided by Complainant
+
+> As a Respondant I want to challenge an appointed mediator to ensure that the dispute process remains unbiased.
+
+
+## Experts/Mediators
+> As a Mediator I want to be assigned a dispute so that I can begin mediation
+
+> As a Mediator I want to see the documents provided by the Complainant and Respondant
+
+> As a Mediator I want to customise the workflow of the dispute so that I can ensure the fairest way to hear from both Parties
+
+> As a Mediator I want to see cultural information of each party so that I can be more sensitive to the Parties
+
+> As a Mediator I want to be able to deny an assignment to a dispute when there is a conflict of interest so that the dispute remains unbiased.

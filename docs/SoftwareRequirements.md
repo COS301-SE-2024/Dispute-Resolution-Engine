@@ -139,4 +139,14 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 
 4. Language Adaptability
 
+    1. Multilingual User Interface:
+        1. Provides a user interface that supports multiple languages.
+        2. Allows users to select their preferred language for navigation and interaction.
+    2. Translation Services:
+        1. Integrates real-time translation services for chat, messages, and documents.
+        2. Supports both machine translation and manual translation options for accuracy.
+    3. Local Language Processing:
+        1. Implements NLP capabilities for processing and understanding local languages.
+        2. Ensures accurate text analysis, sentiment analysis, and summary generation in various languages.
+
 ## User Stories - [Link to User Stories](UserStories.md)

@@ -25,8 +25,8 @@ QA - Maintainability
 
 ## Next.js
 Next.js allows for serverless functioning, which makes the platform easily scalable and performant. 
-The versitility of the framework further provides the capability to easily integrate modules and 
-components, while still keeping a focus on the pltforms usability. It also naturally integrates 
+The versatility of the framework further provides the capability to easily integrate modules and 
+components, while still keeping a focus on the platforms usability. It also naturally integrates 
 cross-device display for the site application.
 
 ## ShadCn and Tailwind
@@ -34,7 +34,7 @@ The combination of Shadcn, a component library, and Tailwind, a styling library,
 and professional frontend look, which compliments the platforms usability.
 
 ## GoLang
-GoLang will be used for most of the implimentations of communications between components. GoLang 
+GoLang will be used for most of the implementations of communications between components. GoLang 
 was designed to be highly performant, scalable and reliable.
 
 ## Postgres
@@ -49,14 +49,14 @@ quick and accurate retrieval of relevant disputes, legal documents, and case not
 improving user experience.
 
 
+## Redis
 ## Docker
 ## TensorFlow
 ## Github and Git
 ## Cypress and Jest
 ## Markdown
-## Gitgaurdian 
+## GitGuardian 
 ## goVulnCheck
 ## Dependabot
 ## LetsEncrypt
 ## PGAdmin
-## Redis

@@ -130,6 +130,13 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 
 3. Feedback System
 
+    1. Feedback Collection:
+        1. Collects feedback from all parties involved in the dispute resolution process post-resolution.
+        2. Supports multiple feedback formats, including surveys, ratings, and free-form comments.
+    2. Analysis and Reporting:
+        1. Analyzes collected feedback to identify trends, satisfaction levels, and areas for improvement.
+        2. Generates reports and dashboards for developers to review feedback metrics.
+
 4. Language Adaptability
 
 ## User Stories - [Link to User Stories](UserStories.md)

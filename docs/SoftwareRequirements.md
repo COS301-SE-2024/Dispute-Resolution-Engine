@@ -102,4 +102,11 @@ The following high-level objectives of the Dispute Resolution Engine are defined
         1. Interfaces with external systems and databases to import/export dispute data.
         2. Supports APIs and data exchange standards for interoperability.
 
+### Optional Requirements
+
+1. Resolution Support Tools
+2. Resolution Archive
+3. Feedback System
+4. Language Adaptability
+
 ## User Stories - [Link to User Stories](UserStories.md)

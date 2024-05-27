@@ -105,8 +105,21 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 ### Optional Requirements
 
 1. Resolution Support Tools
+
+    1. Settlement Option Generator:
+        1. Interactive tool to propose potential settlement options based on dispute details and historical data.
+        2. Includes templates and customizable options for various types of disputes.
+    2. Dispute Nuance Analyzer:
+        1. Uses AI to analyze and highlight key nuances and complexities of the dispute.
+        2. Provides insights and suggestions to mediators based on the analysis.
+    3. Guidance System:
+        1. Provides step-by-step guidance to mediators for conducting mediation sessions.
+        2. Includes best practices, tips, and checklists to ensure effective mediation.
+
 2. Resolution Archive
+
 3. Feedback System
+
 4. Language Adaptability
 
 ## User Stories - [Link to User Stories](UserStories.md)

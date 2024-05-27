@@ -40,7 +40,7 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 
     1. Mediator Data Store:
         1. Stores information on mediators, including expertise, availability, and historical performance.
-    2. Assignment Algorithm:
+    2. Assignment Algorithm: (See Wow Factor 3 for AI-driven suggestions)
         1. Logic for matching mediators to disputes based on type, expertise, and availability.
         2. Includes load balancing to ensure fair distribution of cases among mediators.
     3. Availability Management:
@@ -49,7 +49,7 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 
 3. Dispute Resolution Workflow
 
-    1. Workflow Engine:
+    1. Workflow Engine: (See Wow Factor 2 for Customizable Workflows)
         1. Manages the progression of disputes through defined stages (submission, mediation, resolution, etc.).
         2. Configurable timelines and automated advancement through stages.
     2. Notification System:
@@ -121,7 +121,7 @@ The following high-level objectives of the Dispute Resolution Engine are defined
     1. Secure Storage:
         1. Securely stores all dispute records with robust encryption.
         2. Ensures data integrity and prevents unauthorized access.
-    2. Search and Retrieval:
+    2. Search and Retrieval: (See Wow Factor 1 for Advanced Analytics)
         1. Provides a powerful search engine to query archived disputes.
         2. Supports advanced search filters based on dispute type, resolution outcome, date, involved parties, and other criteria.
     3. Audit Trail:
@@ -148,5 +148,10 @@ The following high-level objectives of the Dispute Resolution Engine are defined
     3. Local Language Processing:
         1. Implements NLP capabilities for processing and understanding local languages.
         2. Ensures accurate text analysis, sentiment analysis, and summary generation in various languages.
+
+### Wow Factors
+1. Advanced analytics for dispute resolution insights (using the Resolution Archive and external data)
+2. Customizable dispute resolution workflows.
+3. AI-driven mediation suggestions.
 
 ## User Stories - [Link to User Stories](UserStories.md)

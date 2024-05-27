@@ -118,6 +118,16 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 
 2. Resolution Archive
 
+    1. Secure Storage:
+        1. Securely stores all dispute records with robust encryption.
+        2. Ensures data integrity and prevents unauthorized access.
+    2. Search and Retrieval:
+        1. Provides a powerful search engine to query archived disputes.
+        2. Supports advanced search filters based on dispute type, resolution outcome, date, involved parties, and other criteria.
+    3. Audit Trail:
+        1. Maintains a comprehensive audit trail of access and modifications to archived disputes.
+        2. Ensures compliance with legal and regulatory requirements for data retention and auditing.
+
 3. Feedback System
 
 4. Language Adaptability

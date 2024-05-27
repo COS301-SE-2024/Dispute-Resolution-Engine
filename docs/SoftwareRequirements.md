@@ -150,8 +150,15 @@ The following high-level objectives of the Dispute Resolution Engine are defined
         2. Ensures accurate text analysis, sentiment analysis, and summary generation in various languages.
 
 ### Wow Factors
-1. Advanced analytics for dispute resolution insights (using the Resolution Archive and external data)
+1. Advanced Analytics 
+   1. Comprehensive Analytics Engine
+      1. Aggregates data from resolved disputes.
+      2. Uses statistical analysis and machine learning to identify trends, commonalities, and anomalies in dispute resolution processes.
+      3. Generates visual reports and dashboards that provide actionable insights for mediators, legal professionals, and system administrators.
+      4. Supports predictive analytics to forecast dispute outcomes and identify factors that influence successful resolutions.
+
 2. Customizable dispute resolution workflows.
+
 3. AI-driven mediation suggestions.
 
 ## User Stories - [Link to User Stories](UserStories.md)

@@ -30,3 +30,20 @@
 > As a Mediator I want to see cultural information of each party so that I can be more sensitive to the Parties
 
 > As a Mediator I want to be able to deny an assignment to a dispute when there is a conflict of interest so that the dispute remains unbiased.
+
+## Organisation Owner
+> As an organisation owner I want to create an organisation so that I can manage that organisation
+
+> As an organisation owner I want to specify a set of workflows for my organisation so that all disputes follow due process
+
+> As an organisation owner I want to specify pools of experts so that a mediator is correctly chosen based on their expertise
+
+> As an organisation owner I want to see all ongonig disputes so that I am well informed of them
+
+
+## Admin
+> As an admin I want to see the available mediators at any given point so that I can manage the active mediators
+
+> As an admin I want to manage expert pools so that I can mediators are correctly assigned
+
+> As an admin I want to manage organisations so that I can ensure they are structured correctly

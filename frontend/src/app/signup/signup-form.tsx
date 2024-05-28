@@ -1,14 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -18,9 +11,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { HTMLAttributes, forwardRef, useId } from "react";
+import React, { HTMLAttributes, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { signup } from "../lib/signup";
+import { useFormState } from "react-dom";
 
 const signupSchema = z
   .object({
@@ -45,7 +40,7 @@ const signupSchema = z
     }
   });
 
-type SignupData = z.infer<typeof signupSchema>;
+export type SignupData = z.infer<typeof signupSchema>;
 
 function TextField({ name, label }: { name: keyof SignupData; label: string }) {
   return (
@@ -68,18 +63,26 @@ function TextField({ name, label }: { name: keyof SignupData; label: string }) {
   );
 }
 
-export default function SignupForm() {
+export default function SignupForm(props: HTMLAttributes<HTMLFormElement>) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const form = useForm<SignupData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
       passwordConfirm: "",
     },
   });
 
-  function onSubmit(values: SignupData) {
-    console.log(values);
+  async function cookPlease(data: SignupData) {
+    console.log(data);
+    setLoading(true);
+    setError(await signup(data));
+    setLoading(false);
   }
 
   const formId = useId();
@@ -91,7 +94,12 @@ export default function SignupForm() {
           <CardTitle>Create an Account</CardTitle>
         </CardHeader>
         <CardContent>
-          <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="gap-y-2 space-y-3">
+          <form
+            id={formId}
+            onSubmit={form.handleSubmit(cookPlease)}
+            className="gap-y-2 space-y-3"
+            {...props}
+          >
             <TextField name="firstName" label="First Name" />
             <TextField name="lastName" label="Last Name" />
             <TextField name="email" label="Email" />
@@ -100,9 +108,10 @@ export default function SignupForm() {
           </form>
         </CardContent>
         <CardFooter>
-          <Button form={formId} type="submit">
+          <Button disabled={loading} form={formId} type="submit">
             Create
           </Button>
+          <p role="alert">{error}</p>
         </CardFooter>
       </Card>
     </Form>

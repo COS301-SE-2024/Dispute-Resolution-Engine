@@ -2,16 +2,23 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  useFormField,
 } from "@/components/ui/form";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { zodResolver } from "@hookform/resolvers/zod";
+import React, { HTMLAttributes, forwardRef, useId } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -19,7 +26,6 @@ const signupSchema = z
   .object({
     firstName: z.string().min(1, "Required"),
     lastName: z.string().min(1, "Required"),
-    dateOfBirth: z.date(),
     email: z.string().min(1, "Required").email("Please enter a valid email"),
     password: z
       .string()
@@ -47,14 +53,7 @@ function TextField({ name, label }: { name: keyof SignupData; label: string }) {
       name={name}
       render={({ field }) => (
         <FormItem>
-          <Tooltip>
-            <TooltipTrigger>
-              <FormLabel className="block">{label}</FormLabel>
-            </TooltipTrigger>
-            <TooltipContent>
-              <FormMessage />
-            </TooltipContent>
-          </Tooltip>
+          <FormLabel className="block">{label}</FormLabel>
           <FormControl>
             <input
               placeholder={label}
@@ -62,6 +61,7 @@ function TextField({ name, label }: { name: keyof SignupData; label: string }) {
               className="w-full py-2 px-3 border-[1px] border-gray-200 rounded-md"
             />
           </FormControl>
+          <FormMessage />
         </FormItem>
       )}
     />
@@ -82,22 +82,29 @@ export default function SignupForm() {
     console.log(values);
   }
 
+  const formId = useId();
+
   return (
     <Form {...form}>
-      <TooltipProvider delayDuration={0}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="bg-white rounded-xl mx-auto my-10 w-1/2 p-5 shadow-lg gap-2 space-y-3"
-        >
-          <h1 className="text-lg font-medium mb-3">Create an Account</h1>
-          <TextField name="firstName" label="First Name" />
-          <TextField name="lastName" label="Last Name" />
-          <TextField name="email" label="Email" />
-          <TextField name="password" label="Password" />
-          <TextField name="passwordConfirm" label="Confirm Password" />
-          <Button type="submit">Create</Button>
-        </form>
-      </TooltipProvider>
+      <Card className="mx-auto md:my-3 lg:w-1/2 md:w-3/4">
+        <CardHeader>
+          <CardTitle>Create an Account</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form id={formId} onSubmit={form.handleSubmit(onSubmit)} className="gap-y-2 space-y-3">
+            <TextField name="firstName" label="First Name" />
+            <TextField name="lastName" label="Last Name" />
+            <TextField name="email" label="Email" />
+            <TextField name="password" label="Password" />
+            <TextField name="passwordConfirm" label="Confirm Password" />
+          </form>
+        </CardContent>
+        <CardFooter>
+          <Button form={formId} type="submit">
+            Create
+          </Button>
+        </CardFooter>
+      </Card>
     </Form>
   );
 }

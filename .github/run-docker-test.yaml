@@ -1,0 +1,21 @@
+on:
+  workflow_dispatch:
+  cyp:
+  pull_request:
+    branches:
+      - main
+      - release
+    types:
+      - opened
+      - reopened
+
+jobs:
+  cypress:
+    runs-on: ubuntu-latest
+    name: Cypress Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Hello world action step
+        uses: ./.github/workflows/cypress-test-docker/cypress-run.yaml
+        id: hello

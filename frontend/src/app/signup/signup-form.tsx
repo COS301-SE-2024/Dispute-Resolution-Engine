@@ -90,7 +90,7 @@ export default function SignupForm(props: HTMLAttributes<HTMLFormElement>) {
         <CardHeader>
           <CardTitle>Create an Account</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent asChild>
           <form
             id={formId}
             onSubmit={form.handleSubmit(cookPlease)}

@@ -1,6 +1,7 @@
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { Slottable, cn } from "@/lib/utils";
+import { Slot } from "@radix-ui/react-slot";
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
@@ -42,11 +43,13 @@ const CardDescription = React.forwardRef<
 ));
 CardDescription.displayName = "CardDescription";
 
-const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
-  )
-);
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  Slottable<React.HTMLAttributes<HTMLDivElement>>
+>(({ className, asChild = false, ...props }, ref) => {
+  const Comp = asChild ? Slot : "div";
+  return <Comp ref={ref} className={cn("p-6 pt-0", className)} {...props} />;
+});
 CardContent.displayName = "CardContent";
 
 const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(

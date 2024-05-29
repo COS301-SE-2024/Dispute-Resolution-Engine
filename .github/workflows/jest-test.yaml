@@ -1,0 +1,31 @@
+name: Jest-Test
+run-name: ${{ github.actor }} at ${{ github.event_name }} event 
+on:
+  workflow_dispatch:
+  jst:
+  pull_request:
+    branches:
+      - main
+      - release
+    types:
+      - opened
+      - reopened
+jobs:
+  jest-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.13.1'
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install yarn
+          yarn
+      - name: Run jest
+        run: |
+          cd frontend
+          yarn test

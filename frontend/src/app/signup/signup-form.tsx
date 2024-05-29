@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { signup } from "../lib/signup";
 import { useFormState } from "react-dom";
+import { Input } from "@/components/ui/input";
 
 const signupSchema = z
   .object({
@@ -48,13 +49,9 @@ function TextField({ name, label }: { name: keyof SignupData; label: string }) {
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel className="block">{label}</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
-            <input
-              placeholder={label}
-              {...field}
-              className="w-full py-2 px-3 border-[1px] border-gray-200 rounded-md"
-            />
+            <Input placeholder={label} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

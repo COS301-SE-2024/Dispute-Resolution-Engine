@@ -13,3 +13,12 @@ body {
   background: #f0f5f6;
   /*background: #eee;*/
 }
+
+@media (prefers-color-scheme: dark) {
+  * {
+    color-scheme: dark;
+  }
+  body {
+    background: black;
+  }
+}

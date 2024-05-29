@@ -88,18 +88,55 @@ factual evidence.
 
 ## Github and Git
 
-GitHub and Git are essential tools for the development and maintenance of our dispute resolution platform. Git provides robust version control, allowing developers to track changes, collaborate efficiently, and manage code history. GitHub enhances this by offering a centralized repository for code hosting, enabling seamless collaboration through pull requests, code reviews, and issue tracking. These tools support quality attributes like maintainability and reliability, ensuring that our development process is organized, transparent, and capable of handling updates and feature additions efficiently. Through GitHub and Git, we maintain a high standard of code quality and project management, crucial for the platform's continuous improvement and stability.
+GitHub and Git are essential tools for the development and maintenance of our dispute resolution
+ platform. Git provides robust version control, allowing developers to track changes, 
+ collaborate efficiently, and manage code history. GitHub enhances this by offering a centralized 
+ repository for code hosting, enabling seamless collaboration through pull requests, code reviews, 
+ and issue tracking. These tools support quality attributes like maintainability and reliability, 
+ ensuring that our development process is organized, transparent, and capable of handling updates 
+ and feature additions efficiently. Through GitHub and Git, we maintain a high standard of code 
+ quality and project management, crucial for the platform's continuous improvement and stability.
 
 ## Cypress and Jest
 
-Cypress and Jest are integral to our testing strategy for the dispute resolution platform. Cypress, a powerful end-to-end testing framework, ensures that user interactions and workflows function seamlessly, enhancing usability and reliability. Jest, a versatile JavaScript testing framework, is used for unit and integration tests, verifying the correctness of individual components and their interactions. Together, these frameworks support quality attributes like maintainability and reliability by automating comprehensive testing processes, quickly identifying bugs, and ensuring robust, error-free code. This rigorous testing approach guarantees a stable and user-friendly platform for all users.
+Cypress and Jest are integral to our testing strategy for the dispute resolution platform. 
+Cypress, a powerful end-to-end testing framework, ensures that user interactions and workflows 
+function seamlessly, enhancing usability and reliability. Jest, a versatile JavaScript testing framework, 
+is used for unit and integration tests, verifying the correctness of individual components and their 
+interactions. Together, these frameworks support quality attributes like maintainability and reliability 
+by automating comprehensive testing processes, quickly identifying bugs, and ensuring robust, error-free 
+code. This rigorous testing approach guarantees a stable and user-friendly platform for all users.
 
 ## ESlint
 
-ESLint serves as a critical tool in maintaining code quality and consistency throughout our dispute resolution platform's development process. By enforcing coding standards and best practices, ESLint ensures that our codebase remains clean, readable, and free from common errors and vulnerabilities. This contributes to quality attributes like maintainability and reliability by facilitating easier code maintenance and reducing the likelihood of bugs and security issues. With ESLint integrated into our workflow, developers can write high-quality code with confidence, fostering a more efficient and collaborative development environment.
+ESLint serves as a critical tool in maintaining code quality and consistency throughout our dispute 
+resolution platform's development process. By enforcing coding standards and best practices, ESLint 
+ensures that our codebase remains clean, readable, and free from common errors and vulnerabilities. This 
+contributes to quality attributes like maintainability and reliability by facilitating easier code 
+maintenance and reducing the likelihood of bugs and security issues. With ESLint integrated into our 
+workflow, developers can write high-quality code with confidence, fostering a more efficient and 
+collaborative development environment.
 
 ## Markdown
+
+Markdown plays a pivotal role in our documentation strategy for the dispute resolution platform, 
+seamlessly integrating with GitHub for easy collaboration and version control. With its simple syntax 
+and versatile formatting options, Markdown enables developers to create clear, concise, and visually 
+appealing documentation for various components and features of the platform. This contributes to quality 
+attributes like maintainability and usability by providing a structured and accessible resource for 
+developers and users alike. Leveraging Markdown, we can efficiently communicate project 
+requirements, guidelines, and updates, fostering a transparent and well-documented development process.
+
 ## GitGuardian 
+
+GitGuardian plays a crucial role in ensuring the security of our dispute resolution platform's source 
+code and sensitive information. By continuously monitoring repositories and detecting potential security 
+threats such as exposed credentials and API keys, GitGuardian helps prevent data breaches and 
+unauthorized access. This proactive approach to security enhances quality attributes like reliability 
+and security by safeguarding against vulnerabilities and ensuring compliance with data protection 
+regulations. With GitGuardian integrated into our development workflow, we can maintain the integrity 
+and confidentiality of our codebase, mitigating risks and maintaining user trust.
+
 ## goVulnCheck
 ## Dependabot
 ## LetsEncrypt

@@ -1,8 +1,8 @@
 package api
 
 import (
-	"api/storage"
 	"api/model"
+	"api/storage"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -95,7 +95,54 @@ func (s *APIServer) getAPI(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (s *APIServer) postAPI(w http.ResponseWriter, r *http.Request) error {
-	return writeJSON(w, http.StatusOK, "POST API")
+	req := new(model.BaseRequest)
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		return writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+	}
+
+	switch req.RequestType {
+	case "create_account":
+		return s.createAccount(w, req.Body)
+	default:
+		return writeJSON(w, http.StatusBadRequest, APIError{Error: "invalid request type"})
+	}
+}
+
+func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage) error {
+	var body model.CreateAccountBody
+	if err := json.Unmarshal(rawBody, &body); err != nil {
+		return writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+	}
+
+	if body.FirstName == "" || body.Surname == "" || body.PasswordHash == "" {
+		return writeJSON(w, http.StatusBadRequest, APIError{Error: "missing required fields"})
+	}
+
+	// access db
+	fmt.Println("Creating account with first name: ", body.FirstName)
+	user := model.NewUser()
+	user.First_name = body.FirstName
+	user.Surname = body.Surname
+	user.Birthdate = "1990-01-01"
+	user.Nationality = "USA"
+	user.Role = "user"
+	user.Email = ""
+	user.Password_hash = body.PasswordHash
+	user.Phone_number = ""
+	user.Address_id = 1
+	user.Created_at = "2024-05-30 10:00:00"
+	user.Updated_at = "2024-05-30 10:00:00"
+	user.Last_login = "2024-05-30 10:00:00"
+	user.Status = "active"
+	user.Gender = "male"
+	user.Preferred_language = "en"
+	user.Timezone = "UTC"
+
+	if err := s.store.CreateUser(user); err != nil {
+		return writeJSON(w, http.StatusInternalServerError, APIError{Error: err.Error()})
+	}
+
+	return writeJSON(w, http.StatusOK, "account created")
 }
 
 func (s *APIServer) wrapInJSON(objects ...interface{}) (string, error) {

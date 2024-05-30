@@ -16,6 +16,18 @@ func main() {
 		log.Fatalf("could not init storage: %v", err)
 	}
 
+	// store.Ping()
+
+	// users, err := store.GetAllUsers()
+
+	// if err != nil {
+	// 	log.Fatalf("could not get users: %v", err)
+	// }
+
+	// for _, user := range users {
+	// 	log.Printf("user: %v", user)
+	// }
+
 	server := api.NewServer(":8080", store)
 	server.Run()
 }

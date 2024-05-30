@@ -58,7 +58,7 @@ func NewPostgresStore() (*PostgresStore, error) {
     if err != nil {
         return nil, err
     }
-    defer db.Close()
+    // defer db.Close()
 
     // Check if the connection is successful
     err = db.Ping()
@@ -69,6 +69,14 @@ func NewPostgresStore() (*PostgresStore, error) {
     fmt.Println("Connected to PostgreSQL database!")
 
 	return &PostgresStore{db: db}, nil
+}
+
+func (s *PostgresStore) Close() {
+	s.db.Close()
+}
+
+func (s *PostgresStore) Ping() error {
+	return s.db.Ping()
 }
 
 func (s *PostgresStore) Init() error {
@@ -129,6 +137,47 @@ func (s *PostgresStore) createGenderEnum() error {
     return nil
 }
 
+func (s *PostgresStore) GetAllUsers() ([]*model.User, error) {
+	query := `SELECT * FROM users;`
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("could not get all users: %w", err)
+	}
+
+	users := make([]*model.User, 0)
+	for rows.Next() {
+		user := new(model.User)
+		err := rows.Scan(
+			&user.ID,
+			&user.First_name,
+			&user.Surname,
+			&user.Birthdate,
+			&user.Nationality,
+			&user.Role,
+			&user.Email,
+			&user.Password_hash,
+			&user.Phone_number,
+			&user.Address_id,
+			&user.Created_at,
+			&user.Updated_at,
+			&user.Last_login,
+			&user.Status,
+			&user.Gender,
+			&user.Preferred_language,
+			&user.Timezone,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("could not scan user: %w", err)
+		}
+		users = append(users, user)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("could not iterate over users: %w", err)
+	}
+
+	return users, nil
+}
+
 func (s *PostgresStore) createUsersTable() error {
     query := `
     CREATE TABLE IF NOT EXISTS users (
@@ -160,6 +209,57 @@ func (s *PostgresStore) createUsersTable() error {
 
 
 func (s *PostgresStore) CreateUser(user *model.User) error {
+	stmt, err := s.db.Prepare(`INSERT INTO users (
+		first_name,
+		surname,
+		birthdate,
+		nationality,
+		role,
+		email,
+		password_hash,
+		phone_number,
+		address_id,
+		last_login,
+		gender,
+		preferred_language,
+		timezone
+		) VALUES (
+			$1,
+			$2,
+			$3,
+			$4,
+			$5,
+			$6,
+			$7,
+			$8,
+			$9,
+			$10,
+			$11,
+			$12,
+			$13
+		);
+		`)
+	if err != nil {
+		return fmt.Errorf("could not prepare insert statement: %w", err)
+	}
+
+	_, err = stmt.Exec(user.First_name, 
+		user.Surname, 
+		user.Birthdate, 
+		user.Nationality, 
+		user.Role, 
+		user.Email, 
+		user.Password_hash, 
+		user.Phone_number, 
+		user.Address_id, 
+		user.Last_login, 
+		user.Gender,
+		user.Preferred_language,
+		user.Timezone)
+
+	if err != nil {
+		return fmt.Errorf("could not insert user: %w", err)
+	}
 	return nil
 }
 

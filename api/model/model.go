@@ -1,5 +1,18 @@
 package model
 
+import "encoding/json"
+
+type BaseRequest struct {
+	RequestType string          `json:"request_type"`
+	Body        json.RawMessage `json:"body"`
+}
+
+type CreateAccountBody struct {
+	FirstName    string `json:"first_name"`
+	Surname      string `json:"surname"`
+	PasswordHash string `json:"password_hash"`
+}
+
 // CREATE TABLE addresses (
 //     id BIGINT PRIMARY KEY,
 //     code VARCHAR(64),
@@ -49,20 +62,23 @@ type Address struct {
 // );
 
 type User struct {
-	ID            int    `json:"id"`
-	First_name    string `json:"first_name"`
-	Surname       string `json:"surname"`
-	Birthdate     string `json:"birthdate"`
-	Nationality   string `json:"national"`
-	Role          string `json:"role"`
-	Email         string `json:"email"`
-	Password_hash string `json:"password_hash"`
-	Phone_number  string `json:"phone_number"`
-	Address_id    int    `json:"address_id"`
-	Created_at    string `json:"created_at"`
-	Updated_at    string `json:"updated_at"`
-	Last_login    string `json:"last_login"`
-	Status        string `json:"status"`
+	ID                 int    `json:"id"`
+	First_name         string `json:"first_name"`
+	Surname            string `json:"surname"`
+	Birthdate          string `json:"birthdate"`
+	Nationality        string `json:"national"`
+	Role               string `json:"role"`
+	Email              string `json:"email"`
+	Password_hash      string `json:"password_hash"`
+	Phone_number       string `json:"phone_number"`
+	Address_id         int    `json:"address_id"`
+	Created_at         string `json:"created_at"`
+	Updated_at         string `json:"updated_at"`
+	Last_login         string `json:"last_login"`
+	Status             string `json:"status"`
+	Gender             string `json:"gender"`
+	Preferred_language string `json:"preferred_language"`
+	Timezone           string `json:"timezone"`
 }
 
 func NewUser() *User {

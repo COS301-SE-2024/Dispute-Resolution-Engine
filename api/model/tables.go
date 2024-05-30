@@ -14,16 +14,16 @@ package model
 // );
 
 type Address struct {
-	id 		 int
-	code 	 string
-	country  string
-	province string
-	city 	 string
-	street3  string
-	street2  string
-	street   string
-	address_type int
-	last_updated string
+	Id 		 int
+	Code 	 string
+	Country  string
+	Province string
+	City 	 string
+	Street3  string
+	Street2  string
+	Street   string
+	Address_type int
+	Last_updated string
 }
 
 // CREATE TYPE gender_enum AS ENUM ('male', 'female', 'non-binary', 'prefer not to say', 'other');
@@ -49,20 +49,20 @@ type Address struct {
 // );
 
 type User struct {
-	id 				int
-	first_name 		string
-	surname 		string
-	birthdate 		string
-	nationality 	string
-	role 			string
-	email 			string
-	password_hash 	string
-	phone_number 	string
-	address_id 		int
-	created_at 		string
-	updated_at 		string
-	last_login 		string
-	status 			string
+	ID 				int
+	First_name 		string
+	Surname 		string
+	Birthdate 		string
+	Nationality 	string
+	Role 			string
+	Email 			string
+	Password_hash 	string
+	Phone_number 	string
+	Address_id 		int
+	Created_at 		string
+	Updated_at 		string
+	Last_login 		string
+	Status 			string
 }
 
 func NewUser() *User {

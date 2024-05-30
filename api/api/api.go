@@ -1,10 +1,13 @@
 package api
 
 import (
+	"api/model"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
+
 	"github.com/gorilla/mux"
 )
 
@@ -62,9 +65,75 @@ func (s *APIServer) HandleRequests(w http.ResponseWriter, r *http.Request) error
 }
 
 func (s *APIServer) getAPI(w http.ResponseWriter, r *http.Request) error {
-	return writeJSON(w, http.StatusOK, "GET API")
+	address := model.NewAddress()
+	address.Id = 1
+	address.Code = "12345"
+	address.Country = "USA"
+	address.Province = "NY"
+	address.City = "NYC"
+	address.Street3 = "Street3"
+	address.Street2 = "Street2"
+	address.Street = "Street"
+	address.Address_type = 1
+	address.Last_updated = "2021-01-01"
+
+	account := model.NewUser()
+	account.ID = 1
+	account.First_name = "John"
+	account.Surname = "Doe"
+	account.Birthdate = "1990-01-01"
+	account.Nationality = "USA"
+	account.Role = "Admin"
+	account.Email = "j@d.com"
+	account.Password_hash = "123456"
+	account.Phone_number = "1234567890"
+	account.Address_id = 1
+	account.Created_at = "2021-01-01"
+	account.Updated_at = "2021-01-01"
+	account.Last_login = "2021-01-01"
+	account.Status = "active"
+
+	/*
+	{
+		user: {
+		},
+		address: {
+		},
+	}
+	
+	**/
+	wrappedResStr, err := s.wrapInJSON(address, account)
+	if err != nil {
+		return writeJSON(w, http.StatusInternalServerError, APIError{Error: err.Error()})
+	}
+
+	var wrappedResJSON any
+	err = json.Unmarshal([]byte(wrappedResStr), &wrappedResJSON)
+	if err != nil {
+		return writeJSON(w, http.StatusInternalServerError, APIError{Error: err.Error()})
+	}
+
+
+	return writeJSON(w, http.StatusOK, wrappedResJSON)
 }
 
 func (s *APIServer) postAPI(w http.ResponseWriter, r *http.Request) error {
 	return writeJSON(w, http.StatusOK, "POST API")
+}
+
+func (s *APIServer) wrapInJSON(objects ...interface{}) (string,error) {
+	jsonData := make(map[string]interface{})
+
+	for _, obj := range objects {
+		objType := reflect.TypeOf(obj).String()
+		
+		jsonData[objType] = obj
+	}
+
+	jsonBytes, err := json.Marshal(jsonData)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonBytes), nil
 }

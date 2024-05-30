@@ -1,6 +1,7 @@
 package api
 
 import (
+	"api/storage"
 	"api/model"
 	"encoding/json"
 	"fmt"
@@ -11,33 +12,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func writeJSON(w http.ResponseWriter, status int, v any) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	return json.NewEncoder(w).Encode(v)
-}
-
-type apiFunc func(w http.ResponseWriter, r *http.Request) error
-
-type APIError struct {
-	Error string
-}
-
-func makeHTTPHandler(fn apiFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := fn(w, r); err != nil {
-			writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
-		}
-	}
-}
-
 type APIServer struct {
 	listenAddr string
+	store      storage.Storage
 }
 
-func NewServer(liseningADD string) *APIServer {
+func NewServer(liseningADD string, store storage.Storage) *APIServer {
 	return &APIServer{
 		listenAddr: liseningADD,
+		store:      store,
 	}
 }
 
@@ -130,4 +113,24 @@ func (s *APIServer) wrapInJSON(objects ...interface{}) (string, error) {
 	}
 
 	return string(jsonBytes), nil
+}
+
+func writeJSON(w http.ResponseWriter, status int, v any) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	return json.NewEncoder(w).Encode(v)
+}
+
+type apiFunc func(w http.ResponseWriter, r *http.Request) error
+
+type APIError struct {
+	Error string
+}
+
+func makeHTTPHandler(fn apiFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := fn(w, r); err != nil {
+			writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+		}
+	}
 }

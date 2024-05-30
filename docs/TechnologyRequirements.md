@@ -51,6 +51,9 @@ storage and querying of dispute-related information. Additionally, its full-text
 quick and accurate retrieval of relevant disputes, legal documents, and case notes, significantly 
 improving user experience.
 
+## PGAdmin
+
+PGAdmin is an indispensable tool for managing our PostgreSQL databases in the dispute resolution platform. It provides a comprehensive interface for database administration, allowing developers and administrators to efficiently handle tasks such as querying, performance tuning, and data visualization. PGAdmin supports quality attributes like maintainability and reliability by offering powerful features for database monitoring, backup, and restoration, ensuring data integrity and optimal performance. By facilitating easy management of our database systems, PGAdmin helps maintain a robust and efficient backend, crucial for handling high volumes of dispute-related data.
 
 ## Redis
 In our dispute resolution engine, Redis serves as a vital caching layer, optimizing performance and 
@@ -138,6 +141,29 @@ regulations. With GitGuardian integrated into our development workflow, we can m
 and confidentiality of our codebase, mitigating risks and maintaining user trust.
 
 ## goVulnCheck
+
+goVulnCheck is essential for maintaining the security and reliability of our Go-based backend in the 
+dispute resolution platform. By scanning the codebase for known vulnerabilities in Go libraries and 
+dependencies, goVulnCheck ensures that potential security risks are identified and addressed promptly. 
+This contributes to quality attributes like security and reliability, helping to protect the platform 
+from exploits and ensuring the robustness of our backend services. Integrating goVulnCheck into our 
+development process allows us to maintain a secure and trustworthy application environment.
+
 ## Dependabot
+
+Dependabot automates dependency management for our dispute resolution platform, continuously monitoring 
+and updating libraries to their latest secure versions. By automatically generating pull requests for 
+dependency updates, Dependabot helps us stay ahead of security vulnerabilities and compatibility issues. 
+This enhances quality attributes like security, maintainability, and reliability by ensuring that our 
+application components are always up-to-date and secure. Dependabot’s integration into our GitHub workflow 
+streamlines the update process, reducing the manual effort required to maintain a healthy and secure codebase.
+
 ## LetsEncrypt
-## PGAdmin
+
+Let’s Encrypt provides free SSL/TLS certificates, ensuring secure communication for our dispute resolution 
+platform. By encrypting data transmitted between users and the server, Let’s Encrypt protects sensitive 
+information from interception and tampering. This supports functional requirements such as the Secure 
+Communication Channel and contributes to quality attributes like security and reliability. Automating the 
+issuance and renewal of SSL/TLS certificates, Let’s Encrypt ensures continuous and robust encryption, 
+enhancing user trust and compliance with data protection standards.
+

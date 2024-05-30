@@ -4,9 +4,17 @@
 
 The Dispute Resolution Engine must maintain high uptime due to the nature of the services we provide. Clients should have continuous access to the system to ensure they can respond promptly to time-sensitive communications. A reliable system with high uptime not only benefits our clients but also increases our throughput.
 
+### 1.1 Quanitifications
+
+We will be using a VPS server to host Dispute Resolution Engine.
+
 ## 2. Scalability and Performance
 
 Scalability and performance go hand-in-hand in this system. Disputes are common occurrences and it is expected that the Dispute Resolution Engine (DRE) must be capable of handling many cases simultaneously, as well as multiple active users, per case, at any given time. Performance is essential for scalability. A system that performs well for each user can scale more effectively.
+
+### 2.1 Quantification
+
+Renowned for its high aptitude to function concurrently, Golang will be the reason for our highly perfromante backend. As for the actual server we will be using [stubbed] to host Dispute Resolution Engine. The server boasts powerful hardware, further benefitting performance and throughput.
 
 ## 3. Usability
 

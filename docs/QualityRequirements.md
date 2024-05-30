@@ -20,6 +20,10 @@ Renowned for its high aptitude to function concurrently, Golang will be the reas
 
 The Dispute Resolution Engine is designed to be user-friendly. It aims to enable easy navigation through simple and intuitive user interfaces. This ensures that users can operate the system effectively without extensive training or technical knowledge. This is crucial for a platform that is intended to accommodate users from a wide range of domains.
 
+### 3.1 Quantification
+
+Simple but small extra features to guide users when trying to navigate an application. To aid our clients as much as possible we plan to implement tooltips, a guided tutorial on the site and a well written user-manual of course.
+
 ## 4. Security
 
 The Dispute Resolution Engine will handle sensitive information regularly. In addition to user credentials, participants in disputes will expect a high level of confidentiality when exchanging information. This is mainly due to documented evidence or communications that can contain exploitable or otherwise sensitive information. Therefore, a fundamental requirement of the Dispute Resolution Engine is to ensure the protection of both the personal and dispute-related information of our clients.

@@ -1,21 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { HTMLAttributes, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { login, signup } from "@/app/lib/auth";
-import { Input } from "@/components/ui/input";
+
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { login } from "@/app/lib/auth";
+import TextField from "@/components/form/text-field";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Required").email("Please enter a valid email"),
@@ -23,23 +17,7 @@ const loginSchema = z.object({
 });
 
 export type LoginData = z.infer<typeof loginSchema>;
-
-function TextField({ name, label }: { name: keyof LoginData; label: string }) {
-  return (
-    <FormField
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <FormControl>
-            <Input placeholder={label} {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-}
+const LoginField = TextField<LoginData>;
 
 export default function LoginForm(props: HTMLAttributes<HTMLFormElement>) {
   const [loading, setLoading] = useState(false);
@@ -75,8 +53,8 @@ export default function LoginForm(props: HTMLAttributes<HTMLFormElement>) {
             className="gap-y-2 space-y-3"
             {...props}
           >
-            <TextField name="email" label="Email" />
-            <TextField name="password" label="Password" />
+            <LoginField name="email" label="Email" />
+            <LoginField type="password" name="password" label="Password" />
           </form>
         </CardContent>
         <CardFooter>

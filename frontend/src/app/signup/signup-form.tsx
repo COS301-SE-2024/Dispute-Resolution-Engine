@@ -2,20 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { HTMLAttributes, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { signup } from "@/app/lib/auth";
-import { Input } from "@/components/ui/input";
+import TextField from "@/components/form/text-field";
 
 const signupSchema = z
   .object({
@@ -42,22 +35,7 @@ const signupSchema = z
 
 export type SignupData = z.infer<typeof signupSchema>;
 
-function TextField({ name, label }: { name: keyof SignupData; label: string }) {
-  return (
-    <FormField
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{label}</FormLabel>
-          <FormControl>
-            <Input placeholder={label} {...field} />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  );
-}
+const SignupField = TextField<SignupData>;
 
 export default function SignupForm(props: HTMLAttributes<HTMLFormElement>) {
   const [loading, setLoading] = useState(false);
@@ -96,11 +74,11 @@ export default function SignupForm(props: HTMLAttributes<HTMLFormElement>) {
             className="gap-y-2 space-y-3"
             {...props}
           >
-            <TextField name="firstName" label="First Name" />
-            <TextField name="lastName" label="Last Name" />
-            <TextField name="email" label="Email" />
-            <TextField name="password" label="Password" />
-            <TextField name="passwordConfirm" label="Confirm Password" />
+            <SignupField name="firstName" label="First Name" />
+            <SignupField name="lastName" label="Last Name" />
+            <SignupField name="email" label="Email" />
+            <SignupField type="password" name="password" label="Password" />
+            <SignupField type="password" name="passwordConfirm" label="Confirm Password" />
           </form>
         </CardContent>
         <CardFooter>

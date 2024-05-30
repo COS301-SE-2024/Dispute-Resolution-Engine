@@ -2,7 +2,7 @@ name: Linting
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
-  jst:
+  lnt:
   pull_request:
     branches:
       - main
@@ -19,13 +19,13 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20.13.1'
+          node-version: '18.20.3'
       - name: Install dependencies
         run: |
           cd frontend
-          npm install yarn
+          npm install -g yarn
           yarn
-      - name: Run jest
+      - name: Run linter
         run: |
           cd frontend
           yarn lint

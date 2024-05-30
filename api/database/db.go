@@ -1,44 +1,50 @@
-package database
+package db
 
 import (
+	"database/sql"
 	"fmt"
+	"os"
+
+	_ "github.com/lib/pq"
+	"github.com/joho/godotenv"
 )
 
-type DB struct {
-	data map[string]string
-}
+var db *sql.DB
 
-func NewDB() *DB {
-	return &DB{
-		data: make(map[string]string),
-	}
-}
+func ConnectDB() {
+	var err error
 
-func (db *DB) Get(key string) (string, error) {
-	value, ok := db.data[key]
-	if !ok {
-		return "", fmt.Errorf("key not found")
-	}
-	return value, nil
-}
-
-func (db *DB) Set(key, value string) {
-	db.data[key] = value
-}
-
-func main() {
-	// Create a new instance of the mock database
-	db := NewDB()
-
-	// Set some values
-	db.Set("key1", "value1")
-	db.Set("key2", "value2")
-
-	// Get a value
-	value, err := db.Get("key1")
+	// Load .env file
+	err = godotenv.Load(".env")
 	if err != nil {
-		fmt.Println("Error:", err)
-	} else {
-		fmt.Println("Value:", value)
+		panic(err)
 	}
+
+	// Database credentials
+	host := os.Getenv("DATABASE_URL")
+	port := os.Getenv("DATABASE_PORT")
+	user := os.Getenv("DATABASE_USER")
+	password := os.Getenv("DATABASE_PASSWORD")
+	dbname := os.Getenv("DATABASE_NAME")
+	fmt.Println("hello")
+	fmt.Println(host, port, user, password, dbname)
+
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+
+    // Establish connection to PostgreSQL
+    db, err = sql.Open("postgres", connStr)
+    if err != nil {
+		// fmt.Println("Error: ", err)
+        panic(err)
+    }
+    defer db.Close()
+
+    // Check if the connection is successful
+    err = db.Ping()
+    if err != nil {
+		// fmt.Println("Error: ", err)
+        panic(err)
+    }
+
+    fmt.Println("Connected to PostgreSQL database!")
 }

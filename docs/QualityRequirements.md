@@ -6,7 +6,7 @@ The Dispute Resolution Engine must maintain high uptime due to the nature of the
 
 ### 1.1 Quanitifications
 
-We will be using a VPS server to host Dispute Resolution Engine.
+We will be using a VPS server to host Dispute Resolution Engine via domains.co.za. Their servers boast an outstanding 99.9% uptime as well as free monthly backups, ensuring that our server is always up and can recover from data corruption.
 
 ## 2. Scalability and Performance
 
@@ -14,7 +14,7 @@ Scalability and performance go hand-in-hand in this system. Disputes are common 
 
 ### 2.1 Quantification
 
-Renowned for its high aptitude to function concurrently, Golang will be the reason for our highly perfromante backend. As for the actual server we will be using [stubbed] to host Dispute Resolution Engine. The server boasts powerful hardware, further benefitting performance and throughput.
+Renowned for its high aptitude to function concurrently, Golang will be the reason for our highly perfromante backend. As for the actual server, we will be using [stubbed] to host Dispute Resolution Engine. The server boasts powerful hardware, further benefitting performance and throughput.
 
 ## 3. Usability
 

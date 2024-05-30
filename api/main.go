@@ -11,6 +11,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not create storage: %v", err)
 	}
+
+	if err := store.Init(); err != nil {
+		log.Fatalf("could not init storage: %v", err)
+	}
+
 	server := api.NewServer(":8080", store)
 	server.Run()
 }

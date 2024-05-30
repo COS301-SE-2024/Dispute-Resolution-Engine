@@ -2,7 +2,6 @@ name: Linting
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
-  lnt:
   pull_request:
     branches:
       - main

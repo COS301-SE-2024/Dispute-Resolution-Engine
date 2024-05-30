@@ -12,18 +12,16 @@ import (
 )
 
 func writeJSON(w http.ResponseWriter, status int, v any) error {
-	w.WriteHeader(status)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(v)
 }
-
 
 type apiFunc func(w http.ResponseWriter, r *http.Request) error
 
 type APIError struct {
 	Error string
 }
-
 
 func makeHTTPHandler(fn apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -47,20 +45,26 @@ func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api", makeHTTPHandler(s.HandleRequests))
+	router.HandleFunc("/api/{id}", makeHTTPHandler(s.HalderTestGet))
 	log.Println("Server is running on port ", s.listenAddr)
 	http.ListenAndServe(s.listenAddr, router)
 
 }
 
+func (s *APIServer) HalderTestGet(w http.ResponseWriter, r *http.Request) error {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	return writeJSON(w, http.StatusOK, "GET_API_with_ID: "+id)
+}
 
 func (s *APIServer) HandleRequests(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
-		case "GET":
-			return s.getAPI(w, r)
-		case "POST":
-			return s.postAPI(w, r)
-		default:
-			return fmt.Errorf("method not allowed: %s", r.Method)
+	case "GET":
+		return s.getAPI(w, r)
+	case "POST":
+		return s.postAPI(w, r)
+	default:
+		return fmt.Errorf("method not allowed: %s", r.Method)
 	}
 }
 
@@ -93,16 +97,7 @@ func (s *APIServer) getAPI(w http.ResponseWriter, r *http.Request) error {
 	account.Last_login = "2021-01-01"
 	account.Status = "active"
 
-	/*
-	{
-		user: {
-		},
-		address: {
-		},
-	}
-	
-	**/
-	wrappedResStr, err := s.wrapInJSON(address, account)
+	wrappedResStr, err := s.wrapInJSON(*address, *account)
 	if err != nil {
 		return writeJSON(w, http.StatusInternalServerError, APIError{Error: err.Error()})
 	}
@@ -113,7 +108,6 @@ func (s *APIServer) getAPI(w http.ResponseWriter, r *http.Request) error {
 		return writeJSON(w, http.StatusInternalServerError, APIError{Error: err.Error()})
 	}
 
-
 	return writeJSON(w, http.StatusOK, wrappedResJSON)
 }
 
@@ -121,12 +115,12 @@ func (s *APIServer) postAPI(w http.ResponseWriter, r *http.Request) error {
 	return writeJSON(w, http.StatusOK, "POST API")
 }
 
-func (s *APIServer) wrapInJSON(objects ...interface{}) (string,error) {
+func (s *APIServer) wrapInJSON(objects ...interface{}) (string, error) {
 	jsonData := make(map[string]interface{})
 
 	for _, obj := range objects {
 		objType := reflect.TypeOf(obj).String()
-		
+
 		jsonData[objType] = obj
 	}
 

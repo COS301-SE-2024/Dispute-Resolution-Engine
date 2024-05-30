@@ -14,16 +14,16 @@ package model
 // );
 
 type Address struct {
-	Id 		 int
-	Code 	 string
-	Country  string
-	Province string
-	City 	 string
-	Street3  string
-	Street2  string
-	Street   string
-	Address_type int
-	Last_updated string
+	Id           int    `json:"id"`
+	Code         string `json:"code"`
+	Country      string `json:"country"`
+	Province     string `json:"province"`
+	City         string `json:"city"`
+	Street3      string `json:"street3"`
+	Street2      string `json:"street2"`
+	Street       string `json:"street"`
+	Address_type int    `json:"address_type"`
+	Last_updated string `json:"last_updated"`
 }
 
 // CREATE TYPE gender_enum AS ENUM ('male', 'female', 'non-binary', 'prefer not to say', 'other');
@@ -49,20 +49,20 @@ type Address struct {
 // );
 
 type User struct {
-	ID 				int
-	First_name 		string
-	Surname 		string
-	Birthdate 		string
-	Nationality 	string
-	Role 			string
-	Email 			string
-	Password_hash 	string
-	Phone_number 	string
-	Address_id 		int
-	Created_at 		string
-	Updated_at 		string
-	Last_login 		string
-	Status 			string
+	ID            int    `json:"id"`
+	First_name    string `json:"first_name"`
+	Surname       string `json:"surname"`
+	Birthdate     string `json:"birthdate"`
+	Nationality   string `json:"national"`
+	Role          string `json:"role"`
+	Email         string `json:"email"`
+	Password_hash string `json:"password_hash"`
+	Phone_number  string `json:"phone_number"`
+	Address_id    int    `json:"address_id"`
+	Created_at    string `json:"created_at"`
+	Updated_at    string `json:"updated_at"`
+	Last_login    string `json:"last_login"`
+	Status        string `json:"status"`
 }
 
 func NewUser() *User {

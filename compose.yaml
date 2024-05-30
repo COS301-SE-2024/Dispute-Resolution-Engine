@@ -1,0 +1,19 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "api"
+  api:
+    build: ./api
+    ports:
+      - "8080:8080"
+    env_file:
+      - api.env
+    depends_on:
+      - "postgres"
+  postgres:
+    image: postgres
+    env_file:
+      - db.env

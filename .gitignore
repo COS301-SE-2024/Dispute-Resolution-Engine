@@ -60,4 +60,4 @@ jspm_packages
 .next
 
 #! .env
-.env
+*.env

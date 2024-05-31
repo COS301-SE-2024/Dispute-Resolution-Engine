@@ -103,6 +103,8 @@ func (s *APIServer) postAPI(w http.ResponseWriter, r *http.Request) error {
 	switch req.RequestType {
 	case "create_account":
 		return s.createAccount(w, req.Body)
+	case "login":
+		return s.login(w, req.Body)
 	default:
 		return writeJSON(w, http.StatusBadRequest, APIError{Error: "invalid request type"})
 	}
@@ -143,6 +145,28 @@ func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage
 	}
 
 	return writeJSON(w, http.StatusOK, "account created")
+}
+
+func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error {
+	var body model.LoginBody
+	if err := json.Unmarshal(rawBody, &body); err != nil {
+		return writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+	}
+
+	if body.Email == "" || body.PasswordHash == "" {
+		return writeJSON(w, http.StatusBadRequest, APIError{Error: "missing required fields"})
+	}
+
+	authUser := model.AuthUser()
+	authUser.Email = body.Email
+	authUser.Password_hash = body.PasswordHash
+
+	if err := s.store.AuthenticateUser(authUser); err != nil {
+		return writeJSON(w, http.StatusInternalServerError, APIError{Error: err.Error()})
+	}
+
+	return writeJSON(w, http.StatusOK, "login successful")
+
 }
 
 func (s *APIServer) wrapInJSON(objects ...interface{}) (string, error) {

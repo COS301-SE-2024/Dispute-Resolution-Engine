@@ -3,11 +3,13 @@ package storage
 import (
 	"api/model"
 	"database/sql"
+
 	_ "github.com/lib/pq"
 
-	"github.com/joho/godotenv"
-	"os"
 	"fmt"
+	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Storage interface {
@@ -26,6 +28,9 @@ type Storage interface {
 	// Delete
 	DeleteUser(id int) error
 	DeleteAddress(id int) error
+
+	//Login
+	AuthenticateUser(user *model.LoginUser) error
 }
 
 type PostgresStore struct {
@@ -53,20 +58,20 @@ func NewPostgresStore() (*PostgresStore, error) {
 
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
-    // Establish connection to PostgreSQL
-    db, err = sql.Open("postgres", connStr)
-    if err != nil {
-        return nil, err
-    }
-    // defer db.Close()
+	// Establish connection to PostgreSQL
+	db, err = sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, err
+	}
+	// defer db.Close()
 
-    // Check if the connection is successful
-    err = db.Ping()
-    if err != nil {
-        return nil, err
-    }
+	// Check if the connection is successful
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
 
-    fmt.Println("Connected to PostgreSQL database!")
+	fmt.Println("Connected to PostgreSQL database!")
 
 	return &PostgresStore{db: db}, nil
 }
@@ -115,26 +120,26 @@ func (s *PostgresStore) createAddressesTable() error {
         last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     `
-    _, err := s.db.Exec(query)
-    if err != nil {
-        return fmt.Errorf("could not create addresses table: %w", err)
-    }
-    return nil
+	_, err := s.db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("could not create addresses table: %w", err)
+	}
+	return nil
 }
 
 func (s *PostgresStore) createGenderEnum() error {
-    query := `
+	query := `
     DO $$ BEGIN
         CREATE TYPE gender_enum AS ENUM ('male', 'female', 'non-binary', 'prefer not to say', 'other');
     EXCEPTION
         WHEN duplicate_object THEN NULL;
     END $$;
     `
-    _, err := s.db.Exec(query)
-    if err != nil {
-        return fmt.Errorf("could not create gender_enum type: %w", err)
-    }
-    return nil
+	_, err := s.db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("could not create gender_enum type: %w", err)
+	}
+	return nil
 }
 
 func (s *PostgresStore) GetAllUsers() ([]*model.User, error) {
@@ -179,7 +184,7 @@ func (s *PostgresStore) GetAllUsers() ([]*model.User, error) {
 }
 
 func (s *PostgresStore) createUsersTable() error {
-    query := `
+	query := `
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         first_name VARCHAR(50) NOT NULL,
@@ -200,13 +205,12 @@ func (s *PostgresStore) createUsersTable() error {
         timezone VARCHAR(50)
     );
     `
-    _, err := s.db.Exec(query)
-    if err != nil {
-        return fmt.Errorf("could not create users table: %w", err)
-    }
-    return nil
+	_, err := s.db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("could not create users table: %w", err)
+	}
+	return nil
 }
-
 
 func (s *PostgresStore) CreateUser(user *model.User) error {
 	stmt, err := s.db.Prepare(`INSERT INTO users (
@@ -243,22 +247,37 @@ func (s *PostgresStore) CreateUser(user *model.User) error {
 		return fmt.Errorf("could not prepare insert statement: %w", err)
 	}
 
-	_, err = stmt.Exec(user.First_name, 
-		user.Surname, 
-		user.Birthdate, 
-		user.Nationality, 
-		user.Role, 
-		user.Email, 
-		user.Password_hash, 
-		user.Phone_number, 
-		user.Address_id, 
-		user.Last_login, 
+	_, err = stmt.Exec(user.First_name,
+		user.Surname,
+		user.Birthdate,
+		user.Nationality,
+		user.Role,
+		user.Email,
+		user.Password_hash,
+		user.Phone_number,
+		user.Address_id,
+		user.Last_login,
 		user.Gender,
 		user.Preferred_language,
 		user.Timezone)
 
 	if err != nil {
 		return fmt.Errorf("could not insert user: %w", err)
+	}
+	return nil
+}
+
+func (s *PostgresStore) AuthenticateUser(user *model.LoginUser) error {
+	stmt, err := s.db.Prepare(`UPDATE users
+	SET last_login = CURRENT_TIMESTAMP
+	WHERE email = $1 AND password_hash = $2;`)
+	if err != nil {
+		return fmt.Errorf("could not prepare update statement: %w", err)
+	}
+
+	_, err = stmt.Exec(user.Email, user.Password_hash)
+	if err != nil {
+		return fmt.Errorf("could not authenticate user: %w", err)
 	}
 	return nil
 }
@@ -291,4 +310,3 @@ func (s *PostgresStore) DeleteUser(id int) error {
 func (s *PostgresStore) DeleteAddress(id int) error {
 	return nil
 }
-

@@ -126,7 +126,7 @@ func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage
 	user.Birthdate = "1990-01-01"
 	user.Nationality = "USA"
 	user.Role = "user"
-	user.Email = ""
+	user.Email = body.Email
 	user.Password_hash = body.PasswordHash
 	user.Phone_number = ""
 	user.Address_id = 1

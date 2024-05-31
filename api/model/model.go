@@ -11,6 +11,7 @@ type CreateAccountBody struct {
 	FirstName    string `json:"first_name"`
 	Surname      string `json:"surname"`
 	PasswordHash string `json:"password_hash"`
+	Email        string `json:"email"`
 }
 
 // CREATE TABLE addresses (

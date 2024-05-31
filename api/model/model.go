@@ -14,6 +14,11 @@ type CreateAccountBody struct {
 	Email        string `json:"email"`
 }
 
+type LoginBody struct {
+	Email        string `json:"email"`
+	PasswordHash string `json:"password_hash"`
+}
+
 // CREATE TABLE addresses (
 //     id BIGINT PRIMARY KEY,
 //     code VARCHAR(64),

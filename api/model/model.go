@@ -87,6 +87,15 @@ type User struct {
 	Timezone           string `json:"timezone"`
 }
 
+type LoginUser struct {
+	Email string `json:"email"`
+	Password_hash string `json:"password_hash"`
+}
+
+func AuthUser() * LoginUser {
+	return &LoginUser{}
+}
+
 func NewUser() *User {
 	return &User{}
 }

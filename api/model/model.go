@@ -25,11 +25,8 @@ type DisputeSummaryBody struct {
 
 type Response struct {
 	Status int         `json:"status"`
-	Body   interface{} `json:"body"`
-}
-
-type APIError struct {
-	Error string `json:"error"`
+	Data   interface{} `json:"data,omitempty"`
+	Error  string      `json:"error,omitempty"`
 }
 
 // CREATE TABLE addresses (

@@ -198,7 +198,7 @@ func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error 
 		"message": "login successful",
 	}
 
-	return writeJSON(w, http.StatusOK, bodyResponse)
+	return writeJSON(w, http.StatusOK, model.Response{Status: 200, Data: bodyResponse})
 
 }
 

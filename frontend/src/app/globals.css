@@ -11,6 +11,7 @@
 
 body {
   background: #f0f5f6;
+  @apply h-screen;
   /*background: #eee;*/
 }
 

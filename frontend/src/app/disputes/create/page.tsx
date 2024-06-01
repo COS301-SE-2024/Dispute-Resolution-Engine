@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -33,6 +34,10 @@ export default function CreateDispute() {
           <Input placeholder="Evidence" type="file" />
         </div>
       </main>
+      <footer className="p-2 flex justify-between">
+        <Button>Action</Button>
+        <Button variant="destructive">Action</Button>
+      </footer>
     </div>
   );
 }

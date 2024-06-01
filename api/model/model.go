@@ -20,10 +20,17 @@ type LoginBody struct {
 }
 
 type DisputeSummaryBody struct {
-	DisputeID string `json:"id"`
+	UserID string `json:"id"`
 }
 
+type Response struct {
+	Status int         `json:"status"`
+	Body   interface{} `json:"body"`
+}
 
+type APIError struct {
+	Error string `json:"error"`
+}
 
 // CREATE TABLE addresses (
 //     id BIGINT PRIMARY KEY,
@@ -95,15 +102,15 @@ type User struct {
 
 type DisputeSummary struct {
 	DisputeID    string `json:"id"`
-	DisputeTitle  string `json:"title"`
+	DisputeTitle string `json:"title"`
 }
 
 type LoginUser struct {
-	Email string `json:"email"`
+	Email         string `json:"email"`
 	Password_hash string `json:"password_hash"`
 }
 
-func AuthUser() * LoginUser {
+func AuthUser() *LoginUser {
 	return &LoginUser{}
 }
 
@@ -114,6 +121,3 @@ func NewUser() *User {
 func NewAddress() *Address {
 	return &Address{}
 }
-
-
-

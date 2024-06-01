@@ -170,7 +170,6 @@ func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage
 	}
 
 	var bodyResponse = map[string]interface{}{
-		"status":  200,
 		"message": "account created",
 	}
 
@@ -196,7 +195,6 @@ func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error 
 	}
 
 	bodyResponse := map[string]interface{}{
-		"status":  200,
 		"message": "login successful",
 	}
 

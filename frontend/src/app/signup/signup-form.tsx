@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { signup } from "@/app/lib/auth";
 import TextField from "@/components/form/text-field";
+import { sign } from "crypto";
 
 const signupSchema = z
   .object({
@@ -55,7 +56,8 @@ export default function SignupForm(props: HTMLAttributes<HTMLFormElement>) {
   async function cookPlease(data: SignupData) {
     console.log(data);
     setLoading(true);
-    setError(await signup(data));
+    const response = await signup(data);
+    setError(response.data?.message ?? response.error ?? "");
     setLoading(false);
   }
 

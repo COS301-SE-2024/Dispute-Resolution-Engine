@@ -29,14 +29,14 @@ export default async function DisputeRootLayout({
         <Input placeholder="Search" />
         <nav>
           <ul>
-            {typeof data != "string" ? (
-              data.map((d) => (
+            {data.data ? (
+              data.data.map((d) => (
                 <li key={d.id}>
                   <DisputeLink href={`/disputes/${d.id}`}>{d.title}</DisputeLink>
                 </li>
               ))
             ) : (
-              <li>{data}</li>
+              <li>{data.error}</li>
             )}
           </ul>
         </nav>

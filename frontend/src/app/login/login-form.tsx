@@ -34,7 +34,8 @@ export default function LoginForm(props: HTMLAttributes<HTMLFormElement>) {
   async function cookPlease(data: LoginData) {
     console.log(data);
     setLoading(true);
-    setError(await login(data));
+    const res = await login(data);
+    setError(res.data?.message ?? res.error ?? "");
     setLoading(false);
   }
 

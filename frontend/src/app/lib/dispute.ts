@@ -1,24 +1,24 @@
 "use server";
 
+import { Result } from "@/lib/types";
+
 const API_URL = process.env.API_URL;
 
 export type DisputeSummary = {
-    id: string;
-    title: string;
-}
+  id: string;
+  title: string;
+};
 
-export async function fetchDisputes(user: string): Promise<DisputeSummary[] | string> {
-  const response = await fetch(`${API_URL}/api`, {
+export async function fetchDisputes(user: string): Promise<Result<DisputeSummary[]>> {
+  const response: Result<DisputeSummary[]> = await fetch(`${API_URL}/api`, {
+    cache: "no-cache",
     method: "POST",
     body: JSON.stringify({
       request_type: "dispute_summary",
       body: {
         id: user,
-      }
-    })
-  }).then(res => res.json());
-  if (response.Error) {
-    return response.Error;
-  }
+      },
+    }),
+  }).then((res) => res.json());
   return response;
 }

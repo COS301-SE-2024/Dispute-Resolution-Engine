@@ -4,7 +4,6 @@ import (
 	"api/model"
 	"api/storage"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"reflect"
@@ -28,13 +27,13 @@ func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/api", makeHTTPHandler(s.HandleRequests))
-	router.HandleFunc("/api/{id}", makeHTTPHandler(s.HalderTestGet))
+	router.HandleFunc("/api/{id}", makeHTTPHandler(s.HandlerTestGet))
 	log.Println("Server is running on port ", s.listenAddr)
 	http.ListenAndServe(s.listenAddr, router)
 
 }
 
-func (s *APIServer) HalderTestGet(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) HandlerTestGet(w http.ResponseWriter, r *http.Request) error {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	return writeJSON(w, http.StatusOK, "GET_API_with_ID: "+id)
@@ -47,7 +46,7 @@ func (s *APIServer) HandleRequests(w http.ResponseWriter, r *http.Request) error
 	case "POST":
 		return s.postAPI(w, r)
 	default:
-		return fmt.Errorf("method not allowed: %s", r.Method)
+		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: "invalid request method"})
 	}
 }
 
@@ -82,13 +81,13 @@ func (s *APIServer) getAPI(w http.ResponseWriter, r *http.Request) error {
 
 	wrappedResStr, err := s.wrapInJSON(*address, *account)
 	if err != nil {
-		return writeJSON(w, http.StatusInternalServerError, APIError{Error: err.Error()})
+		return writeJSON(w, http.StatusInternalServerError, model.Response{Status: 500, Error: err.Error()})
 	}
 
 	var wrappedResJSON any
 	err = json.Unmarshal([]byte(wrappedResStr), &wrappedResJSON)
 	if err != nil {
-		return writeJSON(w, http.StatusInternalServerError, APIError{Error: err.Error()})
+		return writeJSON(w, http.StatusInternalServerError, model.Response{Status: 500, Error: err.Error()})
 	}
 
 	return writeJSON(w, http.StatusOK, wrappedResJSON)
@@ -97,7 +96,7 @@ func (s *APIServer) getAPI(w http.ResponseWriter, r *http.Request) error {
 func (s *APIServer) postAPI(w http.ResponseWriter, r *http.Request) error {
 	req := new(model.BaseRequest)
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
-		return writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: err.Error()})
 	}
 
 	switch req.RequestType {
@@ -108,18 +107,18 @@ func (s *APIServer) postAPI(w http.ResponseWriter, r *http.Request) error {
 	case "dispute_summary":
 		return s.getDisputeSummary(w, req.Body)
 	default:
-		return writeJSON(w, http.StatusBadRequest, APIError{Error: "invalid request type"})
+		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: "invalid request type"})
 	}
 }
 
 func (s *APIServer) getDisputeSummary(w http.ResponseWriter, rawBody json.RawMessage) error {
 	var body model.DisputeSummaryBody
 	if err := json.Unmarshal(rawBody, &body); err != nil {
-		return writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: err.Error()})
 	}
 
-	if body.DisputeID == "" {
-		return writeJSON(w, http.StatusBadRequest, APIError{Error: "missing required fields"})
+	if body.UserID == "" {
+		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: "missing required fields"})
 	}
 
 	//stubbed db access
@@ -135,54 +134,56 @@ func (s *APIServer) getDisputeSummary(w http.ResponseWriter, rawBody json.RawMes
 	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "9", DisputeTitle: "Dispute 9"})
 	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "10", DisputeTitle: "Dispute 10"})
 
-	return writeJSON(w, http.StatusOK, disputeSummaryLists)
+	return writeJSON(w, http.StatusOK, model.Response{Status: 200, Data: disputeSummaryLists})
 }
 
 func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage) error {
 	var body model.CreateAccountBody
 	if err := json.Unmarshal(rawBody, &body); err != nil {
-		return writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: err.Error()})
 	}
 
 	if body.FirstName == "" || body.Surname == "" || body.PasswordHash == "" {
-		return writeJSON(w, http.StatusBadRequest, APIError{Error: "missing required fields"})
+		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: "missing required fields"})
 	}
-
-	// access db
-	fmt.Println("Creating account with first name: ", body.FirstName)
-	user := model.NewUser()
-	user.First_name = body.FirstName
-	user.Surname = body.Surname
-	user.Birthdate = "1990-01-01"
-	user.Nationality = "USA"
-	user.Role = "user"
-	user.Email = body.Email
-	user.Password_hash = body.PasswordHash
-	user.Phone_number = ""
-	user.Address_id = 1
-	user.Created_at = "2024-05-30 10:00:00"
-	user.Updated_at = "2024-05-30 10:00:00"
-	user.Last_login = "2024-05-30 10:00:00"
-	user.Status = "active"
-	user.Gender = "male"
-	user.Preferred_language = "en"
-	user.Timezone = "UTC"
+	user := &model.User{
+		First_name:         body.FirstName,
+		Surname:            body.Surname,
+		Birthdate:          "1990-01-01",
+		Nationality:        "USA",
+		Role:               "user",
+		Email:              body.Email,
+		Password_hash:      body.PasswordHash,
+		Phone_number:       "",
+		Address_id:         1,
+		Created_at:         "2024-05-30 10:00:00",
+		Updated_at:         "2024-05-30 10:00:00",
+		Last_login:         "2024-05-30 10:00:00",
+		Status:             "active",
+		Gender:             "male",
+		Preferred_language: "en",
+		Timezone:           "UTC",
+	}
 
 	if err := s.store.CreateUser(user); err != nil {
-		return writeJSON(w, http.StatusInternalServerError, APIError{Error: err.Error()})
+		return writeJSON(w, http.StatusInternalServerError, model.Response{Status: 500, Error: err.Error()})
 	}
 
-	return writeJSON(w, http.StatusOK, "account created")
+	var bodyResponse = map[string]interface{}{
+		"message": "account created",
+	}
+
+	return writeJSON(w, http.StatusOK, model.Response{Status: 200, Data: bodyResponse})
 }
 
 func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error {
 	var body model.LoginBody
 	if err := json.Unmarshal(rawBody, &body); err != nil {
-		return writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: err.Error()})
 	}
 
 	if body.Email == "" || body.PasswordHash == "" {
-		return writeJSON(w, http.StatusBadRequest, APIError{Error: "missing required fields"})
+		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: "missing required fields"})
 	}
 
 	authUser := model.AuthUser()
@@ -190,10 +191,14 @@ func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error 
 	authUser.Password_hash = body.PasswordHash
 
 	if err := s.store.AuthenticateUser(authUser); err != nil {
-		return writeJSON(w, http.StatusInternalServerError, APIError{Error: err.Error()})
+		return writeJSON(w, http.StatusInternalServerError, model.Response{Status: 500, Error: err.Error()})
 	}
 
-	return writeJSON(w, http.StatusOK, "login successful")
+	bodyResponse := map[string]interface{}{
+		"message": "login successful",
+	}
+
+	return writeJSON(w, http.StatusOK, model.Response{Status: 200, Data: bodyResponse})
 
 }
 
@@ -222,14 +227,10 @@ func writeJSON(w http.ResponseWriter, status int, v any) error {
 
 type apiFunc func(w http.ResponseWriter, r *http.Request) error
 
-type APIError struct {
-	Error string
-}
-
 func makeHTTPHandler(fn apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := fn(w, r); err != nil {
-			writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+			writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: err.Error()})
 		}
 	}
 }

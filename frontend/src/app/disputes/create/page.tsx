@@ -1,10 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Create Dispute",
-};
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function CreateDispute() {
   return (
@@ -15,12 +14,25 @@ export default function CreateDispute() {
         </h1>
       </header>
       <Separator />
-      <main className="grow overflow-y-auto p-2"></main>
-      <Separator />
-      <footer className="p-2 flex justify-between">
-        <Button>Create</Button>
-        <Button variant="destructive">Cancel</Button>
-      </footer>
+      <main className="grow overflow-y-auto p-5 space-y-2">
+        <div>
+          <Label>Title</Label>
+          <Input placeholder="Title" />
+        </div>
+        <div className="space-y-2">
+          <Label>Respondant Details</Label>
+          <Input type="email" placeholder="Respondant's Email" />
+          <Input type="tel" placeholder="Respondant's Telephone" />
+        </div>
+        <div>
+          <Label>Summary</Label>
+          <Textarea placeholder="Write a short description of the dispute..." />
+        </div>
+        <div>
+          <Label>Evidence</Label>
+          <Input placeholder="Evidence" type="file" />
+        </div>
+      </main>
     </div>
   );
 }

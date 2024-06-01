@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
+import { fetchDisputes } from "../lib/dispute";
 
 function DisputeLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -15,26 +16,24 @@ function DisputeLink({ href, children }: { href: string; children: React.ReactNo
   );
 }
 
-export default function DisputeRootLayout({
+export default async function DisputeRootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const data = await fetchDisputes("cook");
+
   return (
     <div className="flex items-stretch h-full lg:w-3/4 mx-auto">
       <div className="w-56 flex flex-col p-2 gap-4">
         <Input placeholder="Search" />
         <nav>
           <ul>
-            <li>
-              <DisputeLink href="/disputes/1">You killed me :(</DisputeLink>
+            {typeof data != "string" ? data.map(d => (
+            <li key={d.id}>
+              <DisputeLink href={`/disputes/${d.id}`}>{d.title}</DisputeLink>
             </li>
-            <li>
-              <DisputeLink href="/disputes/2">You stole my lunch</DisputeLink>
-            </li>
-            <li>
-              <DisputeLink href="/disputes/3">You killed my family</DisputeLink>
-            </li>
+            )) : <li>{data}</li>}
           </ul>
         </nav>
 

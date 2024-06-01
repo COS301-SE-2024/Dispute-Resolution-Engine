@@ -19,6 +19,12 @@ type LoginBody struct {
 	PasswordHash string `json:"password_hash"`
 }
 
+type DisputeSummaryBody struct {
+	DisputeID string `json:"id"`
+}
+
+
+
 // CREATE TABLE addresses (
 //     id BIGINT PRIMARY KEY,
 //     code VARCHAR(64),
@@ -87,6 +93,11 @@ type User struct {
 	Timezone           string `json:"timezone"`
 }
 
+type DisputeSummary struct {
+	DisputeID    string `json:"id"`
+	DisputeTitle  string `json:"title"`
+}
+
 type LoginUser struct {
 	Email string `json:"email"`
 	Password_hash string `json:"password_hash"`
@@ -103,3 +114,6 @@ func NewUser() *User {
 func NewAddress() *Address {
 	return &Address{}
 }
+
+
+

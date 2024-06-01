@@ -105,9 +105,37 @@ func (s *APIServer) postAPI(w http.ResponseWriter, r *http.Request) error {
 		return s.createAccount(w, req.Body)
 	case "login":
 		return s.login(w, req.Body)
+	case "dispute_summary":
+		return s.getDisputeSummary(w, req.Body)
 	default:
 		return writeJSON(w, http.StatusBadRequest, APIError{Error: "invalid request type"})
 	}
+}
+
+func (s *APIServer) getDisputeSummary(w http.ResponseWriter, rawBody json.RawMessage) error {
+	var body model.DisputeSummaryBody
+	if err := json.Unmarshal(rawBody, &body); err != nil {
+		return writeJSON(w, http.StatusBadRequest, APIError{Error: err.Error()})
+	}
+
+	if body.DisputeID == "" {
+		return writeJSON(w, http.StatusBadRequest, APIError{Error: "missing required fields"})
+	}
+
+	//stubbed db access
+	disputeSummaryLists := make([]model.DisputeSummary, 0)
+	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "1", DisputeTitle: "Dispute 1"})
+	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "2", DisputeTitle: "Dispute 2"})
+	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "3", DisputeTitle: "Dispute 3"})
+	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "4", DisputeTitle: "Dispute 4"})
+	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "5", DisputeTitle: "Dispute 5"})
+	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "6", DisputeTitle: "Dispute 6"})
+	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "7", DisputeTitle: "Dispute 7"})
+	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "8", DisputeTitle: "Dispute 8"})
+	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "9", DisputeTitle: "Dispute 9"})
+	disputeSummaryLists = append(disputeSummaryLists, model.DisputeSummary{DisputeID: "10", DisputeTitle: "Dispute 10"})
+
+	return writeJSON(w, http.StatusOK, disputeSummaryLists)
 }
 
 func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage) error {

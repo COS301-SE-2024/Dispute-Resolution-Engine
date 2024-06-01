@@ -25,15 +25,19 @@ export default async function DisputeRootLayout({
 
   return (
     <div className="flex items-stretch h-full lg:w-3/4 mx-auto">
-      <div className="w-56 flex flex-col p-2 gap-4">
+      <div className="w-56 flex shrink-0 flex-col p-2 gap-4">
         <Input placeholder="Search" />
         <nav>
           <ul>
-            {typeof data != "string" ? data.map(d => (
-            <li key={d.id}>
-              <DisputeLink href={`/disputes/${d.id}`}>{d.title}</DisputeLink>
-            </li>
-            )) : <li>{data}</li>}
+            {typeof data != "string" ? (
+              data.map((d) => (
+                <li key={d.id}>
+                  <DisputeLink href={`/disputes/${d.id}`}>{d.title}</DisputeLink>
+                </li>
+              ))
+            ) : (
+              <li>{data}</li>
+            )}
           </ul>
         </nav>
 

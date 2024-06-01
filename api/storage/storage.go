@@ -268,6 +268,16 @@ func (s *PostgresStore) CreateUser(user *model.User) error {
 }
 
 func (s *PostgresStore) AuthenticateUser(user *model.LoginUser) error {
+
+	result, err := s.CheckUserExists(user)
+	if err != nil {
+		return fmt.Errorf("could not authenticate user: %w", err)
+	}
+
+	if !result {
+		return fmt.Errorf("user does not exist")
+	}
+
 	stmt, err := s.db.Prepare(`UPDATE users
 	SET last_login = CURRENT_TIMESTAMP
 	WHERE email = $1 AND password_hash = $2;`)
@@ -280,6 +290,19 @@ func (s *PostgresStore) AuthenticateUser(user *model.LoginUser) error {
 		return fmt.Errorf("could not authenticate user: %w", err)
 	}
 	return nil
+}
+
+func (s *PostgresStore) CheckUserExists(user *model.LoginUser) (bool, error) {
+	query := `SELECT * FROM users WHERE email = $1 AND password_hash = $2;`
+	rows, err := s.db.Query(query, user.Email, user.Password_hash)
+	if err != nil {
+		return false, fmt.Errorf("could not get user: %w", err)
+	}
+
+	if rows.Next() {
+		return true, nil
+	}
+	return false, nil
 }
 
 func (s *PostgresStore) CreateAddress(address *model.Address) error {

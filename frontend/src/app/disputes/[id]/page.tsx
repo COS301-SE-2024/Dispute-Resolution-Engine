@@ -1,5 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Metadata } from "next";
+
+type Props = {
+  params: { id: string };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  return {
+    title: `Dispute ${params.id}`,
+    description: "Dispute description",
+  };
+}
 
 function DisputeHeader({
   id,
@@ -13,7 +25,7 @@ function DisputeHeader({
   status: string;
 }) {
   return (
-    <header className="p-2 flex">
+    <header className="p-4 py-6 flex">
       <div className="grow">
         <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">{label}</h1>
         <span>Started: {startDate.toLocaleDateString()}</span>
@@ -29,7 +41,7 @@ function DisputeHeader({
   );
 }
 
-export default function DisputePage({ params }: { params: { id: string } }) {
+export default function DisputePage({ params }: Props) {
   return (
     <div className="grow overflow-y-auto flex flex-col">
       <DisputeHeader id={params.id} label="Dispute label" startDate={new Date()} status="Active" />

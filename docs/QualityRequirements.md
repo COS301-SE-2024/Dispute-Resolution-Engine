@@ -14,7 +14,7 @@ Scalability and performance go hand-in-hand in this system. Disputes are common 
 
 ### 2.1 Quantification
 
-Renowned for its high aptitude to function concurrently, Golang will be the reason for our highly performant backend. As for the actual server, we will be using [stubbed] to host Dispute Resolution Engine. The server boasts powerful hardware, further benefitting performance and throughput.
+Renowned for its high aptitude to function concurrently, Golang will be the reason for our highly performant backend. As for the actual server, we will be using a Terreco server to host Dispute Resolution Engine. The server boasts powerful hardware, further benefitting performance and throughput.
 
 ## 3. Usability
 

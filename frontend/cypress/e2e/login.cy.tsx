@@ -1,5 +1,5 @@
 describe('Navigation', () => {
-	it('should login to the server', () => {
+	it('should siupgn to the server', () => {
 		cy.visit('http://localhost:3000/signup')
 		cy.contains('First Name').type('Alice')
 		cy.contains('Last Name').type('Smith')

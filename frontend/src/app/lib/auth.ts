@@ -16,7 +16,7 @@ export async function signup(data: SignupData): Promise<Result<{ message: string
         first_name: data.firstName,
         surname: data.lastName,
         email: data.email,
-        password_hash: data.password,
+        password: data.password,
       },
     }),
   }).then((res) => res.json());
@@ -31,7 +31,7 @@ export async function login(data: LoginData): Promise<Result<{ message: string }
       request_type: "login",
       body: {
         email: data.email,
-        password_hash: data.password,
+        password: data.password,
       },
     }),
   }).then((res) => res.json());

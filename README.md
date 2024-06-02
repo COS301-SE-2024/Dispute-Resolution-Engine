@@ -61,7 +61,8 @@ Description here
 
 </details>
 <details><summary>Kivashin Naidoo - u22551167</summary><br>
-<img align="right" src="https://picsum.photos/150" width=150>
+<img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/29c9d113-9fe1-444b-b085-4dcef5b53cb6" width=150>
+
 <p>
 Description here
 </p>
@@ -78,7 +79,8 @@ Description here
 
 </details>
 <details><summary>Michael Horwitz - u22512323</summary><br>
-<img align="right" src="https://picsum.photos/150" width=150>
+
+<img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/17b7760e-d15d-41ea-b190-198397e07288" width=150>
 <p>
 Description here
 </p>

@@ -2,6 +2,7 @@ name: Go Test
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
+  go:
   pull_request:
     branches:
       - main
@@ -11,12 +12,14 @@ on:
       - opened
       - reopened
 jobs:
-  jest-test:
+  go-test:
     runs-on: ubuntu-latest
+    container:
+      image: golang:1.22.3
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Run linter
+      - name: Run go test
         run: |
           cd api/__tests__
           go test

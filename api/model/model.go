@@ -1,6 +1,11 @@
 package model
 
-import "encoding/json"
+import (
+	"crypto/rand"
+	"encoding/json"
+
+	"golang.org/x/crypto/argon2"
+)
 
 type BaseRequest struct {
 	RequestType string          `json:"request_type"`
@@ -15,8 +20,37 @@ type Argon2idHash struct {
 	saltlen uint32
 }
 
+type HashSalt struct {
+	Hash []byte
+	Salt []byte
+}
+
 func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keylen uint32) *Argon2idHash {
 	return &Argon2idHash{time, memory, threads, keylen, saltLen}
+}
+
+func randomSalt(length uint32) ([]byte, error) {
+	secret := make([]byte, length)
+
+	_, err := rand.Read(secret)
+	if err != nil {
+		return nil, err
+	}
+
+	return secret, nil
+}
+
+func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
+	var err error
+	if(len(salt) == 0) {
+		salt, err = randomSalt(a.saltlen)
+	}
+	if err != nil {
+		return nil, err
+	}
+	hash := argon2.IDKey(password, salt, a.time, a.memory, a.threads, a.keylen)
+	return &HashSalt{Hash: hash, Salt: salt}, nil
+
 }
 
 type CreateAccountBody struct {

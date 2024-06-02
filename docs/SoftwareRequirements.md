@@ -176,4 +176,10 @@ The following high-level objectives of the Dispute Resolution Engine are defined
         4. Continuously learns from past mediation sessions to improve the accuracy and relevance of its suggestions.
         5. Integrates with the Resolution Support Tools to offer a cohesive mediation assistance experience.
 
+## User Diagrams
+
+![DisputeFilingSub](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/39c998b7-8fae-4064-aede-6853383c112b)
+![MediationSub](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/88f06b9b-ea9c-40b8-ab96-75bb02ee5e20)
+![AuthSub](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/e992038d-0214-447c-a9d0-11bfe492610c)
+
 ## User Stories - [Link to User Stories](UserStories.md)

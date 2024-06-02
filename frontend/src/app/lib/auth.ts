@@ -4,7 +4,7 @@ import { Result } from "@/lib/types";
 import { LoginData } from "../login/login-form";
 import { SignupData } from "../signup/signup-form";
 
-const API_URL = process.env.API_URL;
+const API_URL = "http://localhost:8080";
 
 export async function signup(data: SignupData): Promise<Result<{ message: string }>> {
   const response = await fetch(`${API_URL}/api`, {

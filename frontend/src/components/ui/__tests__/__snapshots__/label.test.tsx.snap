@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders correctly 1`] = `
+<label
+  className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+  onMouseDown={[Function]}
+/>
+`;

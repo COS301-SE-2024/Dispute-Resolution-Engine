@@ -28,7 +28,15 @@ Simple but small extra features to guide users when trying to navigate an applic
 
 The Dispute Resolution Engine will handle sensitive information regularly. In addition to user credentials, participants in disputes will expect a high level of confidentiality when exchanging information. This is mainly due to documented evidence or communications that can contain exploitable or otherwise sensitive information. Therefore, a fundamental requirement of the Dispute Resolution Engine is to ensure the protection of both the personal and dispute-related information of our clients.
 
+### 4.1 Quantification
+
+Security is quantified by ensuring that all the OWASP checks are passed, each of which identify vunerabilities within the system. Covering these will ensure that all holes are filled regarding the security of our system. For further clarification, please review the [OWASP document](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/blob/feat/documentation/docs/OWASP.md) on our github.
+
 ## 5. Maintainability
 
 The Dispute Resolution Engine must be easy to update and extend. It is essential that expansion of the system allows for the addition of new legal processes, dispute types, and other features. This will ensure that the system remains relevant and up-to-date with the latest legal requirements and dispute resolution practices.
+
+### 5.1 Quantification
+
+DRE promotes maintainability as it is important for adding functionality and new features to the system in the future. We do this by ensuring that the frontend makes use of a component library, the backend's API is fully extensible (it is trivial to add/remove endpoints). 
 

@@ -15,6 +15,10 @@ type Argon2idHash struct {
 	saltlen uint32
 }
 
+func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keylen uint32) *Argon2idHash {
+	return &Argon2idHash{time, memory, threads, keylen, saltLen}
+}
+
 type CreateAccountBody struct {
 	FirstName    string `json:"first_name"`
 	Surname      string `json:"surname"`

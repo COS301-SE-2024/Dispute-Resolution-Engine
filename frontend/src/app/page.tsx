@@ -1,4 +1,4 @@
-import Button from "@/components/Button";
+import {Button} from "../components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -119,7 +119,7 @@ export default async function Home() {
           </p>
         </a>
       </div>
-      <Button label="Hello World" />
+      <Button>Click me</Button>
     </main>
   );
 }

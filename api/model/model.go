@@ -1,8 +1,10 @@
 package model
 
 import (
+	"bytes"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 
 	"golang.org/x/crypto/argon2"
 )
@@ -51,6 +53,20 @@ func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
 	hash := argon2.IDKey(password, salt, a.time, a.memory, a.threads, a.keylen)
 	return &HashSalt{Hash: hash, Salt: salt}, nil
 
+}
+
+func (a *Argon2idHash) Compare(hash, salt, password []byte) error {
+	// Generate hash for comparison.
+	hashSalt, err := a.GenerateHash(password, salt)
+	if err != nil {
+		return err
+	}
+	// Compare the generated hash with the stored hash.
+	// If they don't match return error.
+	if !bytes.Equal(hash, hashSalt.Hash) {
+		return errors.New("hash doesn't match")
+	}
+	return nil
 }
 
 type CreateAccountBody struct {

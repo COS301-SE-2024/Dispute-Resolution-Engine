@@ -3,6 +3,8 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
+    env_file:
+      - fe.env
     depends_on:
       - "api"
   api:
@@ -15,6 +17,8 @@ services:
       - "postgres"
   postgres:
     image: postgres
+    ports:
+      - "5432:5432"
     env_file:
       - db.env
     volumes:

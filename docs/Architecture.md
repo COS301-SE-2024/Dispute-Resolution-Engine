@@ -110,3 +110,16 @@ We make use of the Flux pattern to enhance the usability of the DRE by simplifyi
 1. Security
 2. Reliability
 3. Compliance
+
+### Flux Pattern
+
+1. Usability
+
+## Architectural Diagram
+
+![image](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/c87ddbb1-2ab8-4f7c-bce6-53a0ae029d49)
+
+
+## Class Diagram
+
+![classDiagram](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/bf3169c4-df33-4c2a-aa61-f74257ea3d42)

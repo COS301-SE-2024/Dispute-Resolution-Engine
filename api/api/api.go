@@ -5,6 +5,7 @@ import (
 	"api/storage"
 	"bytes"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"log"
@@ -151,6 +152,7 @@ func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage
 		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: "missing required fields"})
 	}
 	hasher := Argon2idHash{time: 1, memory: 12288, threads: 4, keylen: 32, saltlen: 16}
+	hashAndSalt := hasher.hashPassword(body.PasswordHash)
 	user := &model.User{
 		First_name:         body.FirstName,
 		Surname:            body.Surname,
@@ -158,8 +160,8 @@ func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage
 		Nationality:        "USA",
 		Role:               "user",
 		Email:              body.Email,
-		Password_hash:      string(hasher.hashPassword(body.PasswordHash).Hash),
-		Salt: 			 	string(hasher.hashPassword(body.PasswordHash).Salt),
+		Password_hash:      base64.StdEncoding.EncodeToString(hashAndSalt.Hash),
+		Salt:               base64.StdEncoding.EncodeToString(hashAndSalt.Salt),
 		Phone_number:       "",
 		Address_id:         1,
 		Created_at:         "2024-05-30 10:00:00",
@@ -194,7 +196,24 @@ func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error 
 
 	authUser := model.AuthUser()
 	authUser.Email = body.Email
-	authUser.Password_hash = body.PasswordHash
+
+	salt, err := s.store.GetSalt(authUser)
+	if err != nil {
+		return writeJSON(w, http.StatusInternalServerError, model.Response{Status: 500, Error: err.Error()})
+	}
+
+	realSalt, err := base64.StdEncoding.DecodeString(salt)
+	if err != nil {
+		return writeJSON(w, http.StatusInternalServerError, model.Response{Status: 500, Error: err.Error()})
+	}
+
+	hasher := Argon2idHash{time: 1, memory: 12288, threads: 4, keylen: 32, saltlen: 16}
+	checkHash, err := hasher.GenerateHash([]byte(body.PasswordHash), realSalt)
+	if err != nil {
+		return writeJSON(w, http.StatusInternalServerError, model.Response{Status: 500, Error: err.Error()})
+	}
+
+	authUser.Password_hash = base64.StdEncoding.EncodeToString(checkHash.Hash)
 
 	if err := s.store.AuthenticateUser(authUser); err != nil {
 		return writeJSON(w, http.StatusInternalServerError, model.Response{Status: 500, Error: err.Error()})
@@ -250,7 +269,7 @@ func RandomSalt(length uint32) ([]byte, error) {
 
 func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
 	var err error
-	if(len(salt) == 0) {
+	if len(salt) == 0 {
 		salt, err = RandomSalt(a.saltlen)
 	}
 	if err != nil {

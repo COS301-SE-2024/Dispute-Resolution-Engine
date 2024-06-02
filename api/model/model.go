@@ -88,7 +88,6 @@ type User struct {
 	Role               string `json:"role"`
 	Email              string `json:"email"`
 	Password_hash      string `json:"password_hash"`
-	Salt               string `json:"salt"`
 	Phone_number       string `json:"phone_number"`
 	Address_id         int    `json:"address_id"`
 	Created_at         string `json:"created_at"`
@@ -98,6 +97,7 @@ type User struct {
 	Gender             string `json:"gender"`
 	Preferred_language string `json:"preferred_language"`
 	Timezone           string `json:"timezone"`
+	Salt               string `json:"salt"`
 }
 
 type DisputeSummary struct {

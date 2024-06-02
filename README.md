@@ -44,7 +44,7 @@ When it comes to computing, I revel in security. I am fond of programming backen
 
 </details>
 <details><summary>Vincent Feistel - u22563777</summary><br>
-<img align="right" src="https://picsum.photos/150" width=150>
+<img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/161373977/5d35892a-2d32-4905-b737-2c4c7592613a" width=150>
 <p>
 Description here
 </p>

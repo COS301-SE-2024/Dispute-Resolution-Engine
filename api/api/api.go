@@ -3,6 +3,7 @@ package api
 import (
 	"api/model"
 	"api/storage"
+	"crypto/rand"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -205,6 +206,17 @@ func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error 
 func hashPassword(password string) string {
 	hashedPassword := password
 	return hashedPassword
+}
+
+func randomSalt(length uint32) ([]byte, error) {
+	secret := make([]byte, length)
+
+	_, err := rand.Read(secret)
+	if err != nil {
+		return nil, err
+	}
+
+	return secret, nil
 }
 
 func (s *APIServer) wrapInJSON(objects ...interface{}) (string, error) {

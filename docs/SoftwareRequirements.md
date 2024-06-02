@@ -29,9 +29,10 @@ The following high-level objectives of the Dispute Resolution Engine are defined
         1. Handles account creation for disputing parties.
         2. Manages authentication and authorization.
         3. Includes profile management for each party.
-    2. Dispute Submission:
+    2. Dispute Submission and Viewing:
         1. Interface for parties to submit their dispute details.
-        2. Form and document upload functionality for evidence and statements.
+        2. Interface for parties to browse their active diputes.
+        3. Form and document upload functionality for evidence and statements.
     3. Evidence Management:
         1. Secure storage and retrieval of submitted evidence.
         2. Metadata tagging and organization of evidence for easy access.

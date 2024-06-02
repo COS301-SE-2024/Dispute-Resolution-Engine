@@ -7,6 +7,14 @@ type BaseRequest struct {
 	Body        json.RawMessage `json:"body"`
 }
 
+type Argon2idHash struct {
+	time    uint32
+	memory  uint32
+	threads uint8
+	keylen  uint32
+	saltlen uint32
+}
+
 type CreateAccountBody struct {
 	FirstName    string `json:"first_name"`
 	Surname      string `json:"surname"`

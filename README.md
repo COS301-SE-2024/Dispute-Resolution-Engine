@@ -95,9 +95,10 @@ Description here
 
 </details>
 <details><summary>Caelan Hill - u04643187</summary><br>
-<img align="right" src="https://picsum.photos/150" width=150>
+<img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/7ffb72f5-6c91-4c8d-9247-12075f239b46" width=150>
 <p>
-Description
+
+I'm a passionate developer who thrives on programming challenges, exploring the intricacies of artificial intelligence, and crafting immersive game experiences. I'm always open to collaboration and new opportunities, eager to create impactful solutions. I am a proud member of team pancakes, unlike some of our other team-members.
 </p>
 <p>
   Email: u04643187@tuks.co.za

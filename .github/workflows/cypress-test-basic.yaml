@@ -25,6 +25,7 @@ jobs:
       - name: Start server
         run: |
           cd frontend
+          yarn build
           yarn start &
       - name: Cypress run
         uses: cypress-io/github-action@v6

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import Link from "next/link";
 
 export default function CreateDispute() {
   return (
@@ -35,8 +36,12 @@ export default function CreateDispute() {
         </div>
       </main>
       <footer className="p-2 flex justify-between">
-        <Button>Action</Button>
-        <Button variant="destructive">Action</Button>
+        <Button asChild>
+          <Link href="/disputes">Create</Link>
+        </Button>
+        <Button variant={"destructive"} asChild>
+          <Link href="/disputes">Cancel</Link>
+        </Button>
       </footer>
     </div>
   );

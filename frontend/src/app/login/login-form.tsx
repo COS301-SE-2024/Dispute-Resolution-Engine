@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { login } from "@/app/lib/auth";
 import TextField from "@/components/form/text-field";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Required").email("Please enter a valid email"),
@@ -22,6 +23,7 @@ const LoginField = TextField<LoginData>;
 export default function LoginForm(props: HTMLAttributes<HTMLFormElement>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -35,8 +37,12 @@ export default function LoginForm(props: HTMLAttributes<HTMLFormElement>) {
     console.log(data);
     setLoading(true);
     const res = await login(data);
-    setError(res.data?.message ?? res.error ?? "");
     setLoading(false);
+    if (res.error) {
+      setError(res.error);
+      return false;
+    }
+    router.push("/disputes");
   }
 
   const formId = useId();

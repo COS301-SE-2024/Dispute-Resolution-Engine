@@ -340,7 +340,7 @@ func sendOTP(userInfo string) {
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
 
-	message := []byte("Verification Email: \n\nPlease follow this link to verify your email: \n\n" + "http://localhost:8080/verifyEmail" + "\n" + "OTP: 123456" + "\n\n" + "Thank you!" + "\n\n" + "Techtonic Team")
+	message := []byte("Subject: Verification Email \n\nPlease follow this link to verify your email: \n\n" + "http://localhost:8080/verifyEmail" + "\n" + "OTP: 123456" + "\n\n" + "Thank you!" + "\n\n" + "Techtonic Team")
 
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 

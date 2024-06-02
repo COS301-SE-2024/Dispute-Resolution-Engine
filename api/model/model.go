@@ -1,6 +1,8 @@
 package model
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type BaseRequest struct {
 	RequestType string          `json:"request_type"`
@@ -10,13 +12,13 @@ type BaseRequest struct {
 type CreateAccountBody struct {
 	FirstName    string `json:"first_name"`
 	Surname      string `json:"surname"`
-	PasswordHash string `json:"password_hash"`
+	Password string `json:"password"`
 	Email        string `json:"email"`
 }
 
 type LoginBody struct {
 	Email        string `json:"email"`
-	PasswordHash string `json:"password_hash"`
+	Password string `json:"password"`
 }
 
 type DisputeSummaryBody struct {
@@ -95,6 +97,7 @@ type User struct {
 	Gender             string `json:"gender"`
 	Preferred_language string `json:"preferred_language"`
 	Timezone           string `json:"timezone"`
+	Salt               string `json:"salt"`
 }
 
 type DisputeSummary struct {

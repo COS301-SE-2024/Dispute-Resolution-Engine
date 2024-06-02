@@ -31,6 +31,7 @@ type Storage interface {
 
 	//Login
 	AuthenticateUser(user *model.LoginUser) error
+	GetSalt(user *model.LoginUser) (string, error)
 }
 
 type PostgresStore struct {
@@ -226,7 +227,8 @@ func (s *PostgresStore) CreateUser(user *model.User) error {
 		last_login,
 		gender,
 		preferred_language,
-		timezone
+		timezone,
+		salt
 		) VALUES (
 			$1,
 			$2,
@@ -240,7 +242,8 @@ func (s *PostgresStore) CreateUser(user *model.User) error {
 			$10,
 			$11,
 			$12,
-			$13
+			$13,
+			$14
 		);
 		`)
 	if err != nil {
@@ -259,7 +262,8 @@ func (s *PostgresStore) CreateUser(user *model.User) error {
 		user.Last_login,
 		user.Gender,
 		user.Preferred_language,
-		user.Timezone)
+		user.Timezone,
+		user.Salt)
 
 	if err != nil {
 		return fmt.Errorf("could not insert user: %w", err)
@@ -290,6 +294,27 @@ func (s *PostgresStore) AuthenticateUser(user *model.LoginUser) error {
 		return fmt.Errorf("could not authenticate user: %w", err)
 	}
 	return nil
+}
+
+func (s *PostgresStore) GetSalt(user *model.LoginUser) (string, error) {
+	query := `SELECT salt FROM users WHERE email = $1;`
+	rows, err := s.db.Query(query, user.Email)
+	if err != nil {
+		return "", fmt.Errorf("could not get user: %w", err)
+	}
+
+	var salt string
+	for rows.Next() {
+		err := rows.Scan(&salt)
+		if err != nil {
+			return "", fmt.Errorf("could not scan user: %w", err)
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return "", fmt.Errorf("could not iterate over users: %w", err)
+	}
+
+	return salt, nil
 }
 
 func (s *PostgresStore) CheckUserExists(user *model.LoginUser) (bool, error) {

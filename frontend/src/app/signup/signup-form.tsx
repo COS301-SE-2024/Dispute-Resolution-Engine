@@ -10,6 +10,7 @@ import { z } from "zod";
 import { signup } from "@/app/lib/auth";
 import TextField from "@/components/form/text-field";
 import { sign } from "crypto";
+import { useRouter } from "next/navigation";
 
 const signupSchema = z
   .object({
@@ -41,6 +42,7 @@ const SignupField = TextField<SignupData>;
 export default function SignupForm(props: HTMLAttributes<HTMLFormElement>) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const form = useForm<SignupData>({
     resolver: zodResolver(signupSchema),
@@ -57,8 +59,12 @@ export default function SignupForm(props: HTMLAttributes<HTMLFormElement>) {
     console.log(data);
     setLoading(true);
     const response = await signup(data);
-    setError(response.data?.message ?? response.error ?? "");
     setLoading(false);
+    if (response.error) {
+      setError(response.error);
+      return;
+    }
+    router.push("/signup/verify");
   }
 
   const formId = useId();

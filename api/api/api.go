@@ -202,6 +202,11 @@ func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error 
 
 }
 
+func hashPassword(password string) string {
+	hashedPassword := password
+	return hashedPassword
+}
+
 func (s *APIServer) wrapInJSON(objects ...interface{}) (string, error) {
 	jsonData := make(map[string]interface{})
 

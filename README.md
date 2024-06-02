@@ -27,7 +27,7 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
 ## Team Members
 <details><summary>Sebastian Guimaraens - u22494767</summary><br>
-<img align="right" src="https://picsum.photos/150" width=150>
+<img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/81089003/38327104-c4b7-4bb8-8318-5898d23e7340" width=150>
 <p>
 When it comes to computing, I revel in security. I am fond of programming backend services, designing secure system architectures, as well as Blue Teaming.  I find purpose in combating cybercrime, a deep conviction to contribute to a safer digital realm. A keyboard and an internet connection is all I need to make a difference. Additionally I am on team waffles, we deserve better than pancakes.
 </p>

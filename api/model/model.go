@@ -1,72 +1,12 @@
 package model
 
 import (
-	"bytes"
-	"crypto/rand"
 	"encoding/json"
-	"errors"
-
-	"golang.org/x/crypto/argon2"
 )
 
 type BaseRequest struct {
 	RequestType string          `json:"request_type"`
 	Body        json.RawMessage `json:"body"`
-}
-
-type Argon2idHash struct {
-	time    uint32
-	memory  uint32
-	threads uint8
-	keylen  uint32
-	saltlen uint32
-}
-
-type HashSalt struct {
-	Hash []byte
-	Salt []byte
-}
-
-func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keylen uint32) *Argon2idHash {
-	return &Argon2idHash{time, memory, threads, keylen, saltLen}
-}
-
-func randomSalt(length uint32) ([]byte, error) {
-	secret := make([]byte, length)
-
-	_, err := rand.Read(secret)
-	if err != nil {
-		return nil, err
-	}
-
-	return secret, nil
-}
-
-func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
-	var err error
-	if(len(salt) == 0) {
-		salt, err = randomSalt(a.saltlen)
-	}
-	if err != nil {
-		return nil, err
-	}
-	hash := argon2.IDKey(password, salt, a.time, a.memory, a.threads, a.keylen)
-	return &HashSalt{Hash: hash, Salt: salt}, nil
-
-}
-
-func (a *Argon2idHash) Compare(hash, salt, password []byte) error {
-	// Generate hash for comparison.
-	hashSalt, err := a.GenerateHash(password, salt)
-	if err != nil {
-		return err
-	}
-	// Compare the generated hash with the stored hash.
-	// If they don't match return error.
-	if !bytes.Equal(hash, hashSalt.Hash) {
-		return errors.New("hash doesn't match")
-	}
-	return nil
 }
 
 type CreateAccountBody struct {
@@ -148,6 +88,7 @@ type User struct {
 	Role               string `json:"role"`
 	Email              string `json:"email"`
 	Password_hash      string `json:"password_hash"`
+	Salt               string `json:"salt"`
 	Phone_number       string `json:"phone_number"`
 	Address_id         int    `json:"address_id"`
 	Created_at         string `json:"created_at"`

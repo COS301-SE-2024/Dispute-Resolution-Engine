@@ -3,12 +3,16 @@ package api
 import (
 	"api/model"
 	"api/storage"
+	"bytes"
+	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"reflect"
 
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/argon2"
 )
 
 type APIServer struct {
@@ -146,6 +150,7 @@ func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage
 	if body.FirstName == "" || body.Surname == "" || body.PasswordHash == "" {
 		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: "missing required fields"})
 	}
+	hasher := Argon2idHash{time: 1, memory: 12288, threads: 4, keylen: 32, saltlen: 16}
 	user := &model.User{
 		First_name:         body.FirstName,
 		Surname:            body.Surname,
@@ -153,7 +158,8 @@ func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage
 		Nationality:        "USA",
 		Role:               "user",
 		Email:              body.Email,
-		Password_hash:      body.PasswordHash,
+		Password_hash:      string(hasher.hashPassword(body.PasswordHash).Hash),
+		Salt: 			 	string(hasher.hashPassword(body.PasswordHash).Salt),
 		Phone_number:       "",
 		Address_id:         1,
 		Created_at:         "2024-05-30 10:00:00",
@@ -202,11 +208,72 @@ func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error 
 
 }
 
-func hashPassword(password string) string {
-	hashedPassword := password
-	return hashedPassword
+func (a *Argon2idHash) hashPassword(password string) *HashSalt {
+	salt, err := RandomSalt(16)
+	if err != nil {
+		return nil
+	}
+	hashSalt, err := a.GenerateHash([]byte(password), salt)
+	if err != nil {
+		return nil
+	}
+	return hashSalt
 }
 
+type Argon2idHash struct {
+	time    uint32
+	memory  uint32
+	threads uint8
+	keylen  uint32
+	saltlen uint32
+}
+
+type HashSalt struct {
+	Hash []byte
+	Salt []byte
+}
+
+func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keylen uint32) *Argon2idHash {
+	return &Argon2idHash{time, memory, threads, keylen, saltLen}
+}
+
+func RandomSalt(length uint32) ([]byte, error) {
+	secret := make([]byte, length)
+
+	_, err := rand.Read(secret)
+	if err != nil {
+		return nil, err
+	}
+
+	return secret, nil
+}
+
+func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
+	var err error
+	if(len(salt) == 0) {
+		salt, err = RandomSalt(a.saltlen)
+	}
+	if err != nil {
+		return nil, err
+	}
+	hash := argon2.IDKey(password, salt, a.time, a.memory, a.threads, a.keylen)
+	return &HashSalt{Hash: hash, Salt: salt}, nil
+
+}
+
+func (a *Argon2idHash) Compare(hash, salt, password []byte) error {
+	// Generate hash for comparison.
+	hashSalt, err := a.GenerateHash(password, salt)
+	if err != nil {
+		return err
+	}
+	// Compare the generated hash with the stored hash.
+	// If they don't match return error.
+	if !bytes.Equal(hash, hashSalt.Hash) {
+		return errors.New("hash doesn't match")
+	}
+	return nil
+}
 
 func (s *APIServer) wrapInJSON(objects ...interface{}) (string, error) {
 	jsonData := make(map[string]interface{})

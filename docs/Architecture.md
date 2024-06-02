@@ -30,6 +30,17 @@
 
 -   Architectural design should prioritize the use of explainable AI models, which provide clear explanations for their decisions, thereby reducing bias and facilitating audits. This involves structuring the system architecture to accommodate algorithms that offer transparency in decision-making processes.
 
+## Architectural Styles
+In developing the Dispute Resolution Engine (DRE), we have selected several architectural patterns to address key quality requirements.
+
+The Event-Driven Architecture (EDA) enables DRE to handle large volumes of events efficiently by allowing components to react to events asynchronously. This pattern significantly enhances the system's scalability by facilitating horizontal scaling through the addition of more event processors. Additionally, EDA boosts performance by decoupling the production and consumption of events, allowing for real-time processing and efficient handling of high-throughput scenarios. Reliability is also improved, as events are typically stored in a persistent event log that can be replayed in case of system failures, ensuring data integrity and consistent operation.
+
+Service-Oriented Architecture (SOA) is employed to enhance DRE's scalability and maintainability. By encapsulating business logic within discrete, independently deployable services, SOA allows each service to be scaled independently, effectively managing growth of the system. This modular approach also simplifies maintenance as services can be updated, replaced, or extended without impacting other parts of the system. This ensures continuous improvement and adaptability to changing requirements and technologies.
+
+The Gatekeeper pattern serves as a security layer within DRE, addressing essential quality requirements of security, reliability, and compliance. Acting as a single entry point for all incoming requests, the Gatekeeper enforces strict access control policies to ensure only authorized requests reach internal services. This pattern enhances system reliability by incorporating load balancing, caching, and failover mechanisms, thus maintaining smooth operation even under high demand or in the event of partial system failures. Moreover, the Gatekeeper helps ensure compliance with data privacy and security regulations by validating requests against predefined policies, thereby safeguarding sensitive information and ensuring regulatory adherence.
+
+We make use of the Flux pattern to enhance the usability of the DRE by simplifying data flow and state management. Its unidirectional data flow ensures predictable and traceable state changes. By structuring the frontend into modular components, Flux makes the system easier to maintain and debug. This approach improves the user experience, offering developers an intuitive framework and providing end-users with a responsive and reliable interface.
+
 ## Event-Driven Architectural Pattern
 
 ### Quality Requirements Addressed:

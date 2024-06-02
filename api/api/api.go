@@ -8,8 +8,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"net/smtp"
+	"os"
 	"reflect"
 
 	"github.com/gorilla/mux"
@@ -181,6 +184,8 @@ func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage
 		"message": "account created",
 	}
 
+	sendOTP(body.Email)
+
 	return writeJSON(w, http.StatusOK, model.Response{Status: 200, Data: bodyResponse})
 }
 
@@ -325,4 +330,25 @@ func makeHTTPHandler(fn apiFunc) http.HandlerFunc {
 			writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: err.Error()})
 		}
 	}
+}
+
+func sendOTP(userInfo string) {
+	from := os.Getenv("COMPANY_EMAIL")
+	to := []string{userInfo}
+	password := os.Getenv("COMPANY_AUTH")
+
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	message := []byte("Verification Email: \n\nPlease follow this link to verify your email: \n\n" + "http://localhost:8080/verifyEmail)" + "\n" + "OTP: 123456" + "\n\n" + "Thank you!" + "\n\n" + "Techtonic Team")
+
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Email Sent Successfully!")
+
 }

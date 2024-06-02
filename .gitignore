@@ -1,0 +1,125 @@
+# Compiled source #
+###################
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+
+# IDEs and Editors #
+####################
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.user
+
+# Python #
+##########
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+__pycache__/
+
+# Java #
+########
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+*.ipr
+*.iws
+out/
+
+# Node.js #
+###########
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Unity #
+#########
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+UserSettings/
+Packages/
+ProjectSettings/
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
+*.swp
+*.bak
+*.sln*
+*.csproj*
+
+# Images and generated assets #
+###############################
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.psd
+*.ai
+*.eps
+*.svg
+
+# Environment files #
+#####################
+.env
+.env.local
+.env.*.local
+#! .env
+*.env
+# Custom patterns #
+###################
+# Add any custom patterns here
+
+# End of the file #
+###################

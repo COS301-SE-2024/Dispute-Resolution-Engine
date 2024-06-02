@@ -1,0 +1,33 @@
+name: End-to-end tests
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - release
+      - dev
+    types:
+      - opened
+      - reopened
+jobs:
+  cypress-run:
+    runs-on: ubuntu-22.04
+    container:
+      image: cypress/included
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install -g yarn --force
+          yarn install
+      - name: Start server
+        run: |
+          cd frontend
+          yarn build
+          yarn start &
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: frontend

@@ -148,11 +148,11 @@ func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage
 		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: err.Error()})
 	}
 
-	if body.FirstName == "" || body.Surname == "" || body.PasswordHash == "" {
+	if body.FirstName == "" || body.Surname == "" || body.Password == "" {
 		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: "missing required fields"})
 	}
 	hasher := Argon2idHash{time: 1, memory: 12288, threads: 4, keylen: 32, saltlen: 16}
-	hashAndSalt := hasher.hashPassword(body.PasswordHash)
+	hashAndSalt := hasher.hashPassword(body.Password)
 	user := &model.User{
 		First_name:         body.FirstName,
 		Surname:            body.Surname,
@@ -190,7 +190,7 @@ func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error 
 		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: err.Error()})
 	}
 
-	if body.Email == "" || body.PasswordHash == "" {
+	if body.Email == "" || body.Password == "" {
 		return writeJSON(w, http.StatusBadRequest, model.Response{Status: 400, Error: "missing required fields"})
 	}
 
@@ -208,7 +208,7 @@ func (s *APIServer) login(w http.ResponseWriter, rawBody json.RawMessage) error 
 	}
 
 	hasher := Argon2idHash{time: 1, memory: 12288, threads: 4, keylen: 32, saltlen: 16}
-	checkHash, err := hasher.GenerateHash([]byte(body.PasswordHash), realSalt)
+	checkHash, err := hasher.GenerateHash([]byte(body.Password), realSalt)
 	if err != nil {
 		return writeJSON(w, http.StatusInternalServerError, model.Response{Status: 500, Error: err.Error()})
 	}

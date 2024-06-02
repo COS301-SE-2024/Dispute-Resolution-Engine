@@ -12,13 +12,13 @@ type BaseRequest struct {
 type CreateAccountBody struct {
 	FirstName    string `json:"first_name"`
 	Surname      string `json:"surname"`
-	PasswordHash string `json:"password_hash"`
+	Password string `json:"password"`
 	Email        string `json:"email"`
 }
 
 type LoginBody struct {
 	Email        string `json:"email"`
-	PasswordHash string `json:"password_hash"`
+	Password string `json:"password"`
 }
 
 type DisputeSummaryBody struct {

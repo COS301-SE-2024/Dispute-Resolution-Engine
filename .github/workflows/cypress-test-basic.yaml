@@ -22,6 +22,10 @@ jobs:
           cd frontend
           npm install -g yarn --force
           yarn install
+      - name: Start server
+        run: |
+          cd frontend
+          yarn start &
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:

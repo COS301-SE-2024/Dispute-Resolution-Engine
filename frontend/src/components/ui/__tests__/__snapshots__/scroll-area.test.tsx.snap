@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders correctly 1`] = `
+<div
+  className="relative overflow-hidden"
+  dir="ltr"
+  style={
+    {
+      "--radix-scroll-area-corner-height": "0px",
+      "--radix-scroll-area-corner-width": "0px",
+      "position": "relative",
+    }
+  }
+>
+  <style
+    dangerouslySetInnerHTML={
+      {
+        "__html": "[data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}",
+      }
+    }
+  />
+  <div
+    className="h-full w-full rounded-[inherit]"
+    data-radix-scroll-area-viewport=""
+    style={
+      {
+        "overflowX": "hidden",
+        "overflowY": "scroll",
+      }
+    }
+  >
+    <div
+      style={
+        {
+          "display": "table",
+          "minWidth": "100%",
+        }
+      }
+    />
+  </div>
+</div>
+`;

@@ -115,7 +115,8 @@ ProjectSettings/
 .env
 .env.local
 .env.*.local
-
+#! .env
+*.env
 # Custom patterns #
 ###################
 # Add any custom patterns here

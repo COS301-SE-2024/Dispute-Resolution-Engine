@@ -29,7 +29,7 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 <details><summary>Sebastian Guimaraens - u22494767</summary><br>
 <img align="right" src="https://picsum.photos/150" width=150>
 <p>
-Description here
+When it comes to computing, I revel in security. I am fond of programming backend services, designing secure system architectures, as well as Blue Teaming.  I find purpose in combating cybercrime, a deep conviction to contribute to a safer digital realm. A keyboard and an internet connection is all I need to make a difference. Additionally I am on team waffles, we deserve better than pancakes.
 </p>
 <p>
   Email: u22494767@tuks.co.za

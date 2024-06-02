@@ -1,28 +1,5 @@
 # Technology Requirements
 
-SR - Two-Party Engagement
-SR - Mediator(s) Assignment
-SR - Dispute Resolution Workflow
-SR - Secure Communication Channel
-SR - Natural Language Processing
-SR - Analytics Profiling
-SR - Universal Dispute Creator
-
-SR - Resolution Support Tools
-SR - Resolution Archive
-SR - Feedback System
-SR - Language Adaptability
-SR - Advanced Analytics
-SR - Customizable dispute resolution workflows.
-SR - AI-driven Mediation Suggestions.
-
-QA - Reliability
-QA - Scalability and Performance
-QA - Usability
-QA - Security
-QA - Compliance
-QA - Maintainability
-
 ## Next.js
 
 In a dispute resolution engine, Next.js serves as the backbone of the frontend, offering significant advantages over other frameworks with its focus on scalability and performance through serverless operations. Next.js's server-side rendering (SSR) and static site generation (SSG) capabilities ensure fast load times and improved performance, directly contributing to the Quality Attributes of Scalability and Performance. Its flexible and modular architecture facilitates seamless integration of various components and modules, enhancing the platform's Maintainability and Usability by allowing developers to build and update features efficiently. Next.js also excels in providing a responsive and user-friendly experience across devices, ensuring that the platform meets the Usability Quality Attribute. Its built-in support for routing, API routes, and middleware simplifies the development process, aligning with functional requirements such as the Secure Communication Channel and Resolution Support Tools. Additionally, Next.js's robust ecosystem and active community support further enhance its reliability and maintainability, ensuring long-term sustainability and continuous improvement.

@@ -1,0 +1,22 @@
+name: Go Test
+run-name: ${{ github.actor }} at ${{ github.event_name }} event 
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - release
+      - dev
+    types:
+      - opened
+      - reopened
+jobs:
+  jest-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run linter
+        run: |
+          cd api/__tests__
+          go test

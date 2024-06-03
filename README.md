@@ -64,7 +64,7 @@ I'm a computer graphics and frontend nut. No piece of software is complete witho
 <img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/29c9d113-9fe1-444b-b085-4dcef5b53cb6" width=150>
 
 <p>
-A project without a backend is like a human being without a bottom, non-functional. I adore
+A project without a backend is like a teacup without a handle, non-functional. I adore
 the gruntwork of backend and have interests diving into AI and modelling. I enjoy creating highly optimized backend systems as well as some AI related integrations. New challenges and systems excite me and I am always willing to learn and explore new experiences.
 </p>
 <p>

@@ -82,7 +82,7 @@ Description here
 
 <img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/17b7760e-d15d-41ea-b190-198397e07288" width=150>
 <p>
-Description here
+  As an engaged DevOps engineer I am passionate about ensuring we keep clean and compliant code. I am interested in working with Machine Learning and Artificial intellignece. I'm excited to contribute to this journey of creating the best solution for an efficient ADR process.
 </p>
 <p>
   Email: u22512323@tuks.co.za
@@ -90,7 +90,7 @@ Description here
 <a href="https://github.com/michaelhorwitz" target="_blank">
   <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white"/>
 </a> 
-<a href="https://www.linkedin.com/in/michaelrosstarr/" target="_blank">
+<a href="https://www.linkedin.com/in/michael-horwitz-311a55263//" target="_blank">
   <img src="https://img.shields.io/badge/linkedin-%230077B5.svg?style=for-the-badge&logo=linkedin&logoColor=white"/>
 </a>
 <br><br><br><br><br><br>

@@ -178,3 +178,6 @@ The following high-level objectives of the Dispute Resolution Engine are defined
         5. Integrates with the Resolution Support Tools to offer a cohesive mediation assistance experience.
 
 ## User Stories - [Link to User Stories](UserStories.md)
+![MediationSub](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/513c9c44-9535-4593-bd90-c5c6e0d1ffd6)
+![AuthSub](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/e6593541-7860-40a2-9289-ce77ca780eb8)
+![DisputeFilingSub](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/e0257d9f-6f23-403a-8492-d9a4c27e3543)

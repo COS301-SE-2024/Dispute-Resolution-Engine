@@ -25,6 +25,9 @@ Facilitating & enhancing dispute resolution processes with Natural Language Proc
 # Meet the Team
 Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
+# Demo Presentations
+[Demo 1](https://www.canva.com/design/DAGG_C4gUMc/uzNI3y3cFbQE9oYkyZo3vw/edit?utm_content=DAGG_C4gUMc&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+
 ## Team Members
 <details><summary>Sebastian Guimaraens - u22494767</summary><br>
 <img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/81089003/38327104-c4b7-4bb8-8318-5898d23e7340" width=150>

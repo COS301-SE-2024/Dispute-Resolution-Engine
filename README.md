@@ -25,6 +25,9 @@ Facilitating & enhancing dispute resolution processes with Natural Language Proc
 # Meet the Team
 Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
+# Demo Presentations
+[Demo 1](https://www.canva.com/design/DAGG_C4gUMc/uzNI3y3cFbQE9oYkyZo3vw/edit?utm_content=DAGG_C4gUMc&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+
 ## Team Members
 <details><summary>Sebastian Guimaraens - u22494767</summary><br>
 <img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/81089003/38327104-c4b7-4bb8-8318-5898d23e7340" width=150>
@@ -46,7 +49,7 @@ When it comes to computing, I revel in security. I am fond of programming backen
 <details><summary>Vincent Feistel - u22563777</summary><br>
 <img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/161373977/5d35892a-2d32-4905-b737-2c4c7592613a" width=150>
 <p>
-Description here
+I'm a computer graphics and frontend nut. No piece of software is complete without a user-friendly interface to make the user want to use it. I love bringing visions to life and making the web a more beautiful (and accessible) place.
 </p>
 <p>
   Email: u22563777@tuks.co.za
@@ -64,7 +67,8 @@ Description here
 <img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/29c9d113-9fe1-444b-b085-4dcef5b53cb6" width=150>
 
 <p>
-Description here
+A project without a backend is like a teacup without a handle, non-functional. I adore
+the gruntwork of backend and have interests diving into AI and modelling. I enjoy creating highly optimized backend systems as well as some AI related integrations. New challenges and systems excite me and I am always willing to learn and explore new experiences.
 </p>
 <p>
   Email: u22551167@tuks.co.za
@@ -82,7 +86,7 @@ Description here
 
 <img align="right" src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/17b7760e-d15d-41ea-b190-198397e07288" width=150>
 <p>
-Description here
+  As an engaged DevOps engineer I am passionate about ensuring we keep clean and compliant code. I am interested in working with Machine Learning and Artificial intellignece. I'm excited to contribute to this journey of creating the best solution for an efficient ADR process.
 </p>
 <p>
   Email: u22512323@tuks.co.za
@@ -90,7 +94,7 @@ Description here
 <a href="https://github.com/michaelhorwitz" target="_blank">
   <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white"/>
 </a> 
-<a href="https://www.linkedin.com/in/michaelrosstarr/" target="_blank">
+<a href="https://www.linkedin.com/in/michael-horwitz-311a55263//" target="_blank">
   <img src="https://img.shields.io/badge/linkedin-%230077B5.svg?style=for-the-badge&logo=linkedin&logoColor=white"/>
 </a>
 <br><br><br><br><br><br>

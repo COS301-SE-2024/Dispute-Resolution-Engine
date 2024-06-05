@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { fetchDisputes } from "../lib/dispute";
 import { Suspense } from "react";
+import Loader from "@/components/Loader";
 
 function DisputeLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -45,7 +46,7 @@ export default function DisputeRootLayout({
       <div className="w-56 flex shrink-0 flex-col p-2 gap-4">
         <Input placeholder="Search" />
         <nav>
-          <Suspense>
+          <Suspense fallback={<Loader />}>
             <DisputeList />
           </Suspense>
         </nav>

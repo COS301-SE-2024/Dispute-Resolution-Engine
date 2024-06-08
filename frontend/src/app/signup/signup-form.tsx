@@ -46,20 +46,25 @@ const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLPa
 );
 FormMessage.displayName = "FormMessage";
 
+function SignupButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button disabled={pending} type="submit">
+      Create
+    </Button>
+  );
+}
+
 export default function SignupForm() {
   const [state, formAction] = useFormState(signup, undefined);
 
-  const { pending } = useFormStatus();
-
-  const formId = useId();
-
   return (
-    <Card className="mx-auto md:my-3 lg:w-1/2 md:w-3/4">
-      <CardHeader>
-        <CardTitle>Create an Account</CardTitle>
-      </CardHeader>
-      <CardContent asChild>
-        <form action={formAction} id={formId}>
+    <Card asChild className="mx-auto md:my-3 lg:w-1/2 md:w-3/4">
+      <form action={formAction}>
+        <CardHeader>
+          <CardTitle>Create an Account</CardTitle>
+        </CardHeader>
+        <CardContent>
           <TextField state={state?.error} name="firstName" label="First Name" type="text" />
           <TextField state={state?.error} name="lastName" label="Last Name" type="text" />
           <TextField state={state?.error} name="email" label="Email" type="text" />
@@ -70,14 +75,12 @@ export default function SignupForm() {
             label="Confirm Password"
             type="password"
           />
-        </form>
-      </CardContent>
-      <CardFooter>
-        <Button disabled={pending} form={formId} type="submit">
-          Create
-        </Button>
-        <p role="alert">{state?.data}</p>
-      </CardFooter>
+        </CardContent>
+        <CardFooter>
+          <SignupButton />
+          <p role="alert">{state?.data}</p>
+        </CardFooter>
+      </form>
     </Card>
   );
 }

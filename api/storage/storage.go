@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 type Storage interface {
@@ -43,10 +43,10 @@ func NewPostgresStore() (*PostgresStore, error) {
 	var db *sql.DB
 
 	// Load .env file
-	err = godotenv.Load(".env")
-	if err != nil {
-		return nil, err
-	}
+	// err = godotenv.Load(".env")
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// Database credentials
 	host := os.Getenv("DATABASE_URL")

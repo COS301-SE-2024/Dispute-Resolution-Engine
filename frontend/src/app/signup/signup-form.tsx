@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { forwardRef, useId } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function TextField({
   name,
@@ -64,17 +65,33 @@ export default function SignupForm() {
         <CardHeader>
           <CardTitle>Create an Account</CardTitle>
         </CardHeader>
-        <CardContent>
-          <TextField state={state?.error} name="firstName" label="First Name" type="text" />
-          <TextField state={state?.error} name="lastName" label="Last Name" type="text" />
-          <TextField state={state?.error} name="email" label="Email" type="text" />
-          <TextField state={state?.error} name="password" label="Password" type="password" />
-          <TextField
-            state={state?.error}
-            name="passwordConfirm"
-            label="Confirm Password"
-            type="password"
-          />
+        <CardContent asChild>
+          <Tabs defaultValue="profile">
+            <TabsList>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="address">Address</TabsTrigger>
+            </TabsList>
+            <TabsContent value="profile" forceMount className="data-[state=inactive]:hidden">
+              <TextField state={state?.error} name="firstName" label="First Name" type="text" />
+              <TextField state={state?.error} name="lastName" label="Last Name" type="text" />
+              <TextField state={state?.error} name="email" label="Email" type="text" />
+              <TextField state={state?.error} name="password" label="Password" type="password" />
+              <TextField
+                state={state?.error}
+                name="passwordConfirm"
+                label="Confirm Password"
+                type="password"
+              />
+            </TabsContent>
+            <TabsContent value="address" forceMount className="data-[state=inactive]:hidden">
+              <TextField state={state?.error} name="addrCountry" label="Country" type="text" />
+              <TextField state={state?.error} name="addrProvince" label="Province" type="text" />
+              <TextField state={state?.error} name="addrCity" label="City" type="text" />
+              <TextField state={state?.error} name="addrStreet" label="Street 1" type="text" />
+              <TextField state={state?.error} name="addrStreet2" label="Street 2" type="text" />
+              <TextField state={state?.error} name="addrStreet3" label="Street 3" type="text" />
+            </TabsContent>
+          </Tabs>
         </CardContent>
         <CardFooter>
           <SignupButton />

@@ -14,7 +14,16 @@ export async function signup(
     email: formData.get("email"),
     password: formData.get("password"),
     passwordConfirm: formData.get("passwordConfirm"),
+
+    addrCountry: formData.get("addrCountry"),
+    addrProvince: formData.get("addrProvince"),
+    addrCity: formData.get("addrCity"),
+    addrStreet3: formData.get("addrStreet3"),
+    addrStreet2: formData.get("addrStreet2"),
+    addrStreet: formData.get("addrStreet"),
   });
+  console.log(data);
+
   if (data.error) {
     return {
       status: 500,

@@ -12,6 +12,17 @@ export const signupSchema = z
       .regex(/[A-Za-z]/gm, "Password must contain at least one letter")
       .regex(/[^\w\d\s:]/gm, "Password must contain a special character"),
     passwordConfirm: z.string(),
+
+    addrCountry: z.string().min(1, "Required"),
+    addrProvince: z.string().min(1, "Required"),
+    addrCity: z.string().min(1, "Required"),
+    addrStreet3: z.string().min(1, "Required"),
+    addrStreet2: z.string().min(1, "Required"),
+    addrStreet: z.string().min(1, "Required"),
+
+    //id BIGINT PRIMARY KEY,
+    //code VARCHAR(64),
+    //address_type INTEGER,
   })
   .superRefine((arg, ctx) => {
     if (arg.password !== arg.passwordConfirm) {

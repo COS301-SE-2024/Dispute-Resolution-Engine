@@ -4,7 +4,7 @@ import { Result } from "@/lib/types";
 import { SignupError, signupSchema } from "./types";
 import { redirect } from "next/navigation";
 
-export async function signup2(
+export async function signup(
   initialState: any,
   formData: FormData
 ): Promise<Result<string, SignupError>> {

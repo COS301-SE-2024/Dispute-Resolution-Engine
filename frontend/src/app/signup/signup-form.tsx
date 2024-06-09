@@ -7,22 +7,22 @@ import { Input } from "@/components/ui/input";
 import { SignupData, SignupError } from "../lib/auth/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { forwardRef, useId } from "react";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext } from "react";
+import { Result } from "@/lib/types";
 
-function TextField({
+const SignupContext = createContext<Result<string, SignupError> | undefined>(undefined);
+
+export function TextField({
   name,
   label,
   type,
-  state,
 }: {
   name: keyof SignupData;
   label: string;
   type?: "text" | "password";
-  state?: SignupError;
 }) {
-  const error = state && state[name]?._errors?.at(0);
+  const state = useContext(SignupContext);
+  const error = state?.error && state.error[name]?._errors?.at(0);
   return (
     <>
       <Label htmlFor={name}>{label}</Label>
@@ -47,7 +47,7 @@ const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLPa
 );
 FormMessage.displayName = "FormMessage";
 
-function SignupButton() {
+export function SignupButton() {
   const { pending } = useFormStatus();
   return (
     <Button disabled={pending} type="submit">
@@ -56,6 +56,37 @@ function SignupButton() {
   );
 }
 
+export function SignupField({
+  name,
+  label,
+  children,
+}: {
+  name: keyof SignupData;
+  label: string;
+  children: ReactNode;
+}) {
+  const state = useContext(SignupContext);
+  const error = state?.error && state.error[name]?._errors?.at(0);
+  return (
+    <>
+      <Label htmlFor={name}>{label}</Label>
+      {children}
+      {error && <FormMessage>{error}</FormMessage>}
+    </>
+  );
+}
+
+export function SignupForm(props: HTMLAttributes<HTMLFormElement>) {
+  const [state, formAction] = useFormState(signup, undefined);
+
+  return (
+    <SignupContext.Provider value={state}>
+      <form action={formAction} {...props} />
+    </SignupContext.Provider>
+  );
+}
+
+/*
 export default function SignupForm() {
   const [state, formAction] = useFormState(signup, undefined);
 
@@ -84,7 +115,12 @@ export default function SignupForm() {
               />
             </TabsContent>
             <TabsContent value="address" forceMount className="data-[state=inactive]:hidden">
-              <TextField state={state?.error} name="addrCountry" label="Country" type="text" />
+              <Suspense>
+                <CountrySelect name="addrCountry" />
+              </Suspense>
+              {state?.error?.addrCountry && (
+                <FormMessage>{state.error.addrCountry._errors[0]}</FormMessage>
+              )}
               <TextField state={state?.error} name="addrProvince" label="Province" type="text" />
               <TextField state={state?.error} name="addrCity" label="City" type="text" />
               <TextField state={state?.error} name="addrStreet" label="Street 1" type="text" />
@@ -101,3 +137,4 @@ export default function SignupForm() {
     </Card>
   );
 }
+  */

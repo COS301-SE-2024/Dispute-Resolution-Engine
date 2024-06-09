@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"time"
 
@@ -64,18 +63,18 @@ func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
 
 }
 
-func (a *Argon2idHash) Compare(hash, salt, password []byte) error {
+func (a *Argon2idHash) Compare(hash, salt, password []byte) bool {
 	// Generate hash for comparison.
 	hashSalt, err := a.GenerateHash(password, salt)
 	if err != nil {
-		return err
+		return false
 	}
 	// Compare the generated hash with the stored hash.
 	// If they don't match return error.
 	if !bytes.Equal(hash, hashSalt.Hash) {
-		return errors.New("hash doesn't match")
+		return false
 	}
-	return nil
+	return true
 }
 
 func WriteJSON(w http.ResponseWriter, status int, v any) error {

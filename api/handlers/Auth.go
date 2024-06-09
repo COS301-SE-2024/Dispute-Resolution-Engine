@@ -3,6 +3,7 @@ package handlers
 import (
 	"api/models"
 	"api/utilities"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -41,9 +42,9 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		utilities.WriteJSON(w, http.StatusConflict, models.Response{Error: "User already exists"})
 		return
 	}
-
-	user.PasswordHash = string(hasher.HashPassword(user.PasswordHash).Hash)
-	user.Salt = string(hasher.HashPassword(user.PasswordHash).Salt)
+	hashAndSalt := hasher.HashPassword(user.PasswordHash)
+	user.PasswordHash = base64.StdEncoding.EncodeToString(hashAndSalt.Hash)
+	user.Salt = base64.StdEncoding.EncodeToString(hashAndSalt.Salt)
 	user.CreatedAt = utilities.GetCurrentTime()
 	user.UpdatedAt = utilities.GetCurrentTime()
 	user.Status = "active"
@@ -82,7 +83,7 @@ func (h handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var dbUser models.User
 	h.DB.Where("email = ?", user.Email).First(&dbUser)
 
-	if !hasher.Compare(dbUser.PasswordHash, dbUser.Salt, user.PasswordHash) {
+	if !hasher.Compare([]byte(dbUser.PasswordHash), []byte(dbUser.Salt), []byte(user.PasswordHash)) {
 		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}

@@ -4,7 +4,6 @@ import (
 	"api/models"
 	"api/utilities"
 	"encoding/json"
-	"api/utilities"
 	"io"
 	"net/http"
 )

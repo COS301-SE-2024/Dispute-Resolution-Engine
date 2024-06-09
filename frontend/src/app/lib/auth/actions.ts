@@ -21,6 +21,8 @@ export async function signup(
     addrStreet3: formData.get("addrStreet3"),
     addrStreet2: formData.get("addrStreet2"),
     addrStreet: formData.get("addrStreet"),
+
+    dateOfBirth: formData.get("dateOfBirth"),
   });
   console.log(data);
 

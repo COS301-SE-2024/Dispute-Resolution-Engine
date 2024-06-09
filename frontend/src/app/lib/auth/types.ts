@@ -20,6 +20,8 @@ export const signupSchema = z
     addrStreet2: z.string().min(1, "Required"),
     addrStreet: z.string().min(1, "Required"),
 
+    dateOfBirth: z.string().date("Invalid date"),
+
     //id BIGINT PRIMARY KEY,
     //code VARCHAR(64),
     //address_type INTEGER,

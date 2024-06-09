@@ -21,18 +21,27 @@ export default function Signup() {
               <TabsContent value="profile" forceMount className="data-[state=inactive]:hidden">
                 <SignupField name="firstName" label="First Name">
                   <Input
-                    autoComplete="given-name"
                     id="firstName"
-                    placeholder="First Name"
                     name="firstName"
+                    autoComplete="given-name"
+                    placeholder="First Name"
                   />
                 </SignupField>
                 <SignupField name="lastName" label="Last Name">
                   <Input
-                    autoComplete="family-name"
                     id="lastName"
-                    placeholder="Last Name"
                     name="lastName"
+                    autoComplete="family-name"
+                    placeholder="Last Name"
+                  />
+                </SignupField>
+                <SignupField name="dateOfBirth" label="Date of Birth">
+                  <Input
+                    id="dateOfBirth"
+                    name="dateOfBirth"
+                    autoComplete="bday"
+                    type="date"
+                    className="w-fit"
                   />
                 </SignupField>
                 <SignupField name="email" label="Email">

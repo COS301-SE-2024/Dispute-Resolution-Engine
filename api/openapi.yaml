@@ -1,0 +1,71 @@
+openapi: 3.0.3
+info:
+  title: Dispute Resolution Engine - v1\
+  description: |-
+    This is a description.
+  version: version 1
+servers:
+  - url: http://localhost/api
+tags:
+  - name: auth
+    description: All about Authentication
+  - name: user
+    description: accessing user related info
+paths:
+  /auth:
+    post:
+      tags:
+        - auth
+      summary: Create an account
+      description: adds a new users details to the database
+      operationId: authCreate
+      requestBody:
+        description: takes in the details for a new user and added the information ot the relevant tables
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+        required: true
+      responses:
+        '500':
+          description: account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreateFailed'
+              
+components:
+  schemas:
+    UserCreate:
+      type: object
+      properties:
+        first_name:
+          type: string
+          
+        surname:
+          type: string
+          
+        birthdate:
+          type: string
+          
+        email:
+          type: string
+        password:
+          type: string
+        phone_number:
+          type: integer
+        gender:
+          type: string
+          description: must one of the following strings
+          example: "attack helicopter"
+          enum:
+            - male
+            - female
+    UserCreateFailed:
+      type: object
+      properties:
+        error:
+          type: string
+          description: a relevant error message
+        
+      

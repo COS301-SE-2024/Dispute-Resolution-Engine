@@ -1,7 +1,7 @@
 package api
 
 import (
-	"api/model"
+	"api/old_model"
 	"api/storage"
 	"bytes"
 	"crypto/rand"
@@ -167,7 +167,7 @@ func (s *APIServer) createAccount(w http.ResponseWriter, rawBody json.RawMessage
 		Salt:               base64.StdEncoding.EncodeToString(hashAndSalt.Salt),
 		Phone_number:       "",
 		Address_id:         1,
-		Created_at:         "2024-05-30 10:00:00",
+		Created_at:         "xedolek889@kernuo.com",
 		Updated_at:         "2024-05-30 10:00:00",
 		Last_login:         "2024-05-30 10:00:00",
 		Status:             "active",

@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"api/model"
+	"api/old_model"
 	"database/sql"
 
 	_ "github.com/lib/pq"

@@ -3,11 +3,12 @@ package main
 import (
 	// "api/old_api"
 	// "api/storage"
-	"log"
-	"net/http"
-	"github.com/gorilla/mux"
 	"api/db"
 	"api/handlers"
+	"log"
+	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -16,8 +17,8 @@ func main() {
 	h := handlers.New(DB)
 	router := mux.NewRouter()
 
-	router.HandleFunc("/auth", h.CreateUser).Methods(http.MethodPost)
-
+	router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
+	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
 	log.Println("API server is running on port 8080")
 	http.ListenAndServe(":8080", router)
 	// store, err := storage.NewPostgresStore()

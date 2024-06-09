@@ -1,8 +1,7 @@
 "use server";
 
 import { Result } from "@/lib/types";
-
-const API_URL = process.env.API_URL;
+import { API_URL } from "@/lib/utils";
 
 export type DisputeSummary = {
   id: string;

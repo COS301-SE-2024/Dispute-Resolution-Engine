@@ -3,7 +3,9 @@ package utilities
 import (
 	"bytes"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
+	"net/http"
 
 	"golang.org/x/crypto/argon2"
 )
@@ -73,4 +75,10 @@ func (a *Argon2idHash) Compare(hash, salt, password []byte) error {
 		return errors.New("hash doesn't match")
 	}
 	return nil
+}
+
+func WriteJSON(w http.ResponseWriter, status int, v any) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	return json.NewEncoder(w).Encode(v)
 }

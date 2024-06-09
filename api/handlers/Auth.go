@@ -3,7 +3,7 @@ package handlers
 import (
 	"api/models"
 	"encoding/json"
-	"fmt"
+	"api/utilities"
 	"io"
 	"net/http"
 )
@@ -22,34 +22,30 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	var user models.User
 	err = json.Unmarshal(body, &user)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+		return
+	}
 
 	duplicate := h.checkUserExists(user.Email)
 
 	if duplicate {
-		errJson := StringWrapper{"User already exists"}
-		jsonData, err := json.Marshal(errJson)
-		if err != nil {
-			fmt.Println("Error marshalling JSON", err)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusConflict)
-		w.Write(jsonData)
+		// errJson := StringWrapper{"User already exists"}
+		// jsonData, err := json.Marshal(errJson)
+		// if err != nil {
+		// 	fmt.Println("Error marshalling JSON", err)
+		// 	return
+		// }
+		
+		utilities.WriteJSON(w, http.StatusConflict, models.Response{Error: "User already exists"})
 		return
 	}
-	errJson, err := json.Marshal(StringWrapper{"Failed to create user"})
 	if result := h.DB.Create(&user); result.Error != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusConflict)
-		w.Write(errJson)
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating user"})
 		return
 	}
-	resbody, err := json.Marshal(StringWrapper{"Account created successfully"})
-
-	// Send a 201 created response
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(resbody)
+	
+	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: user})
 }
 
 func (h handler) checkUserExists(email string) bool {

@@ -16,7 +16,7 @@ func main() {
 	h := handlers.New(DB)
 	router := mux.NewRouter()
 
-	router.HandleFunc("/users", h.CreateUser).Methods(http.MethodPost)
+	router.HandleFunc("/auth", h.CreateUser).Methods(http.MethodPost)
 
 	log.Println("API server is running on port 8080")
 	http.ListenAndServe(":8080", router)

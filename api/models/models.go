@@ -54,3 +54,8 @@ type Country struct {
 func (Country) TableName() string {
     return "countries"
 }
+
+type Response struct {
+	Data   interface{} `json:"data,omitempty"`
+	Error  string      `json:"error,omitempty"`
+}

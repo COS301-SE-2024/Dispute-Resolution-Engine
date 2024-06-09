@@ -58,6 +58,39 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "User created successfully"})
 }
 
+func (h handler) LoginUser(w http.ResponseWriter, r *http.Request) {
+	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
+	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+
+	var user models.User
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+		return
+	}
+
+	if !h.checkUserExists(user.Email) {
+		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "User does not exist"})
+		return
+	}
+
+	var dbUser models.User
+	h.DB.Where("email = ?", user.Email).First(&dbUser)
+
+	if !hasher.Compare(dbUser.PasswordHash, dbUser.Salt, user.PasswordHash) {
+		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
+		return
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Login successful"})
+
+}
+
 func (h handler) checkUserExists(email string) bool {
 	var user models.User
 	h.DB.Where("email = ?", email).First(&user)

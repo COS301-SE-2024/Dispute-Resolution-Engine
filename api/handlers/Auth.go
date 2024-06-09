@@ -13,7 +13,7 @@ type StringWrapper struct {
 }
 
 func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	hasher := utilities.NewArgon2idHash(1,12288,4,32,16)
+	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -37,16 +37,25 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		// 	fmt.Println("Error marshalling JSON", err)
 		// 	return
 		// }
-		
+
 		utilities.WriteJSON(w, http.StatusConflict, models.Response{Error: "User already exists"})
 		return
 	}
+
+	user.PasswordHash = string(hasher.HashPassword(user.PasswordHash).Hash)
+	user.Salt = string(hasher.HashPassword(user.PasswordHash).Salt)
+	user.CreatedAt = utilities.GetCurrentTime()
+	user.UpdatedAt = utilities.GetCurrentTime()
+	user.Status = "active"
+	user.Role = "user"
+	user.LastLogin = nil
+
 	if result := h.DB.Create(&user); result.Error != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating user"})
 		return
 	}
-	
-	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: user})
+
+	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "User created successfully"})
 }
 
 func (h handler) checkUserExists(email string) bool {

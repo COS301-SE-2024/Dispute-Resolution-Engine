@@ -27,3 +27,30 @@ type User struct {
 func (User) TableName() string {
 	return "users"
 }
+
+type Address struct {
+	ID          int64                  `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	Code        string                 `json:"code,omitempty" gorm:"type:varchar(64);column:code"`
+	Country     string                 `json:"country,omitempty" gorm:"type:varchar(255);column:country"`
+	Province    string                 `json:"province,omitempty" gorm:"type:varchar(255);column:province"`
+	City        string                 `json:"city,omitempty" gorm:"type:varchar(255);column:city"`
+	Street3     string                 `json:"street3,omitempty" gorm:"type:varchar(255);column:street3"`
+	Street2     string                 `json:"street2,omitempty" gorm:"type:varchar(255);column:street2"`
+	Street      string                 `json:"street,omitempty" gorm:"type:varchar(255);column:street"`
+	AddressType int                    `json:"address_type,omitempty" gorm:"type:int;column:address_type"`
+	LastUpdated time.Time              `json:"last_updated,omitempty" gorm:"type:timestamp without time zone;default:CURRENT_TIMESTAMP;column:last_updated"`
+}
+
+func (Address) TableName() string {
+    return "addresses"
+}
+
+type Country struct {
+	ID          int    `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	CountryCode string `json:"country_code,omitempty" gorm:"type:varchar(3);not null;column:country_code"`
+	CountryName string `json:"country_name,omitempty" gorm:"type:varchar(255);not null;column:country_name"`
+}
+
+func (Country) TableName() string {
+    return "countries"
+}

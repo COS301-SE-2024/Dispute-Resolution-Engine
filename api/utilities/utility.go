@@ -5,12 +5,16 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"errors"
+<<<<<<< Updated upstream
 	"net/http"
 
+=======
+	"time"
+>>>>>>> Stashed changes
 	"golang.org/x/crypto/argon2"
 )
 
-func (a *Argon2idHash) hashPassword(password string) *HashSalt {
+func (a *Argon2idHash) HashPassword(password string) *HashSalt {
 	salt, err := RandomSalt(16)
 	if err != nil {
 		return nil
@@ -77,8 +81,14 @@ func (a *Argon2idHash) Compare(hash, salt, password []byte) error {
 	return nil
 }
 
+<<<<<<< Updated upstream
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(v)
 }
+=======
+func GetCurrentTime() time.Time {
+	return time.Now()
+}
+>>>>>>> Stashed changes

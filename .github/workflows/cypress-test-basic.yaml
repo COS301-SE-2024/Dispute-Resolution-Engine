@@ -1,5 +1,6 @@
 name: End-to-end tests
 on:
+  c:
   workflow_dispatch:
   pull_request:
     branches:
@@ -12,16 +13,46 @@ on:
 jobs:
   cypress-run:
     runs-on: ubuntu-22.04
-    container:
-      image: cypress/included
+    # container:
+    #   image: cypress/included
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Cache Docker image
+        uses: actions/cache@v3
+        with:
+          path: /tmp/cypress.tar
+          key: cypress-image-${{ hashFiles('**/Dockerfile') }}
+
+      - name: Load cached Docker image
+        run: |
+          if [ -f /tmp/cypress.tar ]; then
+            docker load -i /tmp/cypress.tar
+          else
+            docker pull cypress/included
+            docker save cypress/included > /tmp/cypress.tar
+          fi
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: |
           cd frontend
           npm install -g yarn --force
           yarn install
+      - name: Cache build outputs
+        uses: actions/cache@v3
+        with:
+          path: frontend/build
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
       - name: Start server
         run: |
           cd frontend

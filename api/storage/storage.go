@@ -3,13 +3,13 @@ package storage
 import (
 	"api/model"
 	"database/sql"
+	"time"
 
 	_ "github.com/lib/pq"
 
 	"fmt"
 	"os"
-
-	"github.com/joho/godotenv"
+	//"github.com/joho/godotenv"
 )
 
 type Storage interface {
@@ -43,10 +43,10 @@ func NewPostgresStore() (*PostgresStore, error) {
 	var db *sql.DB
 
 	// Load .env file
-	err = godotenv.Load(".env")
-	if err != nil {
-		return nil, err
-	}
+	// err = godotenv.Load(".env")
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	// Database credentials
 	host := os.Getenv("DATABASE_URL")
@@ -60,16 +60,27 @@ func NewPostgresStore() (*PostgresStore, error) {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
 	// Establish connection to PostgreSQL
-	db, err = sql.Open("postgres", connStr)
-	if err != nil {
-		return nil, err
-	}
-	// defer db.Close()
-
-	// Check if the connection is successful
-	err = db.Ping()
-	if err != nil {
-		return nil, err
+	for i := 0; i < 3; i++ {
+		db, err = sql.Open("postgres", connStr)
+		if err != nil {
+			if i == 2 { // If this was the last attempt, return the error
+				return nil, err
+			}
+			time.Sleep(5 * time.Second) // Wait for 5 seconds before trying again
+			continue
+		}
+	
+		// Check if the connection is successful
+		err = db.Ping()
+		if err != nil {
+			if i == 2 { // If this was the last attempt, return the error
+				return nil, err
+			}
+			time.Sleep(5 * time.Second) // Wait for 5 seconds before trying again
+			continue
+		}
+	
+		break // If we reached this point, the connection was successful, so we break out of the loop
 	}
 
 	fmt.Println("Connected to PostgreSQL database!")

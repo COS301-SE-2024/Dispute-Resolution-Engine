@@ -82,12 +82,14 @@ func (h handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	var dbUser models.User
 	h.DB.Where("email = ?", user.Email).First(&dbUser)
-
-	if !hasher.Compare([]byte(dbUser.PasswordHash), []byte(dbUser.Salt), []byte(user.PasswordHash)) {
+	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
+	realPass, err := base64.StdEncoding.DecodeString(dbUser.PasswordHash)
+	if !hasher.Compare([]byte(realPass), []byte(realSalt), []byte(user.PasswordHash)) {
 		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}
-
+	dbUser.LastLogin = utilities.GetCurrentTimePtr()
+	h.DB.Where("email = ?", user.Email).Updates(&dbUser)
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Login successful"})
 
 }

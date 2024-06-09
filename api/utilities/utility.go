@@ -85,3 +85,8 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 func GetCurrentTime() time.Time {
 	return time.Now()
 }
+
+func GetCurrentTimePtr() *time.Time {
+    t := time.Now()
+    return &t
+}

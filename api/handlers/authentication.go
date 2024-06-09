@@ -47,7 +47,7 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	user.Salt = base64.StdEncoding.EncodeToString(hashAndSalt.Salt)
 	user.CreatedAt = utilities.GetCurrentTime()
 	user.UpdatedAt = utilities.GetCurrentTime()
-	user.Status = "active"
+	user.Status = "Active"
 	user.Role = "user"
 	user.LastLogin = nil
 

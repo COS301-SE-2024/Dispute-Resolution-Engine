@@ -83,7 +83,15 @@ func (h handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var dbUser models.User
 	h.DB.Where("email = ?", user.Email).First(&dbUser)
 	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error decoding salt"})
+		return
+	}
 	realPass, err := base64.StdEncoding.DecodeString(dbUser.PasswordHash)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error decoding password"})
+		return
+	}
 	if !hasher.Compare([]byte(realPass), []byte(realSalt), []byte(user.PasswordHash)) {
 		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return

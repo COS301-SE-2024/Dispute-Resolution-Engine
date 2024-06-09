@@ -21,10 +21,7 @@ export const signupSchema = z
     addrStreet: z.string().min(1, "Required"),
 
     dateOfBirth: z.string().date("Invalid date"),
-
-    //id BIGINT PRIMARY KEY,
-    //code VARCHAR(64),
-    //address_type INTEGER,
+    idNumber: z.string().regex(/\d{13}/gm, "Invalid ID number"),
   })
   .superRefine((arg, ctx) => {
     if (arg.password !== arg.passwordConfirm) {

@@ -68,11 +68,11 @@ export function SignupField({
   const state = useContext(SignupContext);
   const error = state?.error && state.error[name]?._errors?.at(0);
   return (
-    <>
+    <div>
       <Label htmlFor={name}>{label}</Label>
       {children}
       {error && <FormMessage>{error}</FormMessage>}
-    </>
+    </div>
   );
 }
 

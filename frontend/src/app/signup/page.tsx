@@ -19,21 +19,26 @@ export default function Signup() {
                 <TabsTrigger value="address">Address</TabsTrigger>
               </TabsList>
               <TabsContent value="profile" forceMount className="data-[state=inactive]:hidden">
-                <SignupField name="firstName" label="First Name">
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    autoComplete="given-name"
-                    placeholder="First Name"
-                  />
-                </SignupField>
-                <SignupField name="lastName" label="Last Name">
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    autoComplete="family-name"
-                    placeholder="Last Name"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <SignupField name="firstName" label="First Name">
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      autoComplete="given-name"
+                      placeholder="First Name"
+                    />
+                  </SignupField>
+                  <SignupField name="lastName" label="Last Name">
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      autoComplete="family-name"
+                      placeholder="Last Name"
+                    />
+                  </SignupField>
+                </div>
+                <SignupField name="idNumber" label="ID number">
+                  <Input id="idNumber" name="idNumber" placeholder="ID number" autoComplete="off" />
                 </SignupField>
                 <SignupField name="dateOfBirth" label="Date of Birth">
                   <Input

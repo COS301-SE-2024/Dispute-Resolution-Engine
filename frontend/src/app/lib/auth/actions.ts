@@ -23,6 +23,7 @@ export async function signup(
     addrStreet: formData.get("addrStreet"),
 
     dateOfBirth: formData.get("dateOfBirth"),
+    idNumber: formData.get("idNumber"),
   });
   console.log(data);
 

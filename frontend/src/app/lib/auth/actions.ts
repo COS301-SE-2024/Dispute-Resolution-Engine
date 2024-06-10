@@ -40,7 +40,7 @@ export async function signup(
       birthdate: data.dateOfBirth,
       nationality: data.addrCountry,
       email: data.email,
-      password_hash: data.password,
+      password: data.password,
       gender: "Male",
     }),
   }).then((res) => res.json());

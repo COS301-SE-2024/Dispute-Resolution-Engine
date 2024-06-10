@@ -126,22 +126,27 @@ func (h handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	var dbUser models.User
 	h.DB.Where("email = ?", user.Email).First(&dbUser)
+
 	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
 	if err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error decoding salt"})
 		return
 	}
-	realPass, err := base64.StdEncoding.DecodeString(dbUser.PasswordHash)
+	checkHash, err := hasher.GenerateHash([]byte(user.PasswordHash), realSalt)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error decoding password"})
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong..."})
 		return
 	}
-	if !hasher.Compare([]byte(realPass), []byte(realSalt), []byte(user.PasswordHash)) {
-		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
+
+	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
+		print(dbUser.PasswordHash)
+		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
+		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid password"})
 		return
 	}
+
 	dbUser.LastLogin = utilities.GetCurrentTimePtr()
-	h.DB.Where("email = ?", user.Email).Updates(&dbUser)
+	h.DB.Where("email = ?", user.Email).Update("last_login", utilities.GetCurrentTime())
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Login successful"})
 
 }

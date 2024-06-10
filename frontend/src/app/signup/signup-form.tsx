@@ -12,26 +12,6 @@ import { Result } from "@/lib/types";
 
 const SignupContext = createContext<Result<string, SignupError> | undefined>(undefined);
 
-export function TextField({
-  name,
-  label,
-  type,
-}: {
-  name: keyof SignupData;
-  label: string;
-  type?: "text" | "password";
-}) {
-  const state = useContext(SignupContext);
-  const error = state?.error && state.error[name]?._errors?.at(0);
-  return (
-    <>
-      <Label htmlFor={name}>{label}</Label>
-      <Input type={type} id={name} name={name} placeholder={label} />
-      {error && <FormMessage>{error}</FormMessage>}
-    </>
-  );
-}
-
 const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, children, ...props }, ref) => {
     return (
@@ -46,6 +26,20 @@ const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLPa
   }
 );
 FormMessage.displayName = "FormMessage";
+
+const SignupMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  (props, ref) => {
+    const state = useContext(SignupContext);
+    const error = state?.error && state.error._errors?.at(0);
+    return (
+      <FormMessage {...props} ref={ref}>
+        {error}
+      </FormMessage>
+    );
+  }
+);
+SignupMessage.displayName = "SignupMessage";
+export { SignupMessage };
 
 export function SignupButton() {
   const { pending } = useFormStatus();
@@ -76,65 +70,13 @@ export function SignupField({
   );
 }
 
-export function SignupForm(props: HTMLAttributes<HTMLFormElement>) {
+const SignupForm = forwardRef<HTMLFormElement, HTMLAttributes<HTMLFormElement>>((props, ref) => {
   const [state, formAction] = useFormState(signup, undefined);
 
   return (
     <SignupContext.Provider value={state}>
-      <form action={formAction} {...props} />
+      <form action={formAction} {...props} ref={ref} />
     </SignupContext.Provider>
   );
-}
-
-/*
-export default function SignupForm() {
-  const [state, formAction] = useFormState(signup, undefined);
-
-  return (
-    <Card asChild className="mx-auto md:my-3 lg:w-1/2 md:w-3/4">
-      <form action={formAction}>
-        <CardHeader>
-          <CardTitle>Create an Account</CardTitle>
-        </CardHeader>
-        <CardContent asChild>
-          <Tabs defaultValue="profile">
-            <TabsList>
-              <TabsTrigger value="profile">Profile</TabsTrigger>
-              <TabsTrigger value="address">Address</TabsTrigger>
-            </TabsList>
-            <TabsContent value="profile" forceMount className="data-[state=inactive]:hidden">
-              <TextField state={state?.error} name="firstName" label="First Name" type="text" />
-              <TextField state={state?.error} name="lastName" label="Last Name" type="text" />
-              <TextField state={state?.error} name="email" label="Email" type="text" />
-              <TextField state={state?.error} name="password" label="Password" type="password" />
-              <TextField
-                state={state?.error}
-                name="passwordConfirm"
-                label="Confirm Password"
-                type="password"
-              />
-            </TabsContent>
-            <TabsContent value="address" forceMount className="data-[state=inactive]:hidden">
-              <Suspense>
-                <CountrySelect name="addrCountry" />
-              </Suspense>
-              {state?.error?.addrCountry && (
-                <FormMessage>{state.error.addrCountry._errors[0]}</FormMessage>
-              )}
-              <TextField state={state?.error} name="addrProvince" label="Province" type="text" />
-              <TextField state={state?.error} name="addrCity" label="City" type="text" />
-              <TextField state={state?.error} name="addrStreet" label="Street 1" type="text" />
-              <TextField state={state?.error} name="addrStreet2" label="Street 2" type="text" />
-              <TextField state={state?.error} name="addrStreet3" label="Street 3" type="text" />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter>
-          <SignupButton />
-          <p role="alert">{state?.data}</p>
-        </CardFooter>
-      </form>
-    </Card>
-  );
-}
-  */
+})
+export {SignupForm}

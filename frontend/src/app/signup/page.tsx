@@ -1,5 +1,5 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { SignupForm, SignupButton, TextField, SignupField } from "./signup-form";
+import { SignupForm, SignupButton, SignupField, SignupMessage } from "./signup-form";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CountrySelect from "@/components/form/country-select";
 import { Input } from "@/components/ui/input";
@@ -124,8 +124,8 @@ export default function Signup() {
             </Tabs>
           </CardContent>
           <CardFooter className="mt-auto flex md:justify-start justify-end">
+            <SignupMessage />
             <SignupButton />
-            {/* <p role="alert">{state?.data}</p> */}
           </CardFooter>
         </SignupForm>
       </Card>

@@ -47,6 +47,20 @@ const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLPa
 );
 FormMessage.displayName = "FormMessage";
 
+const SignupMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  (props, ref) => {
+    const state = useContext(SignupContext);
+    const error = state?.error && state.error._errors?.at(0);
+    return (
+      <FormMessage {...props} ref={ref}>
+        {error}
+      </FormMessage>
+    );
+  }
+);
+SignupMessage.displayName = "SignupMessage";
+export { SignupMessage };
+
 export function SignupButton() {
   const { pending } = useFormStatus();
   return (

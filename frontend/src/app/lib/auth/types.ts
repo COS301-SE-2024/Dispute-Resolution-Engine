@@ -35,3 +35,10 @@ export const signupSchema = z
 
 export type SignupData = z.infer<typeof signupSchema>;
 export type SignupError = z.ZodFormattedError<SignupData>;
+
+export const loginSchema = z.object({
+  email: z.string().min(1, "Required"),
+  password: z.string().min(1, "Required"),
+});
+export type LoginData = z.infer<typeof loginSchema>;
+export type LoginError = z.ZodFormattedError<LoginData>;

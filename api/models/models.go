@@ -7,7 +7,7 @@ import (
 type User struct {
     FirstName         string     `json:"first_name" gorm:"type:varchar(50);not null;column:first_name"`//check
     Surname           string     `json:"surname" gorm:"type:varchar(50);not null;column:surname"`//check
-    Birthdate         time.Time  `json:"birthdate" gorm:"type:date;not null;column:birthdate"`//check
+    Birthdate         time `json:"birthdate" gorm:"type:date;not null;column:birthdate"`//check
     Nationality       string     `json:"nationality" gorm:"type:varchar(50);not null;column:nationality"`//check
     Role              string     `json:"role" gorm:"type:varchar(50);not null;column:role"`//Filled in by API
     Email             string     `json:"email" gorm:"type:varchar(100);unique;not null;column:email"`//check

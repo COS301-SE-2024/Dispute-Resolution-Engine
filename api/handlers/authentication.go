@@ -25,16 +25,16 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	var reqUser struct {
 		//These are all the user details that are required to create a user
-		FirstName         string    `json:"first_name"`
-		Surname           string    `json:"surname"`
-		Birthdate         time.Time `json:"birthdate"`
-		Nationality       string    `json:"nationality"`
-		Email             string    `json:"email"`
-		Password          string    `json:"password"`
-		PhoneNumber       *string   `json:"phone_number"`
-		Gender            string    `json:"gender"`
-		PreferredLanguage *string   `json:"preferred_language"`
-		Timezone          *string   `json:"timezone"`
+		FirstName         string  `json:"first_name"`
+		Surname           string  `json:"surname"`
+		Birthdate         string  `json:"birthdate"`
+		Nationality       string  `json:"nationality"`
+		Email             string  `json:"email"`
+		Password          string  `json:"password"`
+		PhoneNumber       *string `json:"phone_number"`
+		Gender            string  `json:"gender"`
+		PreferredLanguage *string `json:"preferred_language"`
+		Timezone          *string `json:"timezone"`
 
 		//These are the user's address details
 		AddressID *int64  //something I need to derive from the address info
@@ -56,10 +56,11 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//Now put stuff in the actual user object
+	date, err := time.Parse("2006-01-02", reqUser.Birthdate)
 	user := models.User{
 		FirstName:         reqUser.FirstName,
 		Surname:           reqUser.Surname,
-		Birthdate:         reqUser.Birthdate,
+		Birthdate:         date,
 		Nationality:       reqUser.Nationality,
 		Email:             reqUser.Email,
 		PasswordHash:      reqUser.Password,

@@ -3,12 +3,13 @@
 import { Result } from "@/lib/types";
 import { SignupError, signupSchema } from "./types";
 import { redirect } from "next/navigation";
+import { API_URL } from "@/lib/utils";
 
 export async function signup(
   initialState: any,
   formData: FormData
 ): Promise<Result<string, SignupError>> {
-  const data = signupSchema.safeParse({
+  const { data, error } = signupSchema.safeParse({
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     email: formData.get("email"),
@@ -25,22 +26,37 @@ export async function signup(
     dateOfBirth: formData.get("dateOfBirth"),
     idNumber: formData.get("idNumber"),
   });
-  console.log(data);
 
-  if (data.error) {
+  if (error) {
     return {
       status: 500,
-      error: data.error.format(),
+      error: error.format(),
     };
   }
 
-  return new Promise((res) => {
-    setTimeout(() => {
-      res({
-        status: 200,
-        data: "Signup successful",
-      });
-      redirect("/disputes");
-    }, 2000);
-  });
+  const { data: resData, error: resError } = await fetch(`${API_URL}/createAcc`, {
+    method: "POST",
+    body: JSON.stringify({
+      first_name: data.firstName,
+      surname: data.lastName,
+      birthdate: data.dateOfBirth,
+      nationality: data.addrCountry,
+      email: data.email,
+      password_hash: data.password,
+      gender: "Male",
+    }),
+  }).then((res) => res.json());
+
+  if (resError) {
+    return {
+      status: 500,
+      error: {
+        _errors: [resError],
+      },
+    };
+  }
+  return {
+    status: 200,
+    data: resData,
+  };
 }

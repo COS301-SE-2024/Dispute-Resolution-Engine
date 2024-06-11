@@ -1,6 +1,7 @@
 name: End-to-end tests
 on:
   workflow_dispatch:
+  c:
   pull_request:
     branches:
       - main
@@ -54,7 +55,10 @@ jobs:
             ${{ runner.os }}-build-
       - name: Start server
         run: |
-          cd
+          cd $GITHUB_WORKSPACE
+          touch fe.env
+          touch api.env
+          touch db.env
           docker compose up -d
       - name: Cypress run
         uses: cypress-io/github-action@v6

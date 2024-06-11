@@ -55,9 +55,8 @@ jobs:
             ${{ runner.os }}-build-
       - name: Start server
         run: |
-          cd frontend
-          yarn build
-          yarn start &
+          cd
+          docker compose up -d
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:

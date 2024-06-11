@@ -9,8 +9,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext } from "react";
 import { Result } from "@/lib/types";
+import { createFormContext } from "@/components/ui/form";
 
-const SignupContext = createContext<Result<string, SignupError> | undefined>(undefined);
+const [SignupContext, SignupForm] = createFormContext<Result<string, SignupError>>(
+  "SignupForm",
+  signup
+);
+export { SignupForm };
 
 const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, children, ...props }, ref) => {
@@ -69,14 +74,3 @@ export function SignupField({
     </div>
   );
 }
-
-const SignupForm = forwardRef<HTMLFormElement, HTMLAttributes<HTMLFormElement>>((props, ref) => {
-  const [state, formAction] = useFormState(signup, undefined);
-
-  return (
-    <SignupContext.Provider value={state}>
-      <form action={formAction} {...props} ref={ref} />
-    </SignupContext.Provider>
-  );
-})
-export {SignupForm}

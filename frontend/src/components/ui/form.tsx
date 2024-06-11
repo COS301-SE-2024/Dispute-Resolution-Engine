@@ -12,8 +12,36 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { useFormState } from "react-dom";
 
 const Form = FormProvider;
+
+export function createFormContext<T>(
+  formName: string,
+  action: (state: Awaited<T | undefined>, data: FormData) => T | Promise<T>
+): [
+  React.Context<T | undefined>,
+  React.ForwardRefExoticComponent<
+    React.HTMLAttributes<HTMLFormElement> & React.RefAttributes<HTMLFormElement>
+  >
+] {
+  const context = React.createContext<T | undefined>(undefined);
+
+  const form = React.forwardRef<HTMLFormElement, React.HTMLAttributes<HTMLFormElement>>(
+    (props, ref) => {
+      const [state, formAction] = useFormState(action, undefined);
+
+      return (
+        <context.Provider value={state}>
+          <form action={formAction} {...props} ref={ref} />
+        </context.Provider>
+      );
+    }
+  );
+  form.displayName = formName;
+
+  return [context, form];
+}
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,

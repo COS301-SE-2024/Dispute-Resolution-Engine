@@ -2,20 +2,27 @@ import * as React from "react";
 
 import { Slottable, cn } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot";
+import { VariantProps, cva } from "class-variance-authority";
 
-const Card = React.forwardRef<HTMLDivElement, Slottable<React.HTMLAttributes<HTMLDivElement>>>(
-  ({ className, asChild = false, ...props }, ref) => {
+export const cardVariants = cva(
+  "rounded-lg border border-zinc-200 bg-white text-zinc-950 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50",
+  {
+    variants: {
+      variant: {
+        page: "mx-auto md:w-1/2 md:h-fit h-full md:max-w-2xl",
+      },
+    },
+  }
+);
+
+export interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {}
+
+const Card = React.forwardRef<HTMLDivElement, Slottable<CardProps>>(
+  ({ className, variant, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "div";
-    return (
-      <Comp
-        ref={ref}
-        className={cn(
-          "rounded-lg border border-zinc-200 bg-white text-zinc-950 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50",
-          className
-        )}
-        {...props}
-      />
-    );
+    return <Comp ref={ref} className={cn(cardVariants({ variant }), className)} {...props} />;
   }
 );
 Card.displayName = "Card";

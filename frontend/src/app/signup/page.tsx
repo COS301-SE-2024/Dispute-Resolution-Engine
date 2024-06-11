@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 export default function Signup() {
   return (
     <main className="md:pt-3 h-full">
-      <Card asChild>
-        <SignupForm className="mx-auto lg:w-1/2 md:w-3/4 md:h-fit h-full flex flex-col">
+      <Card variant="page" asChild>
+        <SignupForm className="flex flex-col">
           <CardHeader>
             <CardTitle>Create an Account</CardTitle>
           </CardHeader>

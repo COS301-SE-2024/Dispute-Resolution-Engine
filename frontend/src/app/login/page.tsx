@@ -5,8 +5,8 @@ import { LoginForm, LoginField, LoginMessage, LoginButton } from "./login-form";
 export default function Login() {
   return (
     <main className="md:pt-3 h-full">
-      <Card asChild>
-        <LoginForm className="mx-auto lg:w-1/2 md:w-3/4 md:h-fit h-full flex flex-col">
+      <Card variant="page" asChild>
+        <LoginForm className="flex flex-col">
           <CardHeader>
             <CardTitle>Login</CardTitle>
           </CardHeader>

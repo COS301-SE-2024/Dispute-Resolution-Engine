@@ -5,9 +5,9 @@ export default function Splash() {
   return (
 
 
-    <div>
-      <SplashHeader/>
-      <main>
+    <div className={"relative"}>
+      <div className="fixed w-full z-40"><SplashHeader /></div>
+      <main className="pt-20">
         <SplashPage />
       </main>
     </div>

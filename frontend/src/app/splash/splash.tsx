@@ -32,7 +32,7 @@ export default function Splash() {
         </div>
       </div>
       <div className="flex justify-center">
-        <RalphTextGlasses size={200} />
+        <RalphTextGlasses size={400} />
       </div>
       <h1 className="text-white font-bold text-center text-4xl mt-8">More About Us</h1>
       <p className="max-w-3xl mx-auto mt-8 text-justify">{placeholderText5Paragraph}</p>
@@ -40,39 +40,39 @@ export default function Splash() {
   );
 }
 function RalphTextGlasses(props: any) {
-  // const [text, setText] = useState("");
+  const [text, setText] = useState("");
 
-  // useEffect(() => {
-  //   const generateRandomText = () => {
-  //     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  //     let result = "";
-  //     const length = 400; // Length of the random text
-  //     for (let i = 0; i < length; i++) {
-  //       result += characters.charAt(Math.floor(Math.random() * characters.length));
-  //     }
-  //     return result;
-  //   };
+  useEffect(() => {
+    const generateRandomText = () => {
+      const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      let result = "";
+      const length = 100; // Length of the random text
+      for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * characters.length)) + ' ';
+      }
+      return result;
+    };
 
-  //   const interval = setInterval(() => {
-  //     setText(generateRandomText());
-  //   }, 200); // Update text every 1000 milliseconds (1 second)
+    const interval = setInterval(() => {
+      setText(generateRandomText());
+    }, 200); // Update text every 1000 milliseconds (1 second)
 
-  //   return () => clearInterval(interval); // Clean up the interval on component unmount
-  // }, []);
-  const text = "jhdsfkjalshdlfkhasdkhgoiasduhg\niasdhfkjsdahoyweoqhgifuhbxbjvsdkaljhfkjsdha\njkfhaskdljnlxzmfhlkajsdhganbslfjdshfkj\nlahsdfkhasdlkjfhasldjfjhdsfkjals\nhdlfkhasdkhgoiasduhg\niasdhfkjsdahoyweoqhgifuhbxbjvsdkaljhfkjs\ndhajkfhaskdljnlxzmfhlkajsdhganbslfj"
+    return () => clearInterval(interval); // Clean up the interval on component unmount
+  }, []);
+  // const text = "jhdsfkjalshdlfkhasdkhgoiasduhg\niasdhfkjsdahoyweoqhgifuhbxbjvsdkaljhfkjsdha\njkfhaskdljnlxzmfhlkajsdhganbslfjdshfkj\nlahsdfkhasdlkjfhasldjfjhdsfkjals\nhdlfkhasdkhgoiasduhg\niasdhfkjsdahoyweoqhgifuhbxbjvsdkaljhfkjs\ndhajkfhaskdljnlxzmfhlkajsdhganbslfj"
   const imgSize: number = props.size;
   return (
-      <div className="relative">
+      <div className="relative w-64 justify-center flex items-center mb-12">
         <Image
-          src="/ralph.png"
+          src="/logo-hole.svg"
           alt="Racoon Logo"
           width={imgSize}
           height={imgSize}
           className="absolute top-0 left-0 z-10"
         />
-        <div className="w-64 z-0">
-          <p className="text-justify">{text}</p>
-        </div>
+        <div className="w-32 z-0 mt-14">
+          <p className="text-justify text-xs text-green-400 -tracking-widest">{text}</p>
+         </div>
       </div>
     );
 }

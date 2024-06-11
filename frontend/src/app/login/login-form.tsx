@@ -1,15 +1,17 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { login } from "../lib/auth/actions";
 import { Label } from "@/components/ui/label";
 import { LoginData, LoginError } from "../lib/auth/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext } from "react";
+import { ReactNode, forwardRef, useContext } from "react";
 import { Result } from "@/lib/types";
+import { createFormContext } from "@/components/ui/form";
 
-const LoginContext = createContext<Result<string, LoginError> | undefined>(undefined);
+const [LoginContext, LoginForm] = createFormContext<Result<string, LoginError>>("LoginForm", login);
+export { LoginForm };
 
 const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, children, ...props }, ref) => {
@@ -68,14 +70,3 @@ export function LoginField({
     </div>
   );
 }
-
-const LoginForm = forwardRef<HTMLFormElement, HTMLAttributes<HTMLFormElement>>((props, ref) => {
-  const [state, formAction] = useFormState(login, undefined);
-
-  return (
-    <LoginContext.Provider value={state}>
-      <form action={formAction} {...props} ref={ref} />
-    </LoginContext.Provider>
-  );
-})
-export {LoginForm}

@@ -4,6 +4,8 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { fetchDisputes } from "../lib/dispute";
+import { Suspense } from "react";
+import Loader from "@/components/Loader";
 
 function DisputeLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
@@ -16,29 +18,37 @@ function DisputeLink({ href, children }: { href: string; children: React.ReactNo
   );
 }
 
-export default async function DisputeRootLayout({
+async function DisputeList() {
+  const data = await fetchDisputes("cook");
+
+  return (
+    <ul>
+      {data.data ? (
+        data.data.map((d) => (
+          <li key={d.id}>
+            <DisputeLink href={`/disputes/${d.id}`}>{d.title}</DisputeLink>
+          </li>
+        ))
+      ) : (
+        <li>{data.error}</li>
+      )}
+    </ul>
+  );
+}
+
+export default function DisputeRootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const data = await fetchDisputes("cook");
-
   return (
     <div className="flex items-stretch h-full lg:w-3/4 mx-auto">
       <div className="w-56 flex shrink-0 flex-col p-2 gap-4">
         <Input placeholder="Search" />
         <nav>
-          <ul>
-            {data.data ? (
-              data.data.map((d) => (
-                <li key={d.id}>
-                  <DisputeLink href={`/disputes/${d.id}`}>{d.title}</DisputeLink>
-                </li>
-              ))
-            ) : (
-              <li>{data.error}</li>
-            )}
-          </ul>
+          <Suspense fallback={<Loader />}>
+            <DisputeList />
+          </Suspense>
         </nav>
 
         <Button className="mt-auto" asChild variant="outline">

@@ -1,8 +1,7 @@
 "use server";
 
 import { Result } from "@/lib/types";
-
-const API_URL = process.env.API_URL;
+import { API_URL } from "@/lib/utils";
 
 export type DisputeSummary = {
   id: string;
@@ -11,7 +10,7 @@ export type DisputeSummary = {
 
 export async function fetchDisputes(user: string): Promise<Result<DisputeSummary[]>> {
   const response: Result<DisputeSummary[]> = await fetch(`${API_URL}/api`, {
-    cache: "no-cache",
+    cache: "no-store",
     method: "POST",
     body: JSON.stringify({
       request_type: "dispute_summary",

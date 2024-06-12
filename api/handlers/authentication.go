@@ -22,7 +22,7 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid Request", http.StatusBadRequest)
 		return
 	}
-
+	//create a local variable to store the user details
 	var reqUser struct {
 		//These are all the user details that are required to create a user
 		FirstName         string  `json:"first_name"`
@@ -37,19 +37,16 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Timezone          *string `json:"timezone"`
 
 		//These are the user's address details
-		AddressID *int64  //something I need to derive from the address info
-		Code      *string `json:"code"` //This is the country code
-		Country   *string `json:"country"`
-		Province  *string `json:"province"`
-		City      *string `json:"city"`
-		Street3   *string `json:"street3"`
-		Street2   *string `json:"street2"`
-		Street    *string `json:"street"`
+		Code        *string `json:"code"` //This is the country code
+		Country     *string `json:"country"`
+		Province    *string `json:"province"`
+		City        *string `json:"city"`
+		Street3     *string `json:"street3"`
+		Street2     *string `json:"street2"`
+		Street      *string `json:"street"`
+		AddressType *int    `json:"address_type"`
 	}
-	//create an appropriate user object
-	//var user models.User
-	//parse the body into the user object
-	//err = json.Unmarshal(body, &user)
+	//Unmarshal the body into the local variable
 	err = json.Unmarshal(body, &reqUser)
 	if err != nil {
 		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
@@ -65,11 +62,23 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Email:             reqUser.Email,
 		PasswordHash:      reqUser.Password,
 		PhoneNumber:       reqUser.PhoneNumber,
-		AddressID:         reqUser.AddressID,
+		AddressID:         nil,
 		Status:            "Active",
 		Gender:            reqUser.Gender,
 		PreferredLanguage: reqUser.PreferredLanguage,
 		Timezone:          reqUser.Timezone,
+	}
+
+	address := models.Address{
+		Code:        nil, //to be filled in a later request
+		Country:     reqUser.Country,
+		Province:    reqUser.Province,
+		City:        reqUser.City,
+		Street3:     reqUser.Street3,
+		Street2:     reqUser.Street2,
+		Street:      reqUser.Street,
+		AddressType: reqUser.AddressType,
+		LastUpdated: utilities.GetCurrentTimePtr(),
 	}
 
 	//Check if there is an existing email
@@ -79,6 +88,18 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		utilities.WriteJSON(w, http.StatusConflict, models.Response{Error: "Email already in use"})
 		return
 	}
+	//get country code
+	var country models.Country
+	h.DB.Where("country_name = ?", reqUser.Country).First(&country)
+	address.Code = &country.CountryCode
+
+	//create the address
+	if result := h.DB.Create(&address); result.Error != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong creating the address..."})
+		return
+	}
+	//get the address id
+	user.AddressID = &address.ID
 
 	//Hash the password
 	hashAndSalt := hasher.HashPassword(user.PasswordHash)
@@ -128,10 +149,10 @@ func (h handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	h.DB.Where("email = ?", user.Email).First(&dbUser)
 
 	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error decoding salt"})
-		return
-	}
+	// if err != nil {
+	// 	utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error decoding salt"})
+	// 	return
+	// }
 	checkHash, err := hasher.GenerateHash([]byte(user.PasswordHash), realSalt)
 	if err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong..."})

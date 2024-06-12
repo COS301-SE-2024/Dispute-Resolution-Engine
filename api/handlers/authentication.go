@@ -199,5 +199,4 @@ func sendOTP(userInfo string) {
 		return
 	}
 	fmt.Println("Email Sent Successfully!")
-
 }

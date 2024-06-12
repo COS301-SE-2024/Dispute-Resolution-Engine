@@ -1,6 +1,4 @@
-import { SignupField } from "@/app/signup/signup-form";
 import { Input } from "../ui/input";
-import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 
 export default function ProfileFields() {
@@ -14,17 +12,30 @@ export default function ProfileFields() {
             name="firstName"
             autoComplete="given-name"
             placeholder="First Name"
+            defaultValue="John"
           />
         </div>
 
         <div>
           <Label htmlFor="firstName">Last Name</Label>
-          <Input id="lastName" name="lastName" autoComplete="family-name" placeholder="Last Name" />
+          <Input
+            id="lastName"
+            name="lastName"
+            autoComplete="family-name"
+            placeholder="Last Name"
+            defaultValue="Doe"
+          />
         </div>
       </div>
       <div>
         <Label htmlFor="email">Email</Label>
-        <Input autoComplete="email" id="email" name="email" placeholder="Email" />
+        <Input
+          autoComplete="email"
+          id="email"
+          name="email"
+          placeholder="Email"
+          defaultValue="johndoe@example.com"
+        />
       </div>
     </fieldset>
   );

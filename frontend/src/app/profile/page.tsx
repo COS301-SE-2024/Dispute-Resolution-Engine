@@ -10,8 +10,6 @@ export default function Profile() {
       <Card variant="page">
         <CardHeader>
           <CardTitle>Edit Profile</CardTitle>
-        </CardHeader>
-        <CardContent>
           <dl className="grid grid-cols-2 mb-8">
             <div>
               <dd className="font-semibold">ID Number</dd>
@@ -22,6 +20,8 @@ export default function Profile() {
               <dt className="text-gray-500 text-sm">5 January 2003</dt>
             </div>
           </dl>
+        </CardHeader>
+        <CardContent>
           <Tabs defaultValue="profile">
             <TabsList>
               <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -36,7 +36,7 @@ export default function Profile() {
           </Tabs>
         </CardContent>
         <CardFooter>
-          <Button>Save Changes</Button>
+          <Button disabled>Save Changes</Button>
         </CardFooter>
       </Card>
     </main>

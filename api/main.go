@@ -18,7 +18,6 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
-	router.HandleFunc("/", h.getDocs).Methods(http.MethodGet)
 	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
 	log.Println("API server is running on port 8080")
 	http.ListenAndServe(":8080", router)

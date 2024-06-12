@@ -5,8 +5,11 @@ import (
 	"api/utilities"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"net/smtp"
+	"os"
 	"time"
 )
 
@@ -120,7 +123,7 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating user"})
 		return
 	}
-
+	sendOTP(user.Email)
 	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "User created successfully"})
 }
 
@@ -176,4 +179,25 @@ func (h handler) checkUserExists(email string) bool {
 	var user models.User
 	h.DB.Where("email = ?", email).First(&user)
 	return user.Email != ""
+}
+
+func sendOTP(userInfo string) {
+	from := os.Getenv("COMPANY_EMAIL")
+	to := []string{userInfo}
+	password := os.Getenv("COMPANY_AUTH")
+
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	message := []byte("Subject: Verification Email \n\nPlease follow this link to verify your email: \n\n" + "http://localhost:8080/verify" + "\n" + "OTP: 123456" + "\n\n" + "Thank you!" + "\n\n" + "Techtonic Team")
+
+	auth := smtp.PlainAuth("", from, password, smtpHost)
+
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Email Sent Successfully!")
+
 }

@@ -19,6 +19,7 @@ func main() {
 
 	router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
+	router.HandleFunc("/utils/countries", h.GetCountries).Methods(http.MethodGet)
 	log.Println("API server is running on port 8080")
 	http.ListenAndServe(":8080", router)
 	// store, err := storage.NewPostgresStore()

@@ -20,8 +20,8 @@ export default async function CountrySelect(props: SelectProps) {
       <SelectContent>
         <SelectGroup>
           {data?.map((country) => (
-            <SelectItem key={country.code} value={country.code}>
-              {country.label}
+            <SelectItem key={country.country_code} value={country.country_code}>
+              {country.country_name}
             </SelectItem>
           ))}
         </SelectGroup>

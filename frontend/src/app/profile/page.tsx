@@ -2,15 +2,16 @@ import AddressFields from "@/components/form/address-fields";
 import ProfileFields from "@/components/form/profile-fields";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Profile() {
   return (
-    <main className="md:pt-3 h-full">
-      <Card variant="page">
+    <main className="md:py-3 h-full">
+      <Card variant="page" className="max-h-full flex flex-col">
         <CardHeader>
           <CardTitle>Edit Profile</CardTitle>
-          <dl className="grid grid-cols-2 mb-8">
+          <dl className="grid grid-cols-2 mb-8 ">
             <div>
               <dd className="font-semibold">ID Number</dd>
               <dt className="text-gray-500 text-sm">1234567890123</dt>
@@ -21,7 +22,7 @@ export default function Profile() {
             </div>
           </dl>
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-full overflow-y-auto">
           <Tabs defaultValue="profile">
             <TabsList>
               <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -35,8 +36,9 @@ export default function Profile() {
             </TabsContent>
           </Tabs>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex justify-between">
           <Button disabled>Save Changes</Button>
+          <Button variant="destructive">Delete Account</Button>
         </CardFooter>
       </Card>
     </main>

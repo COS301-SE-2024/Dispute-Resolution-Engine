@@ -8,23 +8,8 @@ export async function signup(
   _initialState: any,
   formData: FormData
 ): Promise<Result<string, SignupError>> {
-  const { data, error } = signupSchema.safeParse({
-    firstName: formData.get("firstName"),
-    lastName: formData.get("lastName"),
-    email: formData.get("email"),
-    password: formData.get("password"),
-    passwordConfirm: formData.get("passwordConfirm"),
-
-    addrCountry: formData.get("addrCountry"),
-    addrProvince: formData.get("addrProvince"),
-    addrCity: formData.get("addrCity"),
-    addrStreet3: formData.get("addrStreet3"),
-    addrStreet2: formData.get("addrStreet2"),
-    addrStreet: formData.get("addrStreet"),
-
-    dateOfBirth: formData.get("dateOfBirth"),
-    idNumber: formData.get("idNumber"),
-  });
+  const formObject = Object.fromEntries(formData);
+  const { data, error } = signupSchema.safeParse(formObject);
 
   if (error) {
     return {
@@ -61,10 +46,8 @@ export async function login(
   _initialState: any,
   formData: FormData
 ): Promise<Result<string, LoginError>> {
-  const { data, error } = loginSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
+  const formObject = Object.fromEntries(formData);
+  const { data, error } = loginSchema.safeParse(formObject);
 
   if (error) {
     return {
@@ -79,7 +62,7 @@ export async function login(
       password: data.password,
     }),
   }).then((res) => res.json());
-  console.log(resData)
+  console.log(resData);
 
   if (resError) {
     return {

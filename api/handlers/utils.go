@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func (h handler) GetCountries(w http.ResponseWriter, r *http.Request) {
+func (h Handler) GetCountries(w http.ResponseWriter, r *http.Request) {
 	var countries []models.Country
 	err := h.DB.Find(&countries).Error
 	if err != nil {

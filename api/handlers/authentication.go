@@ -17,7 +17,23 @@ type StringWrapper struct {
 	Data string `json:"Data"`
 }
 
-func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
+// Define Credentials struct globally
+type Credentials struct {
+    Password string `json:"password"`
+    Email    string `json:"email"`
+}
+
+// @Summary Create a new user
+// @Description Create a new user account
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body models.User true "User"
+// @Success 201 {object} models.User
+// @Failure 400 {object} models.Response "Bad Request"
+// @Failure 500 {object} models.Response "Internal Server Error"
+// @Router /createAcc [post]
+func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
@@ -127,7 +143,17 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "User created successfully"})
 }
 
-func (h handler) LoginUser(w http.ResponseWriter, r *http.Request) {
+// @Summary Login a user
+// @Description Login an existing user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body Credentials true "User Credentials"
+// @Success 200 {string} string "token"
+// @Failure 400 {object} string "Bad Request"
+// @Failure 401 {object} string "Unauthorized"
+// @Router /auth [post]
+func (h Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
@@ -175,7 +201,7 @@ func (h handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h handler) checkUserExists(email string) bool {
+func (h Handler) checkUserExists(email string) bool {
 	var user models.User
 	h.DB.Where("email = ?", email).First(&user)
 	return user.Email != ""

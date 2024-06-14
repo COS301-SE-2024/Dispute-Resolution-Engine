@@ -1,4 +1,72 @@
 basePath: /api
+definitions:
+  handlers.Credentials:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  models.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+    type: object
+  models.User:
+    properties:
+      address_id:
+        description: what the fuck
+        type: integer
+      birthdate:
+        description: check
+        type: string
+      createdAt:
+        description: Filled in by API
+        type: string
+      email:
+        description: check
+        type: string
+      first_name:
+        description: check
+        type: string
+      gender:
+        description: check
+        type: string
+      lastLogin:
+        description: Filled in by API
+        type: string
+      nationality:
+        description: check
+        type: string
+      password:
+        description: Updated by API
+        type: string
+      phone_number:
+        description: need
+        type: string
+      preferred_language:
+        description: worked on
+        type: string
+      role:
+        description: Filled in by API
+        type: string
+      salt:
+        description: Filled in by API
+        type: string
+      status:
+        description: Filled in by API
+        type: string
+      surname:
+        description: check
+        type: string
+      timezone:
+        description: need to be handled by me?
+        type: string
+      updatedAt:
+        description: Filled in by API
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -12,5 +80,65 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Dispute Resolution Engine - v1
   version: "1.0"
-paths: {}
+paths:
+  /auth:
+    post:
+      consumes:
+      - application/json
+      description: Login an existing user
+      parameters:
+      - description: User Credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Credentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Login a user
+      tags:
+      - auth
+  /createAcc:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Create a new user
+      tags:
+      - auth
 swagger: "2.0"

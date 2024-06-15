@@ -265,7 +265,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.UpdateUser"
                         }
                     }
                 ],
@@ -307,6 +307,45 @@ const docTemplate = `{
                 }
             }
         },
+        "models.UpdateUser": {
+            "type": "object",
+            "properties": {
+                "address_type": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "code": {
+                    "description": "This is the country code",
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "province": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                },
+                "street2": {
+                    "type": "string"
+                },
+                "street3": {
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                }
+            }
+        },
         "models.User": {
             "type": "object",
             "properties": {
@@ -333,6 +372,10 @@ const docTemplate = `{
                 "gender": {
                     "description": "check",
                     "type": "string"
+                },
+                "id": {
+                    "description": "Filled in by API",
+                    "type": "integer"
                 },
                 "lastLogin": {
                     "description": "Filled in by API",

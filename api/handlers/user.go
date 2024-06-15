@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
 	"github.com/gorilla/mux"
 )
 
@@ -31,7 +32,7 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 // @Tags user
 // @Accept json
 // @Produce json
-// @Param user body models.User true "User"
+// @Param user body models.UpdateUser true "User"
 // @Success 200 {object} models.Response "User updated successfully"
 // @Failure 400 {object} models.Response "Bad Request"
 // @Router /user/profile [put]

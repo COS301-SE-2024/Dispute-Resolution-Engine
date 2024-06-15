@@ -81,7 +81,7 @@ info:
   title: Dispute Resolution Engine - v1
   version: "1.0"
 paths:
-  /auth:
+  /auth/login:
     post:
       consumes:
       - application/json
@@ -111,13 +111,28 @@ paths:
       summary: Login a user
       tags:
       - auth
-  /createAcc:
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset a user's password
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset not available yet...
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Reset a user's password
+      tags:
+      - auth
+  /auth/signup:
     post:
       consumes:
       - application/json
       description: Create a new user account
       parameters:
-      - description: User
+      - description: User Details
         in: body
         name: user
         required: true
@@ -197,7 +212,7 @@ paths:
       summary: Update a dispute
       tags:
       - dispute
-  /profile:
+  /user/profile:
     get:
       consumes:
       - application/json
@@ -237,19 +252,4 @@ paths:
       summary: Update user profile
       tags:
       - user
-  /reset-password:
-    post:
-      consumes:
-      - application/json
-      description: Reset a user's password
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Password reset not available yet...
-          schema:
-            $ref: '#/definitions/models.Response'
-      summary: Reset a user's password
-      tags:
-      - auth
 swagger: "2.0"

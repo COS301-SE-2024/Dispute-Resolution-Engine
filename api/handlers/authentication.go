@@ -26,9 +26,22 @@ type Credentials struct {
 }
 
 func SetupAuthRoutes(router *mux.Router, h Handler) {
-	router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
+	router.HandleFunc("/signup", h.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
+	router.HandleFunc("/reset-password", h.ResetPassword).Methods(http.MethodPost)
+}
+
+// @Summary Reset a user's password
+// @Description Reset a user's password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response "Password reset not available yet..."
+// @Router /reset-password [post]
+func (h Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 	
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "password reset not available yet..."})
 }
 
 // @Summary Create a new user

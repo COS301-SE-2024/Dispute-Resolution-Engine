@@ -141,4 +141,19 @@ paths:
       summary: Create a new user
       tags:
       - auth
+  /reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset a user's password
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset not available yet...
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Reset a user's password
+      tags:
+      - auth
 swagger: "2.0"

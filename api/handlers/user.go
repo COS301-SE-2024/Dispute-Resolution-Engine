@@ -11,9 +11,31 @@ import (
 )
 
 func SetupUserRoutes(router *mux.Router, h Handler) {
-	router.HandleFunc("/update", h.updateUser).Methods(http.MethodPut)
+	router.HandleFunc("/update", h.updateUser).Methods(http.MethodPost)
+	router.HandleFunc("/profile", h.getUser).Methods(http.MethodPost)
 }
 
+// @Summary Get user profile
+// @Description Get user profile
+// @Tags user
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response "User profile not available yet..."
+// @Router /profile [post]
+func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User profile not available yet..."})
+}
+
+// @Summary Update user profile
+// @Description Update user profile
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body models.User true "User"
+// @Success 200 {object} models.Response "User updated successfully"
+// @Failure 400 {object} models.Response "Bad Request"
+// @Router /update [post]
 func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)

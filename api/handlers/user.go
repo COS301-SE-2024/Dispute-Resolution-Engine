@@ -69,7 +69,7 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 
 	//retrieve the user from the database
 	var dbUser models.User
-	h.DB.Where("email = ?", updateUser.Email).First(&dbUser)
+	h.DB.Where("id = ?", updateUser.Email).First(&dbUser)
 
 	var dbAddress models.Address
 	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddress)
@@ -85,7 +85,10 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 		dbAddress.Code = updateUser.Code
 	}
 	if updateUser.Country != nil {
+		var dbCountry models.Country
 		dbAddress.Country = updateUser.Country
+		h.DB.Where("country_name = ?", updateUser.Country).First(&dbCountry)
+		dbAddress.Code = &dbCountry.CountryCode
 	}
 	if updateUser.Province != nil {
 		dbAddress.Province = updateUser.Province
@@ -107,8 +110,8 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//now update the user and address
-	h.DB.Save(&dbUser)
-	h.DB.Save(&dbAddress)
+	h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)
+	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
 
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User updated successfully"})
 }

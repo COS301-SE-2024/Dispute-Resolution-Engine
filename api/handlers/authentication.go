@@ -21,8 +21,8 @@ type StringWrapper struct {
 
 // Define Credentials struct globally
 type Credentials struct {
-    Password string `json:"password"`
-    Email    string `json:"email"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 func SetupAuthRoutes(router *mux.Router, h Handler) {
@@ -77,14 +77,13 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Timezone          *string `json:"timezone"`
 
 		//These are the user's address details
-		Code        *string `json:"code"` //This is the country code
 		Country     *string `json:"country"`
 		Province    *string `json:"province"`
 		City        *string `json:"city"`
 		Street3     *string `json:"street3"`
 		Street2     *string `json:"street2"`
 		Street      *string `json:"street"`
-		AddressType *int    `json:"address_type"`
+		AddressType *string `json:"address_type"`
 	}
 	//Unmarshal the body into the local variable
 	err = json.Unmarshal(body, &reqUser)

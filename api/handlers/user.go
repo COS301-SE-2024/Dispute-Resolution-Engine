@@ -57,7 +57,7 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 		Street3     *string `json:"street3"`
 		Street2     *string `json:"street2"`
 		Street      *string `json:"street"`
-		AddressType *int    `json:"address_type"`
+		AddressType *string `json:"address_type"`
 	}
 
 	//Unmarshal the body into the local variable
@@ -73,7 +73,7 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 
 	var dbAddress models.Address
 	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddress)
-	
+
 	//check which fields to update
 	if updateUser.FirstName != "" {
 		dbUser.FirstName = updateUser.FirstName

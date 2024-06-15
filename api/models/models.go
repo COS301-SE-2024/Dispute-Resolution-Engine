@@ -37,7 +37,7 @@ type Address struct {
 	Street3     *string    `json:"street3,omitempty" gorm:"type:varchar(255);column:street3"`
 	Street2     *string    `json:"street2,omitempty" gorm:"type:varchar(255);column:street2"`
 	Street      *string    `json:"street,omitempty" gorm:"type:varchar(255);column:street"`
-	AddressType *int       `json:"address_type,omitempty" gorm:"type:int;column:address_type"`
+	AddressType *string    `json:"address_type,omitempty" gorm:"type:address_type_enum;column:address_type"`
 	LastUpdated *time.Time `json:"last_updated,omitempty" gorm:"type:timestamp without time zone;default:CURRENT_TIMESTAMP;column:last_updated"`
 }
 

@@ -35,7 +35,7 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 // @Param user body models.User true "User"
 // @Success 200 {object} models.Response "User updated successfully"
 // @Failure 400 {object} models.Response "Bad Request"
-// @Router /update [put]
+// @Router /profile [put]
 func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)

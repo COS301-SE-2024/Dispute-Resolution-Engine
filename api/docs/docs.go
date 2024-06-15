@@ -222,32 +222,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/reset-password": {
-            "post": {
-                "description": "Reset a user's password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Reset a user's password",
-                "responses": {
-                    "200": {
-                        "description": "Password reset not available yet...",
-                        "schema": {
-                            "$ref": "#/definitions/models.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/update": {
+            },
             "put": {
                 "description": "Update user profile",
                 "consumes": [
@@ -280,6 +255,29 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/reset-password": {
+            "post": {
+                "description": "Reset a user's password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Reset a user's password",
+                "responses": {
+                    "200": {
+                        "description": "Password reset not available yet...",
                         "schema": {
                             "$ref": "#/definitions/models.Response"
                         }

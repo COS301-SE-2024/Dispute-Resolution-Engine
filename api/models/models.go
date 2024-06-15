@@ -5,6 +5,7 @@ import (
 )
 
 type User struct {
+	ID                int64      `json:"id" gorm:"primaryKey;autoIncrement;column:id"`                                   //Filled in by API
 	FirstName         string     `json:"first_name" gorm:"type:varchar(50);not null;column:first_name"`                  //check
 	Surname           string     `json:"surname" gorm:"type:varchar(50);not null;column:surname"`                        //check
 	Birthdate         time.Time  `json:"birthdate" gorm:"type:date;not null;column:birthdate"`                           //check

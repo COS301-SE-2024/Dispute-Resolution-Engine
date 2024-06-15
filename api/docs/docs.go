@@ -24,7 +24,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth": {
+        "/auth/login": {
             "post": {
                 "description": "Login an existing user",
                 "consumes": [
@@ -70,7 +70,30 @@ const docTemplate = `{
                 }
             }
         },
-        "/createAcc": {
+        "/auth/reset-password": {
+            "post": {
+                "description": "Reset a user's password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Reset a user's password",
+                "responses": {
+                    "200": {
+                        "description": "Password reset not available yet...",
+                        "schema": {
+                            "$ref": "#/definitions/models.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/signup": {
             "post": {
                 "description": "Create a new user account",
                 "consumes": [
@@ -85,7 +108,7 @@ const docTemplate = `{
                 "summary": "Create a new user",
                 "parameters": [
                     {
-                        "description": "User",
+                        "description": "User Details",
                         "name": "user",
                         "in": "body",
                         "required": true,
@@ -201,7 +224,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile": {
+        "/user/profile": {
             "get": {
                 "description": "Get user profile",
                 "consumes": [
@@ -255,29 +278,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/reset-password": {
-            "post": {
-                "description": "Reset a user's password",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "auth"
-                ],
-                "summary": "Reset a user's password",
-                "responses": {
-                    "200": {
-                        "description": "Password reset not available yet...",
                         "schema": {
                             "$ref": "#/definitions/models.Response"
                         }

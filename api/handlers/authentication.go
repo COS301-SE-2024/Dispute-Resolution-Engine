@@ -40,7 +40,7 @@ func SetupAuthRoutes(router *mux.Router, h Handler) {
 // @Router /reset-password [post]
 func (h Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	
+
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "password reset not available yet..."})
 }
 
@@ -63,28 +63,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//create a local variable to store the user details
-	var reqUser struct {
-		//These are all the user details that are required to create a user
-		FirstName         string  `json:"first_name"`
-		Surname           string  `json:"surname"`
-		Birthdate         string  `json:"birthdate"`
-		Nationality       string  `json:"nationality"`
-		Email             string  `json:"email"`
-		Password          string  `json:"password"`
-		PhoneNumber       *string `json:"phone_number"`
-		Gender            string  `json:"gender"`
-		PreferredLanguage *string `json:"preferred_language"`
-		Timezone          *string `json:"timezone"`
-
-		//These are the user's address details
-		Country     *string `json:"country"`
-		Province    *string `json:"province"`
-		City        *string `json:"city"`
-		Street3     *string `json:"street3"`
-		Street2     *string `json:"street2"`
-		Street      *string `json:"street"`
-		AddressType *string `json:"address_type"`
-	}
+	var reqUser models.CreateUser
 	//Unmarshal the body into the local variable
 	err = json.Unmarshal(body, &reqUser)
 	if err != nil {

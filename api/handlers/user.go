@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-
 	"github.com/gorilla/mux"
 )
 
@@ -45,20 +44,7 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//get the user id from the request
-	var updateUser struct {
-		FirstName string `json:"first_name"`
-		Surname   string `json:"surname"`
-		Email     string `json:"email"`
-
-		Code        *string `json:"code"` //This is the country code
-		Country     *string `json:"country"`
-		Province    *string `json:"province"`
-		City        *string `json:"city"`
-		Street3     *string `json:"street3"`
-		Street2     *string `json:"street2"`
-		Street      *string `json:"street"`
-		AddressType *string `json:"address_type"`
-	}
+	var updateUser models.UpdateUser
 
 	//Unmarshal the body into the local variable
 	err = json.Unmarshal(body, &updateUser)

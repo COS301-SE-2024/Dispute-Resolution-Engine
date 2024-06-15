@@ -5,15 +5,14 @@ import (
 	"api/models"
 	"api/utilities"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/context"
+	"github.com/joho/godotenv"
 )
-
-// JWT secret key
-var jwtSecretKey = []byte("your_secret_key")
 
 // Claims struct to store user data in JWT
 type Claims struct {
@@ -24,6 +23,12 @@ type Claims struct {
 
 // GenerateJWT generates a JWT token
 func GenerateJWT(user models.User) (string, error) {
+	err:= godotenv.Load("api.env")
+	if err != nil {
+		return "", err
+	}
+	jwtSecretKey := []byte(os.Getenv("JWT_SECRET"))
+
     claims := &Claims{
         Email: user.Email,
         StandardClaims: jwt.StandardClaims{
@@ -38,6 +43,14 @@ func GenerateJWT(user models.User) (string, error) {
 
 // JWTMiddleware is a middleware to validate JWT token
 func JWTMiddleware(next http.Handler) http.Handler {
+	err:= godotenv.Load("api.env")
+	if err != nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error loading environment variables"})
+		})
+	}
+	jwtSecretKey := []byte(os.Getenv("JWT_SECRET"))
+
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         authorizationHeader := r.Header.Get("Authorization")
         if authorizationHeader == "" {

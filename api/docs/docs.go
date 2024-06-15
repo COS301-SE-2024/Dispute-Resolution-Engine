@@ -334,6 +334,10 @@ const docTemplate = `{
                     "description": "check",
                     "type": "string"
                 },
+                "id": {
+                    "description": "Filled in by API",
+                    "type": "integer"
+                },
                 "lastLogin": {
                     "description": "Filled in by API",
                     "type": "string"

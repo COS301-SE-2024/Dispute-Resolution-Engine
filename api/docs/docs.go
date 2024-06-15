@@ -116,8 +116,93 @@ const docTemplate = `{
                 }
             }
         },
+        "/dispute": {
+            "get": {
+                "description": "Get a summary list of disputes",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dispute"
+                ],
+                "summary": "Get a summary list of disputes",
+                "responses": {
+                    "200": {
+                        "description": "Dispute Summary Endpoint",
+                        "schema": {
+                            "$ref": "#/definitions/models.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/dispute/{id}": {
+            "get": {
+                "description": "Get a dispute",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dispute"
+                ],
+                "summary": "Get a dispute",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dispute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dispute Detail Endpoint",
+                        "schema": {
+                            "$ref": "#/definitions/models.Response"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Update a dispute",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dispute"
+                ],
+                "summary": "Update a dispute",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dispute ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dispute Patch Endpoint",
+                        "schema": {
+                            "$ref": "#/definitions/models.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/profile": {
-            "post": {
+            "get": {
                 "description": "Get user profile",
                 "consumes": [
                     "application/json"
@@ -163,7 +248,7 @@ const docTemplate = `{
             }
         },
         "/update": {
-            "post": {
+            "put": {
                 "description": "Update user profile",
                 "consumes": [
                     "application/json"

@@ -141,8 +141,64 @@ paths:
       summary: Create a new user
       tags:
       - auth
+  /dispute:
+    get:
+      consumes:
+      - application/json
+      description: Get a summary list of disputes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dispute Summary Endpoint
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Get a summary list of disputes
+      tags:
+      - dispute
+  /dispute/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a dispute
+      parameters:
+      - description: Dispute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dispute Detail Endpoint
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Get a dispute
+      tags:
+      - dispute
+    patch:
+      consumes:
+      - application/json
+      description: Update a dispute
+      parameters:
+      - description: Dispute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dispute Patch Endpoint
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Update a dispute
+      tags:
+      - dispute
   /profile:
-    post:
+    get:
       consumes:
       - application/json
       description: Get user profile
@@ -172,7 +228,7 @@ paths:
       tags:
       - auth
   /update:
-    post:
+    put:
       consumes:
       - application/json
       description: Update user profile

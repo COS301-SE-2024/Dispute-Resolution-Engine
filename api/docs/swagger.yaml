@@ -141,6 +141,21 @@ paths:
       summary: Create a new user
       tags:
       - auth
+  /profile:
+    post:
+      consumes:
+      - application/json
+      description: Get user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile not available yet...
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Get user profile
+      tags:
+      - user
   /reset-password:
     post:
       consumes:
@@ -156,4 +171,30 @@ paths:
       summary: Reset a user's password
       tags:
       - auth
+  /update:
+    post:
+      consumes:
+      - application/json
+      description: Update user profile
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Update user profile
+      tags:
+      - user
 swagger: "2.0"

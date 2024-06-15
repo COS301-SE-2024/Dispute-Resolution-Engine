@@ -11,8 +11,10 @@ import (
 )
 
 func SetupUserRoutes(router *mux.Router, h Handler) {
-	router.HandleFunc("/update", h.updateUser).Methods(http.MethodPost)
-	router.HandleFunc("/profile", h.getUser).Methods(http.MethodPost)
+    userRouter := router.PathPrefix("/user").Subrouter()
+
+	userRouter.HandleFunc("/update", h.updateUser).Methods(http.MethodPost)
+	userRouter.HandleFunc("/profile", h.getUser).Methods(http.MethodPost)
 }
 
 // @Summary Get user profile

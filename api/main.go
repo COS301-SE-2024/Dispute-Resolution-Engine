@@ -39,11 +39,9 @@ func main() {
     // router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
     // router.HandleFunc("/utils/countries", h.GetCountries).Methods(http.MethodGet)
 
-    authRouter := router.PathPrefix("/auth").Subrouter()
-    handlers.SetupAuthRoutes(authRouter, h)
+    handlers.SetupAuthRoutes(router, h)
 
-    userRouter := router.PathPrefix("/user").Subrouter()
-    handlers.SetupUserRoutes(userRouter, h)
+    handlers.SetupUserRoutes(router, h)
 
     // Swagger setup
     setupSwaggerDocs(router)

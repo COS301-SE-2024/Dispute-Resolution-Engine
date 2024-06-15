@@ -34,9 +34,16 @@ func main() {
     h := handlers.New(DB)
     router := mux.NewRouter()
 
-    router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
-    router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
-    router.HandleFunc("/utils/countries", h.GetCountries).Methods(http.MethodGet)
+    //setup handlers
+    // router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
+    // router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
+    // router.HandleFunc("/utils/countries", h.GetCountries).Methods(http.MethodGet)
+
+    authRouter := router.PathPrefix("/auth").Subrouter()
+    handlers.SetupAuthRoutes(authRouter, h)
+
+    userRouter := router.PathPrefix("/user").Subrouter()
+    handlers.SetupUserRoutes(userRouter, h)
 
     // Swagger setup
     setupSwaggerDocs(router)

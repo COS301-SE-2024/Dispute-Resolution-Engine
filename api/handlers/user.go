@@ -6,7 +6,13 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
+
+func SetupUserRoutes(router *mux.Router, h Handler) {
+	router.HandleFunc("/update", h.updateUser).Methods(http.MethodPut)
+}
 
 func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()

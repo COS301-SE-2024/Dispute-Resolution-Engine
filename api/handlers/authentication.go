@@ -11,6 +11,8 @@ import (
 	"net/smtp"
 	"os"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 type StringWrapper struct {
@@ -21,6 +23,12 @@ type StringWrapper struct {
 type Credentials struct {
     Password string `json:"password"`
     Email    string `json:"email"`
+}
+
+func SetupAuthRoutes(router *mux.Router, h Handler) {
+	router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
+	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
+	
 }
 
 // @Summary Create a new user

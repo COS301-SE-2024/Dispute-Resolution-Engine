@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	"api/middleware"
 	"api/models"
 	"api/utilities"
-	"api/middleware"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -50,7 +50,7 @@ func (h Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Tags auth
 // @Accept json
 // @Produce json
-// @Param user body models.User true "User Details"
+// @Param user body models.CreateUser true "User Details"
 // @Success 201 {object} models.User
 // @Failure 400 {object} models.Response "Bad Request"
 // @Failure 500 {object} models.Response "Internal Server Error"

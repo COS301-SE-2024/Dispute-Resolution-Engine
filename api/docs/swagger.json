@@ -107,7 +107,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.User"
+                            "$ref": "#/definitions/models.CreateUser"
                         }
                     }
                 ],
@@ -288,6 +288,64 @@
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CreateUser": {
+            "type": "object",
+            "properties": {
+                "address_type": {
+                    "type": "string"
+                },
+                "birthdate": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "country": {
+                    "description": "These are the user's address details",
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "These are all the user details that are required to create a user",
+                    "type": "string"
+                },
+                "gender": {
+                    "type": "string"
+                },
+                "nationality": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
+                },
+                "preferred_language": {
+                    "type": "string"
+                },
+                "province": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                },
+                "street2": {
+                    "type": "string"
+                },
+                "street3": {
+                    "type": "string"
+                },
+                "surname": {
+                    "type": "string"
+                },
+                "timezone": {
                     "type": "string"
                 }
             }

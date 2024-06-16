@@ -1,17 +1,18 @@
 package main
 
 import (
-    "api/db"
-    "api/handlers"
-    "log"
-    "net/http"
+	"api/db"
+	"api/handlers"
+	"api/middleware"
+	"log"
+	"net/http"
 
-    _ "api/docs" // This is important to import your generated docs package
+	_ "api/docs" // This is important to import your generated docs package
 
-    "github.com/gin-gonic/gin"
-    ginSwagger "github.com/swaggo/gin-swagger"
-    swaggerFiles "github.com/swaggo/files"
-    "github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/mux"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // @title Dispute Resolution Engine - v1
@@ -41,6 +42,8 @@ func main() {
 
     authRouter := router.PathPrefix("/auth").Subrouter()
     handlers.SetupAuthRoutes(authRouter, h)
+
+    router.Use(middleware.JWTMiddleware)
 
     userRouter := router.PathPrefix("/user").Subrouter()
     handlers.SetupUserRoutes(userRouter, h)

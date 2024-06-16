@@ -1,10 +1,14 @@
 package utilities
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/argon2"
@@ -87,7 +91,81 @@ func GetCurrentTime() time.Time {
 }
 
 func GetCurrentTimePtr() *time.Time {
-    t := time.Now()
-    return &t
+	t := time.Now()
+	return &t
 }
 
+func GenerateVerifyEmailToken() string {
+	b := make([]byte, 3)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
+}
+
+func WriteToFile(data string, filepath string) error {
+	file, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.WriteString("\n" + data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ReadFromFile(filepath string) ([]string, error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return lines, nil
+}
+
+func RemoveFromFile(filepath string, data string) (bool, error) {
+	lines, err := ReadFromFile(filepath)
+	if err != nil {
+		return false, err
+	}
+	if len(lines) == 0 {
+		return false, nil
+	}
+	if ContainsString(lines, data) {
+		var newLines []string
+		for _, line := range lines {
+			if line != data {
+				newLines = append(newLines, line)
+			}
+		}
+		err := os.WriteFile(filepath, []byte(strings.Join(newLines, "\n")), 0644)
+		if err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
+
+
+func ContainsString(arr []string, target string) bool {
+	for _, v := range arr {
+		if v == target {
+			return true
+		}
+	}
+	return false
+}

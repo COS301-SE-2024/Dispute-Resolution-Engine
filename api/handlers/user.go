@@ -40,7 +40,7 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
 		return
 	}
 

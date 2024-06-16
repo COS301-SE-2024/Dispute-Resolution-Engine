@@ -30,6 +30,7 @@ func SetupAuthRoutes(router *mux.Router, h Handler) {
 	router.HandleFunc("/signup", h.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
 	router.HandleFunc("/reset-password", h.ResetPassword).Methods(http.MethodPost)
+	router.HandleFunc("/verify", h.Verify).Methods(http.MethodPost)
 }
 
 // @Summary Reset a user's password
@@ -158,14 +159,14 @@ func (h Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
 		return
 	}
 
 	var user models.User
 	err = json.Unmarshal(body, &user)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
 
@@ -178,20 +179,20 @@ func (h Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	h.DB.Where("email = ?", user.Email).First(&dbUser)
 
 	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
-	// if err != nil {
-	// 	utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error decoding salt"})
-	// 	return
-	// }
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
+		return
+	}
 	checkHash, err := hasher.GenerateHash([]byte(user.PasswordHash), realSalt)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong..."})
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
 
 	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
 		print(dbUser.PasswordHash)
 		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
-		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid password"})
+		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}
 
@@ -221,9 +222,8 @@ func sendOTP(userInfo string) {
 
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
-
-	message := []byte("Subject: Verification Email \n\nPlease follow this link to verify your email: \n\n" + "http://localhost:8080/verify" + "\n" + "OTP: 123456" + "\n\n" + "Thank you!" + "\n\n" + "Techtonic Team")
-
+	pin := utilities.GenerateVerifyEmailToken()
+	message := []byte("Subject: Verification Email \n\nPlease follow this link to verify your email: \n\n" + "http://localhost:8080/verify" + "\n" + "OTP: " + pin + "\n\n" + "Thank you!" + "\n\n" + "Techtonic Team")
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
@@ -232,4 +232,42 @@ func sendOTP(userInfo string) {
 		return
 	}
 	fmt.Println("Email Sent Successfully!")
+	utilities.WriteToFile(pin, "/api/stubbedStorage/verify.txt")
+}
+
+// Verify verifies the user's email through a pin code
+// @Summary Verify user email
+// @Description Verifies the user's email by checking the provided pin code against stored values.
+// @Tags authentication
+// @Accept json
+// @Produce json
+// @Param pinReq body models.VerifyUser true "Verify User"
+// @Success 200 {object} models.Response{Data="Email verified successfully"}
+// @Failure 400 {object} models.Response{Error="Invalid Request"}
+// @Failure 400 {object} models.Response{Error="Invalid pin"}
+// @Failure 500 {object} models.Response{Error="Error verifying pin"}
+// @Router /auth/verify [post]
+func (h Handler) Verify(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+	var pinReq models.VerifyUser
+	err = json.Unmarshal(body, &pinReq)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
+		return
+	}
+	valid, err := utilities.RemoveFromFile("/api/stubbedStorage/verify.txt", pinReq.Pin)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
+		return
+	}
+	if !valid {
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid pin"})
+		return
+	}
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Email verified successfully"})
 }

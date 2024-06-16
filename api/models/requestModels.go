@@ -37,3 +37,7 @@ type CreateUser struct {
 	Street      *string `json:"street"`
 	AddressType *string `json:"address_type"`
 }
+
+type VerifyUser struct {
+	Pin string `json:"pin"`
+}

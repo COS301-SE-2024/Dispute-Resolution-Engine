@@ -1,0 +1,324 @@
+basePath: /api
+definitions:
+  handlers.Credentials:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  models.CreateUser:
+    properties:
+      address_type:
+        type: string
+      birthdate:
+        type: string
+      city:
+        type: string
+      country:
+        description: These are the user's address details
+        type: string
+      email:
+        type: string
+      first_name:
+        description: These are all the user details that are required to create a
+          user
+        type: string
+      gender:
+        type: string
+      nationality:
+        type: string
+      password:
+        type: string
+      phone_number:
+        type: string
+      preferred_language:
+        type: string
+      province:
+        type: string
+      street:
+        type: string
+      street2:
+        type: string
+      street3:
+        type: string
+      surname:
+        type: string
+      timezone:
+        type: string
+    type: object
+  models.Response:
+    properties:
+      data: {}
+      error:
+        type: string
+    type: object
+  models.UpdateUser:
+    properties:
+      address_type:
+        type: string
+      city:
+        type: string
+      code:
+        description: This is the country code
+        type: string
+      country:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      province:
+        type: string
+      street:
+        type: string
+      street2:
+        type: string
+      street3:
+        type: string
+      surname:
+        type: string
+    type: object
+  models.User:
+    properties:
+      address_id:
+        description: what the fuck
+        type: integer
+      birthdate:
+        description: check
+        type: string
+      createdAt:
+        description: Filled in by API
+        type: string
+      email:
+        description: check
+        type: string
+      first_name:
+        description: check
+        type: string
+      gender:
+        description: check
+        type: string
+      id:
+        description: Filled in by API
+        type: integer
+      lastLogin:
+        description: Filled in by API
+        type: string
+      nationality:
+        description: check
+        type: string
+      password:
+        description: Updated by API
+        type: string
+      phone_number:
+        description: need
+        type: string
+      preferred_language:
+        description: worked on
+        type: string
+      role:
+        description: Filled in by API
+        type: string
+      salt:
+        description: Filled in by API
+        type: string
+      status:
+        description: Filled in by API
+        type: string
+      surname:
+        description: check
+        type: string
+      timezone:
+        description: need to be handled by me?
+        type: string
+      updatedAt:
+        description: Filled in by API
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a description.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Dispute Resolution Engine - v1
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login an existing user
+      parameters:
+      - description: User Credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.Credentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      summary: Login a user
+      tags:
+      - auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset a user's password
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset not available yet...
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Reset a user's password
+      tags:
+      - auth
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account
+      parameters:
+      - description: User Details
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Create a new user
+      tags:
+      - auth
+  /dispute:
+    get:
+      consumes:
+      - application/json
+      description: Get a summary list of disputes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dispute Summary Endpoint
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Get a summary list of disputes
+      tags:
+      - dispute
+  /dispute/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a dispute
+      parameters:
+      - description: Dispute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dispute Detail Endpoint
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Get a dispute
+      tags:
+      - dispute
+    patch:
+      consumes:
+      - application/json
+      description: Update a dispute
+      parameters:
+      - description: Dispute ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dispute Patch Endpoint
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Update a dispute
+      tags:
+      - dispute
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile not available yet...
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Get user profile
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Update user profile
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Update user profile
+      tags:
+      - user
+swagger: "2.0"

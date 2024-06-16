@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"api/middleware"
 	"api/models"
 	"api/utilities"
 	"encoding/base64"
@@ -11,13 +12,51 @@ import (
 	"net/smtp"
 	"os"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 type StringWrapper struct {
 	Data string `json:"Data"`
 }
 
-func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
+// Define Credentials struct globally
+type Credentials struct {
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
+
+func SetupAuthRoutes(router *mux.Router, h Handler) {
+	router.HandleFunc("/signup", h.CreateUser).Methods(http.MethodPost)
+	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
+	router.HandleFunc("/reset-password", h.ResetPassword).Methods(http.MethodPost)
+	router.HandleFunc("/verify", h.Verify).Methods(http.MethodPost)
+}
+
+// @Summary Reset a user's password
+// @Description Reset a user's password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response "Password reset not available yet..."
+// @Router /auth/reset-password [post]
+func (h Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "password reset not available yet..."})
+}
+
+// @Summary Create a new user
+// @Description Create a new user account
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body models.CreateUser true "User Details"
+// @Success 201 {object} models.User
+// @Failure 400 {object} models.Response "Bad Request"
+// @Failure 500 {object} models.Response "Internal Server Error"
+// @Router /auth/signup [post]
+func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
@@ -26,29 +65,7 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//create a local variable to store the user details
-	var reqUser struct {
-		//These are all the user details that are required to create a user
-		FirstName         string  `json:"first_name"`
-		Surname           string  `json:"surname"`
-		Birthdate         string  `json:"birthdate"`
-		Nationality       string  `json:"nationality"`
-		Email             string  `json:"email"`
-		Password          string  `json:"password"`
-		PhoneNumber       *string `json:"phone_number"`
-		Gender            string  `json:"gender"`
-		PreferredLanguage *string `json:"preferred_language"`
-		Timezone          *string `json:"timezone"`
-
-		//These are the user's address details
-		Code        *string `json:"code"` //This is the country code
-		Country     *string `json:"country"`
-		Province    *string `json:"province"`
-		City        *string `json:"city"`
-		Street3     *string `json:"street3"`
-		Street2     *string `json:"street2"`
-		Street      *string `json:"street"`
-		AddressType *int    `json:"address_type"`
-	}
+	var reqUser models.CreateUser
 	//Unmarshal the body into the local variable
 	err = json.Unmarshal(body, &reqUser)
 	if err != nil {
@@ -127,19 +144,29 @@ func (h handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "User created successfully"})
 }
 
-func (h handler) LoginUser(w http.ResponseWriter, r *http.Request) {
+// @Summary Login a user
+// @Description Login an existing user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param user body Credentials true "User Credentials"
+// @Success 200 {string} string "token"
+// @Failure 400 {object} string "Bad Request"
+// @Failure 401 {object} string "Unauthorized"
+// @Router /auth/login [post]
+func (h Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
 		return
 	}
 
 	var user models.User
 	err = json.Unmarshal(body, &user)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
 
@@ -152,30 +179,37 @@ func (h handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	h.DB.Where("email = ?", user.Email).First(&dbUser)
 
 	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
-	// if err != nil {
-	// 	utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error decoding salt"})
-	// 	return
-	// }
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
+		return
+	}
 	checkHash, err := hasher.GenerateHash([]byte(user.PasswordHash), realSalt)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong..."})
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
 
 	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
 		print(dbUser.PasswordHash)
 		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
-		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid password"})
+		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}
 
 	dbUser.LastLogin = utilities.GetCurrentTimePtr()
 	h.DB.Where("email = ?", user.Email).Update("last_login", utilities.GetCurrentTime())
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Login successful"})
+
+	token, err := middleware.GenerateJWT(dbUser)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		return
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: token})
 
 }
 
-func (h handler) checkUserExists(email string) bool {
+func (h Handler) checkUserExists(email string) bool {
 	var user models.User
 	h.DB.Where("email = ?", email).First(&user)
 	return user.Email != ""
@@ -188,9 +222,8 @@ func sendOTP(userInfo string) {
 
 	smtpHost := "smtp.gmail.com"
 	smtpPort := "587"
-
-	message := []byte("Subject: Verification Email \n\nPlease follow this link to verify your email: \n\n" + "http://localhost:8080/verify" + "\n" + "OTP: 123456" + "\n\n" + "Thank you!" + "\n\n" + "Techtonic Team")
-
+	pin := utilities.GenerateVerifyEmailToken()
+	message := []byte("Subject: Verification Email \n\nPlease follow this link to verify your email: \n\n" + "http://localhost:8080/verify" + "\n" + "OTP: " + pin + "\n\n" + "Thank you!" + "\n\n" + "Techtonic Team")
 	auth := smtp.PlainAuth("", from, password, smtpHost)
 
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
@@ -199,4 +232,45 @@ func sendOTP(userInfo string) {
 		return
 	}
 	fmt.Println("Email Sent Successfully!")
+	err = utilities.WriteToFile(pin, "stubbedStorage/verify.txt")
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+// Verify verifies the user's email through a pin code
+// @Summary Verify user email
+// @Description Verifies the user's email by checking the provided pin code against stored values.
+// @Tags authentication
+// @Accept json
+// @Produce json
+// @Param pinReq body models.VerifyUser true "Verify User"
+// @Success 200 {object} models.Response{Data="Email verified successfully"}
+// @Failure 400 {object} models.Response{Error="Invalid Request"}
+// @Failure 400 {object} models.Response{Error="Invalid pin"}
+// @Failure 500 {object} models.Response{Error="Error verifying pin"}
+// @Router /auth/verify [post]
+func (h Handler) Verify(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+	var pinReq models.VerifyUser
+	err = json.Unmarshal(body, &pinReq)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
+		return
+	}
+	valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
+		return
+	}
+	if !valid {
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid pin"})
+		return
+	}
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Email verified successfully"})
 }

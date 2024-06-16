@@ -5,6 +5,7 @@ import (
 )
 
 type User struct {
+	ID                int64      `json:"id" gorm:"primaryKey;autoIncrement;column:id"`                                   //Filled in by API
 	FirstName         string     `json:"first_name" gorm:"type:varchar(50);not null;column:first_name"`                  //check
 	Surname           string     `json:"surname" gorm:"type:varchar(50);not null;column:surname"`                        //check
 	Birthdate         time.Time  `json:"birthdate" gorm:"type:date;not null;column:birthdate"`                           //check
@@ -37,7 +38,7 @@ type Address struct {
 	Street3     *string    `json:"street3,omitempty" gorm:"type:varchar(255);column:street3"`
 	Street2     *string    `json:"street2,omitempty" gorm:"type:varchar(255);column:street2"`
 	Street      *string    `json:"street,omitempty" gorm:"type:varchar(255);column:street"`
-	AddressType *int       `json:"address_type,omitempty" gorm:"type:int;column:address_type"`
+	AddressType *string    `json:"address_type,omitempty" gorm:"type:address_type_enum;column:address_type"`
 	LastUpdated *time.Time `json:"last_updated,omitempty" gorm:"type:timestamp without time zone;default:CURRENT_TIMESTAMP;column:last_updated"`
 }
 

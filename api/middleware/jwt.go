@@ -44,10 +44,10 @@ func GenerateJWT(user models.User) (string, error) {
 // JWTMiddleware is a middleware to validate JWT token
 func JWTMiddleware(next http.Handler) http.Handler {
     //stub function
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        context.Set(r, "user", &Claims{User: models.User{ID: 1, Email: "temp@temp.com"}})
-        next.ServeHTTP(w, r)
-    })
+    // return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    //     context.Set(r, "user", &Claims{User: models.User{ID: 1, Email: "temp@temp.com"}})
+    //     next.ServeHTTP(w, r)
+    // })
 
     //end of stub function
 

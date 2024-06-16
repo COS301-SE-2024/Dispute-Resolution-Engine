@@ -43,12 +43,12 @@ func main() {
     authRouter := router.PathPrefix("/auth").Subrouter()
     handlers.SetupAuthRoutes(authRouter, h)
 
-    router.Use(middleware.JWTMiddleware)
-
     userRouter := router.PathPrefix("/user").Subrouter()
+    userRouter.Use(middleware.JWTMiddleware)
     handlers.SetupUserRoutes(userRouter, h)
 
     disputeRouter := router.PathPrefix("/dispute").Subrouter()
+    disputeRouter.Use(middleware.JWTMiddleware)
     handlers.SetupDisputeRoutes(disputeRouter, h)
 
     // Swagger setup

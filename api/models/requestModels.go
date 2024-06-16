@@ -41,3 +41,8 @@ type CreateUser struct {
 type VerifyUser struct {
 	Pin string `json:"pin"`
 }
+
+type DeleteUser struct {
+	Email string `json:"email"`
+	Password string `json:"password"`
+}

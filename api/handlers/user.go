@@ -3,6 +3,7 @@ package handlers
 import (
 	"api/models"
 	"api/utilities"
+	"encoding/base64"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 func SetupUserRoutes(router *mux.Router, h Handler) {
 	router.HandleFunc("/profile", h.updateUser).Methods(http.MethodPut)
 	router.HandleFunc("/profile", h.getUser).Methods(http.MethodGet)
+	router.HandleFunc("/remove", h.RemoveAccount).Methods(http.MethodDelete)
 }
 
 // @Summary Get user profile
@@ -101,4 +103,61 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
 
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User updated successfully"})
+}
+
+
+// @Summary Remove user account
+// @Description Remove user account
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body models.DeleteUser true "User"
+// @Success 200 {object} models.Response "User account removed successfully"
+// @Failure 400 {object} models.Response "Bad Request"
+// @Router /user/remove [delete]
+func (h Handler) RemoveAccount(w http.ResponseWriter, r *http.Request) {
+	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
+	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Invalid Request", http.StatusBadRequest)
+		return
+	}
+
+	var user models.DeleteUser
+	err = json.Unmarshal(body, &user)
+
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
+		return
+	}
+
+	if !h.checkUserExists(user.Email) {
+		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "User does not exist"})
+		return
+	}
+
+	var dbUser models.User
+	h.DB.Where("email = ?", user.Email).First(&dbUser)
+
+	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
+		return
+	}
+	checkHash, err := hasher.GenerateHash([]byte(user.Password), realSalt)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
+		return
+	}
+
+	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
+		print(dbUser.PasswordHash)
+		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
+		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
+		return
+	}
+
+	h.DB.Where("email = ?", user.Email).Delete(&dbUser)
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User account removed successfully"})
 }

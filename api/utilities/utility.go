@@ -102,12 +102,19 @@ func GenerateVerifyEmailToken() string {
 }
 
 func WriteToFile(data string, filepath string) error {
+	// Open the file with append and create options, set the permission to 0644
 	file, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	// Ensure the file is closed when the function exits
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Printf("Failed to close file: %v\n", err)
+		}
+	}()
 
+	// Write the data with a newline prefix
 	_, err = file.WriteString("\n" + data)
 	if err != nil {
 		return err
@@ -158,8 +165,6 @@ func RemoveFromFile(filepath string, data string) (bool, error) {
 	}
 	return false, nil
 }
-
-
 
 func ContainsString(arr []string, target string) bool {
 	for _, v := range arr {

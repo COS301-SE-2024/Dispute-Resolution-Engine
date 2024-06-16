@@ -232,7 +232,10 @@ func sendOTP(userInfo string) {
 		return
 	}
 	fmt.Println("Email Sent Successfully!")
-	utilities.WriteToFile(pin, "/api/stubbedStorage/verify.txt")
+	err = utilities.WriteToFile(pin, "stubbedStorage/verify.txt")
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 // Verify verifies the user's email through a pin code
@@ -260,7 +263,7 @@ func (h Handler) Verify(w http.ResponseWriter, r *http.Request) {
 		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
-	valid, err := utilities.RemoveFromFile("/api/stubbedStorage/verify.txt", pinReq.Pin)
+	valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
 	if err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
 		return

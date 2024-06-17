@@ -1,6 +1,5 @@
-/**
- * Generic Response from the API
- */
+export * from "./auth";
+
 export type Result<T> =
   | {
       data: T;

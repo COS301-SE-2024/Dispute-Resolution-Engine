@@ -23,8 +23,14 @@ export interface SignupRequest {
   gender: Gender;
   nationality: string;
 
-  // Stub for the time being
+  /**
+   * Hard-coded for now (will be overwritten by API)
+   */
   timezone: string;
+
+  /**
+   * Hard-coded for now (will be overwritten by API)
+   */
   preferred_language: string;
 
   // Address information
@@ -38,6 +44,21 @@ export interface SignupRequest {
 }
 
 /**
- * Simply returns a success message (so no extra information)
+ * Returns a temporary JWT (pending email verification)
  */
 export type SignupResponse = string;
+
+/**
+ * Add a HTTP header with authentication header:
+ * ```http
+ * Authorization: Bearer <JWT>
+ * ```
+ */
+export interface VerifyRequest {
+  pin: string;
+}
+
+/**
+ * Returns the JWT of the verified user
+ */
+export type VerifyResponse = string;

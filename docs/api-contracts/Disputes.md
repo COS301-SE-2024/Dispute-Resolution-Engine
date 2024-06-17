@@ -26,20 +26,20 @@ or
 
 # Utility Types
 ```ts
-export type DisputeSummary = {
+type DisputeSummary = {
   id: string;
   title: string;
   description: string;
   status: string;
 };
 
-export type Evidence = {
+type Evidence = {
   label: string;
   url: string;
   date_submitted: string;
 };
 
-export type Expert = {
+type Expert = {
   full_name: string;
   email: string;
   phone: string;
@@ -53,7 +53,7 @@ export type Expert = {
 
 Will return a list of dispute summaries the user is involved in:
 ```ts
-export type DisputeListResponse = DisputeSummary[];
+type DisputeListResponse = DisputeSummary[];
 ```
 
 
@@ -64,7 +64,7 @@ export type DisputeListResponse = DisputeSummary[];
 
 Will return detailed information about a dispute the user is involved in:
 ```ts
-export type DisputeResponse = {
+type DisputeResponse = {
   id: string;
   title: string;
   description: string;
@@ -85,7 +85,7 @@ export type DisputeResponse = {
 Below is temporary description until this exception is documented
 
 ```ts
-export interface DisputeCreateRequest {
+interface DisputeCreateRequest {
   description: string;
   desired_outcome: string;
 
@@ -110,7 +110,7 @@ export interface DisputeCreateRequest {
 
 The response will return a success message
 ```ts
-export type DisputeCreateResponse = string;
+type DisputeCreateResponse = string;
 ```
 
 # Dispute Evidence upload

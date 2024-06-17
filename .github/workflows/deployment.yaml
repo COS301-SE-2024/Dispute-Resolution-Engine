@@ -1,0 +1,70 @@
+name: Deployment
+
+on:
+  workflow_run:
+  fork:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Make db env file
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_POSTGRES_PASSWORD : ${{ secrets.POSTGRES_PASSWORD }}
+          envkey_POSTGRES_USER : ${{ secrets.POSTGRES_USER }}
+          envkey_POSTGRES_DB : ${{ secrets.POSTGRES_DB }}
+          directory:  .
+          file_name: db.env
+          fail_on_empty: false
+      - name: Make api env files
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_DATABASE_URL : ${{ secrets.DATABASE_URL }}
+          envkey_DATABASE_PORT : ${{ secrets.DATABASE_PORT }}
+          envkey_DATABASE_NAME : ${{ secrets.DATABASE_NAME }}
+          envkey_DATABASE_USER : ${{ secrets.DATABASE_USER }}
+          envkey_DATABASE_PASSWORD : ${{ secrets.DATABASE_PASSWORD }}
+          envkey_COMPANY_EMAIL : ${{ secrets.COMPANY_EMAIL }}
+          envkey_COMPANY_AUTH : ${{ secrets.COMPANY_AUTH }}
+          directory:  .
+          file_name: api.env
+          fail_on_empty: false
+      - name: Make fe env files
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_API_URL : ${{ secrets.API_URL }}
+          directory:  .
+          file_name: fe.env
+          fail_on_empty: false    
+      
+      - name: Docker compose build
+        run: |
+          cd $GITHUB_WORKSPACE
+          docker compose build
+      - name: Make it a tar file
+        run: |
+          cd $GITHUB_WORKSPACE
+          docker save -o app.tar app
+      # - name: Send through the docker container using SCP
+      #   uses: appleboy/scp-action@v0.1.4
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     password: ${{ secrets.SSH_PASSWORD }}
+      #     port: ${{ secrets.SSH_PORT }}
+      #     source: app.tar
+      #     target: ./
+      # - name: Spin up docker image
+      #   uses: appleboy/ssh-action@v1.0.0
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     password: ${{ secrets.SSH_PASSWORD }}
+      #     port: ${{ secrets.SSH_PORT }}
+      #     script: |
+      #       docker load -i app.tar
+      #       docker run -d -p 80:80 app
+            

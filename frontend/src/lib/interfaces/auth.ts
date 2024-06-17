@@ -1,5 +1,5 @@
-export type Gender = "Male" | "Female" | "Non-binary" | "Prefer not to say" | "Other";
-export type AddressType = "Postal" | "Physical" | "Billing";
+import { AddressType, Gender } from ".";
+import { Address } from "../schema/address";
 
 export interface LoginRequest {
   email: string;
@@ -34,13 +34,7 @@ export interface SignupRequest {
   preferred_language: string;
 
   // Address information
-  address_type: AddressType;
-  country: string;
-  city: string;
-  province: string;
-  street: string;
-  street2: string;
-  street3: string;
+  address: Address;
 }
 
 /**

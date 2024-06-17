@@ -139,6 +139,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/verify": {
+            "post": {
+                "description": "Verifies the user's email by checking the provided pin code against stored values.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify user email",
+                "parameters": [
+                    {
+                        "description": "Verify User",
+                        "name": "pinReq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.VerifyUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email verified successfully - Example response: { 'message': 'Email verified successfully' }",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid pin - Example error response: { 'error': 'Invalid pin' }",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Error verifying pin - Example error response: { 'error': 'Error verifying pin' }",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "/dispute": {
             "get": {
                 "description": "Get a summary list of disputes",
@@ -284,6 +330,46 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/remove": {
+            "delete": {
+                "description": "Remove user account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Remove user account",
+                "parameters": [
+                    {
+                        "description": "User",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DeleteUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User account removed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -352,6 +438,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "timezone": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeleteUser": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
                     "type": "string"
                 }
             }
@@ -477,6 +574,14 @@ const docTemplate = `{
                 },
                 "updatedAt": {
                     "description": "Filled in by API",
+                    "type": "string"
+                }
+            }
+        },
+        "models.VerifyUser": {
+            "type": "object",
+            "properties": {
+                "pin": {
                     "type": "string"
                 }
             }

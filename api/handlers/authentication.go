@@ -72,6 +72,11 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
+
+	//stub timezone
+	zone, offset := time.Now().Zone()
+	timezone := zone + string(offset)
+	reqUser.Timezone = &timezone
 	//Now put stuff in the actual user object
 	date, err := time.Parse("2006-01-02", reqUser.Birthdate)
 	user := models.User{
@@ -83,7 +88,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		PasswordHash:      reqUser.Password,
 		PhoneNumber:       reqUser.PhoneNumber,
 		AddressID:         nil,
-		Status:            "Active",
+		Status:            "Unverified",
 		Gender:            reqUser.Gender,
 		PreferredLanguage: reqUser.PreferredLanguage,
 		Timezone:          reqUser.Timezone,
@@ -133,7 +138,8 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	//Small user preferences
 	user.Role = "user"
-	user.PreferredLanguage = nil
+	stubbedPref := "en-US"
+	user.PreferredLanguage = &stubbedPref
 	user.LastLogin = nil
 
 	if result := h.DB.Create(&user); result.Error != nil {

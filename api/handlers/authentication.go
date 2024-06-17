@@ -27,6 +27,7 @@ type Credentials struct {
 }
 
 func SetupAuthRoutes(router *mux.Router, h Handler) {
+	
 	router.HandleFunc("/signup", h.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
 	router.HandleFunc("/reset-password", h.ResetPassword).Methods(http.MethodPost)

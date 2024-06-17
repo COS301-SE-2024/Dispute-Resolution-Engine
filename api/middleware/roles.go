@@ -24,19 +24,18 @@ func NewRole() *Role {
 	return &Role{roles: accessLevels}
 }
 
+
+
 // Role struct to store role data
-func isAutherizedToAccessResource(r *http.Request) (string, bool) {
+// func isAuthorizedToAccessResource(r *http.Request, authLevel int) (string, bool) {
 	
-	jwt := r.Header.Get("authorization")
-	if jwt == "" {
-		return "no jwt present", false
-	}
+// 	claims := GetClaims(r)
+// 	if claims == nil {
+// 		return "jwt error", false
+// 	}
 
-	//get the token from the header
-	token := strings.Split(jwt, "Bearer ")
-	if len(token) != 2 {
-		return "invalid token", false
-	}
+// 	role := claims.User.Role
+// 	accessLevels := NewRole().roles
 
-	return "unimplemented", false
-}
+
+// }

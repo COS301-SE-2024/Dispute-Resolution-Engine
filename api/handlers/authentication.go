@@ -241,14 +241,14 @@ func sendOTP(userInfo string) {
 // Verify verifies the user's email through a pin code
 // @Summary Verify user email
 // @Description Verifies the user's email by checking the provided pin code against stored values.
-// @Tags authentication
+// @Tags auth
 // @Accept json
 // @Produce json
 // @Param pinReq body models.VerifyUser true "Verify User"
-// @Success 200 {object} models.Response{Data="Email verified successfully"}
-// @Failure 400 {object} models.Response{Error="Invalid Request"}
-// @Failure 400 {object} models.Response{Error="Invalid pin"}
-// @Failure 500 {object} models.Response{Error="Error verifying pin"}
+// @Success 200 {object} interface{} "Email verified successfully - Example response: { 'message': 'Email verified successfully' }"
+// @Failure 400 {object} interface{} "Invalid Request - Example error response: { 'error': 'Invalid Request' }"
+// @Failure 400 {object} interface{} "Invalid pin - Example error response: { 'error': 'Invalid pin' }"
+// @Failure 500 {object} interface{} "Error verifying pin - Example error response: { 'error': 'Error verifying pin' }"
 // @Router /auth/verify [post]
 func (h Handler) Verify(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()

@@ -47,6 +47,13 @@ definitions:
       timezone:
         type: string
     type: object
+  models.DeleteUser:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
   models.Response:
     properties:
       data: {}
@@ -136,6 +143,11 @@ definitions:
         description: Filled in by API
         type: string
     type: object
+  models.VerifyUser:
+    properties:
+      pin:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -223,6 +235,40 @@ paths:
           schema:
             $ref: '#/definitions/models.Response'
       summary: Create a new user
+      tags:
+      - auth
+  /auth/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the user's email by checking the provided pin code against
+        stored values.
+      parameters:
+      - description: Verify User
+        in: body
+        name: pinReq
+        required: true
+        schema:
+          $ref: '#/definitions/models.VerifyUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'Email verified successfully - Example response: { ''message'':
+            ''Email verified successfully'' }'
+          schema:
+            type: object
+        "400":
+          description: 'Invalid pin - Example error response: { ''error'': ''Invalid
+            pin'' }'
+          schema:
+            type: object
+        "500":
+          description: 'Error verifying pin - Example error response: { ''error'':
+            ''Error verifying pin'' }'
+          schema:
+            type: object
+      summary: Verify user email
       tags:
       - auth
   /dispute:
@@ -319,6 +365,32 @@ paths:
           schema:
             $ref: '#/definitions/models.Response'
       summary: Update user profile
+      tags:
+      - user
+  /user/remove:
+    delete:
+      consumes:
+      - application/json
+      description: Remove user account
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.DeleteUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User account removed successfully
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Remove user account
       tags:
       - user
 swagger: "2.0"

@@ -1,12 +1,17 @@
-package middleware
+package handlers
 
-import (
-	"net/http"
-	"strings"
-)
+import "github.com/gorilla/mux"
 
 type Role struct {
 	roles map[int][]string
+}
+
+type RestrictedRoleEndpointFunction func(router *mux.Router, h Handler)
+
+type RestrictedRoleEndpoint struct {
+	accessLevels map[int][]string
+	accessLevel  int
+	inner        Handler
 }
 
 // NewRole creates a new Role struct
@@ -24,11 +29,25 @@ func NewRole() *Role {
 	return &Role{roles: accessLevels}
 }
 
+func NewRestrictedRoleEndpoint(inner Handler, accessLevel int) *RestrictedRoleEndpoint {
+	return &RestrictedRoleEndpoint{
+		accessLevels: NewRole().roles,
+		accessLevel:  accessLevel,
+		inner:        inner,
+	}
+}
+
+func NewRestrictedRoleEndpointFunction(inner Handler, accessLevel int) RestrictedRoleEndpointFunction {
+	return func(router *mux.Router, h Handler) {
+		
+		
+	}
+}
 
 
 // Role struct to store role data
 // func isAuthorizedToAccessResource(r *http.Request, authLevel int) (string, bool) {
-	
+
 // 	claims := GetClaims(r)
 // 	if claims == nil {
 // 		return "jwt error", false
@@ -36,6 +55,5 @@ func NewRole() *Role {
 
 // 	role := claims.User.Role
 // 	accessLevels := NewRole().roles
-
 
 // }

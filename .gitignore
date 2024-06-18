@@ -109,6 +109,11 @@ ProjectSettings/
 *.ai
 *.eps
 
+# Documentation #
+################
+/api/docs/**/*.json
+/api/docs/**/*.yaml
+
 # Environment files #
 #####################
 .env

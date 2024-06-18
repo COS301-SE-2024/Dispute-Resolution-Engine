@@ -1,101 +1,76 @@
 "use client";
 
+import { useFormState, useFormStatus } from "react-dom";
+import { signup } from "../lib/auth/actions";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { SignupData, SignupError } from "../lib/auth/types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form } from "@/components/ui/form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import React, { HTMLAttributes, useId, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { signup } from "@/app/lib/auth";
-import TextField from "@/components/form/text-field";
-import { sign } from "crypto";
-import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext } from "react";
+import { Result } from "@/lib/types";
+import { createFormContext } from "@/components/ui/form";
 
-const signupSchema = z
-  .object({
-    firstName: z.string().min(1, "Required"),
-    lastName: z.string().min(1, "Required"),
-    email: z.string().min(1, "Required").email("Please enter a valid email"),
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters long")
-      .regex(/\d/gm, "Password must contain at least one digit")
-      .regex(/[A-Za-z]/gm, "Password must contain at least one letter")
-      .regex(/[^\w\d\s:]/gm, "Password must contain a special character"),
-    passwordConfirm: z.string(),
-  })
-  .superRefine((arg, ctx) => {
-    if (arg.password !== arg.passwordConfirm) {
-      ctx.addIssue({
-        code: "custom",
-        message: "The passwords did not match",
-        path: ["passwordConfirm"],
-      });
-    }
-  });
+const [SignupContext, SignupForm] = createFormContext<Result<string, SignupError>>(
+  "SignupForm",
+  signup
+);
+export { SignupForm };
 
-export type SignupData = z.infer<typeof signupSchema>;
-
-const SignupField = TextField<SignupData>;
-
-export default function SignupForm(props: HTMLAttributes<HTMLFormElement>) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
-
-  const form = useForm<SignupData>({
-    resolver: zodResolver(signupSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      passwordConfirm: "",
-    },
-  });
-
-  async function cookPlease(data: SignupData) {
-    console.log(data);
-    setLoading(true);
-    const response = await signup(data);
-    setLoading(false);
-    if (response.error) {
-      setError(response.error);
-      return;
-    }
-    router.push("/signup/verify");
+const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <p
+        ref={ref}
+        className={cn("text-xs font-medium text-red-500 dark:text-red-500", className)}
+        {...props}
+      >
+        {children}
+      </p>
+    );
   }
+);
+FormMessage.displayName = "FormMessage";
 
-  const formId = useId();
+const SignupMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  (props, ref) => {
+    const state = useContext(SignupContext);
+    const error = state?.error && state.error._errors?.at(0);
+    return (
+      <FormMessage {...props} ref={ref}>
+        {error}
+      </FormMessage>
+    );
+  }
+);
+SignupMessage.displayName = "SignupMessage";
+export { SignupMessage };
 
+export function SignupButton() {
+  const { pending } = useFormStatus();
   return (
-    <Form {...form}>
-      <Card className="mx-auto md:my-3 lg:w-1/2 md:w-3/4">
-        <CardHeader>
-          <CardTitle>Create an Account</CardTitle>
-        </CardHeader>
-        <CardContent asChild>
-          <form
-            id={formId}
-            onSubmit={form.handleSubmit(cookPlease)}
-            className="gap-y-2 space-y-3"
-            {...props}
-          >
-            <SignupField name="firstName" label="First Name" />
-            <SignupField name="lastName" label="Last Name" />
-            <SignupField name="email" label="Email" />
-            <SignupField type="password" name="password" label="Password" />
-            <SignupField type="password" name="passwordConfirm" label="Confirm Password" />
-          </form>
-        </CardContent>
-        <CardFooter>
-          <Button disabled={loading} form={formId} type="submit">
-            Create
-          </Button>
-          <p role="alert">{error}</p>
-        </CardFooter>
-      </Card>
-    </Form>
+    <Button disabled={pending} type="submit">
+      Create
+    </Button>
+  );
+}
+
+export function SignupField({
+  name,
+  label,
+  children,
+}: {
+  name: keyof SignupData;
+  label: string;
+  children: ReactNode;
+}) {
+  const state = useContext(SignupContext);
+  const error = state?.error && state.error[name]?._errors?.at(0);
+  return (
+    <div>
+      <Label htmlFor={name}>{label}</Label>
+      {children}
+      {error && <FormMessage>{error}</FormMessage>}
+    </div>
   );
 }

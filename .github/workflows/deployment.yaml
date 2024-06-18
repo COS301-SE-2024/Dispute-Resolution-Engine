@@ -47,24 +47,30 @@ jobs:
       - name: Make it a tar file
         run: |
           cd $GITHUB_WORKSPACE
-          docker save -o app.tar app
-      # - name: Send through the docker container using SCP
-      #   uses: appleboy/scp-action@v0.1.4
-      #   with:
-      #     host: ${{ secrets.SSH_HOST }}
-      #     username: ${{ secrets.SSH_USERNAME }}
-      #     password: ${{ secrets.SSH_PASSWORD }}
-      #     port: ${{ secrets.SSH_PORT }}
-      #     source: app.tar
-      #     target: ./
-      # - name: Spin up docker image
-      #   uses: appleboy/ssh-action@v1.0.0
-      #   with:
-      #     host: ${{ secrets.SSH_HOST }}
-      #     username: ${{ secrets.SSH_USERNAME }}
-      #     password: ${{ secrets.SSH_PASSWORD }}
-      #     port: ${{ secrets.SSH_PORT }}
-      #     script: |
-      #       docker load -i app.tar
-      #       docker run -d -p 80:80 app
+          docker save -o frontend.tar dispute-resolution-engine-frontend:latest
+          docker save -o api.tar api
+          docker save -o postgres.tar postgres
+
+      - name: Send through the docker container using 
+      
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "api.tar,frontend.tar,postgres.tar,docker-compose.yaml"
+          target: ./
+      - name: Spin up docker image
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            docker load -i frontend.tar
+            docker load -i api.tar
+            docker load -i postgres.tar
+            docker-compose up -d
             

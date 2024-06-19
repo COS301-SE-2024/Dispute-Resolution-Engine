@@ -52,7 +52,7 @@ func (r *Role) matchKeyToValue(value string) (int, bool) {
 	return -1, false
 }
 
-func RoleMiddleware(next http.Handler) http.Handler {
+func RoleMiddleware(next http.Handler, reqAuthlevel int) http.Handler {
 	roles := NewRole()
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +65,7 @@ func RoleMiddleware(next http.Handler) http.Handler {
 		userRole := claims.User.Role
 
 		//check if the role is in the map
-		_, ok := roles.matchKeyToValue(userRole)
+		authLevel, ok := roles.matchKeyToValue(userRole)
 
 		if !ok {
 			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -73,6 +73,10 @@ func RoleMiddleware(next http.Handler) http.Handler {
 		}
 
 		//check if the role is allowed to access the resource
+		if authLevel < reqAuthlevel {
+			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			return
+		}
 
 		next.ServeHTTP(w, r)
 	})

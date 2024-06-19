@@ -86,7 +86,7 @@ type UserProfileRemoveResponse = string;
 ```
 
 # Update Address
-- **Endpoint:** `PUT /user/profile/tbd`
+- **Endpoint:** `PUT /user/profile/address`
 - **Headers:**
     - `Authorization: Bearer <JWT>`
 ```ts
@@ -97,7 +97,7 @@ interface UserAddressUpdateRequest {
   Street3: string;
   Street2: string;
   Street: string;
-  AddressType: string;    
+  AddressType: string;
 }
 ```
 The server will respond with a success or failure

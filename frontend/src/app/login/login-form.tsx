@@ -3,12 +3,15 @@
 import { useFormStatus } from "react-dom";
 import { login } from "../lib/auth/actions";
 import { Label } from "@/components/ui/label";
-import { LoginData, LoginError } from "../lib/auth/types";
+import { LoginData, LoginError, loginSchema } from "../lib/auth/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ReactNode, forwardRef, useContext } from "react";
 import { Result } from "@/lib/types";
-import { createFormContext } from "@/components/ui/form";
+import { createFormContext } from "@/components/ui/form-server";
+
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const [LoginContext, LoginForm] = createFormContext<Result<string, LoginError>>("LoginForm", login);
 export { LoginForm };
@@ -69,4 +72,10 @@ export function LoginField({
       {error && <FormMessage>{error}</FormMessage>}
     </div>
   );
+}
+
+export default function LoginForm2() {
+  const form = useForm<LoginData>({
+    resolver: zodResolver(loginSchema),
+  });
 }

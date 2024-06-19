@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
@@ -12,36 +14,8 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { useFormState } from "react-dom";
 
 const Form = FormProvider;
-
-export function createFormContext<T>(
-  formName: string,
-  action: (state: Awaited<T | undefined>, data: FormData) => T | Promise<T>
-): [
-  React.Context<T | undefined>,
-  React.ForwardRefExoticComponent<
-    React.HTMLAttributes<HTMLFormElement> & React.RefAttributes<HTMLFormElement>
-  >
-] {
-  const context = React.createContext<T | undefined>(undefined);
-
-  const form = React.forwardRef<HTMLFormElement, React.HTMLAttributes<HTMLFormElement>>(
-    (props, ref) => {
-      const [state, formAction] = useFormState(action, undefined);
-
-      return (
-        <context.Provider value={state}>
-          <form action={formAction} {...props} ref={ref} />
-        </context.Provider>
-      );
-    }
-  );
-  form.displayName = formName;
-
-  return [context, form];
-}
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
@@ -116,7 +90,7 @@ const FormLabel = React.forwardRef<
   return (
     <Label
       ref={ref}
-      className={cn(error && "text-red-500 dark:text-red-600", className, "block font-medium")}
+      className={cn(error && "text-red-500 dark:text-red-900", className)}
       htmlFor={formItemId}
       {...props}
     />
@@ -174,7 +148,7 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className={cn("text-xs font-medium text-red-500 dark:text-red-500", className)}
+      className={cn("text-sm font-medium text-red-500 dark:text-red-900", className)}
       {...props}
     >
       {body}

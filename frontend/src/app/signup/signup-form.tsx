@@ -1,15 +1,14 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { signup } from "../lib/auth/actions";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { SignupData, SignupError } from "../lib/auth/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext } from "react";
+import { ReactNode, forwardRef, useContext } from "react";
 import { Result } from "@/lib/types";
-import { createFormContext } from "@/components/ui/form";
+import { createFormContext } from "@/components/ui/form-server";
 
 const [SignupContext, SignupForm] = createFormContext<Result<string, SignupError>>(
   "SignupForm",

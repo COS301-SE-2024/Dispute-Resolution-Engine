@@ -8,8 +8,18 @@ export type Country = {
 };
 
 export async function fetchCountries(): Promise<Result<Country[]>> {
-  const result = await fetch(`${API_URL}/utils/countries`, {
-    cache: "no-store",
-  });
-  return await result.json();
+  return {
+    data: [
+      {
+        id: 1,
+        country_code: "za",
+        country_name: "South Africa",
+      },
+    ],
+  };
+  // const result = await fetch(`${API_URL}/utils/countries`, {
+  //   cache: "no-store",
+  // });
+  // console.log(await result.text());
+  // return await result.json();
 }

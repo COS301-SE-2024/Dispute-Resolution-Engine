@@ -1,6 +1,8 @@
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { LoginForm, LoginField, LoginMessage, LoginButton } from "./login-form";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export default function Login() {
   return (
@@ -10,7 +12,7 @@ export default function Login() {
           <CardHeader>
             <CardTitle>Login</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <LoginField name="email" label="Email">
               <Input autoComplete="email" id="email" name="email" placeholder="Email" />
             </LoginField>
@@ -24,7 +26,13 @@ export default function Login() {
               />
             </LoginField>
           </CardContent>
-          <CardFooter className="mt-auto flex md:justify-start justify-end">
+          <CardFooter className="mt-auto flex justify-between">
+            <p>
+              {"Don't have an account?"}
+              <Link href="/signup" className={buttonVariants({ variant: "link" })}>
+                Create one
+              </Link>
+            </p>
             <LoginMessage />
             <LoginButton />
           </CardFooter>

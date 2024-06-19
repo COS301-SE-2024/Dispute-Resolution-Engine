@@ -1,7 +1,7 @@
 "use server";
 
 import { Result } from "@/lib/types";
-import { LoginError, SignupError, loginSchema, signupSchema } from "./types";
+import { LoginError, SignupError, loginSchema, signupSchema } from "@/lib/schema/auth";
 import { API_URL } from "@/lib/utils";
 
 export async function signup(
@@ -23,7 +23,6 @@ export async function signup(
       first_name: data.firstName,
       surname: data.lastName,
       birthdate: data.dateOfBirth,
-      nationality: data.addrCountry,
       email: data.email,
       password: data.password,
       gender: "Male",

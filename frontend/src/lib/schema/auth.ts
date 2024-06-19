@@ -13,15 +13,7 @@ export const signupSchema = z
       .regex(/[^\w\d\s:]/gm, "Password must contain a special character"),
     passwordConfirm: z.string(),
 
-    addrCountry: z.string().min(1, "Required"),
-    addrProvince: z.string().min(1, "Required"),
-    addrCity: z.string().min(1, "Required"),
-    addrStreet3: z.string().min(1, "Required"),
-    addrStreet2: z.string().min(1, "Required"),
-    addrStreet: z.string().min(1, "Required"),
-
     dateOfBirth: z.string().date("Invalid date"),
-    idNumber: z.string().regex(/\d{13}/gm, "Invalid ID number"),
   })
   .superRefine((arg, ctx) => {
     if (arg.password !== arg.passwordConfirm) {

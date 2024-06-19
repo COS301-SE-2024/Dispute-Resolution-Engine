@@ -3,6 +3,8 @@ import { SignupForm, SignupButton, SignupField, SignupMessage } from "./signup-f
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CountrySelect from "@/components/form/country-select";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export default function Signup() {
   return (
@@ -10,120 +12,63 @@ export default function Signup() {
       <Card variant="page" asChild>
         <SignupForm className="flex flex-col">
           <CardHeader>
-            <CardTitle>Create an Account</CardTitle>
+            <CardTitle>Signup</CardTitle>
           </CardHeader>
-          <CardContent asChild>
-            <Tabs defaultValue="profile">
-              <TabsList>
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="address">Address</TabsTrigger>
-              </TabsList>
-              <TabsContent value="profile" forceMount className="data-[state=inactive]:hidden">
-                <div className="grid grid-cols-2 gap-3">
-                  <SignupField name="firstName" label="First Name">
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      autoComplete="given-name"
-                      placeholder="First Name"
-                    />
-                  </SignupField>
-                  <SignupField name="lastName" label="Last Name">
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      autoComplete="family-name"
-                      placeholder="Last Name"
-                    />
-                  </SignupField>
-                </div>
-                <SignupField name="idNumber" label="ID number">
-                  <Input id="idNumber" name="idNumber" placeholder="ID number" autoComplete="off" />
-                </SignupField>
-                <SignupField name="dateOfBirth" label="Date of Birth">
-                  <Input
-                    id="dateOfBirth"
-                    name="dateOfBirth"
-                    autoComplete="bday"
-                    type="date"
-                    className="w-fit"
-                  />
-                </SignupField>
-                <SignupField name="email" label="Email">
-                  <Input autoComplete="email" id="email" name="email" placeholder="Email" />
-                </SignupField>
-                <SignupField name="password" label="Password">
-                  <Input
-                    autoComplete="new-password"
-                    id="password"
-                    name="password"
-                    placeholder="Password"
-                    type="password"
-                  />
-                </SignupField>
-                <SignupField name="passwordConfirm" label="Confirm Password">
-                  <Input
-                    autoComplete="new-password"
-                    id="passwordConfirm"
-                    name="passwordConfirm"
-                    placeholder="Confirm Password"
-                    type="password"
-                  />
-                </SignupField>
-              </TabsContent>
-              <TabsContent value="address" forceMount className="data-[state=inactive]:hidden">
-                <SignupField name="addrCountry" label="Country">
-                  <CountrySelect name="addrCountry" />
-                </SignupField>
-                <SignupField name="addrProvince" label="Province">
-                  <Input
-                    autoComplete="off"
-                    id="addrProvince"
-                    placeholder="Province"
-                    type="text"
-                    name="addrProvince"
-                  />
-                </SignupField>
-                <SignupField name="addrCity" label="City">
-                  <Input
-                    autoComplete="c"
-                    id="addrCity"
-                    placeholder="City"
-                    type="text"
-                    name="addrCity"
-                  />
-                </SignupField>
-                <SignupField name="addrStreet" label="Street 1">
-                  <Input
-                    autoComplete="address-line1"
-                    id="addrStreet"
-                    name="addrStreet"
-                    placeholder="Street 1"
-                    type="text"
-                  />
-                </SignupField>
-                <SignupField name="addrStreet2" label="Street 2">
-                  <Input
-                    autoComplete="address-line2"
-                    id="addrStreet2"
-                    name="addrStreet2"
-                    placeholder="Street 2"
-                    type="text"
-                  />
-                </SignupField>
-                <SignupField name="addrStreet3" label="Street 3">
-                  <Input
-                    autoComplete="address-line3"
-                    id="addrStreet3"
-                    name="addrStreet3"
-                    placeholder="Street 3"
-                    type="text"
-                  />
-                </SignupField>
-              </TabsContent>
-            </Tabs>
+          <CardContent className="grid grid-cols-2 gap-x-3 gap-y-4">
+            <SignupField name="firstName" label="First Name">
+              <Input
+                id="firstName"
+                name="firstName"
+                autoComplete="given-name"
+                placeholder="First Name"
+              />
+            </SignupField>
+            <SignupField name="lastName" label="Last Name">
+              <Input
+                id="lastName"
+                name="lastName"
+                autoComplete="family-name"
+                placeholder="Last Name"
+              />
+            </SignupField>
+            <SignupField name="email" label="Email">
+              <Input autoComplete="email" id="email" name="email" placeholder="Email" />
+            </SignupField>
+            <SignupField name="dateOfBirth" label="Date of Birth">
+              <Input
+                id="dateOfBirth"
+                name="dateOfBirth"
+                autoComplete="bday"
+                type="date"
+                className="w-fit"
+              />
+            </SignupField>
+            <SignupField name="password" label="Password" className="col-span-2">
+              <Input
+                autoComplete="new-password"
+                id="password"
+                name="password"
+                placeholder="Password"
+                type="password"
+              />
+            </SignupField>
+            <SignupField name="passwordConfirm" label="Confirm Password" className="col-span-2">
+              <Input
+                autoComplete="new-password"
+                id="passwordConfirm"
+                name="passwordConfirm"
+                placeholder="Confirm Password"
+                type="password"
+              />
+            </SignupField>
           </CardContent>
-          <CardFooter className="mt-auto flex md:justify-start justify-end">
+          <CardFooter className="mt-auto flex justify-between">
+            <p>
+              {"Already have a account?"}
+              <Link href="/login" className={buttonVariants({ variant: "link" })}>
+                Login
+              </Link>
+            </p>
             <SignupMessage />
             <SignupButton />
           </CardFooter>

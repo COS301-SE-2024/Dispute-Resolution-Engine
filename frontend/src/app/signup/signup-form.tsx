@@ -49,7 +49,7 @@ export function SignupButton() {
   const { pending } = useFormStatus();
   return (
     <Button disabled={pending} type="submit">
-      Create
+      Signup
     </Button>
   );
 }
@@ -58,15 +58,17 @@ export function SignupField({
   name,
   label,
   children,
+  className = "",
 }: {
   name: keyof SignupData;
   label: string;
   children: ReactNode;
+  className?: string;
 }) {
   const state = useContext(SignupContext);
   const error = state?.error && state.error[name]?._errors?.at(0);
   return (
-    <div>
+    <div className={className}>
       <Label htmlFor={name}>{label}</Label>
       {children}
       {error && <FormMessage>{error}</FormMessage>}

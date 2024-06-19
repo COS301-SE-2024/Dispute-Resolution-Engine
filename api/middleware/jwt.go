@@ -4,6 +4,7 @@ package middleware
 import (
 	"api/models"
 	"api/utilities"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -96,9 +97,9 @@ func GetClaims(r *http.Request) *Claims {
     }
 
     //remove the bearer prefix
-    tokenStringBearerRemove := strings.Split(tokenString, "Bearer ")[1]
+    log.Println(tokenString)
 
-    token, err := jwt.ParseWithClaims(tokenStringBearerRemove, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+    token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
         return secret, nil
     })
     if err != nil {

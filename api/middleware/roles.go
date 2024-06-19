@@ -81,16 +81,3 @@ func RoleMiddleware(next http.Handler, reqAuthlevel int) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
-// Role struct to store role data
-// func isAuthorizedToAccessResource(r *http.Request, authLevel int) (string, bool) {
-
-// 	claims := GetClaims(r)
-// 	if claims == nil {
-// 		return "jwt error", false
-// 	}
-
-// 	role := claims.User.Role
-// 	accessLevels := NewRole().roles
-
-// }

@@ -105,7 +105,6 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User updated successfully"})
 }
 
-
 // @Summary Remove user account
 // @Description Remove user account
 // @Tags user
@@ -160,4 +159,27 @@ func (h Handler) RemoveAccount(w http.ResponseWriter, r *http.Request) {
 
 	h.DB.Where("email = ?", user.Email).Delete(&dbUser)
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User account removed successfully"})
+}
+
+func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
+	//read request body into variable
+	defer r.Body.Close()
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
+		return
+	}
+	//here we get the details of the request
+	var UpdateUserAddress models.UpdateAddress
+	err = json.Unmarshal(body, &UpdateUserAddress)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
+		return
+	}
+	//retrieve the record from the database
+	var dbUser models.User
+	h.DB.Where("email = ?", UpdateUserAddress.Email).First(&dbUser)
+
+	//now we have to set the address parameters using the passed in data
+
 }

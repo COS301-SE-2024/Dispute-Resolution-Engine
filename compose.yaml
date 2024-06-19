@@ -7,8 +7,6 @@ services:
       - fe.env
     depends_on:
       - "api"
-    env_file:
-      - fe.env
   api:
     build: ./api
     ports:
@@ -25,5 +23,6 @@ services:
       - db.env
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
 volumes:
   pgdata:

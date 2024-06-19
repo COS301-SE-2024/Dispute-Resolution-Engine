@@ -46,7 +46,7 @@ export function LoginButton() {
   const { pending } = useFormStatus();
   return (
     <Button disabled={pending} type="submit">
-      Create
+      Login
     </Button>
   );
 }
@@ -63,7 +63,7 @@ export function LoginField({
   const state = useContext(LoginContext);
   const error = state?.error && state.error[name]?._errors?.at(0);
   return (
-    <div>
+    <div className="space-y-1">
       <Label htmlFor={name}>{label}</Label>
       {children}
       {error && <FormMessage>{error}</FormMessage>}

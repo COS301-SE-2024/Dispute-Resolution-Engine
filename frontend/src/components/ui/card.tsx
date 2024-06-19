@@ -5,7 +5,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { VariantProps, cva } from "class-variance-authority";
 
 export const cardVariants = cva(
-  "rounded-lg border border-zinc-200 bg-white text-zinc-950 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50",
+  "rounded-lg dark:bg-dre-bg-light/5 border border-zinc-200 bg-white text-zinc-950 shadow-sm dark:border-dre-100/50 dark:text-dre-bg-light",
   {
     variants: {
       variant: {
@@ -38,7 +38,7 @@ const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HT
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
+      className={cn("text-2xl font-semibold leading-none underline", className)}
       {...props}
     />
   )

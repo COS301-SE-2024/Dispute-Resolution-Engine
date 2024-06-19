@@ -4,7 +4,6 @@ package middleware
 import (
 	"api/models"
 	"api/utilities"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -91,13 +90,16 @@ func GetClaims(r *http.Request) *Claims {
         return nil
     }
     secret := []byte(os.Getenv("JWT_SECRET"))
-    tokenString := strings.Split(r.Header.Get("Authorization"), " ")[1]
-    if tokenString == "" {
+
+    authHeader := r.Header.Get("Authorization")
+    if authHeader == "" {
         return nil
     }
 
-    //remove the bearer prefix
-    log.Println(tokenString)
+    tokenString := strings.Split(authHeader, " ")[1]
+    if tokenString == "" {
+        return nil
+    }
 
     token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
         return secret, nil

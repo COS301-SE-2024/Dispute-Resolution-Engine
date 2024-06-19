@@ -1,12 +1,12 @@
 /**
  * Generic Response from the API
  */
-export type Result<T, E = string> =
+export type Result<T> =
   | {
       data: T;
       error?: never;
     }
   | {
       data?: never;
-      error: E;
+      error: string;
     };

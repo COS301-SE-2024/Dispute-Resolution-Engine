@@ -181,5 +181,33 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	h.DB.Where("email = ?", UpdateUserAddress.Email).First(&dbUser)
 
 	//now we have to set the address parameters using the passed in data
+	var dbAddress models.Address
 
+	//first fetch the country code based on the name
+	var country models.Country
+	h.DB.Where("country_name = ?", UpdateUserAddress.Country).First(&country)
+
+	//now we create the assignment between database and request body
+	dbAddress.Code = &country.CountryCode
+	dbAddress.Country = UpdateUserAddress.Country
+	dbAddress.Province = UpdateUserAddress.Province
+	dbAddress.City = UpdateUserAddress.City
+	dbAddress.Street3 = UpdateUserAddress.Street3
+	dbAddress.Street2 = UpdateUserAddress.Street2
+	dbAddress.Street = UpdateUserAddress.Street
+	dbAddress.AddressType = UpdateUserAddress.AddressType
+
+	var count int64
+	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Count(&count)
+	if count == 0 {
+		// Insert the new address
+		h.DB.Create(&dbAddress)
+		// Update the user with the new address id
+		h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Update("address_id", dbAddress.ID)
+	} else {
+		// Proceed with the update
+		h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User address updated successfully"})
 }

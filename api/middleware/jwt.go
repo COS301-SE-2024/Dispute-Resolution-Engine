@@ -82,3 +82,35 @@ func JWTMiddleware(next http.Handler) http.Handler {
         }
     })
 }
+
+//return claims
+func GetClaims(r *http.Request) *Claims {
+    err:= godotenv.Load("api.env")
+    if err != nil {
+        return nil
+    }
+    secret := []byte(os.Getenv("JWT_SECRET"))
+
+    authHeader := r.Header.Get("Authorization")
+    if authHeader == "" {
+        return nil
+    }
+
+    tokenString := strings.Split(authHeader, " ")[1]
+    if tokenString == "" {
+        return nil
+    }
+
+    token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+        return secret, nil
+    })
+    if err != nil {
+        return nil
+    }
+
+    claims, ok := token.Claims.(*Claims)
+    if !ok {
+        return nil
+    }
+    return claims
+}

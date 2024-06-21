@@ -24,5 +24,12 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
+  redis-cache:
+    image: redis
+    ports:
+      - "6379:6379"
+    env_file:
+      - red.env
+    command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
 volumes:
   pgdata:

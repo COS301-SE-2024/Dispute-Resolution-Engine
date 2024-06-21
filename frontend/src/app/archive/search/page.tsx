@@ -1,11 +1,27 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { searchArchive } from "@/lib/api/archive";
-import { ArchivedDisputeSummary } from "@/lib/interfaces/archive";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { z } from "zod";
+
+import { searchArchive } from "@/lib/api/archive";
+import { ArchivedDisputeSummary } from "@/lib/interfaces/archive";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+const searchSchema = z.object({
+  q: z.string().optional(),
+  offset: z.coerce.number().default(0),
+});
+
+type SearchParams = z.infer<typeof searchSchema>;
 
 function SearchResult(props: ArchivedDisputeSummary) {
   return (
@@ -29,26 +45,38 @@ function SearchResult(props: ArchivedDisputeSummary) {
   );
 }
 
-interface SearchParams {
-  q?: string;
+function ErrorPage({ msg }: { msg: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center h-full gap-5 w-2/3 mx-auto">
+      <h1 className="text-4xl font-bold tracking-wide">Oops, something went wrong :(</h1>
+      <p className="dark:text-white/50">{msg}</p>
+    </div>
+  );
 }
 
-export default async function ArchiveSearch({ searchParams }: { searchParams: SearchParams }) {
-  if (!searchParams.q) {
+function pager(params: SearchParams, offset: number) {
+  return { pathname: "/archive/search", query: { ...params, offset } };
+}
+
+export default async function ArchiveSearch({ searchParams }: { searchParams: unknown }) {
+  const { data: params, error: searchError } = searchSchema.safeParse(searchParams);
+  if (!params) {
+    return <ErrorPage msg={JSON.stringify(searchError)} />;
+  }
+
+  if (!params.q) {
     redirect("/archive");
   }
 
   const { data, error } = await searchArchive({
-    search: searchParams.q,
+    search: params.q,
   });
 
+  // TODO: replace this with response information
+  const total = 10;
+
   if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-5 w-2/3 mx-auto">
-        <h1 className="text-4xl font-bold tracking-wide">Oops, something went wrong :(</h1>
-        <p className="dark:text-white/50">{error}</p>
-      </div>
-    );
+    return <ErrorPage msg={error} />;
   }
 
   return (
@@ -69,6 +97,27 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: Se
           <SearchResult key={dispute.id} {...dispute} />
         ))}
       </main>
+      <footer>
+        <Pagination>
+          <PaginationContent>
+            {params.offset > 0 && (
+              <>
+                <PaginationItem>
+                  <PaginationPrevious href={pager(params, params.offset - 1)}>
+                    Previous
+                  </PaginationPrevious>
+                </PaginationItem>
+                <p>Page {params.offset + 1}</p>{" "}
+              </>
+            )}
+            {params.offset < total && (
+              <PaginationItem>
+                <PaginationNext href={pager(params, params.offset + 1)}>Next</PaginationNext>
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
+      </footer>
     </>
   );
 }

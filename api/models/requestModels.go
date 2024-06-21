@@ -15,6 +15,23 @@ type UpdateUser struct {
 	AddressType *string `json:"address_type"`
 }
 
+type GetUser struct {
+	FirstName string `json:"first_name"`
+	Surname   string `json:"surname"`
+	Email     string `json:"email"`
+	PhoneNumber *string `json:"phone_number"`
+
+	Birthdate         string  `json:"birthdate"`
+	Gender		      string  `json:"gender"`
+	Nationality	      string  `json:"nationality"`
+
+	Timezone		  *string `json:"timezone"`
+	PreferredLanguage *string `json:"preferred_language"`
+
+	Address []Address `json:"address"`
+	Theme   string `json:"theme"`
+}
+
 type CreateUser struct {
 	//These are all the user details that are required to create a user
 	FirstName         string  `json:"first_name"`

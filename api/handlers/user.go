@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"api/middleware"
 	"api/models"
 	"api/utilities"
 	"encoding/base64"
@@ -26,7 +27,45 @@ func SetupUserRoutes(router *mux.Router, h Handler) {
 // @Router /user/profile [get]
 func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User profile not available yet..."})
+
+	// Get the user ID from the request
+	jwtClaims := middleware.GetClaims(r)
+	if jwtClaims == nil {
+		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
+	// Retrieve the user from the database
+	var dbUser models.User
+	if err := h.DB.Where("id = ?", jwtClaims.User.ID).First(&dbUser).Error; err != nil {
+		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "User not found"})
+		return
+	}
+
+	// Retrieve all addresses associated with the user from the database
+	var dbAddresses []models.Address
+	if err := h.DB.Where("id = ?", dbUser.AddressID).Find(&dbAddresses).Error; err != nil || len(dbAddresses) == 0 {
+		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "No addresses found for user"})
+		return
+	}
+
+	// Create a response object
+	user := models.GetUser{
+		FirstName:         dbUser.FirstName,
+		Surname:           dbUser.Surname,
+		Email:             dbUser.Email,
+		PhoneNumber:       dbUser.PhoneNumber,
+		Birthdate:         dbUser.Birthdate.String(),
+		Gender:            dbUser.Gender,
+		Nationality:       dbUser.Nationality,
+		Timezone:          dbUser.Timezone,
+		PreferredLanguage: dbUser.PreferredLanguage,
+		Address:           dbAddresses,
+		Theme:             "dark",
+	}
+
+	// Return the response
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: user})
 }
 
 // @Summary Update user profile

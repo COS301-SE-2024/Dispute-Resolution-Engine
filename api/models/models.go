@@ -12,7 +12,7 @@ type User struct {
 	Nationality       string     `json:"nationality" gorm:"type:varchar(50);not null;column:nationality"`                //check
 	Role              string     `json:"role" gorm:"type:varchar(50);not null;column:role"`                              //Filled in by API
 	Email             string     `json:"email" gorm:"type:varchar(100);unique;not null;column:email"`                    //check
-	PasswordHash      string     `json:"password" gorm:"type:varchar(255);not null;column:password_hash"`                //Updated by API
+	PasswordHash      string     `json:"password,omitempty" gorm:"type:varchar(255);not null;column:password_hash"`                //Updated by API
 	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20);column:phone_number"`             //need
 	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`                                  //what the fuck
 	CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`                     //Filled in by API

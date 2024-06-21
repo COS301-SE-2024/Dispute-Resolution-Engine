@@ -5,7 +5,9 @@ import (
 	"api/utilities"
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -71,7 +73,7 @@ func (h Handler) patchDispute(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} models.Response "Archive Summary Endpoint"
-// @Router /archive [get]
+// @Router /archive [post]
 func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request) {
 	//get the request body
 	var body models.ArchiveSearchRequest
@@ -81,49 +83,135 @@ func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//mock ArchiveDisputeSummary array
-	archiveDisputeSummaries := []models.ArchivedDisputeSummary{
+	//handle the request
+	searchTerm := ""
+	limit := 10
+	offset := 0
+	order := "asc"
+	sort := "id"
+
+	if body.Search != nil {
+		searchTerm = *body.Search
+	}
+	if body.Limit != nil {
+		limit = *body.Limit
+	}
+	if body.Offset != nil {
+		offset = *body.Offset
+	}
+	if body.Order != nil {
+		order = *body.Order
+	}
+	if body.Sort != nil {
+		sort = string(*body.Sort)
+	}
+
+	//mock response
+	archiveDisputeSummaries := getMockArchiveDisputeSummaries()
+
+	//filter the summaries
+	archiveDisputeSummaries = filterSummariesBySearch(archiveDisputeSummaries, searchTerm)
+
+	//sort the summaries
+	sortSummaries(archiveDisputeSummaries, sort, order)
+
+	//paginate the summaries
+	archiveDisputeSummaries = paginateSummaries(archiveDisputeSummaries, offset, limit)
+
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: archiveDisputeSummaries})
+}
+
+func getMockArchiveDisputeSummaries() []models.ArchivedDisputeSummary {
+	return []models.ArchivedDisputeSummary{
 		{
 			ID:           1,
-			Title:        "Dispute 1",
-			Summary:      "Summary 1",
-			Category:     []string{"Category 1"},
+			Title:        "Dispute 1: Contract Disagreement",
+			Summary:      "A contractual dispute between parties over payment terms.",
+			Category:     []string{"Legal"},
 			DateFiled:    time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-			DateResolved: time.Date(2021, time.January, 2, 0, 0, 0, 0, time.UTC),
-			Resolution:   "Resolution 1",
+			DateResolved: time.Date(2021, time.January, 15, 0, 0, 0, 0, time.UTC),
+			Resolution:   "Settlement reached with revised terms.",
 		},
 		{
 			ID:           2,
-			Title:        "Dispute 2",
-			Summary:      "Summary 2",
-			Category:     []string{"Category 2"},
-			DateFiled:    time.Date(2021, time.January, 3, 0, 0, 0, 0, time.UTC),
-			DateResolved: time.Date(2021, time.January, 4, 0, 0, 0, 0, time.UTC),
-			Resolution:   "Resolution 2",
+			Title:        "Dispute 2: Product Quality Issue",
+			Summary:      "Customer complained about product defects; manufacturer's response needed.",
+			Category:     []string{"Customer Service", "Quality Control"},
+			DateFiled:    time.Date(2021, time.February, 10, 0, 0, 0, 0, time.UTC),
+			DateResolved: time.Date(2021, time.February, 28, 0, 0, 0, 0, time.UTC),
+			Resolution:   "Product recall initiated; replacements provided.",
 		},
 		{
 			ID:           3,
-			Title:        "Dispute 3",
-			Summary:      "Summary 3",
-			Category:     []string{"Category 3"},
-			DateFiled:    time.Date(2021, time.January, 5, 0, 0, 0, 0, time.UTC),
-			DateResolved: time.Date(2021, time.January, 6, 0, 0, 0, 0, time.UTC),
-			Resolution:   "Resolution 3",
+			Title:        "Dispute 3: Employment Dispute",
+			Summary:      "Employee termination dispute due to performance issues.",
+			Category:     []string{"Human Resources", "Legal"},
+			DateFiled:    time.Date(2021, time.March, 5, 0, 0, 0, 0, time.UTC),
+			DateResolved: time.Date(2021, time.March, 20, 0, 0, 0, 0, time.UTC),
+			Resolution:   "Settled with severance package and agreement.",
 		},
 	}
+}
 
+func paginateSummaries(summaries []models.ArchivedDisputeSummary, offset int, limit int) []models.ArchivedDisputeSummary {
+	start := offset
+	end := offset + limit
+	if start >= len(summaries) {
+		return []models.ArchivedDisputeSummary{}
+	}
+	if end > len(summaries) {
+		end = len(summaries)
+	}
+	return summaries[start:end]
+}
 
-	//handle the request
-	// limit := body.Limit
-	// offset := body.Offset
-	// sort := body.Sort
-	// order := body.Order
-	// filter := body.Filter
-	// search := body.Search
+func sortSummaries(summaries []models.ArchivedDisputeSummary, sorting string, order string) {
+	switch sorting {
+	case "title":
+		if order == "asc" {
+			sort.Slice(summaries, func(i, j int) bool {
+				return summaries[i].Title < summaries[j].Title
+			})
+		} else {
+			sort.Slice(summaries, func(i, j int) bool {
+				return summaries[i].Title > summaries[j].Title
+			})
+		}
+	case "date_filed":
+		if order == "asc" {
+			sort.Slice(summaries, func(i, j int) bool {
+				return summaries[i].DateFiled.Before(summaries[j].DateFiled)
+			})
+		} else {
+			sort.Slice(summaries, func(i, j int) bool {
+				return summaries[i].DateFiled.After(summaries[j].DateFiled)
+			})
+		}
+	case "date_resolved":
+		if order == "asc" {
+			sort.Slice(summaries, func(i, j int) bool {
+				return summaries[i].DateResolved.Before(summaries[j].DateResolved)
+			})
+		} else {
+			sort.Slice(summaries, func(i, j int) bool {
+				return summaries[i].DateResolved.After(summaries[j].DateResolved)
+			})
+		}
+	}
+}
 
-	
-
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: archiveDisputeSummaries})
+func filterSummariesBySearch(summaries []models.ArchivedDisputeSummary, searchTerm string) []models.ArchivedDisputeSummary {
+	if searchTerm == "" {
+		return summaries
+	}
+	var filteredSummaries []models.ArchivedDisputeSummary
+	for _, summary := range summaries {
+		// Example of case-insensitive search
+		if strings.Contains(strings.ToLower(summary.Title), strings.ToLower(searchTerm)) {
+			filteredSummaries = append(filteredSummaries, summary)
+		}
+	}
+	return filteredSummaries
 }
 
 // @Summary Get an archive
@@ -135,7 +223,7 @@ func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request
 // @Success 200 {object} models.Response "Archive Detail Endpoint"
 // @Router /archive/{id} [get]
 func (h Handler) getArchive(w http.ResponseWriter, r *http.Request) {
-	
+
 	vars := mux.Vars(r)
 	id := vars["id"]
 
@@ -158,17 +246,17 @@ func (h Handler) getArchive(w http.ResponseWriter, r *http.Request) {
 		},
 		Events: []models.Event{
 			{
-				Timestamp: "2021-01-01T00:00:00Z",
-				Type:      "Type 1",
-				Description:   "Details 1",
+				Timestamp:   "2021-01-01T00:00:00Z",
+				Type:        "Type 1",
+				Description: "Details 1",
 			},
 			{
-				Timestamp: "2021-01-02T00:00:00Z",
-				Type:      "Type 2",
-				Description:   "Details 2",
+				Timestamp:   "2021-01-02T00:00:00Z",
+				Type:        "Type 2",
+				Description: "Details 2",
 			},
 		},
-	};
+	}
 
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: body})
 }

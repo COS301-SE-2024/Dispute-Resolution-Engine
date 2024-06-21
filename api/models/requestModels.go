@@ -67,12 +67,12 @@ type UpdateAddress struct {
 }
 
 type ArchiveSearchRequest struct {
-	Search string `json:"search"`
-	Limit  int    `json:"limit"`
-	Offset int    `json:"offset"`
-	Order  string `json:"order"`
-	Sort SortAttribute `json:"sort"`
-	Filter FilterAttribute `json:"filter"`
+	Search *string `json:"search,omitempty"`
+	Limit  *int    `json:"limit,omitempty"`
+	Offset *int    `json:"offset,omitempty"`
+	Order  *string `json:"order,omitempty"`
+	Sort *SortAttribute `json:"sort,omitempty"`
+	Filter *FilterAttribute `json:"filter,omitempty"`
 }
 
 type FilterAttribute struct {

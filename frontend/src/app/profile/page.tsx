@@ -2,9 +2,12 @@ import AddressFields from "@/components/form/address-fields";
 import ProfileFields from "@/components/form/profile-fields";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "DRE - Profile",
+};
 export default function Profile() {
   return (
     <main className="md:py-3 h-full">

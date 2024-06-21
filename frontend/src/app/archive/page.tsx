@@ -1,8 +1,14 @@
+import Loader from "@/components/Loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ExternalLink } from "lucide-react";
+import { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "DRE - Archive",
+};
 
 function ArchivedDispute() {
   return (

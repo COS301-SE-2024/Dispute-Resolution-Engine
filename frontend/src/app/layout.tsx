@@ -6,7 +6,8 @@ import Navbar from "@/components/navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Dispute Resolution Engine",
+  title: "DRE",
+  icons: "/logo.svg",
 };
 
 export default function RootLayout({

@@ -14,7 +14,7 @@ Scalability and performance go hand-in-hand in this system. Disputes are common 
 
 | Stimulus Source     | Stimulus                                             | Response                                                                                          | Response Measure                        | Environment         | Artifact                  |
 |---------------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------|-----------------------------------------|---------------------|---------------------------|
-| System Users/Clients | High volume of disputes and multiple active users per case | The system should handle multiple cases simultaneously and perform efficiently for each user       | System supports X concurrent users and Y disputes without performance degradation | Production environment | Dispute Resolution Engine |
+| System Users/Clients | High volume of disputes and multiple active users per case | The system should handle multiple cases simultaneously and perform efficiently for each user       | System supports 1000 concurrent users and 500 disputes without performance degradation | Production environment | Dispute Resolution Engine |
 
 
 ## 3. Usability
@@ -23,7 +23,7 @@ The Dispute Resolution Engine is designed to be user-friendly. It aims to enable
 
 | Stimulus Source     | Stimulus                                        | Response                                                                                         | Response Measure                                           | Environment         | Artifact                  |
 |---------------------|-------------------------------------------------|--------------------------------------------------------------------------------------------------|------------------------------------------------------------|---------------------|---------------------------|
-| System Users/Clients | Attempt to navigate and use the system           | The system should provide a simple and intuitive user interface requiring minimal training        | User satisfaction scores above X, average task completion time within Y minutes | Production environment | Dispute Resolution Engine |
+| System Users/Clients | Attempt to navigate and use the system           | The system should provide a simple and intuitive user interface requiring minimal training        | User satisfaction scores above 7.5/10, average request responses under 2 seconds | Production environment | Dispute Resolution Engine |
 
 
 ## 4. Security

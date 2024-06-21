@@ -1,9 +1,9 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { login } from "../lib/auth/actions";
+import { login } from "@/app/lib/auth/actions";
 import { Label } from "@/components/ui/label";
-import { LoginData, LoginError, loginSchema } from "../lib/auth/types";
+import { LoginData, LoginError, loginSchema } from "@/lib/schema/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ReactNode, forwardRef, useContext } from "react";

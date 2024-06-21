@@ -3,7 +3,7 @@
 import { useFormStatus } from "react-dom";
 import { signup } from "../lib/auth/actions";
 import { Label } from "@/components/ui/label";
-import { SignupData, SignupError } from "../lib/auth/types";
+import { SignupData, SignupError } from "@/lib/schema/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ReactNode, forwardRef, useContext } from "react";

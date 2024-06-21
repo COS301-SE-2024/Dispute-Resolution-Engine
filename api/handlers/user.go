@@ -196,6 +196,12 @@ func (h Handler) RemoveAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//delete address details
+	var dbAddress models.Address
+	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddress)
+
+	h.DB.Where("id = ?", dbUser.AddressID).Delete(&dbAddress)
+
 	h.DB.Where("email = ?", user.Email).Delete(&dbUser)
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User account removed successfully"})
 }

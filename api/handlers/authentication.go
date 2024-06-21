@@ -30,7 +30,7 @@ func SetupAuthRoutes(router *mux.Router, h Handler) {
 	router.HandleFunc("/signup", h.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
 	router.Handle("/reset-password", middleware.RoleMiddleware(http.HandlerFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
-	router.Handle("/verify", middleware.RoleMiddleware(http.HandlerFunc(h.Verify), 0)).Methods(http.MethodPost) 
+	router.Handle("/verify", middleware.RoleMiddleware(http.HandlerFunc(h.Verify), 0)).Methods(http.MethodPost)
 }
 
 // @Summary Reset a user's password
@@ -92,7 +92,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Gender:            reqUser.Gender,
 		PreferredLanguage: reqUser.PreferredLanguage,
 		Timezone:          reqUser.Timezone,
-		LastUpdated:       utilities.GetCurrentTimePtr(),
+		UpdatedAt:         utilities.GetCurrentTimePtr(),
 	}
 
 	// address := models.Address{
@@ -133,7 +133,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	//update log metrics
 	user.CreatedAt = utilities.GetCurrentTime()
-	user.UpdatedAt = utilities.GetCurrentTime()
+	user.UpdatedAt = utilities.GetCurrentTimePtr()
 	user.Status = "Active"
 
 	//Small user preferences

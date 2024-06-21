@@ -4,9 +4,9 @@
 
 The Dispute Resolution Engine must maintain high uptime due to the nature of the services we provide. Clients should have continuous access to the system to ensure they can respond promptly to time-sensitive communications. A reliable system with high uptime not only benefits our clients but also increases our throughput.
 
-### 1.1 Quantification
-
-We will be using a VPS server to host Dispute Resolution Engine via domains.co.za. Their servers boast an outstanding 99.9% uptime as well as free monthly backups, ensuring that our server is always up and can recover from data corruption.
+| Stimulus Source | Stimulus | Response | Response Measure | Environment | Artifact |
+|-----------------|----------|----------|------------------|-------------|----------|
+| System Users/Clients | Attempt to access the Dispute Resolution Engine | The system should maintain high uptime to ensure continuous access | 99.9% system uptime, fewer than 1 hour of downtime per year | Production environment | Dispute Resolution Engine |
 
 ## 2. Scalability and Performance
 

@@ -84,3 +84,23 @@ The response will simply be a success message
 ```ts
 type UserProfileRemoveResponse = string;
 ```
+
+# Update Address
+- **Endpoint:** `PUT /user/profile/address`
+- **Headers:**
+    - `Authorization: Bearer <JWT>`
+```ts
+interface UserAddressUpdateRequest {
+  Country: string;
+  Province: string;
+  City: string;
+  Street3: string;
+  Street2: string;
+  Street: string;
+  AddressType: string;
+}
+```
+The server will respond with a success or failure
+```ts
+type UserAddressUpdateResponse = string;
+```

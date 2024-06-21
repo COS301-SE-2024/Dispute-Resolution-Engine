@@ -22,7 +22,8 @@ type User struct {
 	Gender            string     `json:"gender" gorm:"type:gender_enum;column:gender"`                                   //check
 	PreferredLanguage *string    `json:"preferred_language,omitempty" gorm:"type:varchar(50);column:preferred_language"` //worked on
 	Timezone          *string    `json:"timezone,omitempty" gorm:"type:varchar(50);column:timezone"`                     //need to be handled by me?
-	Salt              string     `gorm:"type:varchar(255);column:salt"`                                                  //Filled in by API
+	Salt              string     `gorm:"type:varchar(255);column:salt"`
+	LastUpdated *time.Time `json:"last_updated,omitempty" gorm:"type:timestamp without time zone;default:CURRENT_TIMESTAMP;column:last_updated"`                                               //Filled in by API
 }
 
 func (User) TableName() string {
@@ -39,7 +40,6 @@ type Address struct {
 	Street2     *string    `json:"street2,omitempty" gorm:"type:varchar(255);column:street2"`
 	Street      *string    `json:"street,omitempty" gorm:"type:varchar(255);column:street"`
 	AddressType *string    `json:"address_type,omitempty" gorm:"type:address_type_enum;column:address_type"`
-	LastUpdated *time.Time `json:"last_updated,omitempty" gorm:"type:timestamp without time zone;default:CURRENT_TIMESTAMP;column:last_updated"`
 }
 
 func (Address) TableName() string {

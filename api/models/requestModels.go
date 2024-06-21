@@ -27,15 +27,6 @@ type CreateUser struct {
 	Gender            string  `json:"gender"`
 	PreferredLanguage *string `json:"preferred_language"`
 	Timezone          *string `json:"timezone"`
-
-	//These are the user's address details
-	Country     *string `json:"country"`
-	Province    *string `json:"province"`
-	City        *string `json:"city"`
-	Street3     *string `json:"street3"`
-	Street2     *string `json:"street2"`
-	Street      *string `json:"street"`
-	AddressType *string `json:"address_type"`
 }
 
 type VerifyUser struct {
@@ -43,6 +34,17 @@ type VerifyUser struct {
 }
 
 type DeleteUser struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type UpdateAddress struct {
+	Email       string  `json:"email"`
+	Country     *string `json:"country"`
+	Province    *string `json:"province"`
+	City        *string `json:"city"`
+	Street3     *string `json:"street3"`
+	Street2     *string `json:"street2"`
+	Street      *string `json:"street"`
+	AddressType *string `json:"address_type"`
 }

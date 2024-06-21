@@ -71,7 +71,7 @@ type ArchiveSearchRequest struct {
 	Limit  int    `json:"limit"`
 	Offset int    `json:"offset"`
 	Order  string `json:"order"`
-	SortBy SortAttribute `json:"sort_by"`
+	Sort SortAttribute `json:"sort"`
 	Filter FilterAttribute `json:"filter"`
 }
 

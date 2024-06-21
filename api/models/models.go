@@ -31,7 +31,7 @@ type ArchivedDisputeSummary struct {
 	Title	   string    `json:"title" gorm:"type:varchar(255);column:title"`
 	Summary    string    `json:"summary" gorm:"type:text;column:summary"`
 	Category   []string  `json:"category" gorm:"type:varchar(255);column:category"`
-	DateFilled time.Time `json:"date_filled" gorm:"type:timestamp;column:date_filled"`
+	DateFiled time.Time `json:"date_filled" gorm:"type:timestamp;column:date_filled"`
 	DateResolved time.Time `json:"date_resolved" gorm:"type:timestamp;column:date_resolved"`
 	Resolution string    `json:"resolution" gorm:"type:text;column:resolution"`
 }

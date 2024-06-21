@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 
 function ArchivedDispute() {
   return (
@@ -17,9 +18,11 @@ function ArchivedDispute() {
       </CardContent>
       <CardFooter className="flex justify-between">
         <p>Status: Resolved</p>
-        <Button>
-          <ExternalLink size="1rem" className="mr-2" />
-          Read More
+        <Button asChild>
+          <Link href="/id">
+            <ExternalLink size="1rem" className="mr-2" />
+            Read More
+          </Link>
         </Button>
       </CardFooter>
     </Card>

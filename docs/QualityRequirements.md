@@ -30,9 +30,10 @@ The Dispute Resolution Engine is designed to be user-friendly. It aims to enable
 
 The Dispute Resolution Engine will handle sensitive information regularly. In addition to user credentials, participants in disputes will expect a high level of confidentiality when exchanging information. This is mainly due to documented evidence or communications that can contain exploitable or otherwise sensitive information. Therefore, a fundamental requirement of the Dispute Resolution Engine is to ensure the protection of both the personal and dispute-related information of our clients.
 
-### 4.1 Quantification
+| Stimulus Source             | Stimulus                                      | Response                                                                                         | Response Measure                                                                                                 | Environment         | Artifact                  |
+|-----------------------------|-----------------------------------------------|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|---------------------|---------------------------|
+| Malicious actors/Unauthorised users | Attempt to access sensitive information       | The system should ensure the protection of personal and dispute-related information               | Unauthorized access attempts identified and flagged, all OWASP checks passed                                      | Production environment | Dispute Resolution Engine |
 
-Security is quantified by ensuring that all the OWASP checks are passed, each of which identify vunerabilities within the system. Covering these will ensure that all holes are filled regarding the security of our system. For further clarification, please review the [OWASP document](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/blob/feat/documentation/docs/OWASP.md) on our github.
 
 ## 5. Maintainability
 

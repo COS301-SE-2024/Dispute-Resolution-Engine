@@ -12,9 +12,10 @@ The Dispute Resolution Engine must maintain high uptime due to the nature of the
 
 Scalability and performance go hand-in-hand in this system. Disputes are common occurrences and it is expected that the Dispute Resolution Engine (DRE) must be capable of handling many cases simultaneously, as well as multiple active users, per case, at any given time. Performance is essential for scalability. A system that performs well for each user can scale more effectively.
 
-### 2.1 Quantification
+| Stimulus Source     | Stimulus                                             | Response                                                                                          | Response Measure                        | Environment         | Artifact                  |
+|---------------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------|-----------------------------------------|---------------------|---------------------------|
+| System Users/Clients | High volume of disputes and multiple active users per case | The system should handle multiple cases simultaneously and perform efficiently for each user       | System supports X concurrent users and Y disputes without performance degradation | Production environment | Dispute Resolution Engine |
 
-Renowned for its high aptitude to function concurrently, Golang will be the reason for our highly performant backend. As for the actual server, we will be using a Terreco server to host Dispute Resolution Engine. The server boasts powerful hardware, further benefitting performance and throughput.
 
 ## 3. Usability
 

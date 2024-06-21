@@ -21,9 +21,10 @@ Scalability and performance go hand-in-hand in this system. Disputes are common 
 
 The Dispute Resolution Engine is designed to be user-friendly. It aims to enable easy navigation through simple and intuitive user interfaces. This ensures that users can operate the system effectively without extensive training or technical knowledge. This is crucial for a platform that is intended to accommodate users from a wide range of domains.
 
-### 3.1 Quantification
+| Stimulus Source     | Stimulus                                        | Response                                                                                         | Response Measure                                           | Environment         | Artifact                  |
+|---------------------|-------------------------------------------------|--------------------------------------------------------------------------------------------------|------------------------------------------------------------|---------------------|---------------------------|
+| System Users/Clients | Attempt to navigate and use the system           | The system should provide a simple and intuitive user interface requiring minimal training        | User satisfaction scores above X, average task completion time within Y minutes | Production environment | Dispute Resolution Engine |
 
-Simple but small extra features to guide users when trying to navigate an application. To aid our clients as much as possible we plan to implement tooltips, a guided tutorial on the site and a well written user-manual of course.
 
 ## 4. Security
 

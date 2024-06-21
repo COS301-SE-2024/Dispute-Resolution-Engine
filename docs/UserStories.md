@@ -12,6 +12,16 @@ It is worth noting that *concerned parties* only refer to complainants and respo
 
 > As a Concerned party I want to be notified of an update in a dispute I am involved in so that I am well-informed of the status of the dispute.
 
+> As a Concerned Party, I want to be look at an archive of previously resolved cases such that I can clearly see how 
+
+> As a Concerned Party, I want to search the archive for disputes related to my case, such that I can get a sense of precedence
+
+> As a Concerned Party, I want to group similar disputes together, such that I can find patterns between similar disputes
+
+> As a Concerned Party, I want to be see the time taken for a dispute to be resolved such that I can estimate how long certain disputes will take.
+
+> As a Concerned Party, I want to view the events of previously resolved dispute to get a better sense of the flow of a dispute.
+
 
 ### Complainant
 > As a Complainant I want to initiate a dispute so that I can begin resolving the dispute

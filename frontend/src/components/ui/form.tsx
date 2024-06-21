@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
@@ -88,7 +90,7 @@ const FormLabel = React.forwardRef<
   return (
     <Label
       ref={ref}
-      className={cn(error && "text-red-500 dark:text-red-600", className, "block font-medium")}
+      className={cn(error && "text-red-500 dark:text-red-900", className)}
       htmlFor={formItemId}
       {...props}
     />
@@ -146,7 +148,7 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className={cn("text-xs font-medium text-red-500 dark:text-red-500", className)}
+      className={cn("text-sm font-medium text-red-500 dark:text-red-900", className)}
       {...props}
     >
       {body}

@@ -1,76 +1,81 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import React, { HTMLAttributes, useId, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useFormStatus } from "react-dom";
+import { login } from "../lib/auth/actions";
+import { Label } from "@/components/ui/label";
+import { LoginData, LoginError, loginSchema } from "../lib/auth/types";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { login } from "@/app/lib/auth";
-import TextField from "@/components/form/text-field";
-import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { ReactNode, forwardRef, useContext } from "react";
+import { Result } from "@/lib/types";
+import { createFormContext } from "@/components/ui/form-server";
 
-const loginSchema = z.object({
-  email: z.string().min(1, "Required").email("Please enter a valid email"),
-  password: z.string().min(1, "Required"),
-});
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-export type LoginData = z.infer<typeof loginSchema>;
-const LoginField = TextField<LoginData>;
+const [LoginContext, LoginForm] = createFormContext<Result<string, LoginError>>("LoginForm", login);
+export { LoginForm };
 
-export default function LoginForm(props: HTMLAttributes<HTMLFormElement>) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
+const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <p
+        ref={ref}
+        className={cn("text-xs font-medium text-red-500 dark:text-red-500", className)}
+        {...props}
+      >
+        {children}
+      </p>
+    );
+  }
+);
+FormMessage.displayName = "FormMessage";
 
+const LoginMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  (props, ref) => {
+    const state = useContext(LoginContext);
+    const error = state?.error && state.error._errors?.at(0);
+    return (
+      <FormMessage {...props} ref={ref}>
+        {error}
+      </FormMessage>
+    );
+  }
+);
+LoginMessage.displayName = "LoginMessage";
+export { LoginMessage };
+
+export function LoginButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button disabled={pending} type="submit">
+      Login
+    </Button>
+  );
+}
+
+export function LoginField({
+  name,
+  label,
+  children,
+}: {
+  name: keyof LoginData;
+  label: string;
+  children: ReactNode;
+}) {
+  const state = useContext(LoginContext);
+  const error = state?.error && state.error[name]?._errors?.at(0);
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={name}>{label}</Label>
+      {children}
+      {error && <FormMessage>{error}</FormMessage>}
+    </div>
+  );
+}
+
+export default function LoginForm2() {
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
   });
-
-  async function cookPlease(data: LoginData) {
-    console.log(data);
-    setLoading(true);
-    const res = await login(data);
-    setLoading(false);
-    if (res.error) {
-      setError(res.error);
-      return false;
-    }
-    router.push("/disputes");
-  }
-
-  const formId = useId();
-
-  return (
-    <Form {...form}>
-      <Card className="mx-auto md:my-3 lg:w-1/2 md:w-3/4">
-        <CardHeader>
-          <CardTitle>Login</CardTitle>
-        </CardHeader>
-        <CardContent asChild>
-          <form
-            id={formId}
-            onSubmit={form.handleSubmit(cookPlease)}
-            className="gap-y-2 space-y-3"
-            {...props}
-          >
-            <LoginField name="email" label="Email" />
-            <LoginField type="password" name="password" label="Password" />
-          </form>
-        </CardContent>
-        <CardFooter>
-          <Button disabled={loading} form={formId} type="submit">
-            Login
-          </Button>
-          <p role="alert">{error}</p>
-        </CardFooter>
-      </Card>
-    </Form>
-  );
 }

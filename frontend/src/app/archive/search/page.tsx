@@ -15,10 +15,27 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useRef } from "react";
 
 const searchSchema = z.object({
   q: z.string().optional(),
   offset: z.coerce.number().default(0),
+  order: z
+    .enum(["asc", "desc", ""])
+    .transform((e) => (e.length == 0 ? undefined : e))
+    .optional(),
+  sort: z
+    .enum(["title", "date_filed", "date_resolved", "date_filed", "time_taken", ""])
+    .transform((e) => (e.length == 0 ? undefined : e))
+    .optional(),
 });
 
 type SearchParams = z.infer<typeof searchSchema>;
@@ -81,17 +98,40 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
 
   return (
     <>
-      <header className="p-3 items-start gap-2 flex flex-col">
+      <form className="p-3 items-start gap-2 flex flex-col">
         <Input
+          defaultValue={params.q}
+          name="q"
           className="rounded-full dark:bg-dre-bg-light/5 px-6 py-4 border-none md:w-1/2"
           placeholder="Search the Archive..."
         />
-
-        <div className="flex mx-3">
-          <p>Filter</p>
-          <p>Sort By</p>
+        <div className="inline-flex ml-3 gap-3">
+          <Select name="sort" defaultValue={params.sort}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="title">Title</SelectItem>
+                <SelectItem value="date_filed">Date filed</SelectItem>
+                <SelectItem value="date_resolved">Date resolved</SelectItem>
+                <SelectItem value="time_taken">Time taken</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <Select name="order" defaultValue={params.order}>
+            <SelectTrigger className="w-fit">
+              <SelectValue placeholder="Order" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="asc">Ascending</SelectItem>
+                <SelectItem value="desc">Descending</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
-      </header>
+      </form>
       <main className="space-y-3 mx-8">
         {data!.map((dispute) => (
           <SearchResult key={dispute.id} {...dispute} />

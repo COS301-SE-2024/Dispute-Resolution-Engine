@@ -36,10 +36,13 @@ export default function Archive() {
         <p className="dark:text-white/50">Explore our previously handled cases</p>
       </header>
       <main className="w-2/3">
-        <Input
-          className="rounded-full dark:bg-dre-bg-light/5 px-8 py-6 border-none"
-          placeholder="Search the Archive..."
-        />
+        <form action="/archive/search">
+          <Input
+            name="q"
+            className="rounded-full dark:bg-dre-bg-light/5 px-8 py-6 border-none"
+            placeholder="Search the Archive..."
+          />
+        </form>
       </main>
       <footer>
         <h2 className="text-2xl font-semibold mb-4">Resolved Disputes</h2>

@@ -32,7 +32,13 @@ func SetupDisputeRoutes(router *mux.Router, h Handler) {
 // @Success 200 {object} models.Response "Dispute Summary Endpoint"
 // @Router /dispute [get]
 func (h Handler) getSummaryListOfDisputes(w http.ResponseWriter, r *http.Request) {
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Dispute Summary Endpoint"})
+	var disputes []models.Dispute
+	err := h.DB.Raw("SELECT id, title, description, status FROM disputes").Scan(&disputes).Error
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+		return
+	}
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: disputes})
 }
 
 // @Summary Get a dispute

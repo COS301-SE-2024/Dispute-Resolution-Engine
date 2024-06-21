@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRef } from "react";
+import SearchFilters from "./filters";
+import { Badge } from "@/components/ui/badge";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -38,27 +40,23 @@ const searchSchema = z.object({
     .optional(),
 });
 
-type SearchParams = z.infer<typeof searchSchema>;
+export type SearchParams = z.infer<typeof searchSchema>;
 
 function SearchResult(props: ArchivedDisputeSummary) {
   return (
-    <Card className="border-none">
-      <CardHeader>
-        <Link href="/archive/id">
-          <CardTitle>{props.title}</CardTitle>
+    <li>
+      <div className="flex items-center gap-5 mb-3">
+        <Link href={`/archive/${props.id}`}>
+          <h3 className="hover:underline font-semibold text-lg">{props.title}</h3>
         </Link>
-      </CardHeader>
-      <CardContent asChild className="dark:text-white/50">
-        <p>{props.summary}</p>
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <p>{props.resolution}</p>
-        <Button>
-          <ExternalLink size="1rem" className="mr-2" />
-          Read More
-        </Button>
-      </CardFooter>
-    </Card>
+        <div className="space-x-1">
+          {props.category.map((cat) => (
+            <Badge key={cat}>{cat}</Badge>
+          ))}
+        </div>
+      </div>
+      <p className="dark:text-white/50">{props.summary}</p>
+    </li>
   );
 }
 
@@ -87,6 +85,8 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
 
   const { data, error } = await searchArchive({
     search: params.q,
+    offset: params.offset * 10,
+    limit: 10,
   });
 
   // TODO: replace this with response information
@@ -105,39 +105,16 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
           className="rounded-full dark:bg-dre-bg-light/5 px-6 py-4 border-none md:w-1/2"
           placeholder="Search the Archive..."
         />
-        <div className="inline-flex ml-3 gap-3">
-          <Select name="sort" defaultValue={params.sort}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="title">Title</SelectItem>
-                <SelectItem value="date_filed">Date filed</SelectItem>
-                <SelectItem value="date_resolved">Date resolved</SelectItem>
-                <SelectItem value="time_taken">Time taken</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Select name="order" defaultValue={params.order}>
-            <SelectTrigger className="w-fit">
-              <SelectValue placeholder="Order" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="asc">Ascending</SelectItem>
-                <SelectItem value="desc">Descending</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+        <SearchFilters params={params} />
       </form>
-      <main className="space-y-3 mx-8">
-        {data!.map((dispute) => (
-          <SearchResult key={dispute.id} {...dispute} />
-        ))}
+      <main className="mx-20 grid grid-cols-2">
+        <ol className="space-y-5">
+          {data!.map((dispute) => (
+            <SearchResult key={dispute.id} {...dispute} />
+          ))}
+        </ol>
       </main>
-      <footer>
+      <footer className="my-10">
         <Pagination>
           <PaginationContent>
             {params.offset > 0 && (

@@ -21,7 +21,8 @@ export async function searchArchive(
         id: i.toString(),
 
         title: `Dispute #${i}`,
-        summary: "Lorem Ipsum",
+        summary:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Soluta suscipit ducimus sequi alias tempora maxime odio libero delectus possimus aliquam ullam asperiores dolorem cumque, sunt numquam obcaecati. Eligendi, fugit commodi.",
 
         category: ["cooked", "cool"],
 

@@ -15,6 +15,23 @@ type UpdateUser struct {
 	AddressType *string `json:"address_type"`
 }
 
+type GetUser struct {
+	FirstName string `json:"first_name"`
+	Surname   string `json:"surname"`
+	Email     string `json:"email"`
+	PhoneNumber *string `json:"phone_number"`
+
+	Birthdate         string  `json:"birthdate"`
+	Gender		      string  `json:"gender"`
+	Nationality	      string  `json:"nationality"`
+
+	Timezone		  *string `json:"timezone"`
+	PreferredLanguage *string `json:"preferred_language"`
+
+	Address []Address `json:"address"`
+	Theme   string `json:"theme"`
+}
+
 type CreateUser struct {
 	//These are all the user details that are required to create a user
 	FirstName         string  `json:"first_name"`
@@ -27,8 +44,19 @@ type CreateUser struct {
 	Gender            string  `json:"gender"`
 	PreferredLanguage *string `json:"preferred_language"`
 	Timezone          *string `json:"timezone"`
+}
 
-	//These are the user's address details
+type VerifyUser struct {
+	Pin string `json:"pin"`
+}
+
+type DeleteUser struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type UpdateAddress struct {
+	Email       string  `json:"email"`
 	Country     *string `json:"country"`
 	Province    *string `json:"province"`
 	City        *string `json:"city"`
@@ -38,11 +66,16 @@ type CreateUser struct {
 	AddressType *string `json:"address_type"`
 }
 
-type VerifyUser struct {
-	Pin string `json:"pin"`
+type ArchiveSearchRequest struct {
+	Search *string `json:"search,omitempty"`
+	Limit  *int    `json:"limit,omitempty"`
+	Offset *int    `json:"offset,omitempty"`
+	Order  *string `json:"order,omitempty"`
+	Sort *SortAttribute `json:"sort,omitempty"`
+	Filter *FilterAttribute `json:"filter,omitempty"`
 }
 
-type DeleteUser struct {
-	Email string `json:"email"`
-	Password string `json:"password"`
+type FilterAttribute struct {
+	Category []string `json:"category"`
+	Time    []int `json:"time"`
 }

@@ -12,7 +12,7 @@ type User struct {
 	Nationality       string     `json:"nationality" gorm:"type:varchar(50);not null;column:nationality"`                //check
 	Role              string     `json:"role" gorm:"type:varchar(50);not null;column:role"`                              //Filled in by API
 	Email             string     `json:"email" gorm:"type:varchar(100);unique;not null;column:email"`                    //check
-	PasswordHash      string     `json:"password" gorm:"type:varchar(255);not null;column:password_hash"`                //Updated by API
+	PasswordHash      string     `json:"password,omitempty" gorm:"type:varchar(255);not null;column:password_hash"`      //Updated by API
 	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20);column:phone_number"`             //need
 	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`                                  //what the fuck
 	CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`                     //Filled in by API
@@ -22,24 +22,80 @@ type User struct {
 	Gender            string     `json:"gender" gorm:"type:gender_enum;column:gender"`                                   //check
 	PreferredLanguage *string    `json:"preferred_language,omitempty" gorm:"type:varchar(50);column:preferred_language"` //worked on
 	Timezone          *string    `json:"timezone,omitempty" gorm:"type:varchar(50);column:timezone"`                     //need to be handled by me?
-	Salt              string     `gorm:"type:varchar(255);column:salt"`                                                  //Filled in by API
+	Salt              string     `gorm:"type:varchar(255);column:salt"`
+	LastUpdated       *time.Time `json:"last_updated,omitempty" gorm:"type:timestamp without time zone;default:CURRENT_TIMESTAMP;column:last_updated"` //Filled in by API
 }
+
+type ArchivedDisputeSummary struct {
+	ID           int64     `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	Title        string    `json:"title" gorm:"type:varchar(255);column:title"`
+	Summary      string    `json:"summary" gorm:"type:text;column:summary"`
+	Category     []string  `json:"category" gorm:"type:varchar(255);column:category"`
+	DateFiled    time.Time `json:"date_filled" gorm:"type:timestamp;column:date_filled"`
+	DateResolved time.Time `json:"date_resolved" gorm:"type:timestamp;column:date_resolved"`
+	Resolution   string    `json:"resolution" gorm:"type:text;column:resolution"`
+}
+
+type Event struct {
+	Timestamp   string `json:"timestamp"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+}
+
+type ArchivedDispute struct {
+	ArchivedDisputeSummary
+	Events []Event `json:"events"`
+}
+
+type dispute_decision string
+
+const (
+	Resolved   dispute_decision = "Resolved"
+	Unresolved dispute_decision = "Unresolved"
+	Settled    dispute_decision = "Settled"
+	Refused    dispute_decision = "Refused"
+	Withdrawn  dispute_decision = "Withdrawn"
+	Transfer   dispute_decision = "Transfer"
+	Appeal     dispute_decision = "Appeal"
+	Other      dispute_decision = "Other"
+)
+
+type Dispute struct {
+	ID          int64            `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	CaseDate    time.Time        `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
+	Workflow    int64            `json:"workflow" gorm:"column:workflow"`
+	Status      string           `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
+	Title       string           `json:"title" gorm:"type:varchar(255);not null;column:title"`
+	Description string           `json:"description" gorm:"type:text;column:description"`
+	Complainant int64            `json:"complainant" gorm:"column:complainant"`
+	Respondant  int64            `json:"respondant" gorm:"column:respondant"`
+	Resolved    bool             `json:"resolved" gorm:"default:false;column:resolved"`
+	Decision    dispute_decision `json:"decision" gorm:"type:dispute_decision_enum;default:'Unresolved';column:decision"`
+}
+
+type SortAttribute string
+
+const (
+	SortByTitle        SortAttribute = "title"
+	SortByDateFiled    SortAttribute = "date_filed"
+	SortByDateResolved SortAttribute = "date_resolved"
+	SortByTimeTaken    SortAttribute = "time_taken"
+)
 
 func (User) TableName() string {
 	return "users"
 }
 
 type Address struct {
-	ID          int64      `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
-	Code        *string    `json:"code,omitempty" gorm:"type:varchar(64);column:code"`
-	Country     *string    `json:"country,omitempty" gorm:"type:varchar(255);column:country"`
-	Province    *string    `json:"province,omitempty" gorm:"type:varchar(255);column:province"`
-	City        *string    `json:"city,omitempty" gorm:"type:varchar(255);column:city"`
-	Street3     *string    `json:"street3,omitempty" gorm:"type:varchar(255);column:street3"`
-	Street2     *string    `json:"street2,omitempty" gorm:"type:varchar(255);column:street2"`
-	Street      *string    `json:"street,omitempty" gorm:"type:varchar(255);column:street"`
-	AddressType *string    `json:"address_type,omitempty" gorm:"type:address_type_enum;column:address_type"`
-	LastUpdated *time.Time `json:"last_updated,omitempty" gorm:"type:timestamp without time zone;default:CURRENT_TIMESTAMP;column:last_updated"`
+	ID          int64   `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	Code        *string `json:"code,omitempty" gorm:"type:varchar(64);column:code"`
+	Country     *string `json:"country,omitempty" gorm:"type:varchar(255);column:country"`
+	Province    *string `json:"province,omitempty" gorm:"type:varchar(255);column:province"`
+	City        *string `json:"city,omitempty" gorm:"type:varchar(255);column:city"`
+	Street3     *string `json:"street3,omitempty" gorm:"type:varchar(255);column:street3"`
+	Street2     *string `json:"street2,omitempty" gorm:"type:varchar(255);column:street2"`
+	Street      *string `json:"street,omitempty" gorm:"type:varchar(255);column:street"`
+	AddressType *string `json:"address_type,omitempty" gorm:"type:address_type_enum;column:address_type"`
 }
 
 func (Address) TableName() string {

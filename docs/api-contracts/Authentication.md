@@ -60,7 +60,7 @@ interface SignupRequest {
   preferred_language: string; // en-US by default
 
   // Address information
-  address: Address;
+  // address: Address;
 }
 ```
 

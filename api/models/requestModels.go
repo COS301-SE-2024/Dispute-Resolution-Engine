@@ -65,3 +65,17 @@ type UpdateAddress struct {
 	Street      *string `json:"street"`
 	AddressType *string `json:"address_type"`
 }
+
+type ArchiveSearchRequest struct {
+	Search string `json:"search"`
+	Limit  int    `json:"limit"`
+	Offset int    `json:"offset"`
+	Order  string `json:"order"`
+	SortBy SortAttribute `json:"sort_by"`
+	Filter FilterAttribute `json:"filter"`
+}
+
+type FilterAttribute struct {
+	Category []string `json:"category"`
+	Time    []int `json:"time"`
+}

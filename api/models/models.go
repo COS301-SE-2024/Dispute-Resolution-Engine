@@ -26,6 +26,36 @@ type User struct {
 	LastUpdated *time.Time `json:"last_updated,omitempty" gorm:"type:timestamp without time zone;default:CURRENT_TIMESTAMP;column:last_updated"`                                               //Filled in by API
 }
 
+type ArchivedDisputeSummary struct {
+	ID          int64     `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	Title	   string    `json:"title" gorm:"type:varchar(255);column:title"`
+	Summary    string    `json:"summary" gorm:"type:text;column:summary"`
+	Category   []string  `json:"category" gorm:"type:varchar(255);column:category"`
+	DateFilled time.Time `json:"date_filled" gorm:"type:timestamp;column:date_filled"`
+	DateResolved time.Time `json:"date_resolved" gorm:"type:timestamp;column:date_resolved"`
+	Resolution string    `json:"resolution" gorm:"type:text;column:resolution"`
+}
+
+type Event struct {
+	Timestamp   string `json:"timestamp"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+}
+
+type ArchivedDispute struct {
+	ArchivedDisputeSummary
+	Events []Event `json:"events"`
+}
+
+type SortAttribute string
+
+const (
+	SortByTitle        SortAttribute = "title"
+	SortByDateFiled    SortAttribute = "date_filed"
+	SortByDateResolved SortAttribute = "date_resolved"
+	SortByTimeTaken    SortAttribute = "time_taken"
+)
+
 func (User) TableName() string {
 	return "users"
 }
@@ -60,3 +90,5 @@ type Response struct {
 	Data  interface{} `json:"data,omitempty"`
 	Error string      `json:"error,omitempty"`
 }
+
+

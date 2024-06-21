@@ -39,7 +39,8 @@ The Dispute Resolution Engine will handle sensitive information regularly. In ad
 
 The Dispute Resolution Engine must be easy to update and extend. It is essential that expansion of the system allows for the addition of new legal processes, dispute types, and other features. This will ensure that the system remains relevant and up-to-date with the latest legal requirements and dispute resolution practices.
 
-### 5.1 Quantification
+| Stimulus Source     | Stimulus                                      | Response                                                                                         | Response Measure                                                                                              | Environment         | Artifact                  |
+|---------------------|-----------------------------------------------|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|---------------------|---------------------------|
+| Development Team    | Requirement to update or extend the system    | The system should allow for easy addition of new legal processes, dispute types, and other features | Frontend uses a component library, backend API is fully extensible with trivial addition/removal of endpoints | Development environment | Dispute Resolution Engine |
 
-DRE promotes maintainability as it is important for adding functionality and new features to the system in the future. We do this by ensuring that the frontend makes use of a component library, the backend's API is fully extensible (it is trivial to add/remove endpoints). 
 

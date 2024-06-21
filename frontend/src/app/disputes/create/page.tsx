@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import { API_URL } from "@/lib/utils";
 
 export default function CreateDispute() {
   return (
@@ -36,7 +37,7 @@ export default function CreateDispute() {
         </div>
       </main>
       <footer className="p-2 flex justify-between">
-        <Button asChild>
+        <Button asChild onClick={createDisputeAPI}>
           <Link href="/disputes">Create</Link>
         </Button>
         <Button variant={"destructive"} asChild>
@@ -45,4 +46,15 @@ export default function CreateDispute() {
       </footer>
     </div>
   );
+}
+async function createDisputeAPI(data: any) {
+  const returnData = await fetch(`${API_URL}/createDispute`, {
+    method: "POST",
+    body: JSON.stringify({
+      title: data.title,
+      respondent: data.respondent,
+      summary: data.summary,
+      evidence: data.evidence,
+    }),
+  })
 }

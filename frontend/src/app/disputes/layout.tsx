@@ -6,6 +6,11 @@ import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { fetchDisputes } from "../lib/dispute";
 import { Suspense } from "react";
 import Loader from "@/components/Loader";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "DRE - Disputes",
+};
 
 function DisputeLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (

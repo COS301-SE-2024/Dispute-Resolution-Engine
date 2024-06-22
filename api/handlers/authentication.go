@@ -144,6 +144,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if result := h.DB.Create(&user); result.Error != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating user"})
+		print(result.Error)
 		return
 	}
 	sendOTP(user.Email)

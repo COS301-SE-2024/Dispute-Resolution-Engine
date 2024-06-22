@@ -140,3 +140,7 @@ Agile methodologies are built to adapt to changing requirements, even late in de
 
 Agile advocates for sustainable development, maintaining a constant pace. By prioritizing performance and maintainability, the system remains efficient and easier to enhance or modify, preventing technical debt and burnout among developers. High-maintainability reduces the long-term effort needed for development, aligning with agile's emphasis on sustainable work practices.
 
+###	Promoting Technical Excellence
+
+Agile practices promote continuous attention to technical excellence and good design. By focusing on security and reliability, we ensure that the system is robust and dependable, adhering to high standards of technical excellence. Good design based on quality requirements enhances the overall architecture, making the system more resilient and easier to extend.
+

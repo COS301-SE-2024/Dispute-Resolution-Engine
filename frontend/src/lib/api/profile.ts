@@ -1,18 +1,11 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { UserProfileResponse } from "../interfaces/user";
 import { Result } from "../types";
-import { JWT_KEY } from "../constants";
-import { API_URL } from "../utils";
+import { getAuthToken } from "../util/jwt";
 
 export async function getProfile(): Promise<Result<UserProfileResponse>> {
-  const jwt = cookies().get(JWT_KEY)?.value;
-  if (!jwt) {
-    return {
-      error: "Unauthorized",
-    };
-  }
+  const jwt = getAuthToken();
 
   return {
     data: {

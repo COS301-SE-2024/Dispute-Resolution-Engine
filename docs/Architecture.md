@@ -144,3 +144,7 @@ Agile advocates for sustainable development, maintaining a constant pace. By pri
 
 Agile practices promote continuous attention to technical excellence and good design. By focusing on security and reliability, we ensure that the system is robust and dependable, adhering to high standards of technical excellence. Good design based on quality requirements enhances the overall architecture, making the system more resilient and easier to extend.
 
+### Collaboration
+
+Agile values collaboration between cross-functional teams and stakeholders. When design is based on clear quality requirements, it provides a transparent framework for decision-making and prioritization. Everyone involved understands the criteria guiding development, facilitating better communication and collaboration.
+

@@ -105,3 +105,87 @@ streamlines the update process, reducing the manual effort required to maintain 
 
 Let’s Encrypt stands out as the optimal choice for ensuring secure communication within our dispute resolution platform. By offering free SSL/TLS certificates, Let’s Encrypt not only supports functional requirements such as the Secure Communication Channel but also significantly contributes to quality attributes like security and reliability. Unlike other certificate providers, Let’s Encrypt's commitment to openness and transparency fosters a vibrant community of users and developers. This active community ensures ongoing support and resources, aligning perfectly with our platform's Quality Attribute of Maintainability. Moreover, Let’s Encrypt's automation features streamline the issuance and renewal of certificates, enhancing the platform's reliability and scalability. By encrypting data transmission between users and the server, Let’s Encrypt safeguards sensitive information, addressing the Security Quality Attribute and ensuring compliance with data protection standards. This dedication to security and privacy underscores Let’s Encrypt's suitability for our platform's Quality Attribute of Compliance. In summary, Let’s Encrypt not only fulfills functional requirements such as the Secure Communication Channel but also excels in meeting the Quality Attributes of Reliability, Scalability and Performance, Security, Compliance, and Maintainability, making it the ideal choice for our dispute resolution platform.
 
+# V2 - Technology Choices
+## Next.js
+### Overview:
+Next.js is a React framework that enables functionalities such as server-side rendering and generating static websites for React-based web applications. It is developed by Vercel.
+
+### Pros:
+
+Server-Side Rendering (SSR) and Static Site Generation (SSG): Improves performance and SEO.
+React Ecosystem: Leverages the vast React ecosystem and libraries.
+File-based Routing: Simplifies the routing setup.
+Built-in API Routes: Allows building backend services within the same project.
+Large Community and Ecosystem: Extensive documentation and numerous third-party libraries.
+### Cons:
+
+Complexity: Can be overkill for simple projects.
+Customization: Requires deeper understanding for custom configurations.
+Learning Curve: Slightly steeper learning curve for beginners.
+Fit with Architecture Strategies:
+
+Scalability: SSR and SSG capabilities ensure the application can scale effectively.
+Performance: Pre-rendering and optimization features ensure fast load times.
+Flexibility: Ability to create dynamic and static pages within the same application.
+Community and Support: Large ecosystem and community support align with long-term project sustainability.
+## SolidJS
+### Overview:
+SolidJS is a declarative JavaScript library for building user interfaces. It focuses on fine-grained reactivity and aims to offer the performance of low-level libraries while maintaining the simplicity of higher-level frameworks.
+
+### Pros:
+
+Performance: Fine-grained reactivity model ensures high performance.
+Small Bundle Size: Lightweight, leading to faster load times.
+Simplicity: Easy to understand and use for developers familiar with React-like syntax.
+### Cons:
+
+Smaller Community: Less community support and fewer resources compared to React-based frameworks.
+Limited Ecosystem: Fewer third-party libraries and tools available.
+Early Stage: Being relatively new, it might have fewer best practices and potential instability.
+Fit with Architecture Strategies:
+
+Performance: Exceptional rendering performance due to fine-grained reactivity.
+Efficiency: Lightweight nature aligns with fast load time requirements.
+Innovation: Offers cutting-edge performance techniques, though with risk due to its nascent stage.
+## Angular
+### Overview:
+Angular is a platform and framework for building single-page client applications using HTML and TypeScript. It is developed and maintained by Google.
+
+### Pros:
+
+Comprehensive Framework: Includes everything needed for large-scale applications.
+TypeScript Support: Strong typing helps catch errors early.
+Two-Way Data Binding: Simplifies the synchronization between model and view.
+Component-Based Architecture: Promotes reusability and maintainability.
+Large Ecosystem and Community: Extensive documentation and numerous third-party libraries.
+### Cons:
+
+Complexity: Steep learning curve, especially for beginners.
+Performance: Can be slower compared to other frameworks for simple applications.
+Verbosity: More boilerplate code compared to frameworks like React or SolidJS.
+Fit with Architecture Strategies:
+
+Scalability: Robust framework suitable for enterprise-level applications.
+Maintainability: TypeScript and component-based architecture enhance maintainability.
+Comprehensive Tooling: Integrated CLI and tools streamline development.
+Final Technology Choice: Next.js
+## Reasoning:
+After evaluating the three technologies, we have chosen Next.js for the following reasons:
+
+Larger Ecosystem and Community Support:
+
+Next.js, being built on React, benefits from a vast ecosystem and extensive community support, which is essential for smooth development and long-term maintenance.
+Performance:
+
+With built-in features like server-side rendering (SSR) and static site generation (SSG), Next.js offers superior performance, which is crucial for our application’s speed and SEO requirements.
+Flexibility and Scalability:
+
+Next.js provides flexibility in building both static and dynamic pages, aligning well with our architecture strategies that emphasize scalability and adaptability.
+Ease of Development:
+
+The file-based routing and built-in API routes simplify development processes, reducing the time and effort required to set up and maintain the application.
+Accessible Component Libraries:
+
+Next.js supports a wide range of component libraries, facilitating rapid development and integration of UI components, which enhances our development efficiency and user experience.
+Conclusion:
+Considering the comprehensive support, performance capabilities, and overall development efficiency, Next.js emerges as the optimal choice for our frontend component. Its alignment with our architecture strategies, combined with a strong community and ecosystem, ensures a robust and scalable solution for our application.

@@ -16,6 +16,8 @@ services:
     depends_on:
       - "postgres"
       - "redis-cache"
+    volumes:
+      - evi_files:/app/filestorage 
     develop:
       watch:
         - action: rebuild
@@ -38,3 +40,4 @@ services:
     command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
 volumes:
   pgdata:
+  evi_files:

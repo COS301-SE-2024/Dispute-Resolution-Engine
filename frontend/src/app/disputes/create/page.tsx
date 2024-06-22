@@ -36,8 +36,9 @@ export default function CreateDispute() {
 
   return (
     <Card className="w-full">
-      <CardHeader><CardTitle className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">Create a
-        Dispute</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">Create a Dispute</CardTitle>
+      </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="w-full pt-0 p-10">
           <div className="space-y-5">
@@ -48,7 +49,7 @@ export default function CreateDispute() {
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="We be beefing" {...field} />
+                    <Input placeholder="Dispute Title" {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -72,7 +73,7 @@ export default function CreateDispute() {
                 <FormItem>
                   <FormLabel>Respondent Telephone</FormLabel>
                   <FormControl>
-                    <Input placeholder="Mr Biggest Op" {...field} />
+                    <Input placeholder="012 345 6789" {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -84,7 +85,7 @@ export default function CreateDispute() {
                 <FormItem>
                   <FormLabel>Summary</FormLabel>
                   <FormControl>
-                    <Input placeholder="He stole my chib" {...field} />
+                    <Input placeholder="The aforementioned party..." {...field} />
                   </FormControl>
                 </FormItem>
               )}

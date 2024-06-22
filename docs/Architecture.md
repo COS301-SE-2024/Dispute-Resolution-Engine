@@ -152,3 +152,6 @@ Agile values collaboration between cross-functional teams and stakeholders. When
 
 Agile development is incremental and iterative, allowing teams to build and refine the system step-by-step. By focusing on scalability and performance, we ensure that each increment can handle increased loads and improved efficiency. This iterative approach helps in continuously enhancing system quality while accommodating growth and new features.
 
+### Delivering Working Software
+
+One of the key agile principles is delivering working software at a constant pace. Focusing on usability ensures that each iteration results in a product that is not only functional but also user-friendly. High usability encourages user feedback, which is vital for agile's iterative improvement process.

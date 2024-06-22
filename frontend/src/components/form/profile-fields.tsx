@@ -1,7 +1,15 @@
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-export default function ProfileFields() {
+export default function ProfileFields({
+  firstName,
+  lastName,
+  email,
+}: {
+  firstName: string;
+  lastName: string;
+  email: string;
+}) {
   return (
     <fieldset className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -12,7 +20,7 @@ export default function ProfileFields() {
             name="firstName"
             autoComplete="given-name"
             placeholder="First Name"
-            defaultValue="John"
+            defaultValue={firstName}
           />
         </div>
 
@@ -23,7 +31,7 @@ export default function ProfileFields() {
             name="lastName"
             autoComplete="family-name"
             placeholder="Last Name"
-            defaultValue="Doe"
+            defaultValue={lastName}
           />
         </div>
       </div>
@@ -34,7 +42,7 @@ export default function ProfileFields() {
           id="email"
           name="email"
           placeholder="Email"
-          defaultValue="johndoe@example.com"
+          defaultValue={email}
         />
       </div>
     </fieldset>

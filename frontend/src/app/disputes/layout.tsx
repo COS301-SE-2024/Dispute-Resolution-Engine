@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { ChevronRightIcon } from "@radix-ui/react-icons";
-import { fetchDisputes } from "../lib/dispute";
+import { getDisputeList } from "../../lib/api/dispute";
 import { Suspense } from "react";
 import Loader from "@/components/Loader";
 import { Metadata } from "next";
@@ -24,7 +24,7 @@ function DisputeLink({ href, children }: { href: string; children: React.ReactNo
 }
 
 async function DisputeList() {
-  const data = await fetchDisputes("cook");
+  const data = await getDisputeList();
 
   return (
     <ul>

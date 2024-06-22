@@ -143,7 +143,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	user.LastLogin = nil
 
 	if result := h.DB.Create(&user); result.Error != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating user"})
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: /*"Error creating user"*/ result.Error.Error()})
 		print(result.Error)
 		return
 	}

@@ -86,24 +86,14 @@ Below is temporary description until this exception is documented
 
 ```ts
 interface DisputeCreateRequest {
+  title: string;
   description: string;
-  desired_outcome: string;
 
   respondent: {
     full_name: string;
     email: string;
     telephone: string;
   };
-
-  jurisdictional_basis: Evidence;
-
-  /**
-   * IDs of all adjudicators to be appointed
-   */
-  adjudicators: string[];
-
-  // This should be FormData, but I don't know how to annotate that
-  evidence: Evidence[];
 }
 
 ```

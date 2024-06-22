@@ -16,20 +16,20 @@ type UpdateUser struct {
 }
 
 type GetUser struct {
-	FirstName string `json:"first_name"`
-	Surname   string `json:"surname"`
-	Email     string `json:"email"`
+	FirstName   string  `json:"first_name"`
+	Surname     string  `json:"surname"`
+	Email       string  `json:"email"`
 	PhoneNumber *string `json:"phone_number"`
 
-	Birthdate         string  `json:"birthdate"`
-	Gender		      string  `json:"gender"`
-	Nationality	      string  `json:"nationality"`
+	Birthdate   string `json:"birthdate"`
+	Gender      string `json:"gender"`
+	Nationality string `json:"nationality"`
 
-	Timezone		  *string `json:"timezone"`
+	Timezone          *string `json:"timezone"`
 	PreferredLanguage *string `json:"preferred_language"`
 
 	Address []Address `json:"address"`
-	Theme   string `json:"theme"`
+	Theme   string    `json:"theme"`
 }
 
 type CreateUser struct {
@@ -67,15 +67,27 @@ type UpdateAddress struct {
 }
 
 type ArchiveSearchRequest struct {
-	Search *string `json:"search,omitempty"`
-	Limit  *int    `json:"limit,omitempty"`
-	Offset *int    `json:"offset,omitempty"`
-	Order  *string `json:"order,omitempty"`
-	Sort *SortAttribute `json:"sort,omitempty"`
+	Search *string          `json:"search,omitempty"`
+	Limit  *int             `json:"limit,omitempty"`
+	Offset *int             `json:"offset,omitempty"`
+	Order  *string          `json:"order,omitempty"`
+	Sort   *SortAttribute   `json:"sort,omitempty"`
 	Filter *FilterAttribute `json:"filter,omitempty"`
 }
 
 type FilterAttribute struct {
 	Category []string `json:"category"`
-	Time    []int `json:"time"`
+	Time     []int    `json:"time"`
+}
+
+type CreateDispute struct {
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Respondent  Respondent `json:"respondent"`
+}
+
+type Respondent struct {
+	FullName  string `json:"full_name"`
+	Email     string `json:"email"`
+	Telephone string `json:"telephone"`
 }

@@ -20,6 +20,7 @@ import (
 type Claims struct {
 	Email string `json:"email"`
 	jwt.StandardClaims
+    User models.User `json:"user"`
 }
 
 // GenerateJWT generates a JWT token
@@ -33,6 +34,7 @@ func GenerateJWT(user models.User) (string, error) {
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
 			IssuedAt:  time.Now().Unix(),
 		},
+        User: user,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(jwtSec))
@@ -62,15 +64,8 @@ func GetJWT(userEmail string) (string, error) {
 	return jwt, nil
 }
 
-// JWTMiddleware is a middleware to validate JWT token
-func JWTMiddleware(next http.Handler) http.Handler {
-	//stub function
-	// return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	//     context.Set(r, "user", &Claims{User: models.User{ID: 1, Email: "temp@temp.com"}})
-	//     next.ServeHTTP(w, r)
-	// })
 
-	//end of stub function
+func JWTMiddleware(next http.Handler) http.Handler {
 	if jwtSecretKey := os.Getenv("JWT_SECRET"); jwtSecretKey == "" {
 		err := godotenv.Load("api.env")
 		if err != nil {
@@ -88,7 +83,14 @@ func JWTMiddleware(next http.Handler) http.Handler {
 			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
 		}
-		tokenString := strings.Split(authorizationHeader, " ")[1] // Extract token from "Bearer <token>"
+
+		// Extract token from "Bearer <token>"
+		tokenString := strings.Split(authorizationHeader, " ")[1]
+		if tokenString == "" {
+			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			return
+		}
+
 		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 			return jwtSecretKey, nil
 		})
@@ -96,9 +98,10 @@ func JWTMiddleware(next http.Handler) http.Handler {
 			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
 		}
+
 		if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-			context.Set(r, "user", claims)
-			next.ServeHTTP(w, r)
+			ctx := context.WithValue(r.Context(), "user", claims)
+			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
 			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return

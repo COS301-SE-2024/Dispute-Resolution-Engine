@@ -132,3 +132,7 @@ We make use of the Flux pattern to enhance the usability of the DRE by simplifyi
 
 Agile emphasizes delivering valuable software to the customer frequently, ensuring that the product meets their needs. By focusing on quality requirements like reliability, usability, and security, we ensure that each iteration produces a working product that satisfies customer expectations. High-quality software reduces the number of issues and enhances user satisfaction, which is a core principle of agile.
 
+### Adaptation to Changing Requirements
+
+Agile methodologies are built to adapt to changing requirements, even late in development. Designing based on quality requirements such as scalability and maintainability ensures that the system can handle evolving demands without extensive rework. This flexibility is crucial in an agile environment where priorities can shift rapidly.
+

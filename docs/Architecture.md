@@ -136,3 +136,7 @@ Agile emphasizes delivering valuable software to the customer frequently, ensuri
 
 Agile methodologies are built to adapt to changing requirements, even late in development. Designing based on quality requirements such as scalability and maintainability ensures that the system can handle evolving demands without extensive rework. This flexibility is crucial in an agile environment where priorities can shift rapidly.
 
+### Sustainable Development
+
+Agile advocates for sustainable development, maintaining a constant pace. By prioritizing performance and maintainability, the system remains efficient and easier to enhance or modify, preventing technical debt and burnout among developers. High-maintainability reduces the long-term effort needed for development, aligning with agile's emphasis on sustainable work practices.
+

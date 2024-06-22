@@ -5,7 +5,6 @@ import (
 	"api/models"
 	"api/utilities"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -87,7 +86,7 @@ func (h Handler) patchDispute(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} models.Response "Archive Summary Endpoint"
 // @Router /archive [post]
 func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request) {
-	// Get the request body
+	//get the request body
 	var body models.ArchiveSearchRequest
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&body); err != nil {
@@ -95,7 +94,7 @@ func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Handle the request
+	//handle the request
 	searchTerm := ""
 	limit := 10
 	offset := 0
@@ -123,9 +122,8 @@ func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request
 	
 	}
 
-	// Query the database
-	var disputes []models.Dispute
-	query := h.DB.Model(&models.Dispute{})
+	//mock response
+	archiveDisputeSummaries := getMockArchiveDisputeSummaries()
 
 	// Apply search filter
 	if searchTerm != "" {

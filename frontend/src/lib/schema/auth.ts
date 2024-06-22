@@ -34,3 +34,9 @@ export const loginSchema = z.object({
 });
 export type LoginData = z.infer<typeof loginSchema>;
 export type LoginError = z.ZodFormattedError<LoginData>;
+
+export const verifySchema = z.object({
+  pin: z.string().length(6),
+});
+export type VerifyData = z.infer<typeof verifySchema>;
+export type VerifyError = z.ZodFormattedError<VerifyData>;

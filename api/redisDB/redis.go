@@ -15,7 +15,7 @@ var RDB *redis.Client
 func InitRedis() *redis.Client {
 	// Load .env file if environment variables are not already set
 	if os.Getenv("REDIS_URL") == "" {
-		err := godotenv.Load("red.env")
+		err := godotenv.Load("api.env")
 		if err != nil {
 			log.Fatalf("Error loading .env file: %v", err)
 		}

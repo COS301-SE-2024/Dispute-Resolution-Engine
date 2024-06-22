@@ -14,17 +14,21 @@ import {
   InputOTPSeparator,
 } from "@/components/ui/input-otp";
 import Link from "next/link";
+import { useId } from "react";
+import { VerifyButton, VerifyField, VerifyForm, VerifyMessage } from "./verify-form";
 
 export default function Verify() {
+  const formId = useId();
+
   return (
-    <main>
-      <Card className="mx-auto md:my-3 lg:w-1/2 md:w-3/4">
-        <CardHeader>
-          <CardTitle>Check your email</CardTitle>
-          <CardDescription>We sent an OTP to your email address</CardDescription>
-        </CardHeader>
-        <CardContent className="mx-auto">
-          <InputOTP maxLength={6}>
+    <main className="flex flex-col justify-center items-center h-full gap-5">
+      <div className="text-center">
+        <CardTitle>Check your email</CardTitle>
+        <CardDescription>We sent an OTP to your email address</CardDescription>
+      </div>
+      <VerifyForm className="flex flex-col justify-center items-center gap-3">
+        <VerifyField name="pin" label="Pin" className="flex flex-col items-center">
+          <InputOTP maxLength={6} name="pin">
             <InputOTPGroup>
               <InputOTPSlot index={0} />
               <InputOTPSlot index={1} />
@@ -37,13 +41,10 @@ export default function Verify() {
               <InputOTPSlot index={5} />
             </InputOTPGroup>
           </InputOTP>
-        </CardContent>
-        <CardFooter>
-          <Button asChild>
-            <Link href="/login">Submit</Link>
-          </Button>
-        </CardFooter>
-      </Card>
+        </VerifyField>
+        <VerifyButton />
+        <VerifyMessage />
+      </VerifyForm>
     </main>
   );
 }

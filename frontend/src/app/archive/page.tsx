@@ -25,7 +25,7 @@ function ArchivedDispute() {
       <CardFooter className="flex justify-between">
         <p>Status: Resolved</p>
         <Button asChild>
-          <Link href="/id">
+          <Link href="/archive/id">
             <ExternalLink size="1rem" className="mr-2" />
             Read More
           </Link>

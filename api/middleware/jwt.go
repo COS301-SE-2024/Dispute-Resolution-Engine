@@ -62,6 +62,8 @@ func GetJWT(userEmail string) (string, error) {
 	return jwt, nil
 }
 
+
+
 // JWTMiddleware is a middleware to validate JWT token
 func JWTMiddleware(next http.Handler) http.Handler {
 	//stub function

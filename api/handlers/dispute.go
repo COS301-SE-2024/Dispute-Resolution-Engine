@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"api/middleware"
 	"api/models"
 	"api/utilities"
 	"encoding/json"
@@ -14,9 +15,12 @@ import (
 )
 
 func SetupDisputeRoutes(router *mux.Router, h Handler) {
-	router.HandleFunc("", h.getSummaryListOfDisputes).Methods(http.MethodGet)
-	router.HandleFunc("/{id}", h.getDispute).Methods(http.MethodGet)
-	router.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
+	//dispute routes
+	disputeRouter := router.PathPrefix("").Subrouter()
+    disputeRouter.Use(middleware.JWTMiddleware)
+	disputeRouter.HandleFunc("", h.getSummaryListOfDisputes).Methods(http.MethodGet)
+	disputeRouter.HandleFunc("/{id}", h.getDispute).Methods(http.MethodGet)
+	disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
 
 	//archive routes
 	archiveRouter := router.PathPrefix("/archive").Subrouter()

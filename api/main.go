@@ -48,7 +48,6 @@ func main() {
     handlers.SetupUserRoutes(userRouter, h)
 
     disputeRouter := router.PathPrefix("/dispute").Subrouter()
-    disputeRouter.Use(middleware.JWTMiddleware)
     handlers.SetupDisputeRoutes(disputeRouter, h)
 
     // Swagger setup

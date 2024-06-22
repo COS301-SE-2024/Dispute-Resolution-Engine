@@ -13,8 +13,14 @@ export async function searchArchive(
     method: "POST",
     body: JSON.stringify(params),
   });
-  return res.json();
+  return res.json().catch(async (e: Error) => ({
+    error: e.message,
+  }));
 }
 export async function fetchArchivedDispute(id: string): Promise<Result<ArchiveGetResponse>> {
-  return await fetch(`${API_URL}/disputes/archive/${id}`).then((res) => res.json());
+  return fetch(`${API_URL}/disputes/archive/${id}`)
+    .then((res) => res.json())
+    .catch((e: Error) => ({
+      error: e.message,
+    }));
 }

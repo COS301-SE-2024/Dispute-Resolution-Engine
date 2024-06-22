@@ -25,7 +25,7 @@ func SetupDisputeRoutes(router *mux.Router, h Handler) {
 	//archive routes
 	archiveRouter := router.PathPrefix("/archive").Subrouter()
 	archiveRouter.HandleFunc("/search", h.getSummaryListOfArchives).Methods(http.MethodPost)
-	archiveRouter.HandleFunc("/{id}", h.getArchive).Methods(http.MethodPost)
+	archiveRouter.HandleFunc("/{id}", h.getArchive).Methods(http.MethodGet)
 }
 
 // @Summary Get a summary list of disputes

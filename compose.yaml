@@ -16,6 +16,10 @@ services:
     depends_on:
       - "postgres"
       - "redis-cache"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./api
   postgres:
     image: postgres
     ports:

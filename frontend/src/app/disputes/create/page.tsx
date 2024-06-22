@@ -1,60 +1,123 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { API_URL } from "@/lib/utils";
+import { Evidence } from "@/lib/interfaces/dispute";
+export interface DisputeCreateRequest {
+  description: string;
+  desired_outcome: string;
+
+  respondent: {
+    full_name: string;
+    email: string;
+    telephone: string;
+  };
+
+  jurisdictional_basis: Evidence;
+
+  /**
+   * IDs of all adjudicators to be appointed
+   */
+  adjudicators: string[];
+
+  // This should be FormData, but I don't know how to annotate that
+  evidence: Evidence[];
+}
+// Add field for evidence which is a file upload
+const formSchema = z.object({
+  title: z.string().min(2).max(50),
+  respondentEmail: z.string().email(),
+  respondentTelephone: z.string().min(10).max(15),
+  summary: z.string().max(500),
+})
 
 export default function CreateDispute() {
-  return (
-    <div className="grow overflow-y-auto flex flex-col">
-      <header className="px-3 py-6 flex">
-        <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">
-          Create a Dispute
-        </h1>
-      </header>
-      <Separator />
-      <main className="grow overflow-y-auto p-5 space-y-2">
-        <div>
-          <Label>Title</Label>
-          <Input placeholder="Title" />
-        </div>
-        <div className="space-y-2">
-          <Label>Respondant Details</Label>
-          <Input type="email" placeholder="Respondant's Email" />
-          <Input type="tel" placeholder="Respondant's Telephone" />
-        </div>
-        <div>
-          <Label>Summary</Label>
-          <Textarea placeholder="Write a short description of the dispute..." />
-        </div>
-        <div>
-          <Label>Evidence</Label>
-          <Input placeholder="Evidence" type="file" />
-        </div>
-      </main>
-      <footer className="p-2 flex justify-between">
-        <Button asChild onClick={createDisputeAPI}>
-          <Link href="/disputes">Create</Link>
-        </Button>
-        <Button variant={"destructive"} asChild>
-          <Link href="/disputes">Cancel</Link>
-        </Button>
-      </footer>
-    </div>
-  );
-}
-async function createDisputeAPI(data: any) {
-  const returnData = await fetch(`${API_URL}/createDispute`, {
-    method: "POST",
-    body: JSON.stringify({
-      title: data.title,
-      respondent: data.respondent,
-      summary: data.summary,
-      evidence: data.evidence,
-    }),
+  const form = useForm<z.infer<typeof formSchema>>({
+    defaultValues: {
+      title: "",
+      respondentEmail: "",
+      respondentTelephone: "",
+      summary: "",
+    },
+    resolver: zodResolver(formSchema),
   })
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    const data = fetch(`${API_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(values),
+    })
+    console.log(values)
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input placeholder="We be beefing" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="respondentEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>RespondentEmail</FormLabel>
+              <FormControl>
+                <Input placeholder="abc@example.com" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="respondentTelephone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Respondent Telephone</FormLabel>
+              <FormControl>
+                <Input placeholder="Mr Biggest Op" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="summary"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Summary</FormLabel>
+              <FormControl>
+                <Input placeholder="He stole my chib" {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <Button type="submit">Submit</Button>
+      </form>
+    </Form>
+  )
 }

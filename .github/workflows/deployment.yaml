@@ -92,4 +92,17 @@ jobs:
             docker load -i api.tar
             docker load -i postgres.tar
             docker-compose up -d
-            
+  cypress-test:
+    container:
+      image: cypress/included
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v2
+        with:
+          wait-on: 'http://capstone-dre.dns.net.za'
+          wait-on-timeout: 300

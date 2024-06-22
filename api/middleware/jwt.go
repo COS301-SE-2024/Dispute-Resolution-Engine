@@ -20,7 +20,6 @@ import (
 type Claims struct {
 	Email string `json:"email"`
 	jwt.StandardClaims
-	User models.User `json:"user"`
 }
 
 // GenerateJWT generates a JWT token
@@ -28,10 +27,12 @@ type Claims struct {
 func GenerateJWT(user models.User) (string, error) {
 	jwtSec := os.Getenv("JWT_SECRET")
 
-	claims := &jwt.StandardClaims{
-		Subject:   user.Email,                            // Use a unique identifier for the user
-		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
-		IssuedAt:  time.Now().Unix(),
+	claims := &Claims{
+		Email: user.Email,
+		StandardClaims: jwt.StandardClaims{ // Use a unique identifier for the user
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+			IssuedAt:  time.Now().Unix(),
+		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(jwtSec))
@@ -40,13 +41,13 @@ func GenerateJWT(user models.User) (string, error) {
 	}
 
 	// Store the token somewhere (for example, in memory map activeTokens)
-    StoreJWT(user.Email, signedToken)
+	StoreJWT(user.Email, signedToken)
 
 	return signedToken, nil
 }
 
-func StoreJWT(userEmail string, jwt string) error {
-	err := redisDB.RDB.Set(context.Background(), userEmail, jwt, 24*time.Hour).Err()
+func StoreJWT(email string, jwt string) error {
+	err := redisDB.RDB.Set(context.Background(), email, jwt, 24*time.Hour).Err()
 	if err != nil {
 		return err
 	}

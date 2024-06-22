@@ -1,20 +1,20 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { signup } from "@/lib/actions/auth";
+import { verify } from "@/lib/actions/auth";
 import { Label } from "@/components/ui/label";
-import { SignupData, SignupError } from "@/lib/schema/auth";
+import { VerifyData, VerifyError } from "@/lib/schema/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ReactNode, forwardRef, useContext } from "react";
 import { Result } from "@/lib/types";
 import { createFormContext } from "@/components/ui/form-server";
 
-const [SignupContext, SignupForm] = createFormContext<Result<string, SignupError>>(
-  "SignupForm",
-  signup
+const [VerifyContext, VerifyForm] = createFormContext<Result<string, VerifyError>>(
+  "VerifyForm",
+  verify
 );
-export { SignupForm };
+export { VerifyForm };
 
 const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, children, ...props }, ref) => {
@@ -31,9 +31,9 @@ const FormMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLPa
 );
 FormMessage.displayName = "FormMessage";
 
-const SignupMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+const VerifyMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   (props, ref) => {
-    const state = useContext(SignupContext);
+    const state = useContext(VerifyContext);
     const error = state?.error && state.error._errors?.at(0);
     return (
       <FormMessage {...props} ref={ref}>
@@ -42,36 +42,38 @@ const SignupMessage = forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTML
     );
   }
 );
-SignupMessage.displayName = "SignupMessage";
-export { SignupMessage };
+VerifyMessage.displayName = "VerifyMessage";
+export { VerifyMessage };
 
-export function SignupButton() {
+export function VerifyButton() {
   const { pending } = useFormStatus();
   return (
     <Button disabled={pending} type="submit">
-      Signup
+      Verify
     </Button>
   );
 }
 
-export function SignupField({
+export function VerifyField({
   name,
   label,
   children,
   className = "",
 }: {
-  name: keyof SignupData;
+  name: keyof VerifyData;
   label: string;
   children: ReactNode;
   className?: string;
 }) {
-  const state = useContext(SignupContext);
+  const state = useContext(VerifyContext);
   const error = state?.error && state.error[name]?._errors?.at(0);
+  console.log(name, error);
   return (
     <div className={className}>
       <Label htmlFor={name}>{label}</Label>
       {children}
       {error && <FormMessage>{error}</FormMessage>}
+      <FormMessage>{error}</FormMessage>
     </div>
   );
 }

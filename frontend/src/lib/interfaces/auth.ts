@@ -32,9 +32,6 @@ export interface SignupRequest {
    * Hard-coded for now (will be overwritten by API)
    */
   preferred_language: string;
-
-  // Address information
-  address: Address;
 }
 
 /**

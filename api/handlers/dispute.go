@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"api/middleware"
 	"api/models"
 	"api/utilities"
 	"encoding/json"
@@ -15,9 +16,12 @@ import (
 )
 
 func SetupDisputeRoutes(router *mux.Router, h Handler) {
-	router.HandleFunc("", h.getSummaryListOfDisputes).Methods(http.MethodGet)
-	router.HandleFunc("/{id}", h.getDispute).Methods(http.MethodGet)
-	router.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
+	//dispute routes
+	disputeRouter := router.PathPrefix("").Subrouter()
+    disputeRouter.Use(middleware.JWTMiddleware)
+	disputeRouter.HandleFunc("", h.getSummaryListOfDisputes).Methods(http.MethodGet)
+	disputeRouter.HandleFunc("/{id}", h.getDispute).Methods(http.MethodGet)
+	disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
 
 	//archive routes
 	archiveRouter := router.PathPrefix("/archive").Subrouter()
@@ -109,9 +113,14 @@ func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request
 	}
 	if body.Order != nil {
 		order = *body.Order
+		if strings.ToLower(order) != "asc" && strings.ToLower(order) != "desc" {
+			utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid order value"})
+			return
+		}
 	}
 	if body.Sort != nil {
 		sort = string(*body.Sort)
+	
 	}
 
 	// Query the database
@@ -134,6 +143,11 @@ func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request
 	// Execute the query
 	if err := query.Find(&disputes).Error; err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error retrieving disputes"})
+		return
+	}
+
+	if len(disputes) == 0 {
+		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Data: []models.ArchivedDisputeSummary{}})
 		return
 	}
 

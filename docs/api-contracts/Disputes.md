@@ -88,7 +88,10 @@ Below is temporary description until this exception is documented
 interface DisputeCreateRequest {
   title: string;
   description: string;
-
+  evidence: {
+    label: string;
+    file: File;
+  }[];
   respondent: {
     full_name: string;
     email: string;

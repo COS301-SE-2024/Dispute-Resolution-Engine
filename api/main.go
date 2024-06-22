@@ -6,9 +6,8 @@ import (
 	"api/middleware"
 	"log"
 	"net/http"
-
+    "api/redisDB"
 	_ "api/docs" // This is important to import your generated docs package
-
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
 	swaggerFiles "github.com/swaggo/files"
@@ -32,7 +31,8 @@ import (
 
 func main() {
     DB := db.Init()
-    h := handlers.New(DB)
+    redisClient := redisDB.InitRedis()
+    h := handlers.New(DB, redisClient)
     router := mux.NewRouter()
 
     //setup handlers

@@ -80,14 +80,14 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	//Now put stuff in the actual user object
 	date, err := time.Parse("2006-01-02", reqUser.Birthdate)
 	user := models.User{
-		FirstName:         reqUser.FirstName,
-		Surname:           reqUser.Surname,
-		Birthdate:         date,
-		Nationality:       reqUser.Nationality,
-		Email:             reqUser.Email,
-		PasswordHash:      reqUser.Password,
-		PhoneNumber:       reqUser.PhoneNumber,
-		AddressID:         nil,
+		FirstName:    reqUser.FirstName,
+		Surname:      reqUser.Surname,
+		Birthdate:    date,
+		Nationality:  reqUser.Nationality,
+		Email:        reqUser.Email,
+		PasswordHash: reqUser.Password,
+		PhoneNumber:  reqUser.PhoneNumber,
+		// AddressID:         sql.NullInt64{Int64: 0, Valid: false},
 		Status:            "Unverified",
 		Gender:            reqUser.Gender,
 		PreferredLanguage: reqUser.PreferredLanguage,

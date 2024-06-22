@@ -23,11 +23,14 @@ type Claims struct {
 
 // GenerateJWT generates a JWT token
 func GenerateJWT(user models.User) (string, error) {
-	err:= godotenv.Load("api.env")
-	if err != nil {
-		return "", err
-	}
-	jwtSecretKey := []byte(os.Getenv("JWT_SECRET"))
+	if jwtSecretKey := os.Getenv("JWT_SECRET"); jwtSecretKey == "" {
+        err := godotenv.Load("api.env")
+        if err != nil {
+            return "", err
+        }
+    }
+
+    jwtSec := os.Getenv("JWT_SECRET")
 
     claims := &Claims{
         Email: user.Email,
@@ -38,7 +41,7 @@ func GenerateJWT(user models.User) (string, error) {
 		User: user,
     }
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-    return token.SignedString(jwtSecretKey)
+    return token.SignedString([]byte(jwtSec))
 }
 
 // JWTMiddleware is a middleware to validate JWT token
@@ -50,13 +53,15 @@ func JWTMiddleware(next http.Handler) http.Handler {
     // })
 
     //end of stub function
+	if jwtSecretKey := os.Getenv("JWT_SECRET"); jwtSecretKey == "" {
+        err := godotenv.Load("api.env")
+        if err != nil {
+            return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error loading environment variables"})
+            })
+        }
+    }
 
-	err:= godotenv.Load("api.env")
-	if err != nil {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error loading environment variables"})
-		})
-	}
 	jwtSecretKey := []byte(os.Getenv("JWT_SECRET"))
 
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -85,9 +90,11 @@ func JWTMiddleware(next http.Handler) http.Handler {
 
 //return claims
 func GetClaims(r *http.Request) *Claims {
-    err:= godotenv.Load("api.env")
-    if err != nil {
-        return nil
+	if jwtSecretKey := os.Getenv("JWT_SECRET"); jwtSecretKey == "" {
+        err := godotenv.Load("api.env")
+        if err != nil {
+            return nil
+        }
     }
     secret := []byte(os.Getenv("JWT_SECRET"))
 

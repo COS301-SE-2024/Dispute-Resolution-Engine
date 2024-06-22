@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/smtp"
 	"os"
@@ -30,7 +31,7 @@ func SetupAuthRoutes(router *mux.Router, h Handler) {
 	router.HandleFunc("/signup", h.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
 	router.Handle("/reset-password", middleware.RoleMiddleware(http.HandlerFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
-	router.Handle("/verify", middleware.RoleMiddleware(http.HandlerFunc(h.Verify), 0)).Methods(http.MethodPost) 
+	router.Handle("/verify", middleware.RoleMiddleware(http.HandlerFunc(h.Verify), 0)).Methods(http.MethodPost)
 }
 
 // @Summary Reset a user's password
@@ -74,26 +75,28 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//stub timezone
-	zone, offset := time.Now().Zone()
-	timezone := zone + string(offset)
+	zone, _ := time.Now().Zone()
+	timezone := zone
 	reqUser.Timezone = &timezone
 	//Now put stuff in the actual user object
 	date, err := time.Parse("2006-01-02", reqUser.Birthdate)
 	user := models.User{
-		FirstName:         reqUser.FirstName,
-		Surname:           reqUser.Surname,
-		Birthdate:         date,
-		Nationality:       reqUser.Nationality,
-		Email:             reqUser.Email,
-		PasswordHash:      reqUser.Password,
-		PhoneNumber:       reqUser.PhoneNumber,
-		AddressID:         nil,
+		FirstName:    reqUser.FirstName,
+		Surname:      reqUser.Surname,
+		Birthdate:    date,
+		Nationality:  reqUser.Nationality,
+		Email:        reqUser.Email,
+		PasswordHash: reqUser.Password,
+		PhoneNumber:  reqUser.PhoneNumber,
+		// AddressID:         sql.NullInt64{Int64: 0, Valid: false},
 		Status:            "Unverified",
 		Gender:            reqUser.Gender,
 		PreferredLanguage: reqUser.PreferredLanguage,
 		Timezone:          reqUser.Timezone,
-		LastUpdated:       utilities.GetCurrentTimePtr(),
+		UpdatedAt:         utilities.GetCurrentTimePtr(),
 	}
+
+	log.Println(user)
 
 	// address := models.Address{
 	// 	Code:        nil, //to be filled in a later request
@@ -133,7 +136,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	//update log metrics
 	user.CreatedAt = utilities.GetCurrentTime()
-	user.UpdatedAt = utilities.GetCurrentTime()
+	user.UpdatedAt = utilities.GetCurrentTimePtr()
 	user.Status = "Active"
 
 	//Small user preferences
@@ -143,7 +146,8 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	user.LastLogin = nil
 
 	if result := h.DB.Create(&user); result.Error != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating user"})
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: /*"Error creating user"*/ result.Error.Error()})
+		print(result.Error)
 		return
 	}
 	sendOTP(user.Email)

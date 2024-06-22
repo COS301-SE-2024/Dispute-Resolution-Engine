@@ -4,6 +4,7 @@ import (
 	"api/models"
 	"api/utilities"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -32,7 +33,13 @@ func SetupDisputeRoutes(router *mux.Router, h Handler) {
 // @Success 200 {object} models.Response "Dispute Summary Endpoint"
 // @Router /dispute [get]
 func (h Handler) getSummaryListOfDisputes(w http.ResponseWriter, r *http.Request) {
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Dispute Summary Endpoint"})
+	var disputes []models.DisputeSummaryResponse
+	err := h.DB.Raw("SELECT id, title, description, status FROM disputes").Scan(&disputes).Error
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+		return
+	}
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: disputes})
 }
 
 // @Summary Get a dispute
@@ -47,7 +54,8 @@ func (h Handler) getDispute(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	id := vars["id"]
-
+	// var 
+	
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
 }
 
@@ -75,7 +83,7 @@ func (h Handler) patchDispute(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} models.Response "Archive Summary Endpoint"
 // @Router /archive [post]
 func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request) {
-	//get the request body
+	// Get the request body
 	var body models.ArchiveSearchRequest
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&body); err != nil {
@@ -83,7 +91,7 @@ func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//handle the request
+	// Handle the request
 	searchTerm := ""
 	limit := 10
 	offset := 0
@@ -106,18 +114,44 @@ func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request
 		sort = string(*body.Sort)
 	}
 
-	//mock response
-	archiveDisputeSummaries := getMockArchiveDisputeSummaries()
+	// Query the database
+	var disputes []models.Dispute
+	query := h.DB.Model(&models.Dispute{})
 
-	//filter the summaries
-	archiveDisputeSummaries = filterSummariesBySearch(archiveDisputeSummaries, searchTerm)
+	// Apply search filter
+	if searchTerm != "" {
+		query = query.Where("title ILIKE ? OR description ILIKE ?", "%"+searchTerm+"%", "%"+searchTerm+"%")
+	}
 
-	//sort the summaries
-	sortSummaries(archiveDisputeSummaries, sort, order)
+	query = query.Where("resolved = ?", true)
 
-	//paginate the summaries
-	archiveDisputeSummaries = paginateSummaries(archiveDisputeSummaries, offset, limit)
+	// Apply sorting
+	query = query.Order(fmt.Sprintf("%s %s", sort, order))
 
+	// Apply pagination
+	query = query.Offset(offset).Limit(limit)
+
+	// Execute the query
+	if err := query.Find(&disputes).Error; err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error retrieving disputes"})
+		return
+	}
+
+	// Transform the results to ArchivedDisputeSummary
+	var archiveDisputeSummaries []models.ArchivedDisputeSummary
+	for _, dispute := range disputes {
+		archiveDisputeSummaries = append(archiveDisputeSummaries, models.ArchivedDisputeSummary{
+			ID:            dispute.ID,
+			Title:         dispute.Title,
+			Summary:       dispute.Description,
+			Category:      []string{"Dispute"}, // Assuming a default category for now
+			DateFiled:     dispute.CaseDate,
+			DateResolved:  dispute.CaseDate.Add(48 * time.Hour), // Placeholder for resolved date
+			Resolution:    string(dispute.Decision),
+		})
+	}
+
+	// Return the response
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: archiveDisputeSummaries})
 }
 

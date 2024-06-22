@@ -16,14 +16,13 @@ type User struct {
 	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20);column:phone_number"`             //need
 	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`                                  //what the fuck
 	CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`                     //Filled in by API
-	UpdatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:updated_at"`                     //Filled in by API
+	UpdatedAt         *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:updated_at"`                     //Filled in by API
 	LastLogin         *time.Time `gorm:"type:timestamp;column:last_login"`                                               //Filled in by API
 	Status            string     `json:"status" gorm:"type:varchar(20);default:'active';column:status"`                  //Filled in by API
 	Gender            string     `json:"gender" gorm:"type:gender_enum;column:gender"`                                   //check
 	PreferredLanguage *string    `json:"preferred_language,omitempty" gorm:"type:varchar(50);column:preferred_language"` //worked on
 	Timezone          *string    `json:"timezone,omitempty" gorm:"type:varchar(50);column:timezone"`                     //need to be handled by me?
 	Salt              string     `gorm:"type:varchar(255);column:salt"`
-	LastUpdated       *time.Time `json:"last_updated,omitempty" gorm:"type:timestamp without time zone;default:CURRENT_TIMESTAMP;column:last_updated"` //Filled in by API
 }
 
 type ArchivedDisputeSummary struct {
@@ -103,8 +102,7 @@ func (Address) TableName() string {
 }
 
 type Country struct {
-	ID          int    `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
-	CountryCode string `json:"country_code,omitempty" gorm:"type:varchar(3);not null;column:country_code"`
+	CountryCode string `json:"country_code,omitempty" gorm:"primaryKey;type:varchar(3);not null;column:country_code"`
 	CountryName string `json:"country_name,omitempty" gorm:"type:varchar(255);not null;column:country_name"`
 }
 
@@ -115,4 +113,33 @@ func (Country) TableName() string {
 type Response struct {
 	Data  interface{} `json:"data,omitempty"`
 	Error string      `json:"error,omitempty"`
+}
+
+type DisputeExpert struct {
+	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
+	User    int64 `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+}
+
+func (DisputeExpert) TableName() string {
+	return "dispute_experts"
+}
+
+type File struct {
+	ID       uint      `gorm:"primaryKey;column:id;type:serial;autoIncrement:true"`
+	FileName string    `gorm:"column:file_name;type:varchar(255);not null"`
+	Uploaded time.Time `gorm:"column:uploaded;type:timestamp;default:CURRENT_TIMESTAMP"`
+	FilePath string    `gorm:"column:file_path;type:varchar(255);not null"`
+}
+
+func (File) TableName() string {
+	return "files"
+}
+
+type DisputeEvidence struct {
+	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
+	FileID  int64 `gorm:"primaryKey;column:file_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:FileID;references:id"`
+}
+
+func (DisputeEvidence) TableName() string {
+	return "dispute_evidence"
 }

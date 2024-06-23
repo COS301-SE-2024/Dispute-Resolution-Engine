@@ -3,9 +3,9 @@ package utilities
 import (
 	"bufio"
 	"bytes"
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -96,9 +96,13 @@ func GetCurrentTimePtr() *time.Time {
 }
 
 func GenerateVerifyEmailToken() string {
-	b := make([]byte, 3)
-	rand.Read(b)
-	return fmt.Sprintf("%x", b)
+	rand.Seed(time.Now().UnixNano())
+	const length = 6 // Define the length of the token
+	token := make([]byte, length)
+	for i := 0; i < length; i++ {
+		token[i] = byte('0' + rand.Intn(10))
+	}
+	return string(token)
 }
 
 func WriteToFile(data string, filepath string) error {
@@ -117,8 +121,10 @@ func WriteToFile(data string, filepath string) error {
 	// Write the data with a newline prefix
 	_, err = file.WriteString("\n" + data)
 	if err != nil {
+		print("Failed to write to file")
 		return err
 	}
+	print("Successfully written to file")
 	return nil
 }
 

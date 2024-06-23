@@ -6,7 +6,6 @@ import (
 	"api/utilities"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"sort"
 	"strconv"
@@ -66,30 +65,42 @@ func (h Handler) getDispute(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid request body"})
-		return
-	}
-	var createReq models.CreateDispute
-	if err := json.Unmarshal(body, &createReq); err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid request body, could not parse JSON"})
-		return
+
+	formData := false
+	jsonData := false
+
+	contentType := r.Header.Get("Content-Type")
+
+	if strings.HasPrefix(contentType, "application/json") {
+		jsonData = true
+	} else if strings.HasPrefix(contentType, "multipart/form-data") {
+		formData = true
 	}
 
-	// Create a new dispute
-	dispute := models.Dispute{
-		Title:       createReq.Title,
-		Description: createReq.Description,
-	}
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Contains FormData: " + strconv.FormatBool(formData) + " Contains JSON: " + strconv.FormatBool(jsonData)})
 
-	if err := h.DB.Create(&dispute).Error; err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating dispute"})
-		return
-	}
+	// if err != nil {
+	// 	utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid request body"})
+	// 	return
+	// }
+	// var createReq models.CreateDispute
+	// if err := json.Unmarshal(body, &createReq); err != nil {
+	// 	utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid request body, could not parse JSON"})
+	// 	return
+	// }
 
-	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "Success, id: " + string(dispute.ID)})
+	// // Create a new dispute
+	// dispute := models.Dispute{
+	// 	Title:       createReq.Title,
+	// 	Description: createReq.Description,
+	// }
+
+	// if err := h.DB.Create(&dispute).Error; err != nil {
+	// 	utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating dispute"})
+	// 	return
+	// }
+
+	// utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "Success, id: " + string(dispute.ID)})
 }
 
 // @Summary Update a dispute

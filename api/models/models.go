@@ -87,8 +87,8 @@ func (User) TableName() string {
 
 type Address struct {
 	ID          int64   `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
-	Country        *string `json:"code,omitempty" gorm:"type:varchar(64);column:code"`
-	CountryName     *string `json:"country,omitempty" gorm:"type:varchar(255);column:country"`
+	Country     *string `json:"country,omitempty" gorm:"type:varchar(64);column:code"`
+	CountryName *string `json:"coutry_name,omitempty" gorm:"type:varchar(255);column:country"`
 	Province    *string `json:"province,omitempty" gorm:"type:varchar(255);column:province"`
 	City        *string `json:"city,omitempty" gorm:"type:varchar(255);column:city"`
 	Street3     *string `json:"street3,omitempty" gorm:"type:varchar(255);column:street3"`

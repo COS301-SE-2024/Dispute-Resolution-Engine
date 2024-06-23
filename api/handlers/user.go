@@ -129,33 +129,6 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 		dbUser.PreferredLanguage = updateUser.Preferred_language
 	}
 
-	// if updateUser.Code != nil {
-	// 	dbAddress.Code = updateUser.Code
-	// }
-	// if updateUser.Country != nil {
-	// 	var dbCountry models.Country
-	// 	dbAddress.Country = updateUser.Country
-	// 	h.DB.Where("country_name = ?", updateUser.Country).First(&dbCountry)
-	// 	dbAddress.Code = &dbCountry.CountryCode
-	// }
-	// if updateUser.Province != nil {
-	// 	dbAddress.Province = updateUser.Province
-	// }
-	// if updateUser.City != nil {
-	// 	dbAddress.City = updateUser.City
-	// }
-	// if updateUser.Street3 != nil {
-	// 	dbAddress.Street3 = updateUser.Street3
-	// }
-	// if updateUser.Street2 != nil {
-	// 	dbAddress.Street2 = updateUser.Street2
-	// }
-	// if updateUser.Street != nil {
-	// 	dbAddress.Street = updateUser.Street
-	// }
-	// if updateUser.AddressType != nil {
-	// 	dbAddress.AddressType = updateUser.AddressType
-	// }
 
 	//now update the user and address
 	h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)

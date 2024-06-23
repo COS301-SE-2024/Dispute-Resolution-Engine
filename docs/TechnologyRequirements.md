@@ -190,7 +190,7 @@ Next.js supports a wide range of component libraries, facilitating rapid develop
 Conclusion:
 Considering the comprehensive support, performance capabilities, and overall development efficiency, Next.js emerges as the optimal choice for our frontend component. Its alignment with our architecture strategies, combined with a strong community and ecosystem, ensures a robust and scalable solution for our application.
 
-### Component Libraries for Next.js
+## Component Libraries for Next.js
 
 #### 1. ShadCN
 **Overview:**
@@ -270,7 +270,7 @@ We chose ShadCN for our project for the following reasons:
 **Conclusion:**
 Considering the high customizability, modern design, and seamless integration with Next.js, ShadCN is the optimal choice for our component library. Its alignment with our architecture strategies ensures a flexible, maintainable, and visually appealing UI for our application.
 
-### API Components
+## API Components
 
 #### 1. Go (Golang)
 **Overview:**
@@ -352,7 +352,7 @@ We chose Go for our API component for the following reasons:
 **Conclusion:**
 Considering the need for high concurrency, performance, and reliability, Go is the optimal choice for our API component. Its alignment with our architecture strategies ensures that we can build a fast, efficient, and maintainable backend for our application.
 
-### Database Components
+## Database Components
 
 #### 1. PostgreSQL
 **Overview:**
@@ -434,7 +434,7 @@ We chose PostgreSQL for our database component for the following reasons:
 **Conclusion:**
 Considering the need for reliable transactions, complex querying capabilities, and extensibility, PostgreSQL is the optimal choice for our database component. Its alignment with our architecture strategies ensures that we can build a robust, scalable, and maintainable backend for our dispute resolution engine.
 
-### Caching Layer Technologies
+## Caching Layer Technologies
 
 #### 1. Redis
 **Overview:**
@@ -519,7 +519,7 @@ We chose Redis for our caching layer for the following reasons:
 **Conclusion:**
 Considering the need for high performance, flexibility, scalability, and additional features, Redis is the optimal choice for our caching layer. Its alignment with our architecture strategies ensures that we can build a fast, reliable, and scalable caching solution for our dispute resolution engine.
 
-### Deployment Technologies
+## Deployment Technologies
 
 #### 1. Docker
 **Overview:**
@@ -594,3 +594,83 @@ We chose Docker for containerization, Kubernetes for orchestration, and GitHub A
 
 **Conclusion:**
 By combining Docker for containerization, Kubernetes for orchestration, and GitHub Actions for CI/CD, we have created a powerful, scalable, and automated deployment solution. This combination aligns with our architecture strategies, ensuring efficient, reliable, and scalable deployment for our dispute resolution engine.
+
+## LLM Technologies
+
+#### 1. ChatGPT (by OpenAI)
+**Overview:**
+ChatGPT is a state-of-the-art language model developed by OpenAI, capable of understanding and generating human-like text based on the input it receives. It can be used for a wide range of natural language processing tasks.
+
+**Pros:**
+- **Advanced Language Understanding:** Excellent comprehension and generation of natural language.
+- **Versatility:** Capable of performing various tasks such as summarization, categorization, and workflow generation.
+- **API Access:** Easy integration via API, enabling seamless embedding into applications.
+- **Pre-trained Knowledge:** Extensive pre-trained data, providing high-quality responses without needing extensive retraining.
+
+**Cons:**
+- **Cost:** Usage can become expensive depending on the volume of API calls.
+- **Dependency:** Reliance on an external service can introduce latency and availability concerns.
+- **Data Privacy:** Sensitive data sent to the model may raise privacy concerns, depending on the use case.
+
+**Fit with Architecture Strategies:**
+- **Versatility:** Handles multiple tasks required for dispute resolution, reducing the need for multiple specialized models.
+- **Quality:** Provides high-quality summaries and categorization, improving the efficiency of dispute resolution.
+- **Integration:** API access allows easy integration into existing systems, enhancing flexibility and scalability.
+
+#### 2. BERT (by Google)
+**Overview:**
+BERT (Bidirectional Encoder Representations from Transformers) is a transformer-based model designed for a variety of natural language understanding tasks. It can be fine-tuned for specific applications such as summarization and classification.
+
+**Pros:**
+- **Bidirectional Context:** Considers the full context of words in a sentence, providing deep understanding.
+- **Customization:** Can be fine-tuned for specific tasks to improve performance.
+- **Open Source:** Available as an open-source model, allowing for on-premises deployment and customization.
+
+**Cons:**
+- **Training Complexity:** Requires significant computational resources and expertise to fine-tune and deploy.
+- **Inference Speed:** May have slower inference times compared to lighter models.
+- **Implementation Effort:** Requires more effort to integrate and fine-tune compared to plug-and-play solutions.
+
+**Fit with Architecture Strategies:**
+- **Customization:** Fine-tuning capabilities allow for highly tailored models specific to dispute resolution needs.
+- **Control:** On-premises deployment offers greater control over data and privacy.
+- **Contextual Understanding:** Deep understanding of language context improves categorization and summarization accuracy.
+
+#### 3. GPT-3 (by OpenAI)
+**Overview:**
+GPT-3 (Generative Pre-trained Transformer 3) is one of the largest and most powerful language models available, also developed by OpenAI. It can perform a wide range of natural language tasks with minimal fine-tuning.
+
+**Pros:**
+- **Scale and Power:** Large model size enables high-quality text generation and understanding.
+- **Versatility:** Can handle a wide variety of tasks including summarization, categorization, and workflow generation.
+- **Few-shot Learning:** Requires minimal fine-tuning for specific tasks, often performing well out-of-the-box.
+
+**Cons:**
+- **Cost:** High usage costs, especially for large-scale applications.
+- **Latency:** Potential latency issues due to the size and complexity of the model.
+- **Data Privacy:** Similar to ChatGPT, sending sensitive data to the model may raise privacy concerns.
+
+**Fit with Architecture Strategies:**
+- **Quality and Versatility:** High-quality text generation and versatility make it suitable for diverse dispute resolution tasks.
+- **Efficiency:** Few-shot learning reduces the need for extensive fine-tuning, speeding up deployment.
+- **Integration:** API access simplifies integration into existing systems.
+
+### Final LLM Choice: ChatGPT
+
+**Reasoning:**
+We chose ChatGPT for our LLM component for the following reasons:
+
+1. **Advanced Language Understanding:**
+   - ChatGPT offers excellent comprehension and generation capabilities, crucial for accurately categorizing disputes, generating summaries, and creating workflows.
+
+2. **Versatility:**
+   - Capable of handling multiple tasks such as summarization, categorization, and workflow generation, reducing the need for multiple specialized models.
+
+3. **API Integration:**
+   - Easy integration via API allows us to embed ChatGPT seamlessly into our dispute resolution engine, enhancing flexibility and scalability.
+
+4. **Pre-trained Knowledge:**
+   - Extensive pre-trained data ensures high-quality responses without needing extensive retraining, accelerating deployment and improving efficiency.
+
+**Conclusion:**
+Considering the need for high-quality language understanding, versatility, and ease of integration, ChatGPT is the optimal choice for our LLM component. Its alignment with our architecture strategies ensures that we can build a robust, efficient, and scalable solution for categorizing, summarizing, and generating workflows for disputes in our dispute resolution engine.

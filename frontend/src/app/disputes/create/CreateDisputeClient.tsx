@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -7,7 +7,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +19,6 @@ import { DisputeCreateData, disputeCreateSchema } from "@/lib/schema/dispute";
 import { useRef } from "react";
 import { createDispute } from "@/lib/actions/dispute";
 
-
 export default function CreateDisputeClient() {
   const form = useForm<DisputeCreateData>({
     defaultValues: {
@@ -27,23 +26,23 @@ export default function CreateDisputeClient() {
       respondentName: "",
       respondentEmail: "",
       respondentTelephone: "",
-      summary: ""
+      summary: "",
     },
-    resolver: zodResolver(disputeCreateSchema)
+    resolver: zodResolver(disputeCreateSchema),
   });
-
 
   const formRef = useRef(null);
 
-  const onSubmit = async function(dataFromForm: DisputeCreateData) {
+  const onSubmit = async function (dataFromForm: DisputeCreateData) {
     createDispute(null, new FormData(formRef.current!));
   };
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">Create a
-          Dispute</CardTitle>
+        <CardTitle className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">
+          Create a Dispute
+        </CardTitle>
       </CardHeader>
       <Form {...form}>
         <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="w-full pt-0 p-10">
@@ -116,7 +115,7 @@ export default function CreateDisputeClient() {
                   <FormItem>
                     <FormLabel>Evidence</FormLabel>
                     <FormControl>
-                      <Input type="file" placeholder="shadcn" {...field} />
+                      <Input type="file" placeholder="shadcn" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -126,6 +125,7 @@ export default function CreateDisputeClient() {
             <Button type="submit">Submit</Button>
           </div>
         </form>
-      </Form></Card>
+      </Form>
+    </Card>
   );
 }

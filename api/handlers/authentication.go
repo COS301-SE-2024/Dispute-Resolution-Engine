@@ -92,7 +92,6 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Gender:            reqUser.Gender,
 		PreferredLanguage: reqUser.PreferredLanguage,
 		Timezone:          reqUser.Timezone,
-		LastUpdated:       utilities.GetCurrentTimePtr(),
 	}
 
 	// address := models.Address{
@@ -133,7 +132,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	//update log metrics
 	user.CreatedAt = utilities.GetCurrentTime()
-	user.UpdatedAt = utilities.GetCurrentTime()
+	user.UpdatedAt = utilities.GetCurrentTimePtr()
 	user.Status = "Active"
 
 	//Small user preferences

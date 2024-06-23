@@ -30,8 +30,7 @@ func SetupDisputeRoutes(router *mux.Router, h Handler) {
 
 	//create dispute
 	createRouter := disputeRouter.PathPrefix("/create").Subrouter()
-	createRouter.Use(middleware.CorsMiddleware)
-	createRouter.HandleFunc("", h.createDispute).Methods(http.MethodPost)
+	createRouter.HandleFunc("", h.createDispute)
 
 	//archive routes
 	archiveRouter := router.PathPrefix("/archive").Subrouter()
@@ -75,24 +74,22 @@ func (h Handler) getDispute(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 
-
-
-    // Parse multipart form
+	// Parse multipart form
 	log.Println("Creating dispute")
-    if err := r.ParseMultipartForm(10 << 20); err != nil { // 10 << 20 is 10 MB max memory
-        utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Failed to parse multipart form"})
-        return
-    }
+	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10 << 20 is 10 MB max memory
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Failed to parse multipart form"})
+		return
+	}
 
-    // Access form values
-    title := r.FormValue("title")
-    description := r.FormValue("description")
-    fullName := r.FormValue("respondent[full_name]")
-    email := r.FormValue("respondent[email]")
-    telephone := r.FormValue("respondent[telephone]")
+	// Access form values
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+	fullName := r.FormValue("respondent[full_name]")
+	email := r.FormValue("respondent[email]")
+	telephone := r.FormValue("respondent[telephone]")
 
 	//get complainants id
 	claims := middleware.GetClaims(r)
@@ -113,7 +110,7 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 			utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid full name"})
 			return
 		}
-		
+
 	} else if err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
 		return
@@ -123,22 +120,22 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 
 	//create entry into the dispute table
 	dispute := models.Dispute{
-		Title:        title,
+		Title:       title,
 		CaseDate:    time.Now(),
 		Workflow:    nil,
 		Status:      "Awaiting Respondant",
 		Description: description,
 		Complainant: complainantID,
-		Respondant: respondantID,
-		Resolved: false,
-		Decision: models.Unresolved,
+		Respondant:  respondantID,
+		Resolved:    false,
+		Decision:    models.Unresolved,
 	}
 
 	err = h.DB.Create(&dispute).Error
 	if err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating dispute"})
 		return
-	}	
+	}
 
 	//get the id of the created dispute
 	var disputeFromDbInserted models.Dispute
@@ -148,50 +145,50 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Store files in Docker and retrieve URLs
-    fileURLs := []string{}
+	// Store files in Docker and retrieve URLs
+	fileURLs := []string{}
 	fileNames := []string{}
-    files := r.MultipartForm.File["files"]
-    for _, fileHeader := range files {
-        file, err := fileHeader.Open()
-        if err != nil {
-            utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Failed to open file"})
-            return
-        }
-        defer file.Close()
+	files := r.MultipartForm.File["files"]
+	for _, fileHeader := range files {
+		file, err := fileHeader.Open()
+		if err != nil {
+			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Failed to open file"})
+			return
+		}
+		defer file.Close()
 
-        // Generate a unique filename
-        fileName := filepath.Base(fileHeader.Filename)
+		// Generate a unique filename
+		fileName := filepath.Base(fileHeader.Filename)
 		fileNames = append(fileNames, fileName)
-        fileLocation := filepath.Join("/app/filestorage", fileName) // Assuming '/files' is where Docker mounts its storage
+		fileLocation := filepath.Join("/app/filestorage", fileName) // Assuming '/files' is where Docker mounts its storage
 
-        // Create the file in Docker (or any storage system you use)
-        f, err := os.Create(fileLocation)
-        if err != nil {
-            utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Failed to create file in storage"})
-            return
-        }
-        defer f.Close()
+		// Create the file in Docker (or any storage system you use)
+		f, err := os.Create(fileLocation)
+		if err != nil {
+			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Failed to create file in storage"})
+			return
+		}
+		defer f.Close()
 
-        // Copy file content to destination
-        _, err = io.Copy(f, file)
-        if err != nil {
-            utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Failed to copy file content"})
-            return
-        }
+		// Copy file content to destination
+		_, err = io.Copy(f, file)
+		if err != nil {
+			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Failed to copy file content"})
+			return
+		}
 
-        // Generate URL for accessing the file
-        fileURL := fmt.Sprintf("https://your-domain.com%s", fileLocation)
-        fileURLs = append(fileURLs, fileURL)
-    }
+		// Generate URL for accessing the file
+		fileURL := fmt.Sprintf("https://your-domain.com%s", fileLocation)
+		fileURLs = append(fileURLs, fileURL)
+	}
 
-    // Store file URLs in PostgreSQL database
+	// Store file URLs in PostgreSQL database
 	for i, fileURL := range fileURLs {
 		//add file to Database
 		file := models.File{
-			FileName : fileNames[i],
+			FileName: fileNames[i],
 			Uploaded: time.Now(),
-			FilePath : fileURL,
+			FilePath: fileURL,
 		}
 
 		err = h.DB.Create(&file).Error
@@ -211,7 +208,7 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 		//add enrty to dispute evidence table
 		disputeEvidence := models.DisputeEvidence{
 			Dispute: *disputeFromDbInserted.ID,
-			FileID: int64(*fileFromDbInserted.ID),
+			FileID:  int64(*fileFromDbInserted.ID),
 		}
 		err = h.DB.Create(&disputeEvidence).Error
 		if err != nil {
@@ -220,29 +217,28 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-
-    // Respond with success message
+	// Respond with success message
 	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "Dispute created successfully"})
 	log.Printf("Dispute created successfully: %s", title)
 }
 
 // Function to get MIME type from file header
 func getFileType(fh *multipart.FileHeader) string {
-    file, err := fh.Open()
-    if err != nil {
-        return "application/octet-stream" // default to octet-stream if cannot determine type
-    }
-    defer file.Close()
+	file, err := fh.Open()
+	if err != nil {
+		return "application/octet-stream" // default to octet-stream if cannot determine type
+	}
+	defer file.Close()
 
-    // Determine file type based on MIME type
-    buffer := make([]byte, 512) // Read the first 512 bytes to detect MIME type
-    _, err = file.Read(buffer)
-    if err != nil {
-        return "application/octet-stream" // default to octet-stream if cannot determine type
-    }
+	// Determine file type based on MIME type
+	buffer := make([]byte, 512) // Read the first 512 bytes to detect MIME type
+	_, err = file.Read(buffer)
+	if err != nil {
+		return "application/octet-stream" // default to octet-stream if cannot determine type
+	}
 
-    mimeType := http.DetectContentType(buffer)
-    return mimeType
+	mimeType := http.DetectContentType(buffer)
+	return mimeType
 }
 
 // @Summary Update a dispute

@@ -2,6 +2,14 @@ name: Linting
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - release
+      - dev
+      - main
+    types:
+      - opened
+      - reopened
 jobs:
   jest-test:
     runs-on: ubuntu-latest

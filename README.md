@@ -8,7 +8,7 @@
   <img src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/actions/workflows/go-test.yaml/badge.svg">
   <img src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/actions/workflows/jest-test.yaml/badge.svg">
   <img src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/actions/workflows/lint.yaml/badge.svg">
-  <img src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/actions/workflows/deployment.yml/badge.svg">
+  <img src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/actions/workflows/deployment.yaml/badge.svg">
   <a href="https://codecov.io/github/COS301-SE-2024/Dispute-Resolution-Engine" > 
  <img src="https://codecov.io/github/COS301-SE-2024/Dispute-Resolution-Engine/branch/working/graph/badge.svg?token=Q021VJLYQ8"/> 
  </a>

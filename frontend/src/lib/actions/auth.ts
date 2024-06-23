@@ -86,19 +86,19 @@ export async function login(
     };
   }
 
-  const resData = "working";
-  const resError = undefined;
+  // const resData = "working";
+  // const resError = undefined;
 
   // TODO: uncomment when API is working
   // Send request to the API
-  // const { data: resData, error: resError } = await fetch(`${API_URL}/auth/login`, {
-  //   method: "POST",
-  //   body: JSON.stringify({
-  //     email: data.email,
-  //     password: data.password,
-  //   }),
-  // }).then((res) => res.json());
-  // console.log(resData);
+  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    body: JSON.stringify({
+      email: data.email,
+      password: data.password,
+    }),
+  }).then((res) => res.json());
+  console.log(resData);
 
   // Handle errors
   if (resError) {
@@ -137,22 +137,22 @@ export async function verify(
     };
   }
 
-  const resData = "working";
-  const resError = data.pin == "123456" ? undefined : "Incorrect OTP";
+  // const resData = "working";
+  // const resError = data.pin == "123456" ? undefined : "Incorrect OTP";
 
   // TODO: uncomment once API works
   // Send request to the API
-  // const { data: resData, error: resError } = await fetch(`${API_URL}/auth/verify`, {
-  //   method: "POST",
-  //   headers: {
-  //     Authorization: `Bearer ${jwt}`,
-  //   },
-  //   body: JSON.stringify({
-  //     email: data.email,
-  //     password: data.password,
-  //   }),
-  // }).then((res) => res.json());
-  // console.log(resData);
+  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/verify`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+    body: JSON.stringify({
+      email: data.email,
+      password: data.password,
+    }),
+  }).then((res) => res.json());
+  console.log(resData);
 
   // Handle Errors
   if (resError) {

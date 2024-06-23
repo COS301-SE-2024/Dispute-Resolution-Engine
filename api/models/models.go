@@ -60,14 +60,14 @@ const (
 )
 
 type Dispute struct {
-	ID          int64            `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	ID          *int64            `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
 	CaseDate    time.Time        `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
-	Workflow    int64            `json:"workflow" gorm:"column:workflow"`
+	Workflow    *int64            `json:"workflow" gorm:"column:workflow"`
 	Status      string           `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
 	Title       string           `json:"title" gorm:"type:varchar(255);not null;column:title"`
 	Description string           `json:"description" gorm:"type:text;column:description"`
 	Complainant int64            `json:"complainant" gorm:"column:complainant"`
-	Respondant  int64            `json:"respondant" gorm:"column:respondant"`
+	Respondant  *int64            `json:"respondant" gorm:"column:respondant"`
 	Resolved    bool             `json:"resolved" gorm:"default:false;column:resolved"`
 	Decision    dispute_decision `json:"decision" gorm:"type:dispute_decision_enum;default:'Unresolved';column:decision"`
 }
@@ -125,7 +125,7 @@ func (DisputeExpert) TableName() string {
 }
 
 type File struct {
-	ID       uint      `gorm:"primaryKey;column:id;type:serial;autoIncrement:true"`
+	ID       *uint      `gorm:"primaryKey;column:id;type:serial;autoIncrement:true"`
 	FileName string    `gorm:"column:file_name;type:varchar(255);not null"`
 	Uploaded time.Time `gorm:"column:uploaded;type:timestamp;default:CURRENT_TIMESTAMP"`
 	FilePath string    `gorm:"column:file_path;type:varchar(255);not null"`

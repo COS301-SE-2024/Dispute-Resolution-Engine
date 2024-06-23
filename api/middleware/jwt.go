@@ -66,61 +66,59 @@ func GetJWT(userEmail string) (string, error) {
 
 
 func JWTMiddleware(next http.Handler) http.Handler {
-	if jwtSecretKey := os.Getenv("JWT_SECRET"); jwtSecretKey == "" {
-		err := godotenv.Load("api.env")
-		if err != nil {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error loading environment variables"})
-			})
-		}
-	}
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        authorizationHeader := r.Header.Get("Authorization")
+        if authorizationHeader == "" {
+            utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+            return
+        }
 
-	jwtSecretKey := []byte(os.Getenv("JWT_SECRET"))
+        // Check if the Authorization header starts with "Bearer "
+        if !strings.HasPrefix(authorizationHeader, "Bearer ") {
+            utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+            return
+        }
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authorizationHeader := r.Header.Get("Authorization")
-		if authorizationHeader == "" {
-			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
-			return
-		}
+        // Extract token from "Bearer <token>"
+        tokenString := strings.TrimPrefix(authorizationHeader, "Bearer ")
+        if tokenString == "" {
+            utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+            return
+        }
 
-		// Extract token from "Bearer <token>"
-		tokenString := strings.Split(authorizationHeader, " ")[1]
-		if tokenString == "" {
-			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
-			return
-		}
+        // Get JWT secret key
+        jwtSecretKey := []byte(os.Getenv("JWT_SECRET"))
 
-		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-			return jwtSecretKey, nil
-		})
+        // Parse token
+        token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+            return jwtSecretKey, nil
+        })
+        if err != nil {
+            utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+            return
+        }
 
-        
-
-		if err != nil {
-			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
-			return
-		}
-
-		if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-			ctx := context.WithValue(r.Context(), "user", claims)
+        // Validate token
+        if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+            ctx := context.WithValue(r.Context(), "user", claims)
             userEmail := claims.Email
-            jwt, err := GetJWT(userEmail)
+            jwtFromDB, err := GetJWT(userEmail)
             if err != nil {
                 utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
                 return
             }
-            if jwt != tokenString {
+            if jwtFromDB != tokenString {
                 utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
                 return
             }
-			next.ServeHTTP(w, r.WithContext(ctx))
-		} else {
-			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
-			return
-		}
-	})
+            next.ServeHTTP(w, r.WithContext(ctx))
+        } else {
+            utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+            return
+        }
+    })
 }
+
 
 // return claims
 func GetClaims(r *http.Request) *Claims {

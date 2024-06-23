@@ -37,7 +37,7 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 
 	// Retrieve the user from the database
 	var dbUser models.User
-	if err := h.DB.Where("id = ?", jwtClaims.User.ID).First(&dbUser).Error; err != nil {
+	if err := h.DB.Where("email = ?", jwtClaims.Email).First(&dbUser).Error; err != nil {
 		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "User not found"})
 		return
 	}
@@ -211,6 +211,12 @@ func (h Handler) RemoveAccount(w http.ResponseWriter, r *http.Request) {
 		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}
+
+	//delete address details
+	var dbAddress models.Address
+	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddress)
+
+	h.DB.Where("id = ?", dbUser.AddressID).Delete(&dbAddress)
 
 	h.DB.Where("email = ?", user.Email).Delete(&dbUser)
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User account removed successfully"})

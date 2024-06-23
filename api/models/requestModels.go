@@ -73,3 +73,15 @@ type FilterAttribute struct {
 	Category []string `json:"category"`
 	Time     []int    `json:"time"`
 }
+
+type CreateDispute struct {
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Respondent  Respondent `json:"respondent"`
+}
+
+type Respondent struct {
+	FullName  string `json:"full_name"`
+	Email     string `json:"email"`
+	Telephone string `json:"telephone"`
+}

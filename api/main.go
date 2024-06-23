@@ -2,12 +2,12 @@ package main
 
 import (
 	"api/db"
+	_ "api/docs" // This is important to import your generated docs package
 	"api/handlers"
 	"api/middleware"
+	"api/redisDB"
 	"log"
 	"net/http"
-
-	_ "api/docs" // This is important to import your generated docs package
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/mux"
@@ -32,7 +32,8 @@ import (
 
 func main() {
 	DB := db.Init()
-	h := handlers.New(DB)
+	redisClient := redisDB.InitRedis()
+	h := handlers.New(DB, redisClient)
 	router := mux.NewRouter()
 
 	//setup handlers
@@ -47,8 +48,7 @@ func main() {
 	userRouter.Use(middleware.JWTMiddleware)
 	handlers.SetupUserRoutes(userRouter, h)
 
-	disputeRouter := router.PathPrefix("/dispute").Subrouter()
-	disputeRouter.Use(middleware.JWTMiddleware)
+	disputeRouter := router.PathPrefix("/disputes").Subrouter()
 	handlers.SetupDisputeRoutes(disputeRouter, h)
 
 	// Swagger setup

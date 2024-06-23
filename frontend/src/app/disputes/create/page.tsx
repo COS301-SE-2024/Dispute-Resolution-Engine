@@ -1,48 +1,116 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
-import Link from "next/link";
-
-export default function CreateDispute() {
-  return (
-    <div className="grow overflow-y-auto flex flex-col">
-      <header className="px-3 py-6 flex">
-        <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">
-          Create a Dispute
-        </h1>
-      </header>
-      <Separator />
-      <main className="grow overflow-y-auto p-5 space-y-2">
-        <div>
-          <Label>Title</Label>
-          <Input placeholder="Title" />
-        </div>
-        <div className="space-y-2">
-          <Label>Respondant Details</Label>
-          <Input type="email" placeholder="Respondant's Email" />
-          <Input type="tel" placeholder="Respondant's Telephone" />
-        </div>
-        <div>
-          <Label>Summary</Label>
-          <Textarea placeholder="Write a short description of the dispute..." />
-        </div>
-        <div>
-          <Label>Evidence</Label>
-          <Input placeholder="Evidence" type="file" />
-        </div>
-      </main>
-      <footer className="p-2 flex justify-between">
-        <Button asChild>
-          <Link href="/disputes">Create</Link>
-        </Button>
-        <Button variant={"destructive"} asChild>
-          <Link href="/disputes">Cancel</Link>
-        </Button>
-      </footer>
-    </div>
-  );
+export default function Page() {
+  return <h1>Hai</h1>;
 }
+// "use client";
+//
+// import { Button } from "@/components/ui/button";
+// import {
+//   Form,
+//   FormControl,
+//   FormField,
+//   FormItem,
+//   FormLabel,
+//   FormMessage
+// } from "@/components/ui/form";
+// import { Input } from "@/components/ui/input";
+// import { zodResolver } from "@hookform/resolvers/zod";
+// import { useForm } from "react-hook-form";
+// import { z } from "zod";
+// import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+//
+// const formSchema = z.object({
+//   title: z.string().min(2).max(50),
+//   respondentEmail: z.string().email(),
+//   respondentTelephone: z.string().min(10).max(15),
+//   summary: z.string().min(3).max(500),
+//   file: z.instanceof(FileList).optional()
+// });
+//
+// export default function CreateDispute() {
+//   const form = useForm<z.infer<typeof formSchema>>({
+//     resolver: zodResolver(formSchema)
+//   });
+//
+//   const fileRef = form.register("file");
+//
+//   const onSubmit = (data: z.infer<typeof formSchema>) => {
+//     console.log(data);
+//   };
+//
+//   return (
+//     <Card className="w-full">
+//       <CardHeader>
+//         <CardTitle className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">Create a Dispute</CardTitle>
+//       </CardHeader>
+//       <Form {...form}>
+//         <form onSubmit={form.handleSubmit(onSubmit)} className="w-full pt-0 p-10">
+//           <div className="space-y-5">
+//             <FormField
+//               control={form.control}
+//               name="title"
+//               render={({ field }) => (
+//                 <FormItem>
+//                   <FormLabel>Title</FormLabel>
+//                   <FormControl>
+//                     <Input placeholder="Dispute Title" {...field} />
+//                   </FormControl>
+//                 </FormItem>
+//               )}
+//             />
+//             <FormField
+//               control={form.control}
+//               name="respondentEmail"
+//               render={({ field }) => (
+//                 <FormItem>
+//                   <FormLabel>RespondentEmail</FormLabel>
+//                   <FormControl>
+//                     <Input placeholder="abc@example.com" {...field} />
+//                   </FormControl>
+//                 </FormItem>
+//               )}
+//             />
+//             <FormField
+//               control={form.control}
+//               name="respondentTelephone"
+//               render={({ field }) => (
+//                 <FormItem>
+//                   <FormLabel>Respondent Telephone</FormLabel>
+//                   <FormControl>
+//                     <Input placeholder="012 345 6789" {...field} />
+//                   </FormControl>
+//                 </FormItem>
+//               )}
+//             />
+//             <FormField
+//               control={form.control}
+//               name="summary"
+//               render={({ field }) => (
+//                 <FormItem>
+//                   <FormLabel>Summary</FormLabel>
+//                   <FormControl>
+//                     <Input placeholder="The aforementioned party..." {...field} />
+//                   </FormControl>
+//                 </FormItem>
+//               )}
+//             />
+//             <FormField
+//               control={form.control}
+//               name="file"
+//               render={({ field }) => {
+//                 return (
+//                   <FormItem>
+//                     <FormLabel>File</FormLabel>
+//                     <FormControl>
+//                       <Input type="file" placeholder="shadcn" {...fileRef} />
+//                     </FormControl>
+//                     <FormMessage />
+//                   </FormItem>
+//                 );
+//               }}
+//             />
+//             <Button type="submit">Submit</Button>
+//           </div>
+//         </form>
+//       </Form></Card>
+//   );
+// }

@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"os"
+	"time"
 )
 
 func Init() *gorm.DB {
@@ -35,8 +36,10 @@ func Init() *gorm.DB {
 
 	// Open database connection
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
+	for i:= 0; err != nil && i < 10; i++ {
 		log.Fatalf("Failed to connect to the database: %v", err)
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		time.Sleep(5 * time.Second)
 	}
 
 	// Log successful connection

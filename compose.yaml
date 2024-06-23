@@ -7,6 +7,10 @@ services:
       - fe.env
     depends_on:
       - "api"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./frontend
   api:
     build: ./api
     ports:
@@ -16,6 +20,12 @@ services:
     depends_on:
       - "postgres"
       - "redis-cache"
+    volumes:
+      - evi_files:/app/filestorage 
+    develop:
+      watch:
+        - action: rebuild
+          path: ./api
   postgres:
     image: postgres
     ports:
@@ -34,3 +44,4 @@ services:
     command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
 volumes:
   pgdata:
+  evi_files:

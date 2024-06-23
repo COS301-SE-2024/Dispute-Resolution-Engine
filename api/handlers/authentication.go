@@ -4,16 +4,17 @@ import (
 	"api/middleware"
 	"api/models"
 	"api/utilities"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"net/smtp"
 	"os"
 	"time"
 
 	"github.com/gorilla/mux"
+	"gopkg.in/gomail.v2"
 )
 
 type StringWrapper struct {
@@ -30,7 +31,8 @@ func SetupAuthRoutes(router *mux.Router, h Handler) {
 	router.HandleFunc("/signup", h.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
 	router.Handle("/reset-password", middleware.RoleMiddleware(http.HandlerFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
-	router.Handle("/verify", middleware.RoleMiddleware(http.HandlerFunc(h.Verify), 0)).Methods(http.MethodPost) 
+	// router.Handle("/verify", middleware.RoleMiddleware(http.HandlerFunc(h.Verify), 0)).Methods(http.MethodPost)
+	router.HandleFunc("/verify", h.Verify).Methods(http.MethodPost)
 }
 
 // @Summary Reset a user's password
@@ -74,8 +76,8 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//stub timezone
-	zone, offset := time.Now().Zone()
-	timezone := zone + string(offset)
+	zone, _ := time.Now().Zone()
+	timezone := zone
 	reqUser.Timezone = &timezone
 	//Now put stuff in the actual user object
 	date, err := time.Parse("2006-01-02", reqUser.Birthdate)
@@ -92,7 +94,6 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Gender:            reqUser.Gender,
 		PreferredLanguage: reqUser.PreferredLanguage,
 		Timezone:          reqUser.Timezone,
-		LastUpdated:       utilities.GetCurrentTimePtr(),
 	}
 
 	// address := models.Address{
@@ -133,7 +134,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	//update log metrics
 	user.CreatedAt = utilities.GetCurrentTime()
-	user.UpdatedAt = utilities.GetCurrentTime()
+	user.UpdatedAt = utilities.GetCurrentTimePtr()
 	user.Status = "Active"
 
 	//Small user preferences
@@ -222,26 +223,39 @@ func (h Handler) checkUserExists(email string) bool {
 }
 
 func sendOTP(userInfo string) {
-	from := os.Getenv("COMPANY_EMAIL")
-	to := []string{userInfo}
-	password := os.Getenv("COMPANY_AUTH")
+	// SMTP server configuration for Gmail
+	smtpServer := "smtp.gmail.com"
+	smtpPort := 587
+	smtpUser := os.Getenv("COMPANY_EMAIL")
+	smtpPassword := os.Getenv("COMPANY_AUTH") // Use app password if 2-factor authentication is enabled
 
-	smtpHost := "smtp.gmail.com"
-	smtpPort := "587"
+	// Recipient email address
+	to := userInfo
 	pin := utilities.GenerateVerifyEmailToken()
-	message := []byte("Subject: Verification Email \n\nPlease follow this link to verify your email: \n\n" + "http://localhost:8080/verify" + "\n" + "OTP: " + pin + "\n\n" + "Thank you!" + "\n\n" + "Techtonic Team")
-	auth := smtp.PlainAuth("", from, password, smtpHost)
+	// Email subject and body
+	subject := "Verify Account"
+	body := "Hello,\nPlease verify your DRE account using this pin: " + pin + "\n\nThanks,\nTeam Techtonic."
 
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
-	if err != nil {
-		fmt.Println(err)
-		return
+	// Initialize the SMTP dialer
+	d := gomail.NewDialer(smtpServer, smtpPort, smtpUser, smtpPassword)
+	d.TLSConfig = &tls.Config{ServerName: smtpServer, InsecureSkipVerify: false}
+	// Create a new email message
+	m := gomail.NewMessage()
+	m.SetHeader("From", smtpUser)
+	m.SetHeader("To", to)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/plain", body)
+
+	// Send the email
+	if err := d.DialAndSend(m); err != nil {
+		fmt.Println("Failed to send email:", err)
+		os.Exit(1)
 	}
-	fmt.Println("Email Sent Successfully!")
-	err = utilities.WriteToFile(pin, "stubbedStorage/verify.txt")
+	err := utilities.WriteToFile(pin, "stubbedStorage/verify.txt")
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error writing to file: " + err.Error())
 	}
+	fmt.Println("Email sent successfully!")
 }
 
 // Verify verifies the user's email through a pin code

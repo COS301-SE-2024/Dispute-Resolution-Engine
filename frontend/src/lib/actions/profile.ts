@@ -7,16 +7,16 @@ import { getAuthToken } from "../util/jwt";
 import { API_URL } from "../utils";
 
 async function updateAddress(req: UserAddressUpdateRequest): Promise<Result<string>> {
-    return fetch(`${API_URL}/user/profile/address`, {
+    const response = await fetch(`${API_URL}/user/profile/address`, {
         method: "PUT",
         headers: {
-            Authorization: getAuthToken(),
+            Authorization: `Bearer ${getAuthToken()}`,
         },
         body: JSON.stringify(req),
-    })
-        .then((r) => r.json())
-        .catch((e: Error) => ({
-            error: e.message,
+    });
+        return response.clone().json()
+        .catch(async (e: Error) => ({
+            error: e.message + ": " + await response.text(),
         }));
 }
 

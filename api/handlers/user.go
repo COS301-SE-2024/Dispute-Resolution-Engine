@@ -16,6 +16,7 @@ func SetupUserRoutes(router *mux.Router, h Handler) {
 	router.HandleFunc("/profile", h.updateUser).Methods(http.MethodPut)
 	router.HandleFunc("/profile", h.getUser).Methods(http.MethodGet)
 	router.HandleFunc("/remove", h.RemoveAccount).Methods(http.MethodDelete)
+	router.HandleFunc("/profile/address", h.UpdateUserAddress).Methods(http.MethodPut)
 }
 
 // @Summary Get user profile

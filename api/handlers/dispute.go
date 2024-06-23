@@ -67,9 +67,26 @@ func (h Handler) getDispute(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	id := vars["id"]
-	// var
 
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
+	var DisputeDetailsResponse models.DisputeDetailsResponse
+	err := h.DB.Raw("SELECT id, title, description, status, case_date FROM disputes WHERE id = ?", id).Scan(&DisputeDetailsResponse).Error
+
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+	}
+
+	err = h.DB.Raw("SELECT file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute_id = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+	}
+
+	err = h.DB.Raw("SELECT full_name FROM users WHERE id IN (SELECT user_id FROM dispute_experts WHERE dispute_id = ?)", id).Scan(&DisputeDetailsResponse.Experts).Error
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: DisputeDetailsResponse})
+	// utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
 }
 
 func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {

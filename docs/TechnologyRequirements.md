@@ -355,3 +355,87 @@ We chose Go for our API component for the following reasons:
 
 **Conclusion:**
 Considering the need for high concurrency, performance, and reliability, Go is the optimal choice for our API component. Its alignment with our architecture strategies ensures that we can build a fast, efficient, and maintainable backend for our application.
+
+Certainly! Here's the comparison for database components in Markdown format:
+
+### Database Components
+
+#### 1. PostgreSQL
+**Overview:**
+PostgreSQL is a powerful, open-source object-relational database system known for its robustness, extensibility, and standards compliance. It supports both SQL querying and JSON storage.
+
+**Pros:**
+- **ACID Compliance:** Ensures reliable transactions and data integrity.
+- **Rich SQL Support:** Advanced SQL functionalities, including complex queries, indexing, and full-text search.
+- **Extensibility:** Supports custom functions, data types, and indexing methods.
+- **Community and Support:** Large, active community with extensive documentation and support.
+- **Scalability:** Capable of handling large datasets and high transaction rates.
+
+**Cons:**
+- **Complexity:** May require more setup and tuning compared to simpler databases.
+- **Performance:** While performant, it may not match the speed of some NoSQL databases for certain workloads.
+
+**Fit with Architecture Strategies:**
+- **Reliability:** ACID compliance ensures reliable transaction management, crucial for dispute resolution.
+- **Complex Queries:** Advanced querying capabilities are beneficial for handling complex dispute resolution logic.
+- **Extensibility:** Allows customization to meet specific project needs, enhancing flexibility and future-proofing.
+
+#### 2. NoSQL (e.g., MongoDB)
+**Overview:**
+NoSQL databases, such as MongoDB, provide a flexible, schema-less data model, which is ideal for storing unstructured or semi-structured data. They are designed for scalability and high performance.
+
+**Pros:**
+- **Flexibility:** Schema-less design allows for easy storage of varied and evolving data structures.
+- **Scalability:** Horizontal scaling capabilities make it suitable for large-scale applications.
+- **Performance:** Optimized for fast read and write operations, particularly for simple query patterns.
+- **JSON Support:** Naturally supports JSON-like documents, making it easy to work with modern web applications.
+
+**Cons:**
+- **Consistency:** Typically prioritize availability and partition tolerance over consistency (CAP theorem), which may lead to eventual consistency issues.
+- **Complex Queries:** Less efficient for complex querying and transaction management compared to relational databases.
+- **Learning Curve:** Requires learning different querying and indexing techniques compared to SQL.
+
+**Fit with Architecture Strategies:**
+- **Scalability:** Suitable for large-scale data storage needs.
+- **Flexibility:** Ideal for handling unstructured data, which can be useful for evolving application requirements.
+- **Performance:** Fast read/write operations align with high-performance requirements.
+
+#### 3. Graph Database (e.g., Neo4j)
+**Overview:**
+Graph databases, like Neo4j, are designed to store and query data structured as graphs. They excel in managing relationships between data points, making them ideal for complex relational data models.
+
+**Pros:**
+- **Relationship Management:** Optimized for querying and managing complex relationships.
+- **Performance:** Efficient for graph traversal operations and complex relationship queries.
+- **Flexibility:** Schema-less design allows for evolving data models.
+- **Visualization:** Naturally supports visualization of data relationships.
+
+**Cons:**
+- **Complexity:** May require specialized knowledge to set up and query effectively.
+- **Scalability:** Can be challenging to scale horizontally compared to other database types.
+- **Integration:** May need integration with other database systems for non-graph data storage.
+
+**Fit with Architecture Strategies:**
+- **Relationship Queries:** Excels in managing and querying complex relationships, useful for detailed dispute resolution data.
+- **Visualization:** Supports data visualization for better understanding and analysis of disputes.
+- **Flexibility:** Schema-less design allows for handling evolving dispute resolution models.
+
+### Final Database Choice: PostgreSQL
+
+**Reasoning:**
+We chose PostgreSQL for our database component for the following reasons:
+
+1. **Reliability:**
+   - PostgreSQL's ACID compliance ensures reliable transactions and data integrity, which are critical for maintaining accurate and trustworthy dispute resolution records.
+
+2. **Complex Queries:**
+   - The ability to handle complex SQL queries allows us to efficiently manage and analyze dispute data, which is essential for resolving disputes accurately.
+
+3. **Extensibility:**
+   - PostgreSQL's extensibility, including support for custom functions and data types, allows us to tailor the database to meet the specific needs of our dispute resolution engine.
+
+4. **Scalability and Performance:**
+   - PostgreSQL's capability to handle large datasets and high transaction rates ensures it can support the scalability requirements of our project.
+
+**Conclusion:**
+Considering the need for reliable transactions, complex querying capabilities, and extensibility, PostgreSQL is the optimal choice for our database component. Its alignment with our architecture strategies ensures that we can build a robust, scalable, and maintainable backend for our dispute resolution engine.

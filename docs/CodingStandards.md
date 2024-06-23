@@ -28,6 +28,7 @@ team.
 Branches in our repository are divided into two types of branches:
 - `feat/xxx`: Features to be added to the code base
 - `docs/xxx`: Documentation-based branches
+- `hotfix/xxx`: Urgent changes to be made to main 
 
 ### Commit Naming Rules
 Commit messages should be concise and descriptive. The format is:
@@ -35,6 +36,7 @@ Commit messages should be concise and descriptive. The format is:
 - `refac: xxx` for changes made to the code with no additional features added
 - `fix: xxx` for bug fixes
 - `chore: xxx` for general structural organization without features
+- `docs: xxx` for changes made to documentation in general
 
 ## File Structure
 Our repository follows a monorepo structure, with each part of the project defined

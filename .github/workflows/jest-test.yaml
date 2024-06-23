@@ -2,9 +2,13 @@ name: Jest-Test
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
+  fork:
 jobs:
   jest-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -12,23 +16,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18.20.3'
-          cache: 'yarn' # This line enables caching for Yarn dependencies
+          cache-dependency-path: 'frontend/yarn.lock'
+
       - name: Cache Node modules
         uses: actions/cache@v3
         with:
           path: |
             frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-node-
       - name: Install dependencies
         run: |
-          cd frontend
-          npm install -g yarn
-          yarn
+          yarn install
       - name: Run jest
         run: |
-          cd frontend
           yarn test
         continue-on-error: true 
       - name: Upload coverage reports to Codecov

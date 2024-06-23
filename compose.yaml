@@ -7,6 +7,10 @@ services:
       - fe.env
     depends_on:
       - "api"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./frontend
   api:
     build: ./api
     ports:

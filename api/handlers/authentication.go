@@ -74,8 +74,8 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//stub timezone
-	zone, offset := time.Now().Zone()
-	timezone := zone + string(offset)
+	zone, _ := time.Now().Zone()
+	timezone := zone
 	reqUser.Timezone = &timezone
 	//Now put stuff in the actual user object
 	date, err := time.Parse("2006-01-02", reqUser.Birthdate)
@@ -224,8 +224,8 @@ func sendOTP(userInfo string) {
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587
-	smtpUser := "noreplyteamtechtonic@gmail.com"
-	smtpPassword := "jirw bsff ejbj fopn" // Use app password if 2-factor authentication is enabled
+	smtpUser := os.Getenv("COMPANY_EMAIL")
+	smtpPassword :=  os.Getenv("COMPANY_AUTH")// Use app password if 2-factor authentication is enabled
 
 	// Recipient email address
 	to := userInfo

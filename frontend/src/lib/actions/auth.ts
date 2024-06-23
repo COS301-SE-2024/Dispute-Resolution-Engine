@@ -36,28 +36,28 @@ export async function signup(
       error: error.format(),
     };
   }
-  const resData = "unverified";
-  const resError = undefined;
+  // const resData = "unverified";
+  // const resError = undefined;
 
   // TODO: uncomment once API works
-  // const { data: resData, error: resError } = await fetch(`${API_URL}/auth/signup`, {
-  //   method: "POST",
-  //   body: JSON.stringify({
-  //     first_name: data.firstName,
-  //     surname: data.lastName,
-  //     email: data.email,
-  //     phone_number: "0110110110",
+  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/signup`, {
+    method: "POST",
+    body: JSON.stringify({
+      first_name: data.firstName,
+      surname: data.lastName,
+      email: data.email,
+      phone_number: "0110110110",
 
-  //     password: data.password,
+      password: data.password,
 
-  //     birthdate: data.dateOfBirth,
-  //     gender: "Male",
-  //     nationality: "za",
+      birthdate: data.dateOfBirth,
+      gender: "Male",
+      nationality: "za",
 
-  //     timezone: ".",
-  //     preferred_language: ".",
-  //   }),
-  // }).then((res) => res.json());
+      timezone: ".",
+      preferred_language: ".",
+    }),
+  }).then((res) => res.json());
 
   if (resError) {
     return {

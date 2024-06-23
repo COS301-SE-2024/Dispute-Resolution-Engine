@@ -1,5 +1,5 @@
 name: Deployment
-
+run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_run:
 

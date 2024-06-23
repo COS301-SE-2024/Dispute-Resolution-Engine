@@ -137,8 +137,8 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 	}	
 
 	//get the id of the created dispute
-	var disputeID int64
-	err = h.DB.Raw("SELECT id FROM disputes WHERE title = ? AND case_date = ? AND complainant = ? AND respondant = ? AND resolved = ? AND decision = ?", title, time.Now(), complainantID, respondantID, false, models.Unresolved).Scan(&disputeID).Error
+	var disputeFromDbInserted models.Dispute
+	err = h.DB.Where("title = ? AND case_date = ? AND status = ? AND description = ? AND complainant = ? AND resolved = ? AND decision = ?", title, time.Now(), "Awaiting Respondant", description, complainantID, false, models.Unresolved).First(&disputeFromDbInserted).Error
 	if err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error retrieving dispute"})
 		return
@@ -197,8 +197,8 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//get id of the created file enrty
-		var fileID int64
-		err = h.DB.Raw("SELECT id FROM files WHERE file_name = ? AND uploaded = ? AND file_path = ?", fileNames[i], time.Now(), fileURL).Scan(&fileID).Error
+		var fileFromDbInserted models.File
+		err = h.DB.Where("file_name = ? AND file_path = ?", fileNames[i], fileURL).First(&fileFromDbInserted).Error
 		if err != nil {
 			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error retrieving file"})
 			return
@@ -206,8 +206,8 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 
 		//add enrty to dispute evidence table
 		disputeEvidence := models.DisputeEvidence{
-			Dispute: disputeID,
-			FileID: fileID,
+			Dispute: *disputeFromDbInserted.ID,
+			FileID: int64(*fileFromDbInserted.ID),
 		}
 		err = h.DB.Create(&disputeEvidence).Error
 		if err != nil {

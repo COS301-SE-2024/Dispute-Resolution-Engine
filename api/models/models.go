@@ -125,7 +125,7 @@ func (DisputeExpert) TableName() string {
 }
 
 type File struct {
-	ID       uint      `gorm:"primaryKey;column:id;type:serial;autoIncrement:true"`
+	ID       *uint      `gorm:"primaryKey;column:id;type:serial;autoIncrement:true"`
 	FileName string    `gorm:"column:file_name;type:varchar(255);not null"`
 	Uploaded time.Time `gorm:"column:uploaded;type:timestamp;default:CURRENT_TIMESTAMP"`
 	FilePath string    `gorm:"column:file_path;type:varchar(255);not null"`

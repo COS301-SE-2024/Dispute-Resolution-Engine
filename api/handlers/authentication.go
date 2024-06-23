@@ -8,13 +8,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
-	"net/smtp"
 	"os"
 	"time"
 
 	"github.com/gorilla/mux"
+	"gopkg.in/gomail.v2"
 )
 
 type StringWrapper struct {
@@ -75,28 +74,25 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//stub timezone
-	zone, _ := time.Now().Zone()
-	timezone := zone
+	zone, offset := time.Now().Zone()
+	timezone := zone + string(offset)
 	reqUser.Timezone = &timezone
 	//Now put stuff in the actual user object
 	date, err := time.Parse("2006-01-02", reqUser.Birthdate)
 	user := models.User{
-		FirstName:    reqUser.FirstName,
-		Surname:      reqUser.Surname,
-		Birthdate:    date,
-		Nationality:  reqUser.Nationality,
-		Email:        reqUser.Email,
-		PasswordHash: reqUser.Password,
-		PhoneNumber:  reqUser.PhoneNumber,
-		// AddressID:         sql.NullInt64{Int64: 0, Valid: false},
+		FirstName:         reqUser.FirstName,
+		Surname:           reqUser.Surname,
+		Birthdate:         date,
+		Nationality:       reqUser.Nationality,
+		Email:             reqUser.Email,
+		PasswordHash:      reqUser.Password,
+		PhoneNumber:       reqUser.PhoneNumber,
+		AddressID:         nil,
 		Status:            "Unverified",
 		Gender:            reqUser.Gender,
 		PreferredLanguage: reqUser.PreferredLanguage,
 		Timezone:          reqUser.Timezone,
-		UpdatedAt:         utilities.GetCurrentTimePtr(),
 	}
-
-	log.Println(user)
 
 	// address := models.Address{
 	// 	Code:        nil, //to be filled in a later request
@@ -146,8 +142,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	user.LastLogin = nil
 
 	if result := h.DB.Create(&user); result.Error != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: /*"Error creating user"*/ result.Error.Error()})
-		print(result.Error)
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating user"})
 		return
 	}
 	sendOTP(user.Email)
@@ -226,26 +221,36 @@ func (h Handler) checkUserExists(email string) bool {
 }
 
 func sendOTP(userInfo string) {
-	from := os.Getenv("COMPANY_EMAIL")
-	to := []string{userInfo}
-	password := os.Getenv("COMPANY_AUTH")
+	// SMTP server configuration for Gmail
+	smtpServer := "smtp.gmail.com"
+	smtpPort := 587
+	smtpUser := "noreplyteamtechtonic@gmail.com"
+	smtpPassword := "jirw bsff ejbj fopn" // Use app password if 2-factor authentication is enabled
 
-	smtpHost := "smtp.gmail.com"
-	smtpPort := "587"
+	// Recipient email address
+	to := userInfo
 	pin := utilities.GenerateVerifyEmailToken()
-	message := []byte("Subject: Verification Email \n\nPlease follow this link to verify your email: \n\n" + "http://localhost:8080/verify" + "\n" + "OTP: " + pin + "\n\n" + "Thank you!" + "\n\n" + "Techtonic Team")
-	auth := smtp.PlainAuth("", from, password, smtpHost)
+	// Email subject and body
+	subject := "Verify Account"
+	body := "Hello,\nPlease verify your DRE account using this pin: " + pin + "\n\nThanks,\nTeam Techtonic."
 
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
-	if err != nil {
-		fmt.Println(err)
-		return
+	// Initialize the SMTP dialer
+	d := gomail.NewDialer(smtpServer, smtpPort, smtpUser, smtpPassword)
+
+	// Create a new email message
+	m := gomail.NewMessage()
+	m.SetHeader("From", smtpUser)
+	m.SetHeader("To", to)
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/plain", body)
+
+	// Send the email
+	if err := d.DialAndSend(m); err != nil {
+		fmt.Println("Failed to send email:", err)
+		os.Exit(1)
 	}
-	fmt.Println("Email Sent Successfully!")
-	err = utilities.WriteToFile(pin, "stubbedStorage/verify.txt")
-	if err != nil {
-		fmt.Println(err)
-	}
+
+	fmt.Println("Email sent successfully!")
 }
 
 // Verify verifies the user's email through a pin code

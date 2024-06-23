@@ -45,8 +45,9 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 
 	// Retrieve all addresses associated with the user from the database
 	var dbAddresses models.Address
-	if err := h.DB.Where("id = ?", dbUser.AddressID).Find(&dbAddresses).Error; err != nil {
-		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "No addresses found for user"})
+	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddresses)
+	if err := h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddresses).Error; err != nil {
+		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "Address not found"})
 		return
 	}
 
@@ -65,6 +66,8 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 		Theme:             "dark",
 	}
 
+	// Print the dbAddresses object for debug purposes
+	print(dbAddresses.Country)
 	// Return the response
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: user})
 }
@@ -257,7 +260,7 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	//first fetch the country code based on the name
 	if UpdateUserAddress.Country != nil {
 		var country models.Country
-		h.DB.Where("country_name = ?", UpdateUserAddress.Country).First(&country)
+		h.DB.Where("country_code = ?", UpdateUserAddress.Country).First(&country)
 		dbAddress.Code = UpdateUserAddress.Country
 		dbAddress.Country = &country.CountryName
 	}

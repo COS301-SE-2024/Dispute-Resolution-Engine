@@ -1,0 +1,68 @@
+name: Unit-And-Integration-Tests
+run-name: ${{ github.actor }} at ${{ github.event_name }} event 
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - release
+      - dev
+    types:
+      - opened
+      - reopened
+jobs:
+  setup server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.3'
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install -g yarn
+          yarn
+      - name: Build Docker
+        run: |
+          docker compose build
+          docker compose up -d
+  run jest tests:
+    runs-on: ubuntu-latest
+    depends-on: setup server
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.3'
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm install -g yarn
+          yarn
+      - name: Run jest
+        run: |
+          cd frontend
+          yarn test
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+  run go tests:
+    runs-on: ubuntu-latest
+    depends-on: setup server
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run go test
+        run: |
+          cd api/__tests__
+          go test
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

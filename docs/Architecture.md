@@ -124,9 +124,15 @@ We make use of the Flux pattern to enhance the usability of the DRE by simplifyi
 
 ![classDiagram](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/bf3169c4-df33-4c2a-aa61-f74257ea3d42)
 
+
+
 # Version 2
 
-## Architectural Design Strategy
+## Class Diagram: Ver 2
+
+![ClassDiagram ver2](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/81089003/90bcb1fa-878b-4f0c-8856-be2edc993242)
+
+## Architectural Design Strategy: Design based on Quality Requirements
 
 ### Customer Satisfaction and Continuous Delivery
 

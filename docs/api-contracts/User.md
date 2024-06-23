@@ -50,7 +50,7 @@ interface UserProfileResponse {
 ```
 
 # Updating User Profile
-- **Endpoint:** `PATCH /user/profile`
+- **Endpoint:** `PUT /user/profile`
 - **Headers:**
     - `Authorization: Bearer <JWT>`
 
@@ -59,12 +59,13 @@ interface UserProfileUpdateRequest {
   first_name: string;
   surname: string;
   phone_number: string;
+
   gender: Gender;
   nationality: string;
 
   timezone: string;
-
   preferred_language: string;
+
   addresses: Address[];
   theme: "light" | "dark";
 }
@@ -72,7 +73,7 @@ interface UserProfileUpdateRequest {
 
 The server will respond with the new updated user information:
 ```ts
-interface UserProfileUpdateResponse extends UserProfileResponse {}
+type UserProfileUpdateResponse = string;
 ```
 
 # Deleting Account
@@ -91,13 +92,13 @@ type UserProfileRemoveResponse = string;
     - `Authorization: Bearer <JWT>`
 ```ts
 interface UserAddressUpdateRequest {
-  Country: string;
-  Province: string;
-  City: string;
-  Street3: string;
-  Street2: string;
-  Street: string;
-  AddressType: string;
+  country?: string;
+  province?: string;
+  city?: string;
+  street3?: string;
+  street2?: string;
+  street?: string;
+  address_type?: string;
 }
 ```
 The server will respond with a success or failure

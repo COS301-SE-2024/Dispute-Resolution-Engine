@@ -61,7 +61,7 @@ export interface UserProfileUpdateRequest {
  * Authorization: Bearer <JWT>
  * ```
  */
-export interface UserProfileUpdateResponse extends UserProfileResponse {}
+export type UserProfileUpdateResponse = string;
 
 /**
  * Add a HTTP header with authentication header:
@@ -70,3 +70,15 @@ export interface UserProfileUpdateResponse extends UserProfileResponse {}
  * ```
  */
 export type UserProfileRemoveResponse = string;
+
+
+export interface UserAddressUpdateRequest {
+  country?: string;
+  province?: string;
+  city?: string;
+  street3?: string;
+  street2?: string;
+  street?: string;
+  address_type?: string;
+}
+

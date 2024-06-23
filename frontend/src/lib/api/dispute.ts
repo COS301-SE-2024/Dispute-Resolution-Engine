@@ -68,7 +68,7 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
       Authorization: `Bearer ${jwt}`,
     },
   })
-    .then((res) => res.json())
+    .then(function(res){console.log(res); return res.json()})
     .catch((e: Error) => ({
       error: e.message,
     }));

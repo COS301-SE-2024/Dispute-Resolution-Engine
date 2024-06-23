@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -70,6 +71,7 @@ func (h Handler) getDispute(w http.ResponseWriter, r *http.Request) {
 
 func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
     // Parse multipart form
+	log.Println("Creating dispute")
     if err := r.ParseMultipartForm(10 << 20); err != nil { // 10 << 20 is 10 MB max memory
         utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Failed to parse multipart form"})
         return
@@ -208,8 +210,10 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+
     // Respond with success message
-    fmt.Fprintf(w, "Successfully received dispute data and stored files\n")
+	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "Dispute created successfully"})
+	log.Printf("Dispute created successfully: %s", title)
 }
 
 // Function to get MIME type from file header

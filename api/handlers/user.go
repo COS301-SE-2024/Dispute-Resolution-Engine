@@ -273,5 +273,8 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 		dbAddress.AddressType = UpdateUserAddress.AddressType
 	}
 
+	//now update the address
+	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
+
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User address updated successfully"})
 }

@@ -24,7 +24,7 @@ export async function createDispute(
   formData.append("respondent[full_name]", parsed.respondentName);
   formData.append("respondent[email]", parsed.respondentEmail);
   formData.append("respondent[telephone]", parsed.respondentTelephone);
-  formData.append("files", data.get("files")!);
+  formData.append("files", data.get("file")!);
   console.log(formData);
 
   const res = await fetch(`${API_URL}/disputes/create`, {

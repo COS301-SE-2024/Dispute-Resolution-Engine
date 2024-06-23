@@ -115,7 +115,7 @@ export default function CreateDisputeClient() {
                   <FormItem>
                     <FormLabel>Evidence</FormLabel>
                     <FormControl>
-                      <Input type="file" placeholder="shadcn" />
+                      <Input type="file" placeholder="shadcn" name="file" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

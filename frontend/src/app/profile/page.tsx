@@ -32,18 +32,22 @@ export default async function Profile() {
           </dl>
         </CardHeader>
         <CardContent className="h-full overflow-y-auto">
-          {/* <Tabs defaultValue="profile">
+          <Tabs defaultValue="profile">
             <TabsList>
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="address">Address</TabsTrigger>
             </TabsList>
-            <TabsContent value="profile" forceMount className="data-[state=inactive]:hidden"> */}
-          <ProfileFields firstName={data.first_name} lastName={data.surname} email={data.email} />
-          {/* </TabsContent>
+            <TabsContent value="profile" forceMount className="data-[state=inactive]:hidden">
+              <ProfileFields
+                firstName={data.first_name}
+                lastName={data.surname}
+                email={data.email}
+              />
+            </TabsContent>
             <TabsContent value="address" forceMount className="data-[state=inactive]:hidden">
               <AddressFields />
             </TabsContent>
-          </Tabs> */}
+          </Tabs>
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button variant="destructive">Delete Account</Button>

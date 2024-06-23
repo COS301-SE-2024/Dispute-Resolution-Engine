@@ -1,5 +1,3 @@
-"use server";
-
 import { cookies } from "next/headers";
 import { JWT_KEY } from "../constants";
 import { redirect } from "next/navigation";

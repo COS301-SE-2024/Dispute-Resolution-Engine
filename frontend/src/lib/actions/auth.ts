@@ -36,8 +36,6 @@ export async function signup(
       error: error.format(),
     };
   }
-  // const resData = "unverified";
-  // const resError = undefined;
 
   // TODO: uncomment once API works
   const { data: resData, error: resError } = await fetch(`${API_URL}/auth/signup`, {
@@ -85,9 +83,6 @@ export async function login(
       error: error.format(),
     };
   }
-
-  // const resData = "working";
-  // const resError = undefined;
 
   // TODO: uncomment when API is working
   // Send request to the API
@@ -137,9 +132,6 @@ export async function verify(
     };
   }
 
-  // const resData = "working";
-  // const resError = data.pin == "123456" ? undefined : "Incorrect OTP";
-
   // TODO: uncomment once API works
   // Send request to the API
   const { data: resData, error: resError } = await fetch(`${API_URL}/auth/verify`, {
@@ -148,8 +140,7 @@ export async function verify(
       Authorization: `Bearer ${jwt}`,
     },
     body: JSON.stringify({
-      email: data.email,
-      password: data.password,
+      pin: data.pin,
     }),
   }).then((res) => res.json());
   console.log(resData);

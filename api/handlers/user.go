@@ -233,6 +233,9 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
 		return
 	}
+
+	insertAddress := false
+
 	//here we get the details of the request
 	var UpdateUserAddress models.UpdateAddress
 	err = json.Unmarshal(body, &UpdateUserAddress)
@@ -244,6 +247,32 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	var dbUser models.User
 	h.DB.Where("id = ?", jwtClaims.User.ID).First(&dbUser)
 
+	if dbUser.AddressID == nil {
+		insertAddress = true
+	}
+
+	//if the user does not have an address, we have to insert one
+	if insertAddress {
+		//first we have to insert the address
+		var dbAddress = models.Address{
+			Country:     UpdateUserAddress.Country,
+			Province:    UpdateUserAddress.Province,
+			City:        UpdateUserAddress.City,
+			Street3:     UpdateUserAddress.Street3,
+			Street2:     UpdateUserAddress.Street2,
+			Street:      UpdateUserAddress.Street,
+			AddressType: UpdateUserAddress.AddressType,
+		}
+
+		var country models.Country
+		h.DB.Where("country_name = ?", UpdateUserAddress.Country).First(&country)
+		dbAddress.Code = &country.CountryCode
+
+		h.DB.Create(&dbAddress)
+		h.DB.Model(&dbUser).Update("address_id", dbAddress.ID)
+		utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User address updated successfully"})
+		return
+	}
 	//now we have to set the address parameters using the passed in data
 	var dbAddress models.Address
 

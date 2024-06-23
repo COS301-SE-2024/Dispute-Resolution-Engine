@@ -518,3 +518,79 @@ We chose Redis for our caching layer for the following reasons:
 
 **Conclusion:**
 Considering the need for high performance, flexibility, scalability, and additional features, Redis is the optimal choice for our caching layer. Its alignment with our architecture strategies ensures that we can build a fast, reliable, and scalable caching solution for our dispute resolution engine.
+
+### Deployment Technologies
+
+#### 1. Docker
+**Overview:**
+Docker is a platform that enables developers to create, deploy, and run applications in containers. Containers allow for consistent environments across various stages of development and deployment.
+
+**Pros:**
+- **Consistency:** Ensures applications run the same way regardless of where they are deployed.
+- **Isolation:** Containers isolate applications, improving security and reducing dependency conflicts.
+- **Portability:** Containers can run on any system that supports Docker, enhancing portability.
+- **Efficiency:** Containers are lightweight compared to virtual machines, optimizing resource usage.
+
+**Cons:**
+- **Learning Curve:** Requires familiarity with container concepts and Docker commands.
+- **Complexity:** Managing many containers can become complex without additional orchestration tools.
+
+**Fit with Architecture Strategies:**
+- **Consistency and Portability:** Ensures consistent application behavior across different environments, crucial for reliable deployment.
+- **Isolation and Security:** Improves security and reduces conflicts between dependencies.
+- **Efficiency:** Enhances resource utilization, making it suitable for scalable deployments.
+
+#### 2. Kubernetes
+**Overview:**
+Kubernetes is an open-source platform designed to automate deploying, scaling, and operating containerized applications. It is a container orchestration system that works seamlessly with Docker.
+
+**Pros:**
+- **Scalability:** Automatically scales applications based on demand.
+- **High Availability:** Ensures application uptime through automated failover and self-healing.
+- **Management:** Simplifies management of containerized applications with features like load balancing, service discovery, and rolling updates.
+- **Ecosystem:** Rich ecosystem with support for monitoring, logging, and other operational needs.
+
+**Cons:**
+- **Complexity:** Steeper learning curve and complexity compared to Docker alone.
+- **Resource Intensive:** Can be resource-intensive, requiring careful resource management and planning.
+
+**Fit with Architecture Strategies:**
+- **Scalability:** Automatically manages scaling, ensuring applications can handle varying loads.
+- **High Availability:** Enhances reliability and uptime, crucial for a dispute resolution engine.
+- **Management and Automation:** Simplifies deployment and management of containerized applications, improving operational efficiency.
+
+#### 3. GitHub Actions
+**Overview:**
+GitHub Actions is a CI/CD (Continuous Integration and Continuous Deployment) platform that automates the build, test, and deployment pipeline. It integrates seamlessly with GitHub repositories.
+
+**Pros:**
+- **Integration:** Seamless integration with GitHub repositories for automated workflows.
+- **Flexibility:** Highly customizable workflows using YAML configuration.
+- **Scalability:** Runs workflows in parallel, improving efficiency.
+- **Community:** Large number of pre-built actions available from the community.
+
+**Cons:**
+- **Complexity:** Can become complex for large projects with many workflows.
+- **Cost:** Usage may incur costs depending on the number of workflows and minutes used.
+
+**Fit with Architecture Strategies:**
+- **Automation:** Automates the build, test, and deployment process, enhancing efficiency.
+- **Integration:** Tight integration with GitHub improves the development workflow.
+- **Scalability:** Handles large projects with parallel workflows, ensuring timely deployments.
+
+### Final Deployment Choice: Docker with Kubernetes and GitHub Actions
+
+**Reasoning:**
+We chose Docker for containerization, Kubernetes for orchestration, and GitHub Actions for CI/CD automation for the following reasons:
+
+1. **Consistency and Portability (Docker):**
+   - Docker ensures that our applications run consistently across different environments, enhancing reliability and reducing "it works on my machine" issues.
+
+2. **Scalability and High Availability (Kubernetes):**
+   - Kubernetes automates the scaling and management of our containerized applications, ensuring they can handle varying loads and remain highly available.
+
+3. **Automation and Integration (GitHub Actions):**
+   - GitHub Actions provides a robust CI/CD pipeline that automates our build, test, and deployment processes, seamlessly integrating with our GitHub repositories.
+
+**Conclusion:**
+By combining Docker for containerization, Kubernetes for orchestration, and GitHub Actions for CI/CD, we have created a powerful, scalable, and automated deployment solution. This combination aligns with our architecture strategies, ensuring efficient, reliable, and scalable deployment for our dispute resolution engine.

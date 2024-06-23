@@ -84,7 +84,7 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
 		return
 	}
-
+	jwtClaims := middleware.GetClaims(r)
 	//get the user id from the request
 	var updateUser models.UpdateUser
 
@@ -97,7 +97,7 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 
 	//retrieve the user from the database
 	var dbUser models.User
-	h.DB.Where("id = ?", updateUser.Email).First(&dbUser)
+	h.DB.Where("id = ?", jwtClaims.User.ID).First(&dbUser)
 
 	var dbAddress models.Address
 	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddress)
@@ -109,33 +109,49 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	if updateUser.Surname != "" {
 		dbUser.Surname = updateUser.Surname
 	}
-	if updateUser.Code != nil {
-		dbAddress.Code = updateUser.Code
+	if updateUser.phone_number != nil {
+		dbUser.PhoneNumber = updateUser.phone_number
 	}
-	if updateUser.Country != nil {
-		var dbCountry models.Country
-		dbAddress.Country = updateUser.Country
-		h.DB.Where("country_name = ?", updateUser.Country).First(&dbCountry)
-		dbAddress.Code = &dbCountry.CountryCode
+	if updateUser.gender != "" {
+		dbUser.Gender = updateUser
 	}
-	if updateUser.Province != nil {
-		dbAddress.Province = updateUser.Province
+	if updateUser.nationality != "" {
+		dbUser.Nationality = updateUser.nationality
 	}
-	if updateUser.City != nil {
-		dbAddress.City = updateUser.City
+	if updateUser.timezone != nil {
+		dbUser.Timezone = updateUser.timezone
 	}
-	if updateUser.Street3 != nil {
-		dbAddress.Street3 = updateUser.Street3
+	if updateUser.preferred_language != nil {
+		dbUser.PreferredLanguage = updateUser.preferred_language
 	}
-	if updateUser.Street2 != nil {
-		dbAddress.Street2 = updateUser.Street2
-	}
-	if updateUser.Street != nil {
-		dbAddress.Street = updateUser.Street
-	}
-	if updateUser.AddressType != nil {
-		dbAddress.AddressType = updateUser.AddressType
-	}
+
+	// if updateUser.Code != nil {
+	// 	dbAddress.Code = updateUser.Code
+	// }
+	// if updateUser.Country != nil {
+	// 	var dbCountry models.Country
+	// 	dbAddress.Country = updateUser.Country
+	// 	h.DB.Where("country_name = ?", updateUser.Country).First(&dbCountry)
+	// 	dbAddress.Code = &dbCountry.CountryCode
+	// }
+	// if updateUser.Province != nil {
+	// 	dbAddress.Province = updateUser.Province
+	// }
+	// if updateUser.City != nil {
+	// 	dbAddress.City = updateUser.City
+	// }
+	// if updateUser.Street3 != nil {
+	// 	dbAddress.Street3 = updateUser.Street3
+	// }
+	// if updateUser.Street2 != nil {
+	// 	dbAddress.Street2 = updateUser.Street2
+	// }
+	// if updateUser.Street != nil {
+	// 	dbAddress.Street = updateUser.Street
+	// }
+	// if updateUser.AddressType != nil {
+	// 	dbAddress.AddressType = updateUser.AddressType
+	// }
 
 	//now update the user and address
 	h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)
@@ -204,6 +220,9 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	//read request body into variable
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
+
+	jwtClaims := middleware.GetClaims(r)
+
 	if err != nil {
 		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
 		return
@@ -217,35 +236,35 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	}
 	//retrieve the record from the database
 	var dbUser models.User
-	h.DB.Where("email = ?", UpdateUserAddress.Email).First(&dbUser)
+	h.DB.Where("id = ?", jwtClaims.User.ID).First(&dbUser)
 
 	//now we have to set the address parameters using the passed in data
 	var dbAddress models.Address
 
 	//first fetch the country code based on the name
-	var country models.Country
-	h.DB.Where("country_name = ?", UpdateUserAddress.Country).First(&country)
-
-	//now we create the assignment between database and request body
-	dbAddress.Code = &country.CountryCode
-	dbAddress.Country = UpdateUserAddress.Country
-	dbAddress.Province = UpdateUserAddress.Province
-	dbAddress.City = UpdateUserAddress.City
-	dbAddress.Street3 = UpdateUserAddress.Street3
-	dbAddress.Street2 = UpdateUserAddress.Street2
-	dbAddress.Street = UpdateUserAddress.Street
-	dbAddress.AddressType = UpdateUserAddress.AddressType
-
-	var count int64
-	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Count(&count)
-	if count == 0 {
-		// Insert the new address
-		h.DB.Create(&dbAddress)
-		// Update the user with the new address id
-		h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Update("address_id", dbAddress.ID)
-	} else {
-		// Proceed with the update
-		h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
+	if UpdateUserAddress.Country != nil {
+		var country models.Country
+		h.DB.Where("country_name = ?", UpdateUserAddress.Country).First(&country)
+		dbAddress.Country = UpdateUserAddress.Country
+		dbAddress.Code = &country.CountryCode
+	}
+	if UpdateUserAddress.Province != nil {
+		dbAddress.Province = UpdateUserAddress.Province
+	}
+	if UpdateUserAddress.City != nil {
+		dbAddress.City = UpdateUserAddress.City
+	}
+	if UpdateUserAddress.Street3 != nil {
+		dbAddress.Street3 = UpdateUserAddress.Street3
+	}
+	if UpdateUserAddress.Street2 != nil {
+		dbAddress.Street2 = UpdateUserAddress.Street2
+	}
+	if UpdateUserAddress.Street != nil {
+		dbAddress.Street = UpdateUserAddress.Street
+	}
+	if UpdateUserAddress.AddressType != nil {
+		dbAddress.AddressType = UpdateUserAddress.AddressType
 	}
 
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User address updated successfully"})

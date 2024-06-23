@@ -3,33 +3,38 @@ package models
 type UpdateUser struct {
 	FirstName string `json:"first_name"`
 	Surname   string `json:"surname"`
-	Email     string `json:"email"`
+	// Email     string `json:"email"`
+	phone_number       *string `json:"phone_number"`
+	gender             string
+	nationality        string
+	timezone           *string
+	preferred_language *string
 
-	Code        *string `json:"code"` //This is the country code
-	Country     *string `json:"country"`
-	Province    *string `json:"province"`
-	City        *string `json:"city"`
-	Street3     *string `json:"street3"`
-	Street2     *string `json:"street2"`
-	Street      *string `json:"street"`
-	AddressType *string `json:"address_type"`
+	// Code        *string `json:"code"` //This is the country code
+	// Country     *string `json:"country"`
+	// Province    *string `json:"province"`
+	// City        *string `json:"city"`
+	// Street3     *string `json:"street3"`
+	// Street2     *string `json:"street2"`
+	// Street      *string `json:"street"`
+	// AddressType *string `json:"address_type"`
 }
 
 type GetUser struct {
-	FirstName string `json:"first_name"`
-	Surname   string `json:"surname"`
-	Email     string `json:"email"`
+	FirstName   string  `json:"first_name"`
+	Surname     string  `json:"surname"`
+	Email       string  `json:"email"`
 	PhoneNumber *string `json:"phone_number"`
 
-	Birthdate         string  `json:"birthdate"`
-	Gender		      string  `json:"gender"`
-	Nationality	      string  `json:"nationality"`
+	Birthdate   string `json:"birthdate"`
+	Gender      string `json:"gender"`
+	Nationality string `json:"nationality"`
 
-	Timezone		  *string `json:"timezone"`
+	Timezone          *string `json:"timezone"`
 	PreferredLanguage *string `json:"preferred_language"`
 
 	Address []Address `json:"address"`
-	Theme   string `json:"theme"`
+	Theme   string    `json:"theme"`
 }
 
 type CreateUser struct {
@@ -56,7 +61,6 @@ type DeleteUser struct {
 }
 
 type UpdateAddress struct {
-	Email       string  `json:"email"`
 	Country     *string `json:"country"`
 	Province    *string `json:"province"`
 	City        *string `json:"city"`
@@ -67,15 +71,15 @@ type UpdateAddress struct {
 }
 
 type ArchiveSearchRequest struct {
-	Search *string `json:"search,omitempty"`
-	Limit  *int    `json:"limit,omitempty"`
-	Offset *int    `json:"offset,omitempty"`
-	Order  *string `json:"order,omitempty"`
-	Sort *SortAttribute `json:"sort,omitempty"`
+	Search *string          `json:"search,omitempty"`
+	Limit  *int             `json:"limit,omitempty"`
+	Offset *int             `json:"offset,omitempty"`
+	Order  *string          `json:"order,omitempty"`
+	Sort   *SortAttribute   `json:"sort,omitempty"`
 	Filter *FilterAttribute `json:"filter,omitempty"`
 }
 
 type FilterAttribute struct {
 	Category []string `json:"category"`
-	Time    []int `json:"time"`
+	Time     []int    `json:"time"`
 }

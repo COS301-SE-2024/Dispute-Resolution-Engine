@@ -4,6 +4,7 @@ import (
 	"api/middleware"
 	"api/models"
 	"api/utilities"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -30,7 +31,8 @@ func SetupAuthRoutes(router *mux.Router, h Handler) {
 	router.HandleFunc("/signup", h.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
 	router.Handle("/reset-password", middleware.RoleMiddleware(http.HandlerFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
-	router.Handle("/verify", middleware.RoleMiddleware(http.HandlerFunc(h.Verify), 0)).Methods(http.MethodPost)
+	// router.Handle("/verify", middleware.RoleMiddleware(http.HandlerFunc(h.Verify), 0)).Methods(http.MethodPost)
+	router.HandleFunc("/verify", h.Verify).Methods(http.MethodPost)
 }
 
 // @Summary Reset a user's password
@@ -74,8 +76,8 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//stub timezone
-	zone, offset := time.Now().Zone()
-	timezone := zone + string(offset)
+	zone, _ := time.Now().Zone()
+	timezone := zone
 	reqUser.Timezone = &timezone
 	//Now put stuff in the actual user object
 	date, err := time.Parse("2006-01-02", reqUser.Birthdate)
@@ -224,8 +226,8 @@ func sendOTP(userInfo string) {
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587
-	smtpUser := "noreplyteamtechtonic@gmail.com"
-	smtpPassword := "jirw bsff ejbj fopn" // Use app password if 2-factor authentication is enabled
+	smtpUser := os.Getenv("COMPANY_EMAIL")
+	smtpPassword := os.Getenv("COMPANY_AUTH") // Use app password if 2-factor authentication is enabled
 
 	// Recipient email address
 	to := userInfo
@@ -236,7 +238,7 @@ func sendOTP(userInfo string) {
 
 	// Initialize the SMTP dialer
 	d := gomail.NewDialer(smtpServer, smtpPort, smtpUser, smtpPassword)
-
+	d.TLSConfig = &tls.Config{ServerName: smtpServer, InsecureSkipVerify: false}
 	// Create a new email message
 	m := gomail.NewMessage()
 	m.SetHeader("From", smtpUser)
@@ -249,7 +251,10 @@ func sendOTP(userInfo string) {
 		fmt.Println("Failed to send email:", err)
 		os.Exit(1)
 	}
-
+	err := utilities.WriteToFile(pin, "stubbedStorage/verify.txt")
+	if err != nil {
+		fmt.Println("Error writing to file: " + err.Error())
+	}
 	fmt.Println("Email sent successfully!")
 }
 

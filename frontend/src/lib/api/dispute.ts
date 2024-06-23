@@ -74,39 +74,3 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
   //     error: e.message,
   //   }));
 }
-export async function createDispute(data: any): Promise<Result<DisputeResponse>> {
-  const jwt = cookies().get(JWT_KEY)?.value;
-  if (!jwt) {
-    return {
-      error: "Unauthorized",
-    };
-  }
-  const sendData = {
-    headers: {
-      Authorization: `Bearer ${jwt}`,
-    },
-    method: "POST",
-    body: data,
-  }
-  console.log("SEND DATA", sendData)
-  return fetch(`${API_URL}/disputes/create`, sendData)
-    .then(function(res){
-      console.log("RESPONSE")
-      console.log(res);
-      return res.json()
-    })
-    .catch((e: Error) => ({
-      error: e.message,
-    }));
-  // return {
-  //   data: {
-  //     id: "1",
-  //     title: data.get("title") as string,
-  //     description: data.get("description") as string,
-  //     status: "active",
-  //     date_created: "",
-  //     evidence: [],
-  //     experts: [],
-  //   },
-  // };
-}

@@ -26,7 +26,7 @@ export interface UserProfileResponse {
    */
   preferred_language: string;
 
-  addresses: Address[];
+  address: Address;
   useDarkMode: boolean;
 }
 
@@ -71,7 +71,6 @@ export type UserProfileUpdateResponse = string;
  */
 export type UserProfileRemoveResponse = string;
 
-
 export interface UserAddressUpdateRequest {
   country?: string;
   province?: string;
@@ -81,4 +80,3 @@ export interface UserAddressUpdateRequest {
   street?: string;
   address_type?: string;
 }
-

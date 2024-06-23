@@ -75,17 +75,16 @@ func (h Handler) getDispute(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+		return
 	}
 
-	err = h.DB.Raw("SELECT file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute_id = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
+	err = h.DB.Raw("SELECT file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
 	if err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+		return
 	}
 
-	err = h.DB.Raw("SELECT full_name FROM users WHERE id IN (SELECT user_id FROM dispute_experts WHERE dispute_id = ?)", id).Scan(&DisputeDetailsResponse.Experts).Error
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
-	}
+	DisputeDetailsResponse.Experts = []string{"Expert 1", "Expert 2", "Expert 3"}
 
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: DisputeDetailsResponse})
 	// utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})

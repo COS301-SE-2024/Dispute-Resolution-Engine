@@ -9,8 +9,8 @@
   <img src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/actions/workflows/lint.yaml/badge.svg">
   <img src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/actions/workflows/deployment.yaml/badge.svg">
   <a href="https://codecov.io/gh/COS301-SE-2024/Dispute-Resolution-Engine" > 
-   <img src="https://codecov.io/gh/COS301-SE-2024/Dispute-Resolution-Engine/graph/badge.svg?token=7qG24ym2EY"/> 
-   </a>
+  <img src="https://codecov.io/gh/COS301-SE-2024/Dispute-Resolution-Engine/branch/dev/graph/badge.svg?token=7qG24ym2EY"/> 
+  </a>
 
 </div>
 

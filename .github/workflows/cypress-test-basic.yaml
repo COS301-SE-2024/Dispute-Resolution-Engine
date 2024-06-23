@@ -1,15 +1,6 @@
 name: End-to-end tests
 on:
   workflow_dispatch:
-  c:
-  pull_request:
-    branches:
-      - main
-      - release
-      - dev
-    types:
-      - opened
-      - reopened
 jobs:
   cypress-run:
     runs-on: ubuntu-22.04

@@ -2,7 +2,6 @@ name: Deployment
 
 on:
   workflow_run:
-  fork:
 
 jobs:
   deploy:

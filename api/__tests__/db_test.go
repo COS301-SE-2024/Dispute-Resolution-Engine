@@ -3,7 +3,6 @@ package api
 import (
 	"api/db"
 	"api/handlers"
-	"log"
 	"net/http"
 	"github.com/gorilla/mux"
 	
@@ -22,6 +21,5 @@ func TestInit(t *testing.T) {
 
 	router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
 	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
-	log.Println("API server is running on port 8080")
 	
 }

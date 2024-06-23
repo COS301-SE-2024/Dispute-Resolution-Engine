@@ -2,14 +2,6 @@ name: Jest-Test
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
-  pull_request:
-    branches:
-      - main
-      - release
-      - dev
-    types:
-      - opened
-      - reopened
 jobs:
   jest-test:
     runs-on: ubuntu-latest

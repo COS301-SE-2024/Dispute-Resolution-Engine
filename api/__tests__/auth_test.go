@@ -2,7 +2,7 @@ package api
 
 import (
     "api/handlers"
-    "api/db" // Import the package that contains the db symbol
+    "api/db" // Import the package that contains the db symbo
     "net/http"
     "net/http/httptest"
     "strings"

@@ -38,6 +38,13 @@ jobs:
           directory:  .
           file_name: fe.env
           fail_on_empty: false    
+      - name: Make red.env file
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_REDIS_PASSWORD : ${{ secrets.REDIS_PASSWORD }}
+          directory:  .
+          file_name: red.env
+          fail_on_empty: false
       
       - name: Docker compose build
         run: |

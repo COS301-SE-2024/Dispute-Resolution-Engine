@@ -71,7 +71,7 @@ func (h Handler) getDispute(w http.ResponseWriter, r *http.Request) {
 func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
     // Parse multipart form
     if err := r.ParseMultipartForm(10 << 20); err != nil { // 10 << 20 is 10 MB max memory
-        http.Error(w, "Failed to parse form", http.StatusBadRequest)
+        utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Failed to parse multipart form"})
         return
     }
 
@@ -143,7 +143,7 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
     for _, fileHeader := range files {
         file, err := fileHeader.Open()
         if err != nil {
-            http.Error(w, "Failed to open file", http.StatusInternalServerError)
+            utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Failed to open file"})
             return
         }
         defer file.Close()

@@ -60,9 +60,9 @@ const (
 )
 
 type Dispute struct {
-	ID          int64            `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	ID          *int64            `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
 	CaseDate    time.Time        `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
-	Workflow    int64            `json:"workflow" gorm:"column:workflow"`
+	Workflow    *int64            `json:"workflow" gorm:"column:workflow"`
 	Status      string           `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
 	Title       string           `json:"title" gorm:"type:varchar(255);not null;column:title"`
 	Description string           `json:"description" gorm:"type:text;column:description"`

@@ -83,6 +83,8 @@ func (a *Argon2idHash) Compare(hash, salt, password []byte) bool {
 
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(v)
 }

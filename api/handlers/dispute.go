@@ -70,6 +70,12 @@ func (h Handler) getDispute(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+
+
+
     // Parse multipart form
 	log.Println("Creating dispute")
     if err := r.ParseMultipartForm(10 << 20); err != nil { // 10 << 20 is 10 MB max memory
@@ -103,7 +109,7 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 			utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid full name"})
 			return
 		}
-		return
+		
 	} else if err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
 		return
@@ -115,7 +121,7 @@ func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
 	dispute := models.Dispute{
 		Title:        title,
 		CaseDate:    time.Now(),
-		Workflow:    1,
+		Workflow:    nil,
 		Status:      "Awaiting Respondant",
 		Description: description,
 		Complainant: complainantID,
@@ -327,7 +333,7 @@ func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request
 	var archiveDisputeSummaries []models.ArchivedDisputeSummary
 	for _, dispute := range disputes {
 		archiveDisputeSummaries = append(archiveDisputeSummaries, models.ArchivedDisputeSummary{
-			ID:           dispute.ID,
+			ID:           *dispute.ID,
 			Title:        dispute.Title,
 			Summary:      dispute.Description,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
@@ -492,10 +498,10 @@ func (h Handler) getArchive(w http.ResponseWriter, r *http.Request) {
 
 	//transform to archive dispute
 	var archiveDispute models.ArchivedDispute
-	if dispute.ID != 0 {
+	if *dispute.ID != 0 {
 		archiveDispute = models.ArchivedDispute{
 			ArchivedDisputeSummary: models.ArchivedDisputeSummary{
-				ID:           dispute.ID,
+				ID:           *dispute.ID,
 				Title:        dispute.Title,
 				Summary:      dispute.Description,
 				Category:     []string{"Dispute"}, // Assuming a default category for now

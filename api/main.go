@@ -36,6 +36,8 @@ func main() {
 	h := handlers.New(DB, redisClient)
 	router := mux.NewRouter()
 
+	router.Use(middleware.CorsMiddleware)
+
 	//setup handlers
 	// router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
 	// router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)

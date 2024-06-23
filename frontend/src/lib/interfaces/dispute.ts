@@ -43,24 +43,14 @@ export type DisputeResponse = {
  * This needs to be refactored to include FormData
  */
 export interface DisputeCreateRequest {
+  title: string;
   description: string;
-  desired_outcome: string;
-
+  evidence: File[];
   respondent: {
     full_name: string;
     email: string;
     telephone: string;
   };
-
-  jurisdictional_basis: Evidence;
-
-  /**
-   * IDs of all adjudicators to be appointed
-   */
-  adjudicators: string[];
-
-  // This should be FormData, but I don't know how to annotate that
-  evidence: Evidence[];
 }
 
 export type DisputeCreateResponse = string;

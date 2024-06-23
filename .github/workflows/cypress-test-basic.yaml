@@ -1,57 +1,94 @@
 name: End-to-end tests
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - release
+    types:
+      - opened
+      - reopened
 jobs:
-  cypress-run:
+  setup-server:
     runs-on: ubuntu-22.04
-    # container:
-    #   image: cypress/included
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Cache Docker image
-        uses: actions/cache@v3
+      - name: Make db env file
+        uses: SpicyPizza/create-envfile@v1.3
         with:
-          path: /tmp/cypress.tar
-          key: cypress-image-${{ hashFiles('**/Dockerfile') }}
-
-      - name: Load cached Docker image
+          envkey_POSTGRES_PASSWORD : ${{ secrets.POSTGRES_PASSWORD }}
+          envkey_POSTGRES_USER : ${{ secrets.POSTGRES_USER }}
+          envkey_POSTGRES_DB : ${{ secrets.POSTGRES_DB }}
+          directory:  .
+          file_name: db.env
+          fail_on_empty: false
+      - name: Make api env files
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_DATABASE_URL : ${{ secrets.DATABASE_URL }}
+          envkey_DATABASE_PORT : ${{ secrets.DATABASE_PORT }}
+          envkey_DATABASE_NAME : ${{ secrets.DATABASE_NAME }}
+          envkey_DATABASE_USER : ${{ secrets.DATABASE_USER }}
+          envkey_DATABASE_PASSWORD : ${{ secrets.DATABASE_PASSWORD }}
+          envkey_COMPANY_EMAIL : ${{ secrets.COMPANY_EMAIL }}
+          envkey_COMPANY_AUTH : ${{ secrets.COMPANY_AUTH }}
+          directory:  .
+          file_name: api.env
+          fail_on_empty: false
+      - name: Make fe env files
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_API_URL : ${{ secrets.API_URL }}
+          directory:  .
+          file_name: fe.env
+          fail_on_empty: false    
+      - name: Make red.env file
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_REDIS_PASSWORD : ${{ secrets.REDIS_PASSWORD }}
+          directory:  .
+          file_name: red.env
+          fail_on_empty: false
+      - name: Start DB and API
         run: |
-          if [ -f /tmp/cypress.tar ]; then
-            docker load -i /tmp/cypress.tar
-          else
-            docker pull cypress/included
-            docker save cypress/included > /tmp/cypress.tar
-          fi
-      - name: Cache node modules
+          docker compose build
+          docker compose up -d
+  do-cypress-test:
+    needs: setup-server
+    container:
+      image: cypress/included
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.20.3'
+          cache-dependency-path: 'frontend/yarn.lock'
+
+      - name: Cache Node modules
         uses: actions/cache@v3
         with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          path: |
+            frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-node-
-
       - name: Install dependencies
         run: |
-          cd frontend
-          npm install -g yarn --force
           yarn install
-      - name: Cache build outputs
-        uses: actions/cache@v3
-        with:
-          path: frontend/build
-          key: ${{ runner.os }}-build-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-build-
-      - name: Start server
+        working-directory: frontend
+      - name: Run cypress
         run: |
-          cd $GITHUB_WORKSPACE
-          touch fe.env
-          touch api.env
-          touch db.env
-          docker compose up -d
-      - name: Cypress run
-        uses: cypress-io/github-action@v6
-        with:
-          working-directory: frontend
+          yarn cypress run
+        working-directory: frontend
+      # - name: Cypress run
+      #   uses: cypress-io/github-action@v6
+      #   with:
+      #     working-directory: frontend

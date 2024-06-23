@@ -31,38 +31,38 @@ import (
 // @BasePath /api
 
 func main() {
-    DB := db.Init()
-    h := handlers.New(DB)
-    router := mux.NewRouter()
+	DB := db.Init()
+	h := handlers.New(DB)
+	router := mux.NewRouter()
 
-    //setup handlers
-    // router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
-    // router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
-    // router.HandleFunc("/utils/countries", h.GetCountries).Methods(http.MethodGet)
+	//setup handlers
+	// router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
+	// router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
+	router.HandleFunc("/utils/countries", h.GetCountries).Methods(http.MethodGet)
 
-    authRouter := router.PathPrefix("/auth").Subrouter()
-    handlers.SetupAuthRoutes(authRouter, h)
+	authRouter := router.PathPrefix("/auth").Subrouter()
+	handlers.SetupAuthRoutes(authRouter, h)
 
-    userRouter := router.PathPrefix("/user").Subrouter()
-    userRouter.Use(middleware.JWTMiddleware)
-    handlers.SetupUserRoutes(userRouter, h)
+	userRouter := router.PathPrefix("/user").Subrouter()
+	userRouter.Use(middleware.JWTMiddleware)
+	handlers.SetupUserRoutes(userRouter, h)
 
-    disputeRouter := router.PathPrefix("/dispute").Subrouter()
-    disputeRouter.Use(middleware.JWTMiddleware)
-    handlers.SetupDisputeRoutes(disputeRouter, h)
+	disputeRouter := router.PathPrefix("/dispute").Subrouter()
+	disputeRouter.Use(middleware.JWTMiddleware)
+	handlers.SetupDisputeRoutes(disputeRouter, h)
 
-    // Swagger setup
-    setupSwaggerDocs(router)
+	// Swagger setup
+	setupSwaggerDocs(router)
 
-    log.Println("API server is running on port 8080")
-    http.ListenAndServe(":8080", router)
+	log.Println("API server is running on port 8080")
+	http.ListenAndServe(":8080", router)
 }
 
 func setupSwaggerDocs(router *mux.Router) {
-    // Create a new gin engine
-    ginRouter := gin.Default()
-    ginRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Create a new gin engine
+	ginRouter := gin.Default()
+	ginRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-    // Serve the gin engine on a specific route in the main mux router
-    router.PathPrefix("/swagger/").Handler(ginRouter)
+	// Serve the gin engine on a specific route in the main mux router
+	router.PathPrefix("/swagger/").Handler(ginRouter)
 }

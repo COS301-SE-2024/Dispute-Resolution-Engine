@@ -96,17 +96,6 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Timezone:          reqUser.Timezone,
 	}
 
-	// address := models.Address{
-	// 	Code:        nil, //to be filled in a later request
-	// 	Country:     reqUser.Country,
-	// 	Province:    reqUser.Province,
-	// 	City:        reqUser.City,
-	// 	Street3:     reqUser.Street3,
-	// 	Street2:     reqUser.Street2,
-	// 	Street:      reqUser.Street,
-	// 	AddressType: reqUser.AddressType,
-	// }
-
 	//Check if there is an existing email
 	duplicate := h.checkUserExists(user.Email)
 
@@ -114,18 +103,6 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		utilities.WriteJSON(w, http.StatusConflict, models.Response{Error: "Email already in use"})
 		return
 	}
-	//get country code
-	// var country models.Country
-	// h.DB.Where("country_name = ?", reqUser.Country).First(&country)
-	// address.Code = &country.CountryCode
-
-	//create the address
-	// if result := h.DB.Create(&address); result.Error != nil {
-	// 	utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong creating the address..."})
-	// 	return
-	// }
-	//get the address id
-	// user.AddressID = &address.ID
 
 	//Hash the password
 	hashAndSalt := hasher.HashPassword(user.PasswordHash)

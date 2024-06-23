@@ -261,8 +261,8 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	if UpdateUserAddress.Country != nil {
 		var country models.Country
 		h.DB.Where("country_code = ?", UpdateUserAddress.Country).First(&country)
-		dbAddress.Code = UpdateUserAddress.Country
-		dbAddress.Country = &country.CountryName
+		dbAddress.Country = UpdateUserAddress.Country
+		dbAddress.CountryName = &country.CountryName
 	}
 	if UpdateUserAddress.Province != nil {
 		dbAddress.Province = UpdateUserAddress.Province

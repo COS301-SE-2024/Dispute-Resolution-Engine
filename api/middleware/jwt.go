@@ -94,6 +94,9 @@ func JWTMiddleware(next http.Handler) http.Handler {
 		token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 			return jwtSecretKey, nil
 		})
+
+        
+
 		if err != nil {
 			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
@@ -101,6 +104,16 @@ func JWTMiddleware(next http.Handler) http.Handler {
 
 		if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 			ctx := context.WithValue(r.Context(), "user", claims)
+            userEmail := claims.Email
+            jwt, err := GetJWT(userEmail)
+            if err != nil {
+                utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+                return
+            }
+            if jwt != tokenString {
+                utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+                return
+            }
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
 			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})

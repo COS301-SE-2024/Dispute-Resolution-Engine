@@ -311,29 +311,61 @@ func (h Handler) getArchive(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//mock body
-	body := models.ArchivedDispute{
-		ArchivedDisputeSummary: models.ArchivedDisputeSummary{
-			ID:           int64(intID),
-			Title:        "Dispute " + id,
-			Summary:      "Summary " + id,
-			Category:     []string{"Category " + id},
-			DateFiled:    time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-			DateResolved: time.Date(2021, time.January, 2, 0, 0, 0, 0, time.UTC),
-			Resolution:   "Resolution " + id,
-		},
-		Events: []models.Event{
-			{
-				Timestamp:   "2021-01-01T00:00:00Z",
-				Type:        "Type 1",
-				Description: "Details 1",
-			},
-			{
-				Timestamp:   "2021-01-02T00:00:00Z",
-				Type:        "Type 2",
-				Description: "Details 2",
-			},
-		},
+	// body := models.ArchivedDispute{
+	// 	ArchivedDisputeSummary: models.ArchivedDisputeSummary{
+	// 		ID:           int64(intID),
+	// 		Title:        "Dispute " + id,
+	// 		Summary:      "Summary " + id,
+	// 		Category:     []string{"Category " + id},
+	// 		DateFiled:    time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
+	// 		DateResolved: time.Date(2021, time.January, 2, 0, 0, 0, 0, time.UTC),
+	// 		Resolution:   "Resolution " + id,
+	// 	},
+	// 	Events: []models.Event{
+	// 		{
+	// 			Timestamp:   "2021-01-01T00:00:00Z",
+	// 			Type:        "Type 1",
+	// 			Description: "Details 1",
+	// 		},
+	// 		{
+	// 			Timestamp:   "2021-01-02T00:00:00Z",
+	// 			Type:        "Type 2",
+	// 			Description: "Details 2",
+	// 		},
+	// 	},
+	// }
+
+	//request to db
+	var dispute models.Dispute
+
+	err = h.DB.Where("id = ?", intID).First(&dispute).Error
+	if err != nil && err.Error() == "record not found" {
+		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Data: ""})
+		return
+	} else if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error retrieving dispute"})
+		return
 	}
 
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: body})
+	//transform to archive dispute
+	var archiveDispute models.ArchivedDispute
+	if dispute.ID != 0 {
+		archiveDispute = models.ArchivedDispute{
+			ArchivedDisputeSummary: models.ArchivedDisputeSummary{
+				ID:           dispute.ID,
+				Title:        dispute.Title,
+				Summary:      dispute.Description,
+				Category:     []string{"Dispute"}, // Assuming a default category for now
+				DateFiled:    dispute.CaseDate,
+				DateResolved: dispute.CaseDate.Add(48 * time.Hour), // Placeholder for resolved date
+				Resolution:   string(dispute.Decision),
+			},
+			Events: []models.Event{},
+		}
+		utilities.WriteJSON(w, http.StatusOK, models.Response{Data: archiveDispute})
+		return
+	} else {
+		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Data: ""})
+	}
+
 }

@@ -16,6 +16,7 @@ func SetupUserRoutes(router *mux.Router, h Handler) {
 	router.HandleFunc("/profile", h.updateUser).Methods(http.MethodPut)
 	router.HandleFunc("/profile", h.getUser).Methods(http.MethodGet)
 	router.HandleFunc("/remove", h.RemoveAccount).Methods(http.MethodDelete)
+	router.HandleFunc("/profile/address", h.UpdateUserAddress).Methods(http.MethodPut)
 }
 
 // @Summary Get user profile
@@ -43,9 +44,10 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Retrieve all addresses associated with the user from the database
-	var dbAddresses []models.Address
-	if err := h.DB.Where("id = ?", dbUser.AddressID).Find(&dbAddresses).Error; err != nil || len(dbAddresses) == 0 {
-		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "No addresses found for user"})
+	var dbAddresses models.Address
+	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddresses)
+	if err := h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddresses).Error; err != nil {
+		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "Address not found"})
 		return
 	}
 
@@ -64,6 +66,8 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 		Theme:             "dark",
 	}
 
+	// Print the dbAddresses object for debug purposes
+	print(dbAddresses.Country)
 	// Return the response
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: user})
 }
@@ -84,7 +88,7 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
 		return
 	}
-
+	jwtClaims := middleware.GetClaims(r)
 	//get the user id from the request
 	var updateUser models.UpdateUser
 
@@ -97,7 +101,7 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 
 	//retrieve the user from the database
 	var dbUser models.User
-	h.DB.Where("id = ?", updateUser.Email).First(&dbUser)
+	h.DB.Where("id = ?", jwtClaims.User.ID).First(&dbUser)
 
 	var dbAddress models.Address
 	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddress)
@@ -109,33 +113,22 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	if updateUser.Surname != "" {
 		dbUser.Surname = updateUser.Surname
 	}
-	if updateUser.Code != nil {
-		dbAddress.Code = updateUser.Code
+	if updateUser.Phone_number != nil {
+		dbUser.PhoneNumber = updateUser.Phone_number
 	}
-	if updateUser.Country != nil {
-		var dbCountry models.Country
-		dbAddress.Country = updateUser.Country
-		h.DB.Where("country_name = ?", updateUser.Country).First(&dbCountry)
-		dbAddress.Code = &dbCountry.CountryCode
+	if updateUser.Gender != "" {
+		dbUser.Gender = updateUser.Gender
 	}
-	if updateUser.Province != nil {
-		dbAddress.Province = updateUser.Province
+	if updateUser.Nationality != "" {
+		dbUser.Nationality = updateUser.Nationality
 	}
-	if updateUser.City != nil {
-		dbAddress.City = updateUser.City
+	if updateUser.Timezone != nil {
+		dbUser.Timezone = updateUser.Timezone
 	}
-	if updateUser.Street3 != nil {
-		dbAddress.Street3 = updateUser.Street3
+	if updateUser.Preferred_language != nil {
+		dbUser.PreferredLanguage = updateUser.Preferred_language
 	}
-	if updateUser.Street2 != nil {
-		dbAddress.Street2 = updateUser.Street2
-	}
-	if updateUser.Street != nil {
-		dbAddress.Street = updateUser.Street
-	}
-	if updateUser.AddressType != nil {
-		dbAddress.AddressType = updateUser.AddressType
-	}
+
 
 	//now update the user and address
 	h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)
@@ -210,10 +203,16 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	//read request body into variable
 	defer r.Body.Close()
 	body, err := io.ReadAll(r.Body)
+
+	jwtClaims := middleware.GetClaims(r)
+
 	if err != nil {
 		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
 		return
 	}
+
+	insertAddress := false
+
 	//here we get the details of the request
 	var UpdateUserAddress models.UpdateAddress
 	err = json.Unmarshal(body, &UpdateUserAddress)
@@ -223,36 +222,51 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	}
 	//retrieve the record from the database
 	var dbUser models.User
-	h.DB.Where("email = ?", UpdateUserAddress.Email).First(&dbUser)
+	h.DB.Where("id = ?", jwtClaims.User.ID).First(&dbUser)
 
+	if dbUser.AddressID == nil {
+		insertAddress = true
+	}
 	//now we have to set the address parameters using the passed in data
 	var dbAddress models.Address
 
 	//first fetch the country code based on the name
-	var country models.Country
-	h.DB.Where("country_name = ?", UpdateUserAddress.Country).First(&country)
-
-	//now we create the assignment between database and request body
-	dbAddress.Code = &country.CountryCode
-	dbAddress.Country = UpdateUserAddress.Country
-	dbAddress.Province = UpdateUserAddress.Province
-	dbAddress.City = UpdateUserAddress.City
-	dbAddress.Street3 = UpdateUserAddress.Street3
-	dbAddress.Street2 = UpdateUserAddress.Street2
-	dbAddress.Street = UpdateUserAddress.Street
-	dbAddress.AddressType = UpdateUserAddress.AddressType
-
-	var count int64
-	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Count(&count)
-	if count == 0 {
-		// Insert the new address
-		h.DB.Create(&dbAddress)
-		// Update the user with the new address id
-		h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Update("address_id", dbAddress.ID)
-	} else {
-		// Proceed with the update
-		h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
+	if UpdateUserAddress.Country != nil {
+		var country models.Country
+		h.DB.Where("country_code = ?", UpdateUserAddress.Country).First(&country)
+		dbAddress.Country = UpdateUserAddress.Country
+		dbAddress.CountryName = &country.CountryName
 	}
+	if UpdateUserAddress.Province != nil {
+		dbAddress.Province = UpdateUserAddress.Province
+	}
+	if UpdateUserAddress.City != nil {
+		dbAddress.City = UpdateUserAddress.City
+	}
+	if UpdateUserAddress.Street3 != nil {
+		dbAddress.Street3 = UpdateUserAddress.Street3
+	}
+	if UpdateUserAddress.Street2 != nil {
+		dbAddress.Street2 = UpdateUserAddress.Street2
+	}
+	if UpdateUserAddress.Street != nil {
+		dbAddress.Street = UpdateUserAddress.Street
+	}
+	if UpdateUserAddress.AddressType != nil {
+		dbAddress.AddressType = UpdateUserAddress.AddressType
+	}
+
+	if insertAddress {
+		//insert the address
+		h.DB.Create(&dbAddress)
+		dbUser.AddressID = &dbAddress.ID
+		h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)
+		utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User address updated successfully"})
+		return
+	}
+
+	//now update the address
+	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
 
 	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User address updated successfully"})
 }

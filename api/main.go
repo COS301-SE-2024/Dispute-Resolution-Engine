@@ -41,7 +41,7 @@ func main() {
 	//setup handlers
 	// router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
 	// router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
-	// router.HandleFunc("/utils/countries", h.GetCountries).Methods(http.MethodGet)
+	router.HandleFunc("/utils/countries", h.GetCountries).Methods(http.MethodGet)
 
 	authRouter := router.PathPrefix("/auth").Subrouter()
 	handlers.SetupAuthRoutes(authRouter, h)

@@ -12,6 +12,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18.20.3'
+          cache: 'yarn' # This line enables caching for Yarn dependencies
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install dependencies
         run: |
           cd frontend

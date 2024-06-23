@@ -66,9 +66,6 @@ export async function signup(
   }
   setAuth(resData, JWT_VERIFY_TIMEOUT);
   redirect("/signup/verify");
-  return {
-    data: "Signup successful",
-  };
 }
 
 export async function login(
@@ -104,9 +101,7 @@ export async function login(
     };
   }
   setAuth(resData);
-  return {
-    data: "Login successful",
-  };
+  redirect("/disputes");
 }
 
 export async function verify(

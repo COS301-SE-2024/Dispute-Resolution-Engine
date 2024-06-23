@@ -189,3 +189,85 @@ Accessible Component Libraries:
 Next.js supports a wide range of component libraries, facilitating rapid development and integration of UI components, which enhances our development efficiency and user experience.
 Conclusion:
 Considering the comprehensive support, performance capabilities, and overall development efficiency, Next.js emerges as the optimal choice for our frontend component. Its alignment with our architecture strategies, combined with a strong community and ecosystem, ensures a robust and scalable solution for our application.
+
+Sure! Here's the comparison in Markdown format:
+
+### Component Libraries for Next.js
+
+#### 1. ShadCN
+**Overview:**
+ShadCN is a modern, customizable component library designed to work seamlessly with Next.js. It provides a collection of pre-built, styled components that can be easily integrated into Next.js applications.
+
+**Pros:**
+- **Customizability:** Highly customizable components to fit various design needs.
+- **Modern Design:** Adopts contemporary design principles ensuring a sleek user interface.
+- **Next.js Integration:** Designed to work seamlessly with Next.js, ensuring compatibility and ease of use.
+- **Theming:** Supports theming, making it easy to maintain a consistent look and feel.
+
+**Cons:**
+- **Smaller Community:** Compared to more established libraries, ShadCN has a smaller user base and community.
+- **Documentation:** May have less comprehensive documentation compared to more mature libraries.
+
+**Fit with Architecture Strategies:**
+- **Flexibility:** High customizability aligns with the need for flexible and adaptive UI design.
+- **Modern UI:** Ensures the application has a modern and appealing user interface.
+- **Theming:** Supports consistent theming, enhancing the maintainability of the UI.
+
+#### 2. Chakra UI
+**Overview:**
+Chakra UI is a simple, modular, and accessible component library that gives you all the building blocks you need to build React applications. It is designed with a focus on simplicity and accessibility.
+
+**Pros:**
+- **Simplicity:** Easy to use and integrate with Next.js applications.
+- **Accessibility:** Built with accessibility in mind, ensuring components are usable by everyone.
+- **Theming:** Provides robust theming capabilities.
+- **Modularity:** Modular approach allows for easy customization and extension.
+
+**Cons:**
+- **Learning Curve:** Although simple, it may require some learning to utilize its full potential.
+- **Performance:** Might introduce some performance overhead due to its extensive feature set.
+
+**Fit with Architecture Strategies:**
+- **Accessibility:** Ensures the application is accessible to a broader audience.
+- **Simplicity:** Simplifies the development process with easy-to-use components.
+- **Customizability:** Theming and modularity support a consistent and customizable UI design.
+
+#### 3. Material-UI (MUI)
+**Overview:**
+Material-UI is one of the most popular React component libraries, implementing Google's Material Design principles. It provides a comprehensive set of components that can be easily integrated into Next.js projects.
+
+**Pros:**
+- **Popularity:** Large community and extensive documentation.
+- **Material Design:** Provides a consistent design language following Material Design guidelines.
+- **Theming:** Robust theming capabilities for consistent design.
+- **Rich Component Set:** Comprehensive set of pre-built components.
+
+**Cons:**
+- **Bundle Size:** Larger bundle size compared to some other libraries.
+- **Customization:** Customizing components to deviate from Material Design can be complex.
+- **Performance:** Can introduce performance overhead due to its comprehensive feature set.
+
+**Fit with Architecture Strategies:**
+- **Consistency:** Ensures a consistent UI with Material Design principles.
+- **Community Support:** Extensive community and documentation aid in development and troubleshooting.
+- **Comprehensive:** Rich component set allows for rapid development of various UI elements.
+
+### Final Component Library Choice: ShadCN
+
+**Reasoning:**
+We chose ShadCN for our project for the following reasons:
+
+1. **Customizability:**
+   - ShadCN offers highly customizable components, allowing us to tailor the UI to our specific design requirements without being constrained by predefined styles.
+
+2. **Modern Design:**
+   - The library's contemporary design principles ensure our application has a sleek and modern look, enhancing user experience.
+
+3. **Seamless Next.js Integration:**
+   - Designed to work seamlessly with Next.js, ShadCN ensures compatibility and ease of integration, streamlining our development process.
+
+4. **Theming:**
+   - The robust theming support allows us to maintain a consistent look and feel across the application, enhancing maintainability and user experience.
+
+**Conclusion:**
+Considering the high customizability, modern design, and seamless integration with Next.js, ShadCN is the optimal choice for our component library. Its alignment with our architecture strategies ensures a flexible, maintainable, and visually appealing UI for our application.

@@ -10,9 +10,6 @@ WORKDIR /app
 # Copy go mod and sum files
 COPY go.mod go.sum ./
 
-# Install CA Certificates in Docker Container
-RUN apt-get update && apt-get install -y ca-certificates
-
 # Download all dependencies.
 RUN go mod download
 

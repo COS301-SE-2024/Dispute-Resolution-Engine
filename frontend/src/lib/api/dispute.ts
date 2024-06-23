@@ -81,14 +81,20 @@ export async function createDispute(data: any): Promise<Result<DisputeResponse>>
       error: "Unauthorized",
     };
   }
-  return fetch(`${API_URL}/disputes/create`, {
+  const sendData = {
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
     method: "POST",
     body: data,
-  })
-    .then((res) => res.json())
+  }
+  console.log("SEND DATA", sendData)
+  return fetch(`${API_URL}/disputes/create`, sendData)
+    .then(function(res){
+      console.log("RESPONSE")
+      console.log(res);
+      return res.json()
+    })
     .catch((e: Error) => ({
       error: e.message,
     }));

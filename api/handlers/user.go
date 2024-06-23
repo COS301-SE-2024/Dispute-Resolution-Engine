@@ -43,8 +43,8 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Retrieve all addresses associated with the user from the database
-	var dbAddresses []models.Address
-	if err := h.DB.Where("id = ?", dbUser.AddressID).Find(&dbAddresses).Error; err != nil || len(dbAddresses) == 0 {
+	var dbAddresses models.Address
+	if err := h.DB.Where("id = ?", dbUser.AddressID).Find(&dbAddresses).Error; err != nil {
 		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "No addresses found for user"})
 		return
 	}
@@ -109,20 +109,20 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	if updateUser.Surname != "" {
 		dbUser.Surname = updateUser.Surname
 	}
-	if updateUser.phone_number != nil {
-		dbUser.PhoneNumber = updateUser.phone_number
+	if updateUser.Phone_number != nil {
+		dbUser.PhoneNumber = updateUser.Phone_number
 	}
-	if updateUser.gender != "" {
-		dbUser.Gender = updateUser
+	if updateUser.Gender != "" {
+		dbUser.Gender = updateUser.Gender
 	}
-	if updateUser.nationality != "" {
-		dbUser.Nationality = updateUser.nationality
+	if updateUser.Nationality != "" {
+		dbUser.Nationality = updateUser.Nationality
 	}
-	if updateUser.timezone != nil {
-		dbUser.Timezone = updateUser.timezone
+	if updateUser.Timezone != nil {
+		dbUser.Timezone = updateUser.Timezone
 	}
-	if updateUser.preferred_language != nil {
-		dbUser.PreferredLanguage = updateUser.preferred_language
+	if updateUser.Preferred_language != nil {
+		dbUser.PreferredLanguage = updateUser.Preferred_language
 	}
 
 	// if updateUser.Code != nil {

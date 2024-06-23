@@ -1,23 +1,13 @@
 package models
 
 type UpdateUser struct {
-	FirstName string `json:"first_name"`
-	Surname   string `json:"surname"`
-	// Email     string `json:"email"`
-	phone_number       *string `json:"phone_number"`
-	gender             string
-	nationality        string
-	timezone           *string
-	preferred_language *string
-
-	// Code        *string `json:"code"` //This is the country code
-	// Country     *string `json:"country"`
-	// Province    *string `json:"province"`
-	// City        *string `json:"city"`
-	// Street3     *string `json:"street3"`
-	// Street2     *string `json:"street2"`
-	// Street      *string `json:"street"`
-	// AddressType *string `json:"address_type"`
+	FirstName          string  `json:"first_name"`
+	Surname            string  `json:"surname"`
+	Phone_number       *string `json:"phone_number"`
+	Gender             string  `json:"gender"`
+	Nationality        string  `json:"nationality"`
+	Timezone           *string `json:"timezone"`
+	Preferred_language *string `json:"preferred_language"`
 }
 
 type GetUser struct {
@@ -33,8 +23,8 @@ type GetUser struct {
 	Timezone          *string `json:"timezone"`
 	PreferredLanguage *string `json:"preferred_language"`
 
-	Address []Address `json:"address"`
-	Theme   string    `json:"theme"`
+	Address Address `json:"address"`
+	Theme   string  `json:"theme"`
 }
 
 type CreateUser struct {

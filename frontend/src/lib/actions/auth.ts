@@ -36,28 +36,26 @@ export async function signup(
       error: error.format(),
     };
   }
-  const resData = "unverified";
-  const resError = undefined;
 
   // TODO: uncomment once API works
-  // const { data: resData, error: resError } = await fetch(`${API_URL}/auth/signup`, {
-  //   method: "POST",
-  //   body: JSON.stringify({
-  //     first_name: data.firstName,
-  //     surname: data.lastName,
-  //     email: data.email,
-  //     phone_number: "0110110110",
+  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/signup`, {
+    method: "POST",
+    body: JSON.stringify({
+      first_name: data.firstName,
+      surname: data.lastName,
+      email: data.email,
+      phone_number: "0110110110",
 
-  //     password: data.password,
+      password: data.password,
 
-  //     birthdate: data.dateOfBirth,
-  //     gender: "Male",
-  //     nationality: "za",
+      birthdate: data.dateOfBirth,
+      gender: "Male",
+      nationality: "za",
 
-  //     timezone: ".",
-  //     preferred_language: ".",
-  //   }),
-  // }).then((res) => res.json());
+      timezone: ".",
+      preferred_language: ".",
+    }),
+  }).then((res) => res.json());
 
   if (resError) {
     return {
@@ -86,19 +84,16 @@ export async function login(
     };
   }
 
-  const resData = "working";
-  const resError = undefined;
-
   // TODO: uncomment when API is working
   // Send request to the API
-  // const { data: resData, error: resError } = await fetch(`${API_URL}/auth/login`, {
-  //   method: "POST",
-  //   body: JSON.stringify({
-  //     email: data.email,
-  //     password: data.password,
-  //   }),
-  // }).then((res) => res.json());
-  // console.log(resData);
+  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    body: JSON.stringify({
+      email: data.email,
+      password: data.password,
+    }),
+  }).then((res) => res.json());
+  console.log(resData);
 
   // Handle errors
   if (resError) {
@@ -137,22 +132,18 @@ export async function verify(
     };
   }
 
-  const resData = "working";
-  const resError = data.pin == "123456" ? undefined : "Incorrect OTP";
-
   // TODO: uncomment once API works
   // Send request to the API
-  // const { data: resData, error: resError } = await fetch(`${API_URL}/auth/verify`, {
-  //   method: "POST",
-  //   headers: {
-  //     Authorization: `Bearer ${jwt}`,
-  //   },
-  //   body: JSON.stringify({
-  //     email: data.email,
-  //     password: data.password,
-  //   }),
-  // }).then((res) => res.json());
-  // console.log(resData);
+  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/verify`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+    body: JSON.stringify({
+      pin: data.pin,
+    }),
+  }).then((res) => res.json());
+  console.log(resData);
 
   // Handle Errors
   if (resError) {

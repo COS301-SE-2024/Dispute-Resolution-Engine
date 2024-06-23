@@ -54,7 +54,7 @@ export default async function Profile() {
                         </Tabs>
                     </CardContent>
                     <CardFooter className="flex justify-between">
-                        <Button variant="destructive">Delete Account</Button>
+                        {/* <Button variant="destructive">Delete Account</Button> */}
                         <ProfileUpdateMessage />
                         <ProfileUpdateButton />
                     </CardFooter></ProfileUpdateForm>

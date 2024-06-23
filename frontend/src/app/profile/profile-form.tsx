@@ -73,7 +73,7 @@ export function ProfileUpdateButton() {
   const { pending } = useFormStatus();
   return (
     <Button disabled={pending} type="submit">
-      Signup
+      Save
     </Button>
   );
 }

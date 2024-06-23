@@ -27,7 +27,11 @@ func SetupDisputeRoutes(router *mux.Router, h Handler) {
 	disputeRouter.HandleFunc("", h.getSummaryListOfDisputes).Methods(http.MethodGet)
 	disputeRouter.HandleFunc("/{id}", h.getDispute).Methods(http.MethodGet)
 	disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
-	disputeRouter.HandleFunc("/create", h.createDispute).Methods(http.MethodPost)
+
+	//create dispute
+	createRouter := disputeRouter.PathPrefix("/create").Subrouter()
+	createRouter.Use(middleware.CorsMiddleware)
+	createRouter.HandleFunc("", h.createDispute).Methods(http.MethodPost)
 
 	//archive routes
 	archiveRouter := router.PathPrefix("/archive").Subrouter()

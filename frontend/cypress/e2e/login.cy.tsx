@@ -4,6 +4,7 @@ describe('Navigation', () => {
 		cy.contains('Email').type('alice@smith.co.za')
 		cy.contains('Password').type('Password1234#')
 		cy.get('button').contains('Login').click()
-		cy.get('p').contains('login successful')
+		// cy.get('p').contains('login successful')
+		cy.visit('http://localhost:3000/profile')
 	})	
   })

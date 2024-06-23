@@ -7,7 +7,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -22,8 +26,13 @@ func SetupDisputeRoutes(router *mux.Router, h Handler) {
 	disputeRouter.Use(middleware.JWTMiddleware)
 	disputeRouter.HandleFunc("", h.getSummaryListOfDisputes).Methods(http.MethodGet)
 	disputeRouter.HandleFunc("/{id}", h.getDispute).Methods(http.MethodGet)
-	disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
-	disputeRouter.HandleFunc("/create", h.createDispute).Methods(http.MethodPost)
+
+	//patch is not to be integrated yet
+	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
+
+	//create dispute
+	createRouter := disputeRouter.PathPrefix("/create").Subrouter()
+	createRouter.HandleFunc("", h.createDispute)
 
 	//archive routes
 	archiveRouter := router.PathPrefix("/archive").Subrouter()
@@ -60,36 +69,195 @@ func (h Handler) getDispute(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	id := vars["id"]
-	// var
 
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
+	var DisputeDetailsResponse models.DisputeDetailsResponse
+	err := h.DB.Raw("SELECT id, title, description, status, case_date FROM disputes WHERE id = ?", id).Scan(&DisputeDetailsResponse).Error
+
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+	}
+
+	err = h.DB.Raw("SELECT file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute_id = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+	}
+
+	err = h.DB.Raw("SELECT full_name FROM users WHERE id IN (SELECT user_id FROM dispute_experts WHERE dispute_id = ?)", id).Scan(&DisputeDetailsResponse.Experts).Error
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+	}
+
+	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: DisputeDetailsResponse})
+	// utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
 }
 
 func (h Handler) createDispute(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid request body"})
-		return
-	}
-	var createReq models.CreateDispute
-	if err := json.Unmarshal(body, &createReq); err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid request body, could not parse JSON"})
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+
+	// Parse multipart form
+	log.Println("Creating dispute")
+	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10 << 20 is 10 MB max memory
+		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Failed to parse multipart form"})
 		return
 	}
 
-	// Create a new dispute
+	// Access form values
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+	fullName := r.FormValue("respondent[full_name]")
+	email := r.FormValue("respondent[email]")
+	telephone := r.FormValue("respondent[telephone]")
+
+	//get complainants id
+	claims := middleware.GetClaims(r)
+	if claims == nil {
+		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+	complainantID := claims.User.ID
+
+	//check if respondant is in database by email and phone number
+	var respondantID *int64
+	var respondent models.User
+	err := h.DB.Where("email = ? AND phone_number = ?", email, telephone).First(&respondent).Error
+	if err != nil && err.Error() == "record not found" {
+		//create a deafult entry for the user
+		nameSplit := strings.Split(fullName, " ")
+		if len(nameSplit) < 2 {
+			utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid full name"})
+			return
+		}
+
+	} else if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
+		return
+	} else {
+		respondantID = &respondent.ID
+	}
+
+	//create entry into the dispute table
 	dispute := models.Dispute{
-		Title:       createReq.Title,
-		Description: createReq.Description,
+		Title:       title,
+		CaseDate:    time.Now(),
+		Workflow:    nil,
+		Status:      "Awaiting Respondant",
+		Description: description,
+		Complainant: complainantID,
+		Respondant:  respondantID,
+		Resolved:    false,
+		Decision:    models.Unresolved,
 	}
 
-	if err := h.DB.Create(&dispute).Error; err != nil {
+	err = h.DB.Create(&dispute).Error
+	if err != nil {
 		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating dispute"})
 		return
 	}
 
-	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "Success, id: " + string(dispute.ID)})
+	//get the id of the created dispute
+	var disputeFromDbInserted models.Dispute
+	err = h.DB.Where("title = ? AND case_date = ? AND status = ? AND description = ? AND complainant = ? AND resolved = ? AND decision = ?", title, time.Now(), "Awaiting Respondant", description, complainantID, false, models.Unresolved).First(&disputeFromDbInserted).Error
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error retrieving dispute"})
+		return
+	}
+
+	// Store files in Docker and retrieve URLs
+	fileURLs := []string{}
+	fileNames := []string{}
+	files := r.MultipartForm.File["files"]
+	for _, fileHeader := range files {
+		file, err := fileHeader.Open()
+		if err != nil {
+			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Failed to open file"})
+			return
+		}
+		defer file.Close()
+
+		// Generate a unique filename
+		fileName := filepath.Base(fileHeader.Filename)
+		fileNames = append(fileNames, fileName)
+		fileLocation := filepath.Join("/app/filestorage", fileName) // Assuming '/files' is where Docker mounts its storage
+
+		// Create the file in Docker (or any storage system you use)
+		f, err := os.Create(fileLocation)
+		if err != nil {
+			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Failed to create file in storage"})
+			return
+		}
+		defer f.Close()
+
+		// Copy file content to destination
+		_, err = io.Copy(f, file)
+		if err != nil {
+			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Failed to copy file content"})
+			return
+		}
+
+		// Generate URL for accessing the file
+		fileURL := fmt.Sprintf("https://your-domain.com%s", fileLocation)
+		fileURLs = append(fileURLs, fileURL)
+	}
+
+	// Store file URLs in PostgreSQL database
+	for i, fileURL := range fileURLs {
+		//add file to Database
+		file := models.File{
+			FileName: fileNames[i],
+			Uploaded: time.Now(),
+			FilePath: fileURL,
+		}
+
+		err = h.DB.Create(&file).Error
+		if err != nil {
+			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating file"})
+			return
+		}
+
+		//get id of the created file enrty
+		var fileFromDbInserted models.File
+		err = h.DB.Where("file_name = ? AND file_path = ?", fileNames[i], fileURL).First(&fileFromDbInserted).Error
+		if err != nil {
+			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error retrieving file"})
+			return
+		}
+
+		//add enrty to dispute evidence table
+		disputeEvidence := models.DisputeEvidence{
+			Dispute: *disputeFromDbInserted.ID,
+			FileID:  int64(*fileFromDbInserted.ID),
+		}
+		err = h.DB.Create(&disputeEvidence).Error
+		if err != nil {
+			utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating dispute evidence"})
+			return
+		}
+	}
+
+	// Respond with success message
+	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "Dispute created successfully"})
+	log.Printf("Dispute created successfully: %s", title)
+}
+
+// Function to get MIME type from file header
+func getFileType(fh *multipart.FileHeader) string {
+	file, err := fh.Open()
+	if err != nil {
+		return "application/octet-stream" // default to octet-stream if cannot determine type
+	}
+	defer file.Close()
+
+	// Determine file type based on MIME type
+	buffer := make([]byte, 512) // Read the first 512 bytes to detect MIME type
+	_, err = file.Read(buffer)
+	if err != nil {
+		return "application/octet-stream" // default to octet-stream if cannot determine type
+	}
+
+	mimeType := http.DetectContentType(buffer)
+	return mimeType
 }
 
 // @Summary Update a dispute
@@ -184,7 +352,7 @@ func (h Handler) getSummaryListOfArchives(w http.ResponseWriter, r *http.Request
 	var archiveDisputeSummaries []models.ArchivedDisputeSummary
 	for _, dispute := range disputes {
 		archiveDisputeSummaries = append(archiveDisputeSummaries, models.ArchivedDisputeSummary{
-			ID:           dispute.ID,
+			ID:           *dispute.ID,
 			Title:        dispute.Title,
 			Summary:      dispute.Description,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
@@ -349,10 +517,10 @@ func (h Handler) getArchive(w http.ResponseWriter, r *http.Request) {
 
 	//transform to archive dispute
 	var archiveDispute models.ArchivedDispute
-	if dispute.ID != 0 {
+	if *dispute.ID != 0 {
 		archiveDispute = models.ArchivedDispute{
 			ArchivedDisputeSummary: models.ArchivedDisputeSummary{
-				ID:           dispute.ID,
+				ID:           *dispute.ID,
 				Title:        dispute.Title,
 				Summary:      dispute.Description,
 				Category:     []string{"Dispute"}, // Assuming a default category for now

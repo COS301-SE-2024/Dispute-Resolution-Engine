@@ -251,29 +251,6 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	if dbUser.AddressID == nil {
 		insertAddress = true
 	}
-
-	//if the user does not have an address, we have to insert one
-	if insertAddress {
-		//first we have to insert the address
-		var dbAddress = models.Address{
-			Country:     UpdateUserAddress.Country,
-			Province:    UpdateUserAddress.Province,
-			City:        UpdateUserAddress.City,
-			Street3:     UpdateUserAddress.Street3,
-			Street2:     UpdateUserAddress.Street2,
-			Street:      UpdateUserAddress.Street,
-			AddressType: UpdateUserAddress.AddressType,
-		}
-
-		var country models.Country
-		h.DB.Where("country_name = ?", UpdateUserAddress.Country).First(&country)
-		dbAddress.Code = &country.CountryCode
-
-		h.DB.Create(&dbAddress)
-		h.DB.Model(&dbUser).Update("address_id", dbAddress.ID)
-		utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User address updated successfully"})
-		return
-	}
 	//now we have to set the address parameters using the passed in data
 	var dbAddress models.Address
 
@@ -281,8 +258,8 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	if UpdateUserAddress.Country != nil {
 		var country models.Country
 		h.DB.Where("country_name = ?", UpdateUserAddress.Country).First(&country)
-		dbAddress.Country = UpdateUserAddress.Country
-		dbAddress.Code = &country.CountryCode
+		dbAddress.Code = UpdateUserAddress.Country
+		dbAddress.Country = &country.CountryName
 	}
 	if UpdateUserAddress.Province != nil {
 		dbAddress.Province = UpdateUserAddress.Province
@@ -301,6 +278,15 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	}
 	if UpdateUserAddress.AddressType != nil {
 		dbAddress.AddressType = UpdateUserAddress.AddressType
+	}
+
+	if insertAddress {
+		//insert the address
+		h.DB.Create(&dbAddress)
+		dbUser.AddressID = &dbAddress.ID
+		h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)
+		utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User address updated successfully"})
+		return
 	}
 
 	//now update the address

@@ -14,25 +14,25 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
     };
   }
 
-  return {
-    data: [...Array(10).keys()].map((i) => ({
-      id: i.toString(),
-      title: `Dispute ${i}`,
-      description: "Lorem ipsum",
-      status: "active",
-    })),
-  };
+  // return {
+  //   data: [...Array(10).keys()].map((i) => ({
+  //     id: i.toString(),
+  //     title: `Dispute ${i}`,
+  //     description: "Lorem ipsum",
+  //     status: "active",
+  //   })),
+  // };
 
   // TODO: Uncomment once API is working
-  // return fetch(`${API_URL}/disputes`, {
-  //   headers: {
-  //     Authorization: `Bearer ${jwt}`,
-  //   },
-  // })
-  //   .then((res) => res.json())
-  //   .catch((e: Error) => ({
-  //     error: e.message,
-  //   }));
+  return fetch(`${API_URL}/disputes`, {
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  })
+    .then((res) => res.json())
+    .catch((e: Error) => ({
+      error: e.message,
+    }));
 }
 
 export async function getDisputeDetails(id: string): Promise<Result<DisputeResponse>> {
@@ -68,7 +68,10 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
       Authorization: `Bearer ${jwt}`,
     },
   })
-    .then(function(res){console.log(res); return res.json()})
+    .then(function (res) {
+      console.log(res);
+      return res.json();
+    })
     .catch((e: Error) => ({
       error: e.message,
     }));

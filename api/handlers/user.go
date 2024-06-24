@@ -48,7 +48,6 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddresses)
 	if err := h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddresses).Error; err != nil {
 		dbAddresses = models.Address{}
-		return
 	}
 
 	// Create a response object

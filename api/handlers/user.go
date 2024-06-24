@@ -47,8 +47,7 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	var dbAddresses models.Address
 	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddresses)
 	if err := h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddresses).Error; err != nil {
-		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "Address not found"})
-		return
+		dbAddresses = models.Address{}
 	}
 
 	// Create a response object

@@ -125,7 +125,13 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sendOTP(user.Email)
-	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: "User created successfully"})
+
+	jwt, err := middleware.GenerateJWT(user)
+	if err != nil {
+		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		return
+	}
+	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: jwt})
 }
 
 // @Summary Login a user

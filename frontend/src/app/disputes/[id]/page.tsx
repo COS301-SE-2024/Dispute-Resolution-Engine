@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -38,7 +39,9 @@ function DisputeHeader({
         <dt className="text-right font-bold">Dispute ID: </dt>
         <dd>{id}</dd>
         <dt className="text-right font-bold">Status: </dt>
-        <dd>{status}</dd>
+        <dd>
+          <Badge>{status}</Badge>
+        </dd>
       </dl>
     </header>
   );
@@ -63,12 +66,10 @@ export default async function DisputePage({ params }: Props) {
       <ScrollArea className="grow overflow-y-auto p-4">
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle>Dispute Details</CardTitle>
+            <CardTitle>Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <h4>Description</h4>
             <p className="text-sm text-white/70 mt-4">{data.description}</p>
-            <h4 className="mt-4">Evidence</h4>
           </CardContent>
         </Card>
         <Card className="mb-4">

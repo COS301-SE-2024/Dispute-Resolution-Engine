@@ -14,25 +14,25 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
     };
   }
 
-  return {
-    data: [...Array(10).keys()].map((i) => ({
-      id: i.toString(),
-      title: `Dispute ${i}`,
-      description: "Lorem ipsum",
-      status: "active",
-    })),
-  };
+  // return {
+  //   data: [...Array(10).keys()].map((i) => ({
+  //     id: i.toString(),
+  //     title: `Dispute ${i}`,
+  //     description: "Lorem ipsum",
+  //     status: "active",
+  //   })),
+  // };
 
   // TODO: Uncomment once API is working
-  // return fetch(`${API_URL}/disputes`, {
-  //   headers: {
-  //     Authorization: `Bearer ${jwt}`,
-  //   },
-  // })
-  //   .then((res) => res.json())
-  //   .catch((e: Error) => ({
-  //     error: e.message,
-  //   }));
+  return fetch(`${API_URL}/disputes`, {
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  })
+    .then((res) => res.json())
+    .catch((e: Error) => ({
+      error: e.message,
+    }));
 }
 
 export async function getDisputeDetails(id: string): Promise<Result<DisputeResponse>> {
@@ -43,70 +43,36 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
     };
   }
 
-  return {
-    data: {
-      id: id,
-      title: `Dispute ${id}`,
-      description: "Dispute description",
-      status: "status",
-      date_created: "",
-      evidence: [...Array(5).keys()].map((i) => ({
-        label: `Image ${i}`,
-        url: "https://picsum.photos/200",
-        date_submitted: "today",
-      })),
-      experts: [...Array(3).keys()].map((i) => ({
-        full_name: `Name ${i}`,
-        email: `coolguy${i}@example.com`,
-        phone: "phone number yes",
-      })),
-    },
-  };
-
-  // TODO: Uncomment once API is working
-  // return fetch(`${API_URL}/disputes/${id}`, {
-  //   headers: {
-  //     Authorization: `Bearer ${jwt}`,
+  // return {
+  //   data: {
+  //     id: id,
+  //     title: `Dispute ${id}`,
+  //     description: "Dispute description",
+  //     status: "status",
+  //     date_created: "",
+  //     evidence: [...Array(5).keys()].map((i) => ({
+  //       label: `Image ${i}`,
+  //       url: "https://picsum.photos/200",
+  //       date_submitted: "today",
+  //     })),
+  //     experts: [...Array(3).keys()].map((i) => ({
+  //       full_name: `Name ${i}`,
+  //       email: `coolguy${i}@example.com`,
+  //       phone: "phone number yes",
+  //     })),
   //   },
-  // })
-  //   .then((res) => res.json())
-  //   .catch((e: Error) => ({
-  //     error: e.message,
-  //   }));
-}
-export async function createDispute(data: any): Promise<Result<DisputeResponse>> {
-  const jwt = cookies().get(JWT_KEY)?.value;
-  if (!jwt) {
-    return {
-      error: "Unauthorized",
-    };
-  }
-  const sendData = {
+  // };
+
+  return fetch(`${API_URL}/disputes/${id}`, {
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
-    method: "POST",
-    body: data,
-  }
-  console.log("SEND DATA", sendData)
-  return fetch(`${API_URL}/disputes/create`, sendData)
-    .then(function(res){
-      console.log("RESPONSE")
+  })
+    .then(function (res) {
       console.log(res);
-      return res.json()
+      return res.json();
     })
     .catch((e: Error) => ({
       error: e.message,
     }));
-  // return {
-  //   data: {
-  //     id: "1",
-  //     title: data.get("title") as string,
-  //     description: data.get("description") as string,
-  //     status: "active",
-  //     date_created: "",
-  //     evidence: [],
-  //     experts: [],
-  //   },
-  // };
 }

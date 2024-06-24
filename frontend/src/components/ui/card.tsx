@@ -2,18 +2,28 @@ import * as React from "react";
 
 import { Slottable, cn } from "@/lib/utils";
 import { Slot } from "@radix-ui/react-slot";
+import { VariantProps, cva } from "class-variance-authority";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        "rounded-lg border border-zinc-200 bg-white text-zinc-950 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-50",
-        className
-      )}
-      {...props}
-    />
-  )
+export const cardVariants = cva(
+  "rounded-lg dark:bg-dre-bg-light/5 border border-zinc-200 bg-white text-zinc-950 shadow-sm dark:border-dre-100/50 dark:text-dre-bg-light",
+  {
+    variants: {
+      variant: {
+        page: "mx-auto md:w-1/2 md:h-fit h-full md:max-w-2xl",
+      },
+    },
+  }
+);
+
+export interface CardProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof cardVariants> {}
+
+const Card = React.forwardRef<HTMLDivElement, Slottable<CardProps>>(
+  ({ className, variant, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "div";
+    return <Comp ref={ref} className={cn(cardVariants({ variant }), className)} {...props} />;
+  }
 );
 Card.displayName = "Card";
 
@@ -26,11 +36,7 @@ CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3
-      ref={ref}
-      className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
-      {...props}
-    />
+    <h3 ref={ref} className={cn("text-2xl font-semibold leading-none", className)} {...props} />
   )
 );
 CardTitle.displayName = "CardTitle";

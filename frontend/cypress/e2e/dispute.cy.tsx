@@ -1,8 +1,12 @@
 describe('Navigation', () => {
-	it('should login to the server', () => {
+	it('should get the disputes', () => {
+		cy.visit('http://localhost:3000/login')
+		cy.contains('Email').type('alice@smith.co.za')
+		cy.contains('Password').type('Password1234#')
+		cy.get('button').contains('Login').click()
 		cy.visit('http://localhost:3000/disputes')
-		cy.get('button').first().click()
-		cy.contains('Dispute Details')
-		cy.contains("Respondant's Evidence")
+		cy.get('button').contains('Dispute 0').click()
+		cy.contains('Dispute ID')
+		cy.contains('Create').click()
 	})	
   })

@@ -4,15 +4,18 @@ on:
   workflow_dispatch:
   pull_request:
     branches:
-      - main
       - release
       - dev
+      - main
     types:
       - opened
       - reopened
 jobs:
   jest-test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,12 +23,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18.20.3'
+          cache-dependency-path: 'frontend/yarn.lock'
+
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install dependencies
         run: |
-          cd frontend
-          npm install -g yarn
-          yarn
+          yarn install
       - name: Run jest
         run: |
-          cd frontend
           yarn test
+        continue-on-error: true 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

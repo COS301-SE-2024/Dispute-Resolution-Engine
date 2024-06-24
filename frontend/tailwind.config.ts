@@ -19,6 +19,10 @@ const config = {
     extend: {
       colors: {
         dre: {
+          bg: {
+            light: "#f0f5f6",
+            dark: "#111827",
+          },
           "100": "#9beaf2",
           "200": "#336cd4",
           "300": "#24479d",

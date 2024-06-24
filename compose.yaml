@@ -3,8 +3,14 @@ services:
     build: ./frontend
     ports:
       - "3000:3000"
+    env_file:
+      - fe.env
     depends_on:
       - "api"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./frontend
   api:
     build: ./api
     ports:
@@ -13,11 +19,29 @@ services:
       - api.env
     depends_on:
       - "postgres"
+      - "redis-cache"
+    volumes:
+      - evi_files:/app/filestorage 
+    develop:
+      watch:
+        - action: rebuild
+          path: ./api
   postgres:
     image: postgres
+    ports:
+      - "5432:5432"
     env_file:
       - db.env
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+  redis-cache:
+    image: redis
+    ports:
+      - "6379:6379"
+    env_file:
+      - red.env
+    command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
 volumes:
   pgdata:
+  evi_files:

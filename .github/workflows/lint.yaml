@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   pull_request:
     branches:
-      - main
       - release
       - dev
+      - main
     types:
       - opened
       - reopened

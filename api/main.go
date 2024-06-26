@@ -9,8 +9,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/mux"
+
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -29,42 +30,37 @@ import (
 
 // @host localhost:8080
 // @BasePath /api
-
 func main() {
 	DB := db.Init()
 	redisClient := redisDB.InitRedis()
-	h := handlers.New(DB, redisClient)
-	router := mux.NewRouter()
+    h := handlers.New(DB, redisClient)
 
-	router.Use(middleware.CorsMiddleware)
+	router := gin.Default()
+    router.Use(cors.New(cors.Config{
+        AllowOrigins: []string{"*"},
+        AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders: []string{"Content-Type", "Authorization"},
+    }))
 
 	//setup handlers
-	// router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
-	// router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
-	router.HandleFunc("/utils/countries", h.GetCountries).Methods(http.MethodGet)
+    utilGroup := router.Group("/utils")
+    utilGroup.GET("/countries", h.GetCountries)
 
-	authRouter := router.PathPrefix("/auth").Subrouter()
-	handlers.SetupAuthRoutes(authRouter, h)
+	authGroup := router.Group("/auth")
+	handlers.SetupAuthRoutes(authGroup, h)
 
-	userRouter := router.PathPrefix("/user").Subrouter()
-	userRouter.Use(middleware.JWTMiddleware)
-	handlers.SetupUserRoutes(userRouter, h)
+	userGroup := router.Group("/user")
+	userGroup.Use(middleware.JWTMiddleware)
+	handlers.SetupUserRoutes(userGroup, h)
 
-	disputeRouter := router.PathPrefix("/disputes").Subrouter()
-	handlers.SetupDisputeRoutes(disputeRouter, h)
+	disputeGroup := router.Group("/disputes")
+	handlers.SetupDisputeRoutes(disputeGroup, h)
 
-	// Swagger setup
-	setupSwaggerDocs(router)
+	archiveGroup := router.Group("/archive")
+    handlers.SetupArchiveRoutes(archiveGroup, h)
 
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	log.Println("API server is running on port 8080")
 	http.ListenAndServe(":8080", router)
 }
 
-func setupSwaggerDocs(router *mux.Router) {
-	// Create a new gin engine
-	ginRouter := gin.Default()
-	ginRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	// Serve the gin engine on a specific route in the main mux router
-	router.PathPrefix("/swagger/").Handler(ginRouter)
-}

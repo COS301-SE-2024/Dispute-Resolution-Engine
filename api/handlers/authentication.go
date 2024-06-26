@@ -6,14 +6,12 @@ import (
 	"api/utilities"
 	"crypto/tls"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"gopkg.in/gomail.v2"
 )
 
@@ -27,12 +25,14 @@ type Credentials struct {
 	Email    string `json:"email"`
 }
 
-func SetupAuthRoutes(router *mux.Router, h Handler) {
-	router.HandleFunc("/signup", h.CreateUser).Methods(http.MethodPost)
-	router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
-	router.Handle("/reset-password", middleware.RoleMiddleware(http.HandlerFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
+func SetupAuthRoutes(group *gin.RouterGroup, h Handler) {
+	group.POST("/signup", h.CreateUser)
+	group.POST("/login", h.LoginUser)
+	group.POST("/verify", h.Verify)
+    /*
+	group.Handle("/reset-password", middleware.RoleMiddleware(http.HandlerFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
 	// router.Handle("/verify", middleware.RoleMiddleware(http.HandlerFunc(h.Verify), 0)).Methods(http.MethodPost)
-	router.HandleFunc("/verify", h.Verify).Methods(http.MethodPost)
+    */
 }
 
 // @Summary Reset a user's password
@@ -42,11 +42,13 @@ func SetupAuthRoutes(router *mux.Router, h Handler) {
 // @Produce json
 // @Success 200 {object} models.Response "Password reset not available yet..."
 // @Router /auth/reset-password [post]
+/*
 func (h Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "password reset not available yet..."})
+	c.JSON(http.StatusOK, models.Response{Data: "password reset not available yet..."})
 }
+*/
 
 // @Summary Create a new user
 // @Description Create a new user account
@@ -58,22 +60,13 @@ func (h Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} models.Response "Bad Request"
 // @Failure 500 {object} models.Response "Internal Server Error"
 // @Router /auth/signup [post]
-func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (h Handler) CreateUser(c *gin.Context) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
-		return
-	}
-	//create a local variable to store the user details
+
 	var reqUser models.CreateUser
-	//Unmarshal the body into the local variable
-	err = json.Unmarshal(body, &reqUser)
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
-		return
-	}
+    if err := c.BindJSON(&reqUser); err != nil {
+        return
+    }
 
 	//stub timezone
 	zone, _ := time.Now().Zone()
@@ -100,7 +93,7 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	duplicate := h.checkUserExists(user.Email)
 
 	if duplicate {
-		utilities.WriteJSON(w, http.StatusConflict, models.Response{Error: "Email already in use"})
+		c.JSON(http.StatusConflict, models.Response{Error: "Email already in use"})
 		return
 	}
 
@@ -121,17 +114,17 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	user.LastLogin = nil
 
 	if result := h.DB.Create(&user); result.Error != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error creating user"})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
 		return
 	}
 	sendOTP(user.Email)
 
 	jwt, err := middleware.GenerateJWT(user)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
-	utilities.WriteJSON(w, http.StatusCreated, models.Response{Data: jwt})
+	c.JSON(http.StatusCreated, models.Response{Data: jwt})
 }
 
 // @Summary Login a user
@@ -144,24 +137,16 @@ func (h Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} string "Bad Request"
 // @Failure 401 {object} string "Unauthorized"
 // @Router /auth/login [post]
-func (h Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
+func (h Handler) LoginUser(c *gin.Context) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
-		return
-	}
 
 	var user models.User
-	err = json.Unmarshal(body, &user)
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
-		return
-	}
+    if err := c.BindJSON(&user); err != nil {
+        return
+    }
 
 	if !h.checkUserExists(user.Email) {
-		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "User does not exist"})
+		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
 		return
 	}
 
@@ -170,19 +155,19 @@ func (h Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
 	checkHash, err := hasher.GenerateHash([]byte(user.PasswordHash), realSalt)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
 
 	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
 		print(dbUser.PasswordHash)
 		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
-		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}
 
@@ -191,12 +176,43 @@ func (h Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	token, err := middleware.GenerateJWT(dbUser)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
 
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: token})
+	c.JSON(http.StatusOK, models.Response{Data: token})
 
+}
+
+
+
+// Verify verifies the user's email through a pin code
+// @Summary Verify user email
+// @Description Verifies the user's email by checking the provided pin code against stored values.
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param pinReq body models.VerifyUser true "Verify User"
+// @Success 200 {object} interface{} "Email verified successfully - Example response: { 'message': 'Email verified successfully' }"
+// @Failure 400 {object} interface{} "Invalid Request - Example error response: { 'error': 'Invalid Request' }"
+// @Failure 400 {object} interface{} "Invalid pin - Example error response: { 'error': 'Invalid pin' }"
+// @Failure 500 {object} interface{} "Error verifying pin - Example error response: { 'error': 'Error verifying pin' }"
+// @Router /auth/verify [post]
+func (h Handler) Verify(c *gin.Context) {
+	var pinReq models.VerifyUser
+    if err := c.BindJSON(&pinReq); err != nil {
+		return
+	}
+	valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
+		return
+	}
+	if !valid {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid pin"})
+		return
+	}
+	c.JSON(http.StatusOK, models.Response{Data: "Email verified successfully"})
 }
 
 func (h Handler) checkUserExists(email string) bool {
@@ -204,7 +220,6 @@ func (h Handler) checkUserExists(email string) bool {
 	h.DB.Where("email = ?", email).First(&user)
 	return user.Email != ""
 }
-
 func sendOTP(userInfo string) {
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
@@ -239,41 +254,4 @@ func sendOTP(userInfo string) {
 		fmt.Println("Error writing to file: " + err.Error())
 	}
 	fmt.Println("Email sent successfully!")
-}
-
-// Verify verifies the user's email through a pin code
-// @Summary Verify user email
-// @Description Verifies the user's email by checking the provided pin code against stored values.
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param pinReq body models.VerifyUser true "Verify User"
-// @Success 200 {object} interface{} "Email verified successfully - Example response: { 'message': 'Email verified successfully' }"
-// @Failure 400 {object} interface{} "Invalid Request - Example error response: { 'error': 'Invalid Request' }"
-// @Failure 400 {object} interface{} "Invalid pin - Example error response: { 'error': 'Invalid pin' }"
-// @Failure 500 {object} interface{} "Error verifying pin - Example error response: { 'error': 'Error verifying pin' }"
-// @Router /auth/verify [post]
-func (h Handler) Verify(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
-		return
-	}
-	var pinReq models.VerifyUser
-	err = json.Unmarshal(body, &pinReq)
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
-		return
-	}
-	valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
-		return
-	}
-	if !valid {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: "Invalid pin"})
-		return
-	}
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "Email verified successfully"})
 }

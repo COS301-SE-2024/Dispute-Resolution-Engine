@@ -5,18 +5,16 @@ import (
 	"api/models"
 	"api/utilities"
 	"encoding/base64"
-	"encoding/json"
-	"io"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
-func SetupUserRoutes(router *mux.Router, h Handler) {
-	router.HandleFunc("/profile", h.updateUser).Methods(http.MethodPut)
-	router.HandleFunc("/profile", h.getUser).Methods(http.MethodGet)
-	router.HandleFunc("/remove", h.RemoveAccount).Methods(http.MethodDelete)
-	router.HandleFunc("/profile/address", h.UpdateUserAddress).Methods(http.MethodPut)
+func SetupUserRoutes(g *gin.RouterGroup, h Handler) {
+	g.PUT("/profile", h.updateUser)
+	g.GET("/profile", h.getUser)
+	g.PUT("/profile/address", h.UpdateUserAddress)
+	g.DELETE("/remove", h.RemoveAccount)
 }
 
 // @Summary Get user profile
@@ -26,20 +24,18 @@ func SetupUserRoutes(router *mux.Router, h Handler) {
 // @Produce json
 // @Success 200 {object} models.Response "User profile not available yet..."
 // @Router /user/profile [get]
-func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
+func (h Handler) getUser(c *gin.Context) {
 	// Get the user ID from the request
-	jwtClaims := middleware.GetClaims(r)
+	jwtClaims := middleware.GetClaims(c)
 	if jwtClaims == nil {
-		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
 
 	// Retrieve the user from the database
 	var dbUser models.User
 	if err := h.DB.Where("email = ?", jwtClaims.Email).First(&dbUser).Error; err != nil {
-		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "User not found"})
+		c.JSON(http.StatusNotFound, models.Response{Error: "User not found"})
 		return
 	}
 
@@ -68,7 +64,7 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	// Print the dbAddresses object for debug purposes
 	print(dbAddresses.Country)
 	// Return the response
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: user})
+	c.JSON(http.StatusOK, models.Response{Data: user})
 }
 
 // @Summary Update user profile
@@ -80,21 +76,12 @@ func (h Handler) getUser(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} models.Response "User updated successfully"
 // @Failure 400 {object} models.Response "Bad Request"
 // @Router /user/profile [put]
-func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
-		return
-	}
-	jwtClaims := middleware.GetClaims(r)
+func (h Handler) updateUser(c *gin.Context) {
+	jwtClaims := middleware.GetClaims(c)
+
 	//get the user id from the request
 	var updateUser models.UpdateUser
-
-	//Unmarshal the body into the local variable
-	err = json.Unmarshal(body, &updateUser)
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
+    if err := c.BindJSON(&updateUser); err != nil {
 		return
 	}
 
@@ -133,7 +120,7 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 	h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)
 	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
 
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User updated successfully"})
+	c.JSON(http.StatusOK, models.Response{Data: "User updated successfully"})
 }
 
 // @Summary Remove user account
@@ -145,25 +132,17 @@ func (h Handler) updateUser(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} models.Response "User account removed successfully"
 // @Failure 400 {object} models.Response "Bad Request"
 // @Router /user/remove [delete]
-func (h Handler) RemoveAccount(w http.ResponseWriter, r *http.Request) {
+func (h Handler) RemoveAccount(c *gin.Context) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Invalid Request", http.StatusBadRequest)
-		return
-	}
 
 	var user models.DeleteUser
-	err = json.Unmarshal(body, &user)
-
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
+    if err := c.BindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
 
 	if !h.checkUserExists(user.Email) {
-		utilities.WriteJSON(w, http.StatusNotFound, models.Response{Error: "User does not exist"})
+		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
 		return
 	}
 
@@ -172,19 +151,19 @@ func (h Handler) RemoveAccount(w http.ResponseWriter, r *http.Request) {
 
 	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
 	checkHash, err := hasher.GenerateHash([]byte(user.Password), realSalt)
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
 
 	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
 		print(dbUser.PasswordHash)
 		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
-		utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}
 
@@ -195,28 +174,17 @@ func (h Handler) RemoveAccount(w http.ResponseWriter, r *http.Request) {
 	h.DB.Where("id = ?", dbUser.AddressID).Delete(&dbAddress)
 
 	h.DB.Where("email = ?", user.Email).Delete(&dbUser)
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User account removed successfully"})
+	c.JSON(http.StatusOK, models.Response{Data: "User account removed successfully"})
 }
 
-func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
-	//read request body into variable
-	defer r.Body.Close()
-	body, err := io.ReadAll(r.Body)
-
-	jwtClaims := middleware.GetClaims(r)
-
-	if err != nil {
-		http.Error(w, "Invalid request, please check request body.", http.StatusBadRequest)
-		return
-	}
-
+func (h Handler) UpdateUserAddress(c *gin.Context) {
+	jwtClaims := middleware.GetClaims(c)
 	insertAddress := false
 
 	//here we get the details of the request
-	var UpdateUserAddress models.UpdateAddress
-	err = json.Unmarshal(body, &UpdateUserAddress)
-	if err != nil {
-		utilities.WriteJSON(w, http.StatusBadRequest, models.Response{Error: err.Error()})
+	var updateUserAddress models.UpdateAddress
+    if err := c.BindJSON(&updateUserAddress); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
 	//retrieve the record from the database
@@ -230,29 +198,29 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 	var dbAddress models.Address
 
 	//first fetch the country code based on the name
-	if UpdateUserAddress.Country != nil {
+	if updateUserAddress.Country != nil {
 		var country models.Country
-		h.DB.Where("country_code = ?", UpdateUserAddress.Country).First(&country)
-		dbAddress.Country = UpdateUserAddress.Country
+		h.DB.Where("country_code = ?", updateUserAddress.Country).First(&country)
+		dbAddress.Country = updateUserAddress.Country
 		dbAddress.CountryName = &country.CountryName
 	}
-	if UpdateUserAddress.Province != nil {
-		dbAddress.Province = UpdateUserAddress.Province
+	if updateUserAddress.Province != nil {
+		dbAddress.Province = updateUserAddress.Province
 	}
-	if UpdateUserAddress.City != nil {
-		dbAddress.City = UpdateUserAddress.City
+	if updateUserAddress.City != nil {
+		dbAddress.City = updateUserAddress.City
 	}
-	if UpdateUserAddress.Street3 != nil {
-		dbAddress.Street3 = UpdateUserAddress.Street3
+	if updateUserAddress.Street3 != nil {
+		dbAddress.Street3 = updateUserAddress.Street3
 	}
-	if UpdateUserAddress.Street2 != nil {
-		dbAddress.Street2 = UpdateUserAddress.Street2
+	if updateUserAddress.Street2 != nil {
+		dbAddress.Street2 = updateUserAddress.Street2
 	}
-	if UpdateUserAddress.Street != nil {
-		dbAddress.Street = UpdateUserAddress.Street
+	if updateUserAddress.Street != nil {
+		dbAddress.Street = updateUserAddress.Street
 	}
-	if UpdateUserAddress.AddressType != nil {
-		dbAddress.AddressType = UpdateUserAddress.AddressType
+	if updateUserAddress.AddressType != nil {
+		dbAddress.AddressType = updateUserAddress.AddressType
 	}
 
 	if insertAddress {
@@ -260,12 +228,12 @@ func (h Handler) UpdateUserAddress(w http.ResponseWriter, r *http.Request) {
 		h.DB.Create(&dbAddress)
 		dbUser.AddressID = &dbAddress.ID
 		h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)
-		utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User address updated successfully"})
+		c.JSON(http.StatusOK, models.Response{Data: "User address updated successfully"})
 		return
 	}
 
 	//now update the address
 	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
 
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: "User address updated successfully"})
+	c.JSON(http.StatusOK, models.Response{Data: "User address updated successfully"})
 }

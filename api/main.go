@@ -33,34 +33,37 @@ import (
 func main() {
 	DB := db.Init()
 	redisClient := redisDB.InitRedis()
-    h := handlers.New(DB, redisClient)
+
+	authHandler := handlers.NewAuthHandler(DB, redisClient)
+	userHandler := handlers.NewUserHandler(DB, redisClient)
+	disputeHandler := handlers.NewDisputeHandler(DB, redisClient)
+	utilityHandler := handlers.NewUtilitiesHandler(DB, redisClient)
 
 	router := gin.Default()
-    router.Use(cors.New(cors.Config{
-        AllowOrigins: []string{"*"},
-        AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders: []string{"Content-Type", "Authorization"},
-    }))
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Content-Type", "Authorization"},
+	}))
 
 	//setup handlers
-    utilGroup := router.Group("/utils")
-    utilGroup.GET("/countries", h.GetCountries)
+	utilGroup := router.Group("/utils")
+	utilGroup.GET("/countries", utilityHandler.GetCountries)
 
 	authGroup := router.Group("/auth")
-	handlers.SetupAuthRoutes(authGroup, h)
+	handlers.SetupAuthRoutes(authGroup, authHandler)
 
 	userGroup := router.Group("/user")
 	userGroup.Use(middleware.JWTMiddleware)
-	handlers.SetupUserRoutes(userGroup, h)
+	handlers.SetupUserRoutes(userGroup, userHandler)
 
 	disputeGroup := router.Group("/disputes")
-	handlers.SetupDisputeRoutes(disputeGroup, h)
+	handlers.SetupDisputeRoutes(disputeGroup, disputeHandler)
 
 	archiveGroup := router.Group("/archive")
-    handlers.SetupArchiveRoutes(archiveGroup, h)
+	handlers.SetupArchiveRoutes(archiveGroup, disputeHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	log.Println("API server is running on port 8080")
 	http.ListenAndServe(":8080", router)
 }
-

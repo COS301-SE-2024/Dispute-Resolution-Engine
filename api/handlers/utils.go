@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h Handler) GetCountries(c *gin.Context) {
+func (h Utility) GetCountries(c *gin.Context) {
 	var countries []models.Country
 	err := h.DB.Find(&countries).Error
 	if err != nil {

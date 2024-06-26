@@ -19,12 +19,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupArchiveRoutes(g *gin.RouterGroup, h Handler) {
+func SetupArchiveRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/search", h.getSummaryListOfArchives)
 	g.GET("/:id", h.getArchive)
 }
 
-func SetupDisputeRoutes(g *gin.RouterGroup, h Handler) {
+func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 	//dispute routes
 	g.Use(middleware.JWTMiddleware)
 
@@ -47,7 +47,7 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Handler) {
 // @Produce json
 // @Success 200 {object} models.Response "Dispute Summary Endpoint"
 // @Router /dispute [get]
-func (h Handler) getSummaryListOfDisputes(c *gin.Context) {
+func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 	var disputes []models.DisputeSummaryResponse
 	err := h.DB.Raw("SELECT id, title, description, status FROM disputes").Scan(&disputes).Error
 	if err != nil {
@@ -65,7 +65,7 @@ func (h Handler) getSummaryListOfDisputes(c *gin.Context) {
 // @Param id path string true "Dispute ID"
 // @Success 200 {object} models.Response "Dispute Detail Endpoint"
 // @Router /dispute/{id} [get]
-func (h Handler) getDispute(c *gin.Context) {
+func (h Dispute) getDispute(c *gin.Context) {
 	id := c.Param("id")
 
 	var DisputeDetailsResponse models.DisputeDetailsResponse
@@ -88,7 +88,7 @@ func (h Handler) getDispute(c *gin.Context) {
 	// c.JSON(http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
 }
 
-func (h Handler) createDispute(c *gin.Context) {
+func (h Dispute) createDispute(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
 		return
@@ -259,7 +259,7 @@ func getFileType(fh *multipart.FileHeader) string {
 // @Param id path string true "Dispute ID"
 // @Success 200 {object} models.Response "Dispute Patch Endpoint"
 // @Router /dispute/{id} [patch]
-func (h Handler) patchDispute(c *gin.Context) {
+func (h Dispute) patchDispute(c *gin.Context) {
 
 	id := c.Param("id")
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute Patch Endpoint for ID: " + id})
@@ -272,7 +272,7 @@ func (h Handler) patchDispute(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} models.Response "Archive Summary Endpoint"
 // @Router /archive [post]
-func (h Handler) getSummaryListOfArchives(c *gin.Context) {
+func (h Dispute) getSummaryListOfArchives(c *gin.Context) {
 	var body models.ArchiveSearchRequest
 	if err := c.BindJSON(&body); err != nil {
 		return
@@ -453,7 +453,7 @@ func filterSummariesBySearch(summaries []models.ArchivedDisputeSummary, searchTe
 // @Param id path string true "Archive ID"
 // @Success 200 {object} models.Response "Archive Detail Endpoint"
 // @Router /archive/{id} [get]
-func (h Handler) getArchive(c *gin.Context) {
+func (h Dispute) getArchive(c *gin.Context) {
 
 	id := c.Param("id")
 

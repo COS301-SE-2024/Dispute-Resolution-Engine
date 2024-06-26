@@ -25,14 +25,14 @@ type Credentials struct {
 	Email    string `json:"email"`
 }
 
-func SetupAuthRoutes(group *gin.RouterGroup, h Handler) {
+func SetupAuthRoutes(group *gin.RouterGroup, h Auth) {
 	group.POST("/signup", h.CreateUser)
 	group.POST("/login", h.LoginUser)
 	group.POST("/verify", h.Verify)
-    /*
-	group.Handle("/reset-password", middleware.RoleMiddleware(http.HandlerFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
-	// router.Handle("/verify", middleware.RoleMiddleware(http.HandlerFunc(h.Verify), 0)).Methods(http.MethodPost)
-    */
+	/*
+		group.Handle("/reset-password", middleware.RoleMiddleware(http.AuthFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
+		// router.Handle("/verify", middleware.RoleMiddleware(http.AuthFunc(h.Verify), 0)).Methods(http.MethodPost)
+	*/
 }
 
 // @Summary Reset a user's password
@@ -43,7 +43,7 @@ func SetupAuthRoutes(group *gin.RouterGroup, h Handler) {
 // @Success 200 {object} models.Response "Password reset not available yet..."
 // @Router /auth/reset-password [post]
 /*
-func (h Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+func (h Auth) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	c.JSON(http.StatusOK, models.Response{Data: "password reset not available yet..."})
@@ -60,13 +60,13 @@ func (h Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 {object} models.Response "Bad Request"
 // @Failure 500 {object} models.Response "Internal Server Error"
 // @Router /auth/signup [post]
-func (h Handler) CreateUser(c *gin.Context) {
+func (h Auth) CreateUser(c *gin.Context) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
 	var reqUser models.CreateUser
-    if err := c.BindJSON(&reqUser); err != nil {
-        return
-    }
+	if err := c.BindJSON(&reqUser); err != nil {
+		return
+	}
 
 	//stub timezone
 	zone, _ := time.Now().Zone()
@@ -137,13 +137,13 @@ func (h Handler) CreateUser(c *gin.Context) {
 // @Failure 400 {object} string "Bad Request"
 // @Failure 401 {object} string "Unauthorized"
 // @Router /auth/login [post]
-func (h Handler) LoginUser(c *gin.Context) {
+func (h Auth) LoginUser(c *gin.Context) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
 	var user models.User
-    if err := c.BindJSON(&user); err != nil {
-        return
-    }
+	if err := c.BindJSON(&user); err != nil {
+		return
+	}
 
 	if !h.checkUserExists(user.Email) {
 		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
@@ -184,8 +184,6 @@ func (h Handler) LoginUser(c *gin.Context) {
 
 }
 
-
-
 // Verify verifies the user's email through a pin code
 // @Summary Verify user email
 // @Description Verifies the user's email by checking the provided pin code against stored values.
@@ -198,9 +196,9 @@ func (h Handler) LoginUser(c *gin.Context) {
 // @Failure 400 {object} interface{} "Invalid pin - Example error response: { 'error': 'Invalid pin' }"
 // @Failure 500 {object} interface{} "Error verifying pin - Example error response: { 'error': 'Error verifying pin' }"
 // @Router /auth/verify [post]
-func (h Handler) Verify(c *gin.Context) {
+func (h Auth) Verify(c *gin.Context) {
 	var pinReq models.VerifyUser
-    if err := c.BindJSON(&pinReq); err != nil {
+	if err := c.BindJSON(&pinReq); err != nil {
 		return
 	}
 	valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)

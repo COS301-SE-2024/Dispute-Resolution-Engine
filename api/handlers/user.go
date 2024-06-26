@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupUserRoutes(g *gin.RouterGroup, h Handler) {
+func SetupUserRoutes(g *gin.RouterGroup, h User) {
 	g.PUT("/profile", h.updateUser)
 	g.GET("/profile", h.getUser)
 	g.PUT("/profile/address", h.UpdateUserAddress)
@@ -24,7 +24,7 @@ func SetupUserRoutes(g *gin.RouterGroup, h Handler) {
 // @Produce json
 // @Success 200 {object} models.Response "User profile not available yet..."
 // @Router /user/profile [get]
-func (h Handler) getUser(c *gin.Context) {
+func (h User) getUser(c *gin.Context) {
 	// Get the user ID from the request
 	jwtClaims := middleware.GetClaims(c)
 	if jwtClaims == nil {
@@ -76,7 +76,7 @@ func (h Handler) getUser(c *gin.Context) {
 // @Success 200 {object} models.Response "User updated successfully"
 // @Failure 400 {object} models.Response "Bad Request"
 // @Router /user/profile [put]
-func (h Handler) updateUser(c *gin.Context) {
+func (h User) updateUser(c *gin.Context) {
 	jwtClaims := middleware.GetClaims(c)
 
 	//get the user id from the request
@@ -132,7 +132,7 @@ func (h Handler) updateUser(c *gin.Context) {
 // @Success 200 {object} models.Response "User account removed successfully"
 // @Failure 400 {object} models.Response "Bad Request"
 // @Router /user/remove [delete]
-func (h Handler) RemoveAccount(c *gin.Context) {
+func (h User) RemoveAccount(c *gin.Context) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
 	var user models.DeleteUser
@@ -177,7 +177,7 @@ func (h Handler) RemoveAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "User account removed successfully"})
 }
 
-func (h Handler) UpdateUserAddress(c *gin.Context) {
+func (h User) UpdateUserAddress(c *gin.Context) {
 	jwtClaims := middleware.GetClaims(c)
 	insertAddress := false
 

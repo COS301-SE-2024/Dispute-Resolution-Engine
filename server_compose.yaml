@@ -19,7 +19,7 @@ services:
     volumes:
       - evi_files:/app/filestorage       
 
-  redis:
+  redis-cache:
     image: redis:latest
     ports:
       - "6379:6379"

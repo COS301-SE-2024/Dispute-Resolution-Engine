@@ -3,11 +3,15 @@ package db
 import (
 	"api/utilities"
 	"fmt"
-	"log"
 	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+)
+
+const (
+	maxRetryAttempts = 10
+	retryTimeout     = 2
 )
 
 func Init() (*gorm.DB, error) {
@@ -41,14 +45,13 @@ func Init() (*gorm.DB, error) {
 
 	// Open database connection
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	for i := 0; err != nil && i < 10; i++ {
-		log.Fatalf("Failed to connect to the database: %v", err)
+	for i := 0; err != nil && i < maxRetryAttempts; i++ {
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-		time.Sleep(5 * time.Second)
+		time.Sleep(retryTimeout * time.Second)
 	}
-
-	// Log successful connection
-	log.Println("Connected to the database successfully")
+	if err != nil {
+		return nil, err
+	}
 
 	return db, nil
 }

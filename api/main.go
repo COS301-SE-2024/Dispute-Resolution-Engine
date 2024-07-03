@@ -49,11 +49,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error initializing database: %v\n", err)
 	}
+	log.Println("Connected to database successfully")
 
 	redisClient, err := redisDB.InitRedis()
 	if err != nil {
 		log.Fatalf("Error initializing Redis: %v\n", err)
 	}
+	log.Println("Connected to Redis successfully")
 
 	authHandler := handlers.NewAuthHandler(DB, redisClient)
 	userHandler := handlers.NewUserHandler(DB, redisClient)

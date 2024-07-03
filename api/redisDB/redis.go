@@ -5,8 +5,14 @@ import (
 	"context"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/go-redis/redis/v8"
+)
+
+const (
+	maxRetryAttempts = 5
+	retryTimeout     = 1
 )
 
 var RDB *redis.Client
@@ -43,12 +49,15 @@ func InitRedis() (*redis.Client, error) {
 	// Ping the Redis server to check connectivity
 	ctx := context.Background()
 	_, err = rdb.Ping(ctx).Result()
+	for i := 0; err != nil && i < maxRetryAttempts; i++ {
+		_, err = rdb.Ping(ctx).Result()
+		time.Sleep(retryTimeout * time.Second)
+	}
 	if err != nil {
-		log.Fatalf("Failed to connect to Redis: %v", err)
+		return nil, err
 	}
 
 	// Log successful connection
-	log.Println("Connected to Redis successfully")
 
 	RDB = rdb
 	return rdb, nil

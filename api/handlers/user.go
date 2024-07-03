@@ -81,7 +81,7 @@ func (h User) updateUser(c *gin.Context) {
 
 	//get the user id from the request
 	var updateUser models.UpdateUser
-    if err := c.BindJSON(&updateUser); err != nil {
+	if err := c.BindJSON(&updateUser); err != nil {
 		return
 	}
 
@@ -115,7 +115,6 @@ func (h User) updateUser(c *gin.Context) {
 		dbUser.PreferredLanguage = updateUser.Preferred_language
 	}
 
-
 	//now update the user and address
 	h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)
 	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
@@ -136,7 +135,7 @@ func (h User) RemoveAccount(c *gin.Context) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
 	var user models.DeleteUser
-    if err := c.BindJSON(&user); err != nil {
+	if err := c.BindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
@@ -183,7 +182,7 @@ func (h User) UpdateUserAddress(c *gin.Context) {
 
 	//here we get the details of the request
 	var updateUserAddress models.UpdateAddress
-    if err := c.BindJSON(&updateUserAddress); err != nil {
+	if err := c.BindJSON(&updateUserAddress); err != nil {
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}

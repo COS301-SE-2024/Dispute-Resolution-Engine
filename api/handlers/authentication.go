@@ -73,7 +73,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 	timezone := zone
 	reqUser.Timezone = &timezone
 	//Now put stuff in the actual user object
-	date, err := time.Parse("2006-01-02", reqUser.Birthdate)
+	date, _ := time.Parse("2006-01-02", reqUser.Birthdate)
 	user := models.User{
 		FirstName:         reqUser.FirstName,
 		Surname:           reqUser.Surname,
@@ -218,6 +218,7 @@ func (h Handler) checkUserExists(email string) bool {
 	h.DB.Where("email = ?", email).First(&user)
 	return user.Email != ""
 }
+
 func sendOTP(userInfo string) {
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"

@@ -51,16 +51,16 @@ func main() {
 	}
 	log.Println("Connected to database successfully")
 
-	redisClient, err := redisDB.InitRedis()
+	_, err = redisDB.InitRedis()
 	if err != nil {
 		log.Fatalf("Error initializing Redis: %v\n", err)
 	}
 	log.Println("Connected to Redis successfully")
 
-	authHandler := handlers.NewAuthHandler(DB, redisClient)
-	userHandler := handlers.NewUserHandler(DB, redisClient)
-	disputeHandler := handlers.NewDisputeHandler(DB, redisClient)
-	utilityHandler := handlers.NewUtilitiesHandler(DB, redisClient)
+	authHandler := handlers.NewAuthHandler(DB)
+	userHandler := handlers.NewUserHandler(DB)
+	disputeHandler := handlers.NewDisputeHandler(DB)
+	utilityHandler := handlers.NewUtilitiesHandler(DB)
 
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{

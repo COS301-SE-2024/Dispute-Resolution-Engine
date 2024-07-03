@@ -1,26 +1,39 @@
 package db
 
 import (
+	"api/utilities"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func Init() *gorm.DB {
-	// Retrieve environment variables
-	host := os.Getenv("DATABASE_URL")
-	port := os.Getenv("DATABASE_PORT")
-	user := os.Getenv("DATABASE_USER")
-	password := os.Getenv("DATABASE_PASSWORD")
-	dbname := os.Getenv("DATABASE_NAME")
+func Init() (*gorm.DB, error) {
+	host, err := utilities.GetRequiredEnv("DATABASE_URL")
+	if err != nil {
+		return nil, err
+	}
 
-	// Check if any environment variable is missing
-	if host == "" || port == "" || user == "" || password == "" || dbname == "" {
-		log.Fatalf("One or more required environment variables are missing")
+	port, err := utilities.GetRequiredEnv("DATABASE_PORT")
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := utilities.GetRequiredEnv("DATABASE_USER")
+	if err != nil {
+		return nil, err
+	}
+
+	password, err := utilities.GetRequiredEnv("DATABASE_PASSWORD")
+	if err != nil {
+		return nil, err
+	}
+
+	dbname, err := utilities.GetRequiredEnv("DATABASE_NAME")
+	if err != nil {
+		return nil, err
 	}
 
 	// Construct DSN (Data Source Name)
@@ -37,5 +50,5 @@ func Init() *gorm.DB {
 	// Log successful connection
 	log.Println("Connected to the database successfully")
 
-	return db
+	return db, nil
 }

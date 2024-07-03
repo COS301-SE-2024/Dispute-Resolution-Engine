@@ -45,9 +45,15 @@ func loadEnvFile(files ...string) {
 func main() {
 	loadEnvFile(".env", "api.env")
 
-	DB := db.Init()
+	DB, err := db.Init()
+	if err != nil {
+		log.Fatalf("Error initializing database: %v\n", err)
+	}
 
-	redisClient := redisDB.InitRedis()
+	redisClient, err := redisDB.InitRedis()
+	if err != nil {
+		log.Fatalf("Error initializing Redis: %v\n", err)
+	}
 
 	authHandler := handlers.NewAuthHandler(DB, redisClient)
 	userHandler := handlers.NewUserHandler(DB, redisClient)

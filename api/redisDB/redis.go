@@ -1,9 +1,9 @@
 package redisDB
 
 import (
+	"api/utilities"
 	"context"
 	"log"
-	"os"
 	"strconv"
 
 	"github.com/go-redis/redis/v8"
@@ -11,15 +11,20 @@ import (
 
 var RDB *redis.Client
 
-func InitRedis() *redis.Client {
-	// Retrieve environment variables
-	host := os.Getenv("REDIS_URL")
-	password := os.Getenv("REDIS_PASSWORD")
-	db := os.Getenv("REDIS_DB")
+func InitRedis() (*redis.Client, error) {
+	host, err := utilities.GetRequiredEnv("REDIS_URL")
+	if err != nil {
+		return nil, err
+	}
 
-	// Check if any environment variable is missing
-	if host == "" || db == "" {
-		log.Fatalf("One or more required environment variables are missing")
+	password, err := utilities.GetRequiredEnv("REDIS_PASSWORD")
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := utilities.GetRequiredEnv("REDIS_DB")
+	if err != nil {
+		return nil, err
 	}
 
 	// Convert db to integer
@@ -46,5 +51,5 @@ func InitRedis() *redis.Client {
 	log.Println("Connected to Redis successfully")
 
 	RDB = rdb
-	return rdb
+	return rdb, nil
 }

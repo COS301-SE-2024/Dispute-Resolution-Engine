@@ -13,7 +13,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 // Claims struct to store user data in JWT
@@ -109,7 +108,7 @@ func JWTMiddleware(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
 		}
-        c.Next()
+		c.Next()
 	} else {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
@@ -118,12 +117,6 @@ func JWTMiddleware(c *gin.Context) {
 
 // return claims
 func GetClaims(c *gin.Context) *Claims {
-	if jwtSecretKey := os.Getenv("JWT_SECRET"); jwtSecretKey == "" {
-		err := godotenv.Load("api.env")
-		if err != nil {
-			return nil
-		}
-	}
 	secret := []byte(os.Getenv("JWT_SECRET"))
 
 	authHeader := c.GetHeader("Authorization")

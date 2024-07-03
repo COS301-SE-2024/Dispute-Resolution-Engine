@@ -2,23 +2,15 @@ package db
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"log"
 	"os"
 	"time"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func Init() *gorm.DB {
-	// Load .env file
-	if host := os.Getenv("DATABASE_URL"); host == "" {
-		err := godotenv.Load("api.env")
-		if err != nil {
-			log.Fatalf("Error loading .env file: %v", err)
-		}
-	}
-
 	// Retrieve environment variables
 	host := os.Getenv("DATABASE_URL")
 	port := os.Getenv("DATABASE_PORT")
@@ -36,7 +28,7 @@ func Init() *gorm.DB {
 
 	// Open database connection
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	for i:= 0; err != nil && i < 10; i++ {
+	for i := 0; err != nil && i < 10; i++ {
 		log.Fatalf("Failed to connect to the database: %v", err)
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		time.Sleep(5 * time.Second)

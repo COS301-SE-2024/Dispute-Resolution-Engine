@@ -11,10 +11,22 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// Tries to load env files. If an error occurs, it will ignore the file and log the error
+func loadEnvFile(files ...string) {
+	for _, path := range files {
+		if err := godotenv.Load(path); err != nil {
+			log.Printf("Error loading env file: %v\n", err.Error())
+		} else {
+			log.Printf("Loaded env file: %v\n", path)
+		}
+	}
+}
 
 // @title Dispute Resolution Engine - v1
 // @version 1.0
@@ -31,7 +43,10 @@ import (
 // @host localhost:8080
 // @BasePath /api
 func main() {
+	loadEnvFile(".env", "api.env")
+
 	DB := db.Init()
+
 	redisClient := redisDB.InitRedis()
 
 	authHandler := handlers.NewAuthHandler(DB, redisClient)

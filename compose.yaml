@@ -42,6 +42,28 @@ services:
     env_file:
       - red.env
     command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
+  prometheus:
+    image: docker.io/prom/prometheus:v2.53.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    command: "--config.file=/etc/prometheus/prometheus.yaml"
+    volumes:
+      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+  grafana:
+    image: docker.io/grafana/grafana-oss:11.1.0
+    container_name: grafana
+    ports:
+      - "3001:3000"  # Changed Grafana's port to avoid conflict with frontend
+    volumes:
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
 volumes:
   pgdata:
   evi_files:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local

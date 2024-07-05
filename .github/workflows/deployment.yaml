@@ -13,14 +13,14 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # - name: Cache Install Wireguard
-      #   uses: awalsh128/cache-apt-pkgs-action@latest
-      #   with:
-      #     packages: wireguard
-      - name: Install wireguard
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq wireguard
+      - name: Cache Install Wireguard
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: wireguard
+      # - name: Install wireguard
+      #   run: |
+      #     sudo apt-get update -qq
+      #     sudo apt-get install -y -qq wireguard
       - name: Checkout Repo
         uses: actions/checkout@v4
 
@@ -72,6 +72,7 @@ jobs:
       - name: Make it a tar file
         run: |
           cd $GITHUB_WORKSPACE
+          docker images
           docker save -o frontend.tar dispute-resolution-engine-frontend:latest
           docker save -o api.tar dispute-resolution-engine-api:latest
           docker save -o postgres.tar postgres:latest

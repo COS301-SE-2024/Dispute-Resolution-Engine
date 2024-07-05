@@ -2,11 +2,11 @@ name: End-to-end tests
 on:
   workflow_dispatch:
   pull_request:
-    branches:
-      - release
-    types:
-      - opened
-      - reopened
+    # branches:
+    #   - release
+    # types:
+    #   - opened
+    #   - reopened
 jobs:
   setup-server:
     runs-on: ubuntu-22.04

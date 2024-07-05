@@ -2,13 +2,28 @@ name: Deployment
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
+  # fork:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # - name: Cache Install Wireguard
+      #   uses: awalsh128/cache-apt-pkgs-action@latest
+      #   with:
+      #     packages: wireguard
+      - name: Install wireguard
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq wireguard
       - name: Checkout Repo
         uses: actions/checkout@v4
+
       - name: Make db env file
         uses: SpicyPizza/create-envfile@v1.3
         with:
@@ -18,6 +33,7 @@ jobs:
           directory:  .
           file_name: db.env
           fail_on_empty: false
+
       - name: Make api env files
         uses: SpicyPizza/create-envfile@v1.3
         with:
@@ -31,6 +47,7 @@ jobs:
           directory:  .
           file_name: api.env
           fail_on_empty: false
+ 
       - name: Make fe env files
         uses: SpicyPizza/create-envfile@v1.3
         with:
@@ -38,6 +55,7 @@ jobs:
           directory:  .
           file_name: fe.env
           fail_on_empty: false    
+ 
       - name: Make red.env file
         uses: SpicyPizza/create-envfile@v1.3
         with:
@@ -55,25 +73,23 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           docker save -o frontend.tar dispute-resolution-engine-frontend:latest
-          docker save -o api.tar api
-          docker save -o postgres.tar postgres
-      
-      - name: Install wireguard
-        run: sudo apt-get install wireguard
+          docker save -o api.tar dispute-resolution-engine-api:latest
+          docker save -o postgres.tar postgres:latest
+          docker save -o redis.tar redis:latest
 
       - name: Create WG Config
         run: |
-          sed -i -e "s@{{WG_PRIVATEKEY}}@${{ secrets.WG_PRIVATEKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
+          touch $GITHUB_WORKSPACE/tunnel.conf
           sed -i -e "s@{{WG_ADDRESS}}@${{ secrets.WG_ADDRESS }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_DNS}}@${{ secrets.WG_DNS }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_PUBLICKEY}}@${{ secrets.WG_PUBLICKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
           sed -i -e "s@{{WG_ALLOWEDIPS}}@${{ secrets.WG_ALLOWEDIPS }}@" $GITHUB_WORKSPACE/tunnel.conf
+          sed -i -e "s@{{WG_DNS}}@${{ secrets.WG_DNS }}@" $GITHUB_WORKSPACE/tunnel.conf
           sed -i -e "s@{{WG_ENDPOINT}}@${{ secrets.WG_ENDPOINT }}@" $GITHUB_WORKSPACE/tunnel.conf
+          sed -i -e "s@{{WG_PRIVATEKEY}}@${{ secrets.WG_PRIVATEKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
+          sed -i -e "s@{{WG_PUBLICKEY}}@${{ secrets.WG_PUBLICKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
           sudo cp $GITHUB_WORKSPACE/tunnel.conf /etc/wireguard/
 
       - name: WG Creating Tunnel
         run: |
-          sudo apt install resolvconf
           wg-quick up $GITHUB_WORKSPACE/tunnel.conf
 
 
@@ -84,7 +100,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
-          source: "api.tar,frontend.tar,postgres.tar,docker-compose.yaml"
+          source: "api.tar,frontend.tar,postgres.tar,redis.tar,db.env,api.env,red.env,fe.env,server_compose.yaml"
           target: ./
       - name: Spin up docker image
         uses: appleboy/ssh-action@v1.0.0
@@ -94,25 +110,32 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            mv server_compose.yaml compose.yaml
             docker load -i frontend.tar
             docker load -i api.tar
             docker load -i postgres.tar
-            docker-compose up -d
-  cypress-test:
-    container:
-      image: cypress/included
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v4
+            docker load -i redis.tar
+            docker compose up -d
 
-      - name: Cypress run
-        uses: cypress-io/github-action@v2
-        with:
-          wait-on: 'http://capstone-dre.dns.net.za'
-          wait-on-timeout: 300
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.0.1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+
+
+
+      
+  # cypress-test:
+  #   container:
+  #     image: cypress/included
+  #   needs: deploy
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout Repo
+  #       uses: actions/checkout@v4
+
+  #     - name: Cypress run
+  #       uses: cypress-io/github-action@v2
+  #       with:
+  #         wait-on: 'http://capstone-dre.dns.net.za'
+  #         wait-on-timeout: 300
+  #     - name: Upload coverage reports to Codecov
+  #       uses: codecov/codecov-action@v4.0.1
+  #       with:
+  #         token: ${{ secrets.CODECOV_TOKEN }}

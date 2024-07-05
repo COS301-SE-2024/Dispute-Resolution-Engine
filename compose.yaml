@@ -27,7 +27,10 @@ services:
         - action: rebuild
           path: ./api
   postgres:
-    image: postgres
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    image: pgdb
     ports:
       - "5432:5432"
     env_file:

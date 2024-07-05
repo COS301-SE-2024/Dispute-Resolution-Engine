@@ -19,7 +19,7 @@ import (
 type Claims struct {
 	Email string `json:"email"`
 	jwt.StandardClaims
-	User models.User `json:"user"`
+	User models.UserInfoJWT `json:"user"`
 }
 
 // GenerateJWT generates a JWT token
@@ -33,7 +33,7 @@ func GenerateJWT(user models.User) (string, error) {
 			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
 			IssuedAt:  time.Now().Unix(),
 		},
-		User: user,
+		User: *models.ConvertUserToJWTUser(user),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(jwtSec))

@@ -2,16 +2,17 @@ package handlers
 
 import (
 	"api/models"
-	"api/utilities"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func (h Handler) GetCountries(w http.ResponseWriter, r *http.Request) {
+func (h Utility) GetCountries(c *gin.Context) {
 	var countries []models.Country
 	err := h.DB.Find(&countries).Error
 	if err != nil {
-		utilities.WriteJSON(w, http.StatusInternalServerError, models.Response{Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
-	utilities.WriteJSON(w, http.StatusOK, models.Response{Data: countries})
+	c.JSON(http.StatusOK, models.Response{Data: countries})
 }

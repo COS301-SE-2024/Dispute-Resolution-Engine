@@ -1,34 +1,36 @@
 package redisDB
 
 import (
+	"api/utilities"
 	"context"
 	"log"
-	"os"
 	"strconv"
+	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/joho/godotenv"
+)
+
+const (
+	maxRetryAttempts = 5
+	retryTimeout     = 1
 )
 
 var RDB *redis.Client
 
-func InitRedis() *redis.Client {
-	// Load .env file if environment variables are not already set
-	if os.Getenv("REDIS_URL") == "" {
-		err := godotenv.Load("api.env")
-		if err != nil {
-			log.Fatalf("Error loading .env file: %v", err)
-		}
+func InitRedis() (*redis.Client, error) {
+	host, err := utilities.GetRequiredEnv("REDIS_URL")
+	if err != nil {
+		return nil, err
 	}
 
-	// Retrieve environment variables
-	host := os.Getenv("REDIS_URL")
-	password := os.Getenv("REDIS_PASSWORD")
-	db := os.Getenv("REDIS_DB")
+	password, err := utilities.GetRequiredEnv("REDIS_PASSWORD")
+	if err != nil {
+		return nil, err
+	}
 
-	// Check if any environment variable is missing
-	if host == "" || db == "" {
-		log.Fatalf("One or more required environment variables are missing")
+	db, err := utilities.GetRequiredEnv("REDIS_DB")
+	if err != nil {
+		return nil, err
 	}
 
 	// Convert db to integer
@@ -47,13 +49,16 @@ func InitRedis() *redis.Client {
 	// Ping the Redis server to check connectivity
 	ctx := context.Background()
 	_, err = rdb.Ping(ctx).Result()
+	for i := 0; err != nil && i < maxRetryAttempts; i++ {
+		_, err = rdb.Ping(ctx).Result()
+		time.Sleep(retryTimeout * time.Second)
+	}
 	if err != nil {
-		log.Fatalf("Failed to connect to Redis: %v", err)
+		return nil, err
 	}
 
 	// Log successful connection
-	log.Println("Connected to Redis successfully")
 
 	RDB = rdb
-	return rdb
+	return rdb, nil
 }

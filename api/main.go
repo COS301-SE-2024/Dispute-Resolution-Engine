@@ -9,11 +9,24 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// Tries to load env files. If an error occurs, it will ignore the file and log the error
+func loadEnvFile(files ...string) {
+	for _, path := range files {
+		if err := godotenv.Load(path); err != nil {
+			log.Printf("Error loading env file: %v\n", err.Error())
+		} else {
+			log.Printf("Loaded env file: %v\n", path)
+		}
+	}
+}
 
 // @title Dispute Resolution Engine - v1
 // @version 1.0
@@ -29,42 +42,51 @@ import (
 
 // @host localhost:8080
 // @BasePath /api
-
 func main() {
-	DB := db.Init()
-	redisClient := redisDB.InitRedis()
-	h := handlers.New(DB, redisClient)
-	router := mux.NewRouter()
+	loadEnvFile(".env", "api.env")
 
-	router.Use(middleware.CorsMiddleware)
+	DB, err := db.Init()
+	if err != nil {
+		log.Fatalf("Error initializing database: %v\n", err)
+	}
+	log.Println("Connected to database successfully")
+
+	_, err = redisDB.InitRedis()
+	if err != nil {
+		log.Fatalf("Error initializing Redis: %v\n", err)
+	}
+	log.Println("Connected to Redis successfully")
+
+	authHandler := handlers.NewAuthHandler(DB)
+	userHandler := handlers.NewUserHandler(DB)
+	disputeHandler := handlers.NewDisputeHandler(DB)
+	utilityHandler := handlers.NewUtilitiesHandler(DB)
+
+	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Content-Type", "Authorization"},
+	}))
 
 	//setup handlers
-	// router.HandleFunc("/createAcc", h.CreateUser).Methods(http.MethodPost)
-	// router.HandleFunc("/login", h.LoginUser).Methods(http.MethodPost)
-	router.HandleFunc("/utils/countries", h.GetCountries).Methods(http.MethodGet)
+	utilGroup := router.Group("/utils")
+	utilGroup.GET("/countries", utilityHandler.GetCountries)
 
-	authRouter := router.PathPrefix("/auth").Subrouter()
-	handlers.SetupAuthRoutes(authRouter, h)
+	authGroup := router.Group("/auth")
+	handlers.SetupAuthRoutes(authGroup, authHandler)
 
-	userRouter := router.PathPrefix("/user").Subrouter()
-	userRouter.Use(middleware.JWTMiddleware)
-	handlers.SetupUserRoutes(userRouter, h)
+	userGroup := router.Group("/user")
+	userGroup.Use(middleware.JWTMiddleware)
+	handlers.SetupUserRoutes(userGroup, userHandler)
 
-	disputeRouter := router.PathPrefix("/disputes").Subrouter()
-	handlers.SetupDisputeRoutes(disputeRouter, h)
+	disputeGroup := router.Group("/disputes")
+	handlers.SetupDisputeRoutes(disputeGroup, disputeHandler)
 
-	// Swagger setup
-	setupSwaggerDocs(router)
+	archiveGroup := router.Group("/archive")
+	handlers.SetupArchiveRoutes(archiveGroup, disputeHandler)
 
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	log.Println("API server is running on port 8080")
 	http.ListenAndServe(":8080", router)
-}
-
-func setupSwaggerDocs(router *mux.Router) {
-	// Create a new gin engine
-	ginRouter := gin.Default()
-	ginRouter.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	// Serve the gin engine on a specific route in the main mux router
-	router.PathPrefix("/swagger/").Handler(ginRouter)
 }

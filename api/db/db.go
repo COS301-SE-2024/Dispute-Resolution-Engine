@@ -1,34 +1,43 @@
 package db
 
 import (
+	"api/utilities"
 	"fmt"
-	"github.com/joho/godotenv"
+	"time"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
-	"os"
-	"time"
 )
 
-func Init() *gorm.DB {
-	// Load .env file
-	if host := os.Getenv("DATABASE_URL"); host == "" {
-		err := godotenv.Load("api.env")
-		if err != nil {
-			log.Fatalf("Error loading .env file: %v", err)
-		}
+const (
+	maxRetryAttempts = 10
+	retryTimeout     = 2
+)
+
+func Init() (*gorm.DB, error) {
+	host, err := utilities.GetRequiredEnv("DATABASE_URL")
+	if err != nil {
+		return nil, err
 	}
 
-	// Retrieve environment variables
-	host := os.Getenv("DATABASE_URL")
-	port := os.Getenv("DATABASE_PORT")
-	user := os.Getenv("DATABASE_USER")
-	password := os.Getenv("DATABASE_PASSWORD")
-	dbname := os.Getenv("DATABASE_NAME")
+	port, err := utilities.GetRequiredEnv("DATABASE_PORT")
+	if err != nil {
+		return nil, err
+	}
 
-	// Check if any environment variable is missing
-	if host == "" || port == "" || user == "" || password == "" || dbname == "" {
-		log.Fatalf("One or more required environment variables are missing")
+	user, err := utilities.GetRequiredEnv("DATABASE_USER")
+	if err != nil {
+		return nil, err
+	}
+
+	password, err := utilities.GetRequiredEnv("DATABASE_PASSWORD")
+	if err != nil {
+		return nil, err
+	}
+
+	dbname, err := utilities.GetRequiredEnv("DATABASE_NAME")
+	if err != nil {
+		return nil, err
 	}
 
 	// Construct DSN (Data Source Name)
@@ -36,14 +45,13 @@ func Init() *gorm.DB {
 
 	// Open database connection
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	for i:= 0; err != nil && i < 10; i++ {
-		log.Fatalf("Failed to connect to the database: %v", err)
+	for i := 0; err != nil && i < maxRetryAttempts; i++ {
 		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-		time.Sleep(5 * time.Second)
+		time.Sleep(retryTimeout * time.Second)
+	}
+	if err != nil {
+		return nil, err
 	}
 
-	// Log successful connection
-	log.Println("Connected to the database successfully")
-
-	return db
+	return db, nil
 }

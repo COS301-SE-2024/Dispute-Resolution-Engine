@@ -88,33 +88,31 @@ type VerifyResponse = string;
 ```
 
 # Password Resetting
-- **Endpoint:** `POST /auth/reset-password`
-- **Headers:**
-    - `Authorization: Bearer <JWT>`
+- **Endpoint:** `POST /auth/reset-password/send-email`
 
 ```ts
-interface ResetPasswordRequest {
-  oldPassword: string;
-  newPassword: string;
-}
-```
-
-The response will return a new JWT for the user
-```ts
-type ResetPasswordResponse = string;
-```
-
-## Forgot Password
-- **Endpoint:** `POST /auth/forget-password`
-
-```ts
-interface ForgotPasswordRequest {
+interface SendResetRequest {
   email: string;
 }
 ```
 
-The response will simply return a success message:
+The response will return a success message
 ```ts
-type ForgotPasswordResponse = string;
+type SendResetResponse = string;
 ```
 
+## Password Resetting (Resetting)
+- **Endpoint:** `POST /auth/reset-password/reset`
+- **Headers:**
+    - `Authorization: Bearer <Temp-JWT>`
+
+```ts
+interface ResetPasswordRequest {
+  newPassword: string;
+}
+```
+
+The response will return a success message
+```ts
+type ResetPasswordResponse = string;
+```

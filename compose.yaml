@@ -1,5 +1,5 @@
 services:
-  frontend:
+  frontend: # ---------------------------------------------------------Frontend
     build: ./frontend
     ports:
       - "3000:3000"
@@ -11,7 +11,7 @@ services:
       watch:
         - action: rebuild
           path: ./frontend
-  api:
+  api: # ------------------------------------------------------------------API
     build: ./api
     ports:
       - "8080:8080"
@@ -26,7 +26,7 @@ services:
       watch:
         - action: rebuild
           path: ./api
-  postgres:
+  postgres: # ----------------------------------------------------------Postgres
     image: postgres
     ports:
       - "5432:5432"
@@ -35,14 +35,14 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
-  redis-cache:
+  redis-cache: # --------------------------------------------------------Redis
     image: redis
     ports:
       - "6379:6379"
     env_file:
       - red.env
     command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
-  prometheus:
+  prometheus: # ----------------------------------------------------------Prometheus
     image: docker.io/prom/prometheus
     container_name: prometheus
     ports:
@@ -52,7 +52,7 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
     restart: unless-stopped
-  grafana:
+  grafana: # -------------------------------------------------------------Grafana
     image: docker.io/grafana/grafana-oss
     container_name: grafana
     ports:
@@ -60,7 +60,34 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
     restart: unless-stopped
-volumes:
+  node_exporter: # ------------------------------------------------------Node Exporter
+    image: quay.io/prometheus/node-exporter
+    container_name: node_exporter
+    ports:
+      - 9100:9100
+    command: "--path.rootfs=/host"
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - /:/host:ro,rslave
+  cadvisor: # -----------------------------------------------------------Cadvisor
+    image: gcr.io/cadvisor/cadvisor
+    container_name: cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - 8081:8080
+    environment:
+      - allowlisted_container_labels=com.docker.swarm.service.name
+    restart: unless-stopped
+volumes: # ---------------------------------------------------------------Volumes
   pgdata:
   evi_files:
   prometheus-data:

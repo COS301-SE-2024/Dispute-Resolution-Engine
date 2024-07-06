@@ -21,7 +21,7 @@ func NewArchiveHandler(db *gorm.DB) Archive {
 }
 
 func SetupArchiveRoutes(g *gin.RouterGroup, h Archive) {
-	g.POST("/search", h.getSummaryListOfArchives)
+	g.POST("/search", h.searchArchive)
 	g.GET("/:id", h.getArchive)
 }
 
@@ -32,7 +32,7 @@ func SetupArchiveRoutes(g *gin.RouterGroup, h Archive) {
 // @Produce json
 // @Success 200 {object} models.Response "Archive Summary Endpoint"
 // @Router /archive [post]
-func (h Archive) getSummaryListOfArchives(c *gin.Context) {
+func (h Archive) searchArchive(c *gin.Context) {
 	var body models.ArchiveSearchRequest
 	if err := c.BindJSON(&body); err != nil {
 		return
@@ -77,6 +77,9 @@ func (h Archive) getSummaryListOfArchives(c *gin.Context) {
 
 	query = query.Where("resolved = ?", true)
 
+	var count int64
+	query = query.Count(&count)
+
 	// Apply sorting
 	query = query.Order(fmt.Sprintf("%s %s", sort, order))
 
@@ -109,7 +112,10 @@ func (h Archive) getSummaryListOfArchives(c *gin.Context) {
 	}
 
 	// Return the response
-	c.JSON(http.StatusOK, models.Response{Data: archiveDisputeSummaries})
+	c.JSON(http.StatusOK, models.Response{Data: models.ArchiveSearchResponse{
+		Archives: archiveDisputeSummaries,
+		Total:    count,
+	}})
 }
 
 // @Summary Get an archive

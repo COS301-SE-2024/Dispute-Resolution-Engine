@@ -16,3 +16,8 @@ type DisputeDetailsResponse struct {
 	Evidence    []string `json:"evidence"`
 	Experts     []string `json:"experts"`
 }
+
+type ArchiveSearchResponse struct {
+	Archives []ArchivedDisputeSummary `json:"archives"`
+	Total    int64                    `json:"total"`
+}

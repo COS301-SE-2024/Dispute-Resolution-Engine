@@ -21,7 +21,7 @@ func NewArchiveHandler(db *gorm.DB) Archive {
 }
 
 func SetupArchiveRoutes(g *gin.RouterGroup, h Archive) {
-	g.POST("/search", h.searchArchive)
+	g.POST("/search", h.SearchArchive)
 	g.GET("/:id", h.getArchive)
 }
 
@@ -32,7 +32,7 @@ func SetupArchiveRoutes(g *gin.RouterGroup, h Archive) {
 // @Produce json
 // @Success 200 {object} models.Response "Archive Summary Endpoint"
 // @Router /archive [post]
-func (h Archive) searchArchive(c *gin.Context) {
+func (h Archive) SearchArchive(c *gin.Context) {
 	var body models.ArchiveSearchRequest
 	if err := c.BindJSON(&body); err != nil {
 		return

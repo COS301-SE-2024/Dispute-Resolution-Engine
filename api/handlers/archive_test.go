@@ -15,6 +15,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -23,19 +24,35 @@ const (
 	mockDisputeCount = 10
 )
 
-// Initializes a GORM instance with a mocked SQL database
-func initMockGorm() (sqlmock.Sqlmock, *gorm.DB, error) {
-	conn, mock, err := sqlmock.New()
-	if err != nil {
-		return nil, nil, err
-	}
+type ArchiveTestSuite struct {
+	suite.Suite
 
+	mock   sqlmock.Sqlmock
+	db     *gorm.DB
+	router *gin.Engine
+}
+
+func TestArchive(t *testing.T) {
+	suite.Run(t, new(ArchiveTestSuite))
+}
+
+// Runs before every test to set up the DB and routers
+func (suite *ArchiveTestSuite) SetupTest() {
+	conn, mock, _ := sqlmock.New()
 	dialector := postgres.New(postgres.Config{
 		Conn:       conn,
 		DriverName: "postgres",
 	})
-	db, err := gorm.Open(dialector, &gorm.Config{})
-	return mock, db, err
+	db, _ := gorm.Open(dialector, &gorm.Config{})
+
+	handler := handlers.Archive{DB: db}
+	gin.SetMode("release")
+	router := gin.Default()
+	router.POST("/archive/search", handler.SearchArchive)
+
+	suite.mock = mock
+	suite.db = db
+	suite.router = router
 }
 
 func initCountRow(count int) *sqlmock.Rows {
@@ -72,13 +89,6 @@ func initRows() *sqlmock.Rows {
 	return rows
 }
 
-func initArchiveRouter(db *gorm.DB) *gin.Engine {
-	archiveHandler := handlers.Archive{DB: db}
-	r := gin.Default()
-	r.POST("/archive/search", archiveHandler.SearchArchive)
-	return r
-}
-
 // Creates a new POST request to /archive/search using the passed-in payload
 func createSearchRequest(req models.ArchiveSearchRequest) (*http.Request, error) {
 	body, err := json.Marshal(req)
@@ -88,30 +98,22 @@ func createSearchRequest(req models.ArchiveSearchRequest) (*http.Request, error)
 	return http.NewRequest("POST", "/archive/search", bytes.NewReader(body))
 }
 
-func TestSearchInvalidJSONShouldReturnError(t *testing.T) {
-	// Initialize mock database
-	_, db, _ := initMockGorm()
-	router := initArchiveRouter(db)
-
-	// Set up request + response
+func (suite *ArchiveTestSuite) TestBadRequestReturnsError() {
 	req, _ := http.NewRequest("POST", "/archive/search", strings.NewReader(""))
 	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+	suite.router.ServeHTTP(w, req)
 
 	// Assert properties
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Equal(suite.T(), http.StatusBadRequest, w.Code)
 	var result models.Response
-	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &result))
-	assert.NotEmpty(t, result.Error)
+	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
+	assert.NotEmpty(suite.T(), result.Error)
 }
 
-func TestSearchReturnsValidJSON(t *testing.T) {
-	// Initialize mock database
-	mock, db, _ := initMockGorm()
+func (suite *ArchiveTestSuite) TestReturnsValidJSON() {
 	rows := initRows()
-
-	// Set up API route
-	router := initArchiveRouter(db)
+	suite.mock.ExpectQuery("^SELECT count(.+) FROM \"?disputes\"?.*").WillReturnRows(initCountRow(mockDisputeCount))
+	suite.mock.ExpectQuery("^SELECT (.+) FROM \"?disputes\"?.*").WillReturnRows(rows)
 
 	// Set up request + response
 	searchTerm := "Hello"
@@ -119,18 +121,13 @@ func TestSearchReturnsValidJSON(t *testing.T) {
 		Search: &searchTerm,
 	})
 
-	// Mock SQL queries
-	mock.ExpectQuery("^SELECT count(.+) FROM \"?disputes\"?.*").WillReturnRows(initCountRow(mockDisputeCount))
-	mock.ExpectQuery("^SELECT (.+) FROM \"?disputes\"?.*").WillReturnRows(rows)
-
 	// Send request to router
 	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+	suite.router.ServeHTTP(w, req)
 
 	// Assert properties
-	assert.Equal(t, 200, w.Code)
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
 
 	var result models.Response
-	assert.NoError(t, json.Unmarshal(w.Body.Bytes(), &result))
-
+	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
 }

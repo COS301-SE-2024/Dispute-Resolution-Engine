@@ -68,21 +68,21 @@ jobs:
         run: |
           docker builder prune -a -f
 
-      - name: Docker compose build
-        run: |
-          cd $GITHUB_WORKSPACE
-          docker compose build --progress=plain
-          docker pull postgres
-          docker pull redis
+      # - name: Docker compose build
+      #   run: |
+      #     cd $GITHUB_WORKSPACE
+      #     docker compose build --progress=plain
+      #     docker pull postgres
+      #     docker pull redis
       
-      - name: Make it a tar file
-        run: |
-          cd $GITHUB_WORKSPACE
-          docker images
-          docker save -o frontend.tar dispute-resolution-engine-frontend:latest
-          docker save -o api.tar dispute-resolution-engine-api:latest
-          docker save -o postgres.tar postgres:latest
-          docker save -o redis.tar redis:latest
+      # - name: Make it a tar file
+      #   run: |
+      #     cd $GITHUB_WORKSPACE
+      #     docker images
+      #     docker save -o frontend.tar dispute-resolution-engine-frontend:latest
+      #     docker save -o api.tar dispute-resolution-engine-api:latest
+      #     docker save -o postgres.tar postgres:latest
+      #     docker save -o redis.tar redis:latest
 
       # - name: Create WG Config
       #   run: |

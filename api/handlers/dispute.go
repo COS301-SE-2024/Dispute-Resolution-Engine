@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"time"
 
@@ -226,25 +224,6 @@ func (h Dispute) createDispute(c *gin.Context) {
 	log.Printf("Dispute created successfully: %s", title)
 }
 
-// Function to get MIME type from file header
-func getFileType(fh *multipart.FileHeader) string {
-	file, err := fh.Open()
-	if err != nil {
-		return "application/octet-stream" // default to octet-stream if cannot determine type
-	}
-	defer file.Close()
-
-	// Determine file type based on MIME type
-	buffer := make([]byte, 512) // Read the first 512 bytes to detect MIME type
-	_, err = file.Read(buffer)
-	if err != nil {
-		return "application/octet-stream" // default to octet-stream if cannot determine type
-	}
-
-	mimeType := http.DetectContentType(buffer)
-	return mimeType
-}
-
 // @Summary Update a dispute
 // @Description Update a dispute
 // @Tags dispute
@@ -257,97 +236,4 @@ func (h Dispute) patchDispute(c *gin.Context) {
 
 	id := c.Param("id")
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute Patch Endpoint for ID: " + id})
-}
-
-func getMockArchiveDisputeSummaries() []models.ArchivedDisputeSummary {
-	return []models.ArchivedDisputeSummary{
-		{
-			ID:           1,
-			Title:        "Dispute 1: Contract Disagreement",
-			Summary:      "A contractual dispute between parties over payment terms.",
-			Category:     []string{"Legal"},
-			DateFiled:    time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-			DateResolved: time.Date(2021, time.January, 15, 0, 0, 0, 0, time.UTC),
-			Resolution:   "Settlement reached with revised terms.",
-		},
-		{
-			ID:           2,
-			Title:        "Dispute 2: Product Quality Issue",
-			Summary:      "Customer complained about product defects; manufacturer's response needed.",
-			Category:     []string{"Customer Service", "Quality Control"},
-			DateFiled:    time.Date(2021, time.February, 10, 0, 0, 0, 0, time.UTC),
-			DateResolved: time.Date(2021, time.February, 28, 0, 0, 0, 0, time.UTC),
-			Resolution:   "Product recall initiated; replacements provided.",
-		},
-		{
-			ID:           3,
-			Title:        "Dispute 3: Employment Dispute",
-			Summary:      "Employee termination dispute due to performance issues.",
-			Category:     []string{"Human Resources", "Legal"},
-			DateFiled:    time.Date(2021, time.March, 5, 0, 0, 0, 0, time.UTC),
-			DateResolved: time.Date(2021, time.March, 20, 0, 0, 0, 0, time.UTC),
-			Resolution:   "Settled with severance package and agreement.",
-		},
-	}
-}
-
-func paginateSummaries(summaries []models.ArchivedDisputeSummary, offset int, limit int) []models.ArchivedDisputeSummary {
-	start := offset
-	end := offset + limit
-	if start >= len(summaries) {
-		return []models.ArchivedDisputeSummary{}
-	}
-	if end > len(summaries) {
-		end = len(summaries)
-	}
-	return summaries[start:end]
-}
-
-func sortSummaries(summaries []models.ArchivedDisputeSummary, sorting string, order string) {
-	switch sorting {
-	case "title":
-		if order == "asc" {
-			sort.Slice(summaries, func(i, j int) bool {
-				return summaries[i].Title < summaries[j].Title
-			})
-		} else {
-			sort.Slice(summaries, func(i, j int) bool {
-				return summaries[i].Title > summaries[j].Title
-			})
-		}
-	case "date_filed":
-		if order == "asc" {
-			sort.Slice(summaries, func(i, j int) bool {
-				return summaries[i].DateFiled.Before(summaries[j].DateFiled)
-			})
-		} else {
-			sort.Slice(summaries, func(i, j int) bool {
-				return summaries[i].DateFiled.After(summaries[j].DateFiled)
-			})
-		}
-	case "date_resolved":
-		if order == "asc" {
-			sort.Slice(summaries, func(i, j int) bool {
-				return summaries[i].DateResolved.Before(summaries[j].DateResolved)
-			})
-		} else {
-			sort.Slice(summaries, func(i, j int) bool {
-				return summaries[i].DateResolved.After(summaries[j].DateResolved)
-			})
-		}
-	}
-}
-
-func filterSummariesBySearch(summaries []models.ArchivedDisputeSummary, searchTerm string) []models.ArchivedDisputeSummary {
-	if searchTerm == "" {
-		return summaries
-	}
-	var filteredSummaries []models.ArchivedDisputeSummary
-	for _, summary := range summaries {
-		// Example of case-insensitive search
-		if strings.Contains(strings.ToLower(summary.Title), strings.ToLower(searchTerm)) {
-			filteredSummaries = append(filteredSummaries, summary)
-		}
-	}
-	return filteredSummaries
 }

@@ -127,7 +127,7 @@ jobs:
             rm api.env
             rm red.env
             rm fe.env
-            rm server_compose.yaml
+            rm compose.yaml
 
       - name: Send through the docker container using scp
         uses: appleboy/scp-action@v0.1.4

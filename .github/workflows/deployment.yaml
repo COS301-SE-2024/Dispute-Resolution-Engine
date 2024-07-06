@@ -72,6 +72,8 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE
           docker compose build --progress=plain
+          docker pull postgres
+          docker pull redis
       
       - name: Make it a tar file
         run: |

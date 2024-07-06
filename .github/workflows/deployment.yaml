@@ -68,21 +68,21 @@ jobs:
         run: |
           docker builder prune -a -f
 
-      # - name: Docker compose build
-      #   run: |
-      #     cd $GITHUB_WORKSPACE
-      #     docker compose build --progress=plain
-      #     docker pull postgres
-      #     docker pull redis
+      - name: Docker compose build
+        run: |
+          cd $GITHUB_WORKSPACE
+          docker compose build --progress=plain
+          docker pull postgres
+          docker pull redis
       
-      # - name: Make it a tar file
-      #   run: |
-      #     cd $GITHUB_WORKSPACE
-      #     docker images
-      #     docker save -o frontend.tar dispute-resolution-engine-frontend:latest
-      #     docker save -o api.tar dispute-resolution-engine-api:latest
-      #     docker save -o postgres.tar postgres:latest
-      #     docker save -o redis.tar redis:latest
+      - name: Make it a tar file
+        run: |
+          cd $GITHUB_WORKSPACE
+          docker images
+          docker save -o frontend.tar dispute-resolution-engine-frontend:latest
+          docker save -o api.tar dispute-resolution-engine-api:latest
+          docker save -o postgres.tar postgres:latest
+          docker save -o redis.tar redis:latest
 
       # - name: Create WG Config
       #   run: |
@@ -103,13 +103,13 @@ jobs:
         uses: niklaskeerl/easy-wireguard-action@v2
         with:
           WG_CONFIG_FILE: ${{ secrets.WG_CONFIG_FILE }}
-      - name: TEMP CREATE TAR FILES
-        run: |
-          touch api.tar
-          touch frontend.tar
-          touch postgres.tar
-          touch redis.tar
-          touch server_compose.yaml
+      # - name: TEMP CREATE TAR FILES
+      #   run: |
+      #     touch api.tar
+      #     touch frontend.tar
+      #     touch postgres.tar
+      #     touch redis.tar
+      #     touch server_compose.yaml
       - name: Remove Old Files
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -139,21 +139,21 @@ jobs:
           source: "api.tar,frontend.tar,postgres.tar,redis.tar,db.env,api.env,red.env,fe.env,server_compose.yaml"
           target: ./
       
-      # - name: Spin up docker image
-      #   uses: appleboy/ssh-action@v1.0.0
-      #   with:
-      #     host: ${{ secrets.SSH_HOST }}
-      #     username: ${{ secrets.SSH_USERNAME }}
-      #     password: ${{ secrets.SSH_PASSWORD }}
-      #     port: ${{ secrets.SSH_PORT }}
-      #     script: |
-      #       mv server_compose.yaml compose.yaml
-      #       docker load -i frontend.tar
-      #       docker load -i api.tar
-      #       docker load -i postgres.tar
-      #       docker load -i redis.tar
-      #       docker compose down
-      #       docker compose up -d
+      - name: Spin up docker image
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            mv server_compose.yaml compose.yaml
+            docker load -i frontend.tar
+            docker load -i api.tar
+            docker load -i postgres.tar
+            docker load -i redis.tar
+            docker compose down
+            docker compose up -d
 
 
 

@@ -103,16 +103,14 @@ jobs:
         uses: niklaskeerl/easy-wireguard-action@v2
         with:
           WG_CONFIG_FILE: ${{ secrets.WG_CONFIG_FILE }}
-      # - name: Send through the docker container using scp
-      #   uses: appleboy/scp-action@v0.1.4
-      #   with:
-      #     host: ${{ secrets.SSH_HOST }}
-      #     username: ${{ secrets.SSH_USERNAME }}
-      #     password: ${{ secrets.SSH_PASSWORD }}
-      #     port: ${{ secrets.SSH_PORT }}
-      #     source: "api.tar,frontend.tar,postgres.tar,redis.tar,db.env,api.env,red.env,fe.env,server_compose.yaml"
-      #     target: ./
-      - name: Spin up docker image
+      - name: TEMP CREATE TAR FILES
+        run: |
+          touch api.tar
+          touch frontend.tar
+          touch postgres.tar
+          touch redis.tar
+          touch server_compose.yaml
+      - name: Remove Old Files
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -121,11 +119,41 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             mv server_compose.yaml compose.yaml
-            docker load -i frontend.tar
-            docker load -i api.tar
-            docker load -i postgres.tar
-            docker load -i redis.tar
-            docker compose up -d
+            rm api.tar
+            rm frontend.tar
+            rm postgres.tar
+            rm redis.tar
+            rm db.env
+            rm api.env
+            rm red.env
+            rm fe.env
+            rm server_compose.yaml
+
+      - name: Send through the docker container using scp
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "api.tar,frontend.tar,postgres.tar,redis.tar,db.env,api.env,red.env,fe.env,server_compose.yaml"
+          target: ./
+      
+      # - name: Spin up docker image
+      #   uses: appleboy/ssh-action@v1.0.0
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     password: ${{ secrets.SSH_PASSWORD }}
+      #     port: ${{ secrets.SSH_PORT }}
+      #     script: |
+      #       mv server_compose.yaml compose.yaml
+      #       docker load -i frontend.tar
+      #       docker load -i api.tar
+      #       docker load -i postgres.tar
+      #       docker load -i redis.tar
+      #       docker compose down
+      #       docker compose up -d
 
 
 

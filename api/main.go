@@ -60,6 +60,7 @@ func main() {
 	authHandler := handlers.NewAuthHandler(DB)
 	userHandler := handlers.NewUserHandler(DB)
 	disputeHandler := handlers.NewDisputeHandler(DB)
+	archiveHandler := handlers.NewArchiveHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
 
 	router := gin.Default()
@@ -84,7 +85,7 @@ func main() {
 	handlers.SetupDisputeRoutes(disputeGroup, disputeHandler)
 
 	archiveGroup := router.Group("/archive")
-	handlers.SetupArchiveRoutes(archiveGroup, disputeHandler)
+	handlers.SetupArchiveRoutes(archiveGroup, archiveHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	log.Println("API server is running on port 8080")

@@ -138,6 +138,8 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           source: "api.tar,frontend.tar,postgres.tar,redis.tar,db.env,api.env,red.env,fe.env,server_compose.yaml"
           target: ./
+          timeout: 3m
+          overwrite: true
       
       - name: Spin up docker image
         uses: appleboy/ssh-action@v1.0.0

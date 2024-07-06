@@ -93,7 +93,7 @@ jobs:
           sed -i -e "s@{{WG_ENDPOINT}}@${{ secrets.WG_ENDPOINT }}@" $GITHUB_WORKSPACE/tunnel.conf
           sed -i -e "s@{{WG_PRIVATEKEY}}@${{ secrets.WG_PRIVATEKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
           sed -i -e "s@{{WG_PUBLICKEY}}@${{ secrets.WG_PUBLICKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sudo cp $GITHUB_WORKSPACE/tunnel.conf /etc/wireguard/
+          
 
       - name: WG Creating Tunnel
         run: |

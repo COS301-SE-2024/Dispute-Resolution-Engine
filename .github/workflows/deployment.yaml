@@ -13,10 +13,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Cache Install Wireguard
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: wireguard
+      # - name: Cache Install Wireguard
+      #   uses: awalsh128/cache-apt-pkgs-action@latest
+      #   with:
+      #     packages: wireguard
       # - name: Install wireguard
       #   run: |
       #     sudo apt-get update -qq
@@ -84,22 +84,25 @@ jobs:
           docker save -o postgres.tar postgres:latest
           docker save -o redis.tar redis:latest
 
-      - name: Create WG Config
-        run: |
-          touch $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_ADDRESS}}@${{ secrets.WG_ADDRESS }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_ALLOWEDIPS}}@${{ secrets.WG_ALLOWEDIPS }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_DNS}}@${{ secrets.WG_DNS }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_ENDPOINT}}@${{ secrets.WG_ENDPOINT }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_PRIVATEKEY}}@${{ secrets.WG_PRIVATEKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_PUBLICKEY}}@${{ secrets.WG_PUBLICKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
+      # - name: Create WG Config
+      #   run: |
+      #     touch $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_ADDRESS}}@${{ secrets.WG_ADDRESS }}@" $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_ALLOWEDIPS}}@${{ secrets.WG_ALLOWEDIPS }}@" $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_DNS}}@${{ secrets.WG_DNS }}@" $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_ENDPOINT}}@${{ secrets.WG_ENDPOINT }}@" $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_PRIVATEKEY}}@${{ secrets.WG_PRIVATEKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_PUBLICKEY}}@${{ secrets.WG_PUBLICKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
           
 
-      - name: WG Creating Tunnel
-        run: |
-          wg-quick up $GITHUB_WORKSPACE/tunnel.conf
+      # - name: WG Creating Tunnel
+      #   run: |
+      #     wg-quick up $GITHUB_WORKSPACE/tunnel.conf
 
-
+      - name: Set up WireGuard Connection
+        uses: niklaskeerl/easy-wireguard-action@v2
+        with:
+          WG_CONFIG_FILE: ${{ secrets.WG_CONFIG_FILE }}
       - name: Send through the docker container using scp
         uses: appleboy/scp-action@v0.1.4
         with:

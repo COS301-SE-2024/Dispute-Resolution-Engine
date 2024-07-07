@@ -284,11 +284,32 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		return
 	}
 
+	//generate a jwt token with the user's email
+	tempUser:= models.User{
+		Email: user.Email,
+	}
+
+	jwt, err := middleware.GenerateJWT(tempUser)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		return
+	}
+
 	//send an email to the user with a temporary link to reset the password
+	linkURL := "http://localhost:8080/reset-password/" + jwt
+	email := models.Email{
+		From:    os.Getenv("COMPANY_EMAIL"),
+		To:      user.Email,
+		Subject: "Password Reset",
+		Body:    "Click here to reset your password: " + linkURL,
+	}
 
-	
+	if err := sendMail(email); err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending email"})
+		return
+	}
 
-	//return a temporary link to reset the password
+	c.JSON(http.StatusOK, models.Response{Data: "Email sent successfully"})
 
 }
 

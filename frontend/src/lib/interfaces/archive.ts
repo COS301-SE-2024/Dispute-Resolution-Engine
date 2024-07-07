@@ -39,7 +39,10 @@ export interface ArchiveSearchRequest {
     time?: number;
   };
 }
-export type ArchiveSearchResponse = ArchivedDisputeSummary[];
+export type ArchiveSearchResponse = {
+  archives: ArchivedDisputeSummary[],
+  total: number
+};
 export type ArchiveGetResponse = ArchivedDispute;
 
 // /disputes/archive/{id} <---- Archive

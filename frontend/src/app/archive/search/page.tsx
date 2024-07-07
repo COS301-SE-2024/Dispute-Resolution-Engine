@@ -73,7 +73,8 @@ function pager(params: SearchParams, offset: number) {
   return { pathname: "/archive/search", query: { ...params, offset } };
 }
 
-const PAGE_SIZE = 1;
+// The number of disputes to display per-page
+const PAGE_SIZE = 10;
 
 export default async function ArchiveSearch({ searchParams }: { searchParams: unknown }) {
   const { data: params, error: searchError } = searchSchema.safeParse(searchParams);

@@ -89,3 +89,7 @@ type Respondent struct {
 type SendResetRequest struct {
 	Email string `json:"email"`
 }
+
+type ResetPassword struct {
+	NewPassword string `json:"new_password"`
+}

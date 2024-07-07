@@ -6,24 +6,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GENDERS } from "@/lib/constants";
+import { fetchLanguages } from "@/lib/api";
 import { SelectProps } from "@radix-ui/react-select";
 
-type GenderSelectProps = SelectProps & {
+type LanguageSelectProps = SelectProps & {
   id: string;
 };
 
-export default function GenderSelect({ id, ...props }: GenderSelectProps) {
+export default async function LanguageSelect(props: LanguageSelectProps) {
+  const data = (await fetchLanguages()).data!;
+
   return (
     <Select {...props}>
       <SelectTrigger>
-        <SelectValue id={id} placeholder="Select a gender" />
+        <SelectValue placeholder="Select a language" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          {GENDERS?.map((gen) => (
-            <SelectItem key={gen} value={gen}>
-              {gen}
+          {data?.map((country) => (
+            <SelectItem key={country.id} value={country.id}>
+              {country.label}
             </SelectItem>
           ))}
         </SelectGroup>

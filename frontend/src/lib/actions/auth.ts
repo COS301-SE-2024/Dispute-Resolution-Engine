@@ -5,6 +5,7 @@ import {
   LoginError,
   SignupError,
   loginSchema,
+  resetPasswordSchema,
   signupSchema,
   verifySchema,
 } from "@/lib/schema/auth";
@@ -154,4 +155,40 @@ export async function verify(
   return {
     data: "Email verified and logged in",
   };
+}
+
+export async function sendResetLink(
+  _initialState: any,
+  formData: FormData
+): Promise<Result<string, LoginError>> {
+  // Parse form data
+  const formObject = Object.fromEntries(formData);
+  const { data, error } = resetPasswordSchema.safeParse(formObject);
+  if (error) {
+    return {
+      error: error.format(),
+    };
+  }
+
+  const { data: resData, error: resError } = await fetch(
+    `${API_URL}/auth/reset-password/send-email`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        email: data.email,
+      }),
+    }
+  ).then((res) => res.json());
+  console.log(resData);
+
+  // Handle errors
+  if (resError) {
+    return {
+      error: {
+        _errors: [resError],
+      },
+    };
+  }
+  setAuth(resData);
+  redirect("/reset/success");
 }

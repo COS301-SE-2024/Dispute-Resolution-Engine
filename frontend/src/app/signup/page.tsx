@@ -1,10 +1,13 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { SignupForm, SignupButton, SignupField, SignupMessage } from "./signup-form";
+import { SignupButton, SignupField, SignupForm, SignupMessage } from "./signup-form";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CountrySelect from "@/components/form/country-select";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { SignupError } from "@/lib/schema/auth";
+import { Result } from "@/lib/interfaces";
+import { signup } from "@/lib/actions/auth";
 
 export default function Signup() {
   return (

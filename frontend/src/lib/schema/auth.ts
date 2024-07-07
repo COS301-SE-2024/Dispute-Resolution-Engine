@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export const resetPasswordSchema = z.object({
+  email: z.string().min(1, "Required").email("Please enter a valid email"),
+});
+export type ResetData = z.infer<typeof resetPasswordSchema>;
+export type ResetError = z.ZodFormattedError<ResetData>;
+
 export const signupSchema = z
   .object({
     firstName: z.string().min(1, "Required"),

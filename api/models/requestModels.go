@@ -86,7 +86,7 @@ type Respondent struct {
 	Telephone string `json:"telephone"`
 }
 
-type DisputeNotifyInvite struct {
+type DisputeNotify struct {
 	Type      string `json:"type"`
 	DisputeID int    `json:"dispute_id"`
 }

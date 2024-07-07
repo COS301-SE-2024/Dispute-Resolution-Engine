@@ -228,6 +228,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 	}
 
 	// Respond with success message
+	h.sendAdminNotification(c, email)
 	c.JSON(http.StatusCreated, models.Response{Data: "Dispute created successfully"})
 	log.Printf("Dispute created successfully: %s", title)
 }

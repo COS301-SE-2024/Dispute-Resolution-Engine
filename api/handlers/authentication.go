@@ -254,3 +254,12 @@ func sendOTP(userInfo string) {
 	}
 	fmt.Println("Email sent successfully!")
 }
+
+// resetPassword sends an email to the user with a link to reset their password
+// @Summary Reset a user's password
+// @Description Reset a user's password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response "Password reset not available yet..."
+// @Router /auth/reset-password [post]

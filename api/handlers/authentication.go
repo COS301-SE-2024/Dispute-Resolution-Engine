@@ -270,10 +270,10 @@ func sendOTP(userInfo string) {
 
 func (h Auth) ResetPassword(c *gin.Context) {
 	defer c.Request.Body.Close()
-	
+
 	//check the body of the request
 
-	var body models.SendResetRequest;
+	var body models.SendResetRequest
 	if err := c.BindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
 		return
@@ -281,16 +281,15 @@ func (h Auth) ResetPassword(c *gin.Context) {
 
 	//check if the email exists in the database
 
-	var user models.User;
-	h.DB.Where("email = ?", body.Email).First(&user);
+	var user models.User
+	h.DB.Where("email = ?", body.Email).First(&user)
 	if !h.checkUserExists(user.Email) {
 		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
 		return
 	}
 
-
 	//generate a jwt token with the user's email
-	tempUser:= models.User{
+	tempUser := models.User{
 		Email: user.Email,
 	}
 
@@ -301,7 +300,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 	}
 
 	//send an email to the user with a temporary link to reset the password
-	linkURL := "http://localhost:8080/reset-password/" + jwt
+	linkURL := fmt.Sprintf("%s/reset-password/%s", os.Getenv("FRONTEND_BASE_URL"), jwt)
 	email := models.Email{
 		From:    os.Getenv("COMPANY_EMAIL"),
 		To:      user.Email,
@@ -318,7 +317,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 
 }
 
-//activate reset password
+// activate reset password
 // @Summary Activate reset password
 // @Description Activate reset password
 // @Tags auth
@@ -345,21 +344,22 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 
 	//check the body of the request
 
-	var body models.ResetPassword;
+	var body models.ResetPassword
 	if err := c.BindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
 		return
 	}
 
 	//get user form the database
-	var user models.User;
-	h.DB.Where("email = ?", claims.Email).First(&user);
+	var user models.User
+	h.DB.Where("email = ?", claims.Email).First(&user)
 	if !h.checkUserExists(user.Email) {
 		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
 		return
 	}
 
 	//hash the new password
+	// WARNING: this function changes the salt of the user.
 	hashedPassword, err := hashPassword(body.NewPassword, &user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error hashing password"})

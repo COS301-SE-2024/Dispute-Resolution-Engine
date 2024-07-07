@@ -254,3 +254,78 @@ func sendOTP(userInfo string) {
 	}
 	fmt.Println("Email sent successfully!")
 }
+
+// resetPassword sends an email to the user with a link to reset their password
+// @Summary Reset a user's password
+// @Description Reset a user's password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response "Password reset not available yet..."
+// @Router /auth/reset-password/send-email [post]
+
+func (h Auth) ResetPassword(c *gin.Context) {
+	defer c.Request.Body.Close()
+	
+	//check the body of the request
+
+	var body models.SendResetRequest;
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+		return
+	}
+
+	//check if the email exists in the database
+
+	var user models.User;
+	h.DB.Where("email = ?", body.Email).First(&user);
+	if h.checkUserExists(user.Email) {
+		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
+		return
+	}
+
+	//generate a jwt token with the user's email
+	tempUser:= models.User{
+		Email: user.Email,
+	}
+
+	jwt, err := middleware.GenerateJWT(tempUser)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		return
+	}
+
+	//send an email to the user with a temporary link to reset the password
+	linkURL := "http://localhost:8080/reset-password/" + jwt
+	email := models.Email{
+		From:    os.Getenv("COMPANY_EMAIL"),
+		To:      user.Email,
+		Subject: "Password Reset",
+		Body:    "Click here to reset your password: " + linkURL,
+	}
+
+	if err := sendMail(email); err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending email"})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Response{Data: "Email sent successfully"})
+
+}
+
+func sendMail(email models.Email) error {
+	d := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("COMPANY_EMAIL"), os.Getenv("COMPANY_AUTH"))
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", email.From)
+	m.SetHeader("To", email.To)
+	m.SetHeader("Subject", email.Subject)
+	m.SetBody("text/html", email.Body)
+
+	if err := d.DialAndSend(m); err != nil {
+		return err
+	}
+	return nil
+}
+

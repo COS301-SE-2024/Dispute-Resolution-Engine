@@ -90,3 +90,7 @@ type DisputeNotifyInvite struct {
 	Type      string `json:"type"`
 	DisputeID int    `json:"dispute_id"`
 }
+
+type SendResetRequest struct {
+	Email string `json:"email"`
+}

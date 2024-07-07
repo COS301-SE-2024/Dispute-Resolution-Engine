@@ -29,6 +29,8 @@ func SetupAuthRoutes(group *gin.RouterGroup, h Auth) {
 	group.POST("/signup", h.CreateUser)
 	group.POST("/login", h.LoginUser)
 	group.POST("/verify", h.Verify)
+	group.POST("/reset-password/send-email", h.ResetPassword)
+	group.POST("/reset-password/reset", h.ActivateResetPassword)
 	/*
 		group.Handle("/reset-password", middleware.RoleMiddleware(http.AuthFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
 		// router.Handle("/verify", middleware.RoleMiddleware(http.AuthFunc(h.Verify), 0)).Methods(http.MethodPost)

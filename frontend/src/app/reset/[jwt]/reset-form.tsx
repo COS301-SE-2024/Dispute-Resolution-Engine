@@ -1,18 +1,18 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import { sendResetLink } from "@/lib/actions/auth";
+import { resetPassword } from "@/lib/actions/auth";
 import { Label } from "@/components/ui/label";
-import { ResetLinkData, ResetLinkError } from "@/lib/schema/auth";
+import { ResetPassError, ResetPassData } from "@/lib/schema/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ReactNode, forwardRef, useContext } from "react";
 import { Result } from "@/lib/types";
 import { createFormContext } from "@/components/ui/form-server";
 
-const [ResetContext, ResetForm] = createFormContext<Result<string, ResetLinkError>>(
+const [ResetContext, ResetForm] = createFormContext<Result<string, ResetPassError>>(
   "ResetForm",
-  sendResetLink
+  resetPassword
 );
 export { ResetForm };
 
@@ -49,7 +49,7 @@ export function ResetButton() {
   const { pending } = useFormStatus();
   return (
     <Button disabled={pending} type="submit">
-      Send reset link
+      Reset Password
     </Button>
   );
 }
@@ -60,7 +60,7 @@ export function ResetField({
   children,
   className = "",
 }: {
-  name: keyof ResetLinkData;
+  name: keyof ResetPassData;
   label: string;
   children: ReactNode;
   className?: string;

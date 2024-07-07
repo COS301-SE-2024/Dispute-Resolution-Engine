@@ -50,7 +50,7 @@ export async function signup(
 
       birthdate: data.dateOfBirth,
       gender: data.gender,
-      nationality: "za",
+      nationality: data.nationality,
 
       timezone: ".",
       preferred_language: data.preferredLanguage,

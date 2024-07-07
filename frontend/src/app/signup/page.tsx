@@ -51,6 +51,9 @@ export default function Signup() {
             <SignupField name="preferredLanguage" label="Preferred Language">
               <LanguageSelect name="preferredLanguage" id="preferredLanguage" />
             </SignupField>
+            <SignupField name="nationality" label="Nationality">
+              <CountrySelect name="nationality" />
+            </SignupField>
             <SignupField name="password" label="Password" className="col-span-2">
               <Input
                 autoComplete="new-password"

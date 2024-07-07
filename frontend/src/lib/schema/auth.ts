@@ -6,6 +6,7 @@ export const signupSchema = z
     lastName: z.string().min(1, "Required"),
     email: z.string().min(1, "Required").email("Please enter a valid email"),
     gender: z.string().min(1, "Required"),
+    nationality: z.string().min(1, "Required"),
     preferredLanguage: z.string().min(1, "Required"),
     password: z
       .string()

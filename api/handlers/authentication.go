@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -282,10 +283,11 @@ func (h Auth) ResetPassword(c *gin.Context) {
 
 	var user models.User;
 	h.DB.Where("email = ?", body.Email).First(&user);
-	if h.checkUserExists(user.Email) {
+	if !h.checkUserExists(user.Email) {
 		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
 		return
 	}
+
 
 	//generate a jwt token with the user's email
 	tempUser:= models.User{
@@ -306,7 +308,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		Subject: "Password Reset",
 		Body:    "Click here to reset your password: " + linkURL,
 	}
-
+	log.Println(email)
 	if err := sendMail(email); err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending email"})
 		return
@@ -352,7 +354,7 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 	//get user form the database
 	var user models.User;
 	h.DB.Where("email = ?", claims.Email).First(&user);
-	if h.checkUserExists(user.Email) {
+	if !h.checkUserExists(user.Email) {
 		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
 		return
 	}
@@ -382,6 +384,7 @@ func sendMail(email models.Email) error {
 	m.SetHeader("To", email.To)
 	m.SetHeader("Subject", email.Subject)
 	m.SetBody("text/html", email.Body)
+	log.Println(email)
 
 	if err := d.DialAndSend(m); err != nil {
 		return err

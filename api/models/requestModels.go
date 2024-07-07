@@ -91,5 +91,5 @@ type SendResetRequest struct {
 }
 
 type ResetPassword struct {
-	NewPassword string `json:"new_password"`
+	NewPassword string `json:"newPassword"`
 }

@@ -109,8 +109,6 @@ func (h Auth) CreateUser(c *gin.Context) {
 
 	//Small user preferences
 	user.Role = "user"
-	stubbedPref := "en-US"
-	user.PreferredLanguage = &stubbedPref
 	user.LastLogin = nil
 
 	if result := h.DB.Create(&user); result.Error != nil {

@@ -262,4 +262,32 @@ func sendOTP(userInfo string) {
 // @Accept json
 // @Produce json
 // @Success 200 {object} models.Response "Password reset not available yet..."
-// @Router /auth/reset-password [post]
+// @Router /auth/reset-password/send-email [post]
+
+func (h Auth) ResetPassword(c *gin.Context) {
+	defer c.Request.Body.Close()
+	
+	//check the body of the request
+
+	var body models.SendResetRequest;
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+		return
+	}
+
+	//check if the email exists in the database
+
+	var user models.User;
+	h.DB.Where("email = ?", body.Email).First(&user);
+	if h.checkUserExists(user.Email) {
+		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
+		return
+	}
+
+	//send an email to the user with a temporary link to reset the password
+
+	
+
+	//return a temporary link to reset the password
+
+}

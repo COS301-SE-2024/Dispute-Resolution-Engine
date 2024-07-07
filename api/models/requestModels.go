@@ -85,3 +85,7 @@ type Respondent struct {
 	Email     string `json:"email"`
 	Telephone string `json:"telephone"`
 }
+
+type SendResetRequest struct {
+	Email string `json:"email"`
+}

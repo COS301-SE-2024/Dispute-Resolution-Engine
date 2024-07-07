@@ -291,3 +291,20 @@ func (h Auth) ResetPassword(c *gin.Context) {
 	//return a temporary link to reset the password
 
 }
+
+func sendMail(email models.Email) error {
+	d := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("COMPANY_EMAIL"), os.Getenv("COMPANY_AUTH"))
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", email.From)
+	m.SetHeader("To", email.To)
+	m.SetHeader("Subject", email.Subject)
+	m.SetBody("text/html", email.Body)
+
+	if err := d.DialAndSend(m); err != nil {
+		return err
+	}
+	return nil
+}
+

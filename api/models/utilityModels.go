@@ -35,3 +35,11 @@ func ConvertUserToJWTUser(dbUser User) *UserInfoJWT{
 		Timezone: dbUser.Timezone,
 	}
 }
+
+type Email struct {
+	From		 string
+	To           string
+	Subject      string
+	Body         string
+}
+

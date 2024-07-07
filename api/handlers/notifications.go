@@ -4,6 +4,7 @@ import (
 	"api/middleware"
 	"api/models"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +34,19 @@ func (h Notification) sendAdminNotification(c *gin.Context, resEmail string) {
 	h.DB.Where("id = ?", reqInv.DisputeID).First(&dbDispute)
 
 	var respondentEmail = resEmail
-	//For now will stub it, but here we will finalize and send the appropriate email to invite a party
-	
+
+	email := models.Email{
+		From:    os.Getenv("COMPANY_EMAIL"),
+		To:      respondentEmail,
+		Subject: "Notification of formal dispute",
+		Body:    "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system. Please login to your DRE account and review it, if you do not have an account you may create one.",
+	}
+
+	if err := sendMail(email); err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending notification email."})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Response{Data: "Email notification send successfully"})
+
 }

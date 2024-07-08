@@ -14,7 +14,7 @@ type DisputeDetailsResponse struct {
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	Status      string    `json:"status"`
-	DateCreated time.Time `json:"date_created"`
+	DateCreated time.Time `json:"case_date"`
 	Evidence    []string  `json:"evidence"`
 	Experts     []string  `json:"experts"`
 }

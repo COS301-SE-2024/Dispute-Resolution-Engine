@@ -42,7 +42,7 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 	jwtClaims := middleware.GetClaims(c)
 	var disputes []models.Dispute
-	err := h.DB.Raw("SELECT * FROM disputes").Scan(&disputes).Error
+	err := h.DB.Find(&disputes).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return

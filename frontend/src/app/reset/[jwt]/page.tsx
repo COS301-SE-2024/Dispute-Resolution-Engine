@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormField, FormMessage, FormSubmit } from "@/components/ui/form-server";
 import { ResetPassData } from "@/lib/schema/auth";
 import { resetPassword } from "@/lib/actions/auth";
+import { useId } from "react";
 
 const ResetForm = Form<ResetPassData>;
 const ResetField = FormField<ResetPassData>;
@@ -20,6 +21,9 @@ type Props = {
 };
 
 export default function ResetPage({ params }: Props) {
+  const newId = useId();
+  const confirmId = useId();
+
   return (
     <main className="md:pt-3 h-full">
       <Card variant="page" asChild>
@@ -30,20 +34,25 @@ export default function ResetPage({ params }: Props) {
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-x-3 gap-y-4">
             <input type="hidden" name="jwt" value={params.jwt} />
-            <ResetField name="password" label="Password" className="col-span-2">
+            <ResetField id={newId} name="password" label="Password" className="col-span-2">
               <Input
-                autoComplete="new-password"
-                id="password"
+                id={newId}
                 name="password"
+                autoComplete="new-password"
                 placeholder="Password"
                 type="password"
               />
             </ResetField>
-            <ResetField name="passwordConfirm" label="Confirm Password" className="col-span-2">
+            <ResetField
+              id={confirmId}
+              name="passwordConfirm"
+              label="Confirm Password"
+              className="col-span-2"
+            >
               <Input
-                autoComplete="new-password"
-                id="passwordConfirm"
+                id={confirmId}
                 name="passwordConfirm"
+                autoComplete="new-password"
                 placeholder="Confirm Password"
                 type="password"
               />

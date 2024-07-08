@@ -83,7 +83,7 @@ export function FormField<T>({
   children,
   className = "",
 }: {
-  id?: string;
+  id: string;
   name: keyof T;
   label: string;
   children: ReactNode;
@@ -93,7 +93,7 @@ export function FormField<T>({
 
   return (
     <div className={className}>
-      <Label htmlFor={id ?? name.toString()}>{label}</Label>
+      <Label htmlFor={id}>{label}</Label>
       {children}
       <Message formName={name} />
     </div>

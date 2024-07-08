@@ -15,8 +15,11 @@ const ResetMessage = FormMessage<ResetLinkData>;
 import { Input } from "@/components/ui/input";
 import { ResetLinkData } from "@/lib/schema/auth";
 import { sendResetLink } from "@/lib/actions/auth";
+import { useId } from "react";
 
 export default function Reset() {
+  const emailId = useId();
+
   return (
     <main className="md:pt-3 h-full">
       <Card variant="page" asChild>
@@ -28,8 +31,8 @@ export default function Reset() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-x-3 gap-y-4">
-            <ResetField name="email" label="Email">
-              <Input autoComplete="email" id="email" name="email" placeholder="Email" />
+            <ResetField id={emailId} name="email" label="Email">
+              <Input id={emailId} autoComplete="email" name="email" placeholder="Email" />
             </ResetField>
           </CardContent>
           <CardFooter className="mt-auto flex justify-between">

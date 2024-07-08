@@ -9,13 +9,18 @@ import {
 import { fetchCountries } from "@/lib/api";
 import { SelectProps } from "@radix-ui/react-select";
 
-export default async function CountrySelect(props: SelectProps) {
+export default async function CountrySelect({
+  id,
+  ...props
+}: SelectProps & {
+  id?: string;
+}) {
   const data = (await fetchCountries()).data!;
 
   return (
     <Select {...props}>
       <SelectTrigger>
-        <SelectValue placeholder="Select a country" />
+        <SelectValue id={id} placeholder="Select a country" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>

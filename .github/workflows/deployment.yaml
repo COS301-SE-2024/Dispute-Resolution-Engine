@@ -110,25 +110,25 @@ jobs:
       #     touch postgres.tar
       #     touch redis.tar
       #     touch server_compose.yaml
-      - name: Remove Old Files
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: ${{ secrets.SSH_PORT }}
-          continue-on-error: true
-          script: |
-            mv server_compose.yaml compose.yaml
-            rm api.tar
-            rm frontend.tar
-            rm postgres.tar
-            rm redis.tar
-            rm db.env
-            rm api.env
-            rm red.env
-            rm fe.env
-            rm compose.yaml
+      # - name: Remove Old Files
+      #   uses: appleboy/ssh-action@v1.0.0
+      #   continue-on-error: true
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     password: ${{ secrets.SSH_PASSWORD }}
+      #     port: ${{ secrets.SSH_PORT }}
+      #     script: |
+      #       mv server_compose.yaml compose.yaml
+      #       rm api.tar
+      #       rm frontend.tar
+      #       rm postgres.tar
+      #       rm redis.tar
+      #       rm db.env
+      #       rm api.env
+      #       rm red.env
+      #       rm fe.env
+      #       rm compose.yaml
 
       - name: Send through the docker container using scp
         uses: appleboy/scp-action@v0.1.4

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import GenderSelect from "@/components/form/gender-select";
 import LanguageSelect from "@/components/form/language.select";
-import { Form, FormField, FormMessage, FormSubmit } from "@/components/form/form";
+import { Form, FormField, FormMessage, FormSubmit } from "@/components/ui/form-server";
 import { SignupData } from "@/lib/schema/auth";
 import { signup } from "@/lib/actions/auth";
 

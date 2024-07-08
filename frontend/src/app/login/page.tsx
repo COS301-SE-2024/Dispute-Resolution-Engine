@@ -2,7 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { Form, FormField, FormMessage, FormSubmit } from "@/components/form/form";
+import { Form, FormField, FormMessage, FormSubmit } from "@/components/ui/form-server";
 import { LoginData } from "@/lib/schema/auth";
 import { login } from "@/lib/actions/auth";
 

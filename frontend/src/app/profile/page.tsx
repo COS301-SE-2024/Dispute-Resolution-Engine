@@ -1,5 +1,5 @@
 import AddressFields from "@/components/form/address-fields";
-import { Form, FormMessage, FormSubmit } from "@/components/form/form";
+import { Form, FormMessage, FormSubmit } from "@/components/ui/form-server";
 import ProfileFields from "@/components/form/profile-fields";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

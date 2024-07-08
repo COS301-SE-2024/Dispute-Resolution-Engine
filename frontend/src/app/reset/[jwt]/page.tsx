@@ -7,7 +7,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Form, FormField, FormMessage, FormSubmit } from "@/components/form/form";
+import { Form, FormField, FormMessage, FormSubmit } from "@/components/ui/form-server";
 import { ResetPassData } from "@/lib/schema/auth";
 import { resetPassword } from "@/lib/actions/auth";
 

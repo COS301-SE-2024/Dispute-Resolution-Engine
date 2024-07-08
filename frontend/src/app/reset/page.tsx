@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Form, FormField, FormMessage, FormSubmit } from "@/components/form/form";
+import { Form, FormField, FormMessage, FormSubmit } from "@/components/ui/form-server";
 
 const ResetForm = Form<ResetLinkData>;
 const ResetField = FormField<ResetLinkData>;

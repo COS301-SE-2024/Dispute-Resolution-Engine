@@ -1,4 +1,4 @@
-import { Form, FormField, FormMessage, FormSubmit } from "@/components/form/form";
+import { Form, FormField, FormMessage, FormSubmit } from "@/components/ui/form-server";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import {
   InputOTP,

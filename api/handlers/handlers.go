@@ -24,6 +24,10 @@ type Utility struct {
 	Handler
 }
 
+type Notification struct {
+	Handler
+}
+
 func new(db *gorm.DB) Handler {
 	return Handler{DB: db}
 }
@@ -42,4 +46,8 @@ func NewDisputeHandler(db *gorm.DB) Dispute {
 
 func NewUtilitiesHandler(db *gorm.DB) Utility {
 	return Utility{new(db)}
+}
+
+func NewNotificationHandler(db *gorm.DB) Notification {
+	return Notification{new(db)}
 }

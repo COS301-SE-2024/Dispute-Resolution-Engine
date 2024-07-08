@@ -3,8 +3,12 @@
 import { Result } from "@/lib/types";
 import {
   LoginError,
+  ResetLinkError,
+  ResetPassError,
   SignupError,
   loginSchema,
+  resetLinkSchema,
+  resetPassSchema,
   signupSchema,
   verifySchema,
 } from "@/lib/schema/auth";
@@ -154,4 +158,73 @@ export async function verify(
   return {
     data: "Email verified and logged in",
   };
+}
+
+export async function sendResetLink(
+  _initialState: any,
+  formData: FormData
+): Promise<Result<string, ResetLinkError>> {
+  // Parse form data
+  const formObject = Object.fromEntries(formData);
+  const { data, error } = resetLinkSchema.safeParse(formObject);
+  if (error) {
+    return {
+      error: error.format(),
+    };
+  }
+
+  const { data: resData, error: resError } = await fetch(
+    `${API_URL}/auth/reset-password/send-email`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        email: data.email,
+      }),
+    }
+  ).then((res) => res.json());
+  console.log(resData);
+
+  // Handle errors
+  if (resError) {
+    return {
+      error: {
+        _errors: [resError],
+      },
+    };
+  }
+  setAuth(resData);
+  redirect("/reset/success");
+}
+
+export async function resetPassword(
+  _initialState: any,
+  formData: FormData
+): Promise<Result<string, ResetPassError>> {
+  // Parse form data
+  const formObject = Object.fromEntries(formData);
+  const { data, error } = resetPassSchema.safeParse(formObject);
+  if (error) {
+    return {
+      error: error.format(),
+    };
+  }
+
+  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/reset-password/reset`, {
+    method: "POST",
+    body: JSON.stringify({
+      newPassword: data.password,
+    }),
+  }).then((res) => res.json());
+  console.log(resData);
+
+  // Handle errors
+  if (resError) {
+    return {
+      error: {
+        _errors: [resError],
+      },
+    };
+  }
+  setAuth(resData);
+  redirect("/login");
 }

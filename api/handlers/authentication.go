@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -29,6 +30,8 @@ func SetupAuthRoutes(group *gin.RouterGroup, h Auth) {
 	group.POST("/signup", h.CreateUser)
 	group.POST("/login", h.LoginUser)
 	group.POST("/verify", h.Verify)
+	group.POST("/reset-password/send-email", h.ResetPassword)
+	group.POST("/reset-password/reset", h.ActivateResetPassword)
 	/*
 		group.Handle("/reset-password", middleware.RoleMiddleware(http.AuthFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
 		// router.Handle("/verify", middleware.RoleMiddleware(http.AuthFunc(h.Verify), 0)).Methods(http.MethodPost)
@@ -251,4 +254,146 @@ func sendOTP(userInfo string) {
 		fmt.Println("Error writing to file: " + err.Error())
 	}
 	fmt.Println("Email sent successfully!")
+}
+
+// resetPassword sends an email to the user with a link to reset their password
+// @Summary Reset a user's password
+// @Description Reset a user's password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response "Email sent successfully"
+// @Failure 400 {object} models.Response "Invalid Request"
+// @Router /auth/reset-password/send-email [post]
+
+func (h Auth) ResetPassword(c *gin.Context) {
+	defer c.Request.Body.Close()
+
+	//check the body of the request
+
+	var body models.SendResetRequest
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+		return
+	}
+
+	//check if the email exists in the database
+
+	var user models.User
+	h.DB.Where("email = ?", body.Email).First(&user)
+	if !h.checkUserExists(user.Email) {
+		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
+		return
+	}
+
+	//generate a jwt token with the user's email
+	tempUser := models.User{
+		Email: user.Email,
+	}
+
+	jwt, err := middleware.GenerateJWT(tempUser)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		return
+	}
+
+	//send an email to the user with a temporary link to reset the password
+	linkURL := fmt.Sprintf("%s/reset-password/%s", os.Getenv("FRONTEND_BASE_URL"), jwt)
+	email := models.Email{
+		From:    os.Getenv("COMPANY_EMAIL"),
+		To:      user.Email,
+		Subject: "Password Reset",
+		Body:    "Click here to reset your password: " + linkURL,
+	}
+	log.Println(email)
+	if err := sendMail(email); err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending email"})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Response{Data: "Email sent successfully"})
+
+}
+
+// activate reset password
+// @Summary Activate reset password
+// @Description Activate reset password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param token path string true "Token"
+// @Success 200 {object} models.Response "Password reset link activated"
+// @Failure 400 {object} models.Response "Invalid Request"
+// @Router /auth/reset-password/reset [post]
+func (h Auth) ActivateResetPassword(c *gin.Context) {
+	defer c.Request.Body.Close()
+
+	//get the token from the url
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing token"})
+		return
+	}
+	claims := middleware.GetClaims(c)
+	if claims == nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing token"})
+		return
+	}
+
+	//check the body of the request
+
+	var body models.ResetPassword
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+		return
+	}
+
+	//get user form the database
+	var user models.User
+	h.DB.Where("email = ?", claims.Email).First(&user)
+	if !h.checkUserExists(user.Email) {
+		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
+		return
+	}
+
+	//hash the new password
+	// WARNING: this function changes the salt of the user.
+	hashedPassword, err := hashPassword(body.NewPassword, &user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error hashing password"})
+		return
+	}
+
+	//update the user's password
+	h.DB.Model(&user).Updates(map[string]interface{}{
+		"password_hash": hashedPassword,
+		"salt":          user.Salt,
+	})
+
+	c.JSON(http.StatusOK, models.Response{Data: "Password reset successfully"})
+}
+
+func sendMail(email models.Email) error {
+	d := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("COMPANY_EMAIL"), os.Getenv("COMPANY_AUTH"))
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", email.From)
+	m.SetHeader("To", email.To)
+	m.SetHeader("Subject", email.Subject)
+	m.SetBody("text/html", email.Body)
+	log.Println(email)
+
+	if err := d.DialAndSend(m); err != nil {
+		return err
+	}
+	return nil
+}
+
+func hashPassword(newPassword string, user *models.User) (string, error) {
+	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
+
+	hashAndSalt := hasher.HashPassword(newPassword)
+	user.Salt = base64.StdEncoding.EncodeToString(hashAndSalt.Salt)
+	return base64.StdEncoding.EncodeToString(hashAndSalt.Hash), nil
 }

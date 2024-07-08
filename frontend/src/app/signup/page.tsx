@@ -5,9 +5,8 @@ import CountrySelect from "@/components/form/country-select";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { SignupError } from "@/lib/schema/auth";
-import { Result } from "@/lib/interfaces";
-import { signup } from "@/lib/actions/auth";
+import GenderSelect from "@/components/form/gender-select";
+import LanguageSelect from "@/components/form/language.select";
 
 export default function Signup() {
   return (
@@ -45,6 +44,15 @@ export default function Signup() {
                 type="date"
                 className="w-fit"
               />
+            </SignupField>
+            <SignupField name="gender" label="Gender">
+              <GenderSelect name="gender" id="gender" />
+            </SignupField>
+            <SignupField name="preferredLanguage" label="Preferred Language">
+              <LanguageSelect name="preferredLanguage" id="preferredLanguage" />
+            </SignupField>
+            <SignupField name="nationality" label="Nationality">
+              <CountrySelect name="nationality" />
             </SignupField>
             <SignupField name="password" label="Password" className="col-span-2">
               <Input

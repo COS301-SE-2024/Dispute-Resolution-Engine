@@ -53,11 +53,11 @@ export async function signup(
       password: data.password,
 
       birthdate: data.dateOfBirth,
-      gender: "Male",
-      nationality: "za",
+      gender: data.gender,
+      nationality: data.nationality,
 
       timezone: ".",
-      preferred_language: ".",
+      preferred_language: data.preferredLanguage,
     }),
   }).then((res) => res.json());
 

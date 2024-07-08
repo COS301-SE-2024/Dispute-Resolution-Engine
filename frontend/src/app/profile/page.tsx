@@ -1,11 +1,15 @@
 import AddressFields from "@/components/form/address-fields";
+import { Form, FormMessage, FormSubmit } from "@/components/form/form";
 import ProfileFields from "@/components/form/profile-fields";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { updateProfile } from "@/lib/actions/profile";
 import { getProfile } from "@/lib/api/profile";
+import { ProfileData } from "@/lib/schema/profile";
 import { Metadata } from "next";
-import { ProfileUpdateButton, ProfileUpdateForm, ProfileUpdateMessage } from "./profile-form";
+
+const ProfileUpdateForm = Form<ProfileData>;
+const ProfileUpdateMessage = FormMessage<ProfileData>;
 
 export const metadata: Metadata = {
   title: "DRE - Profile",
@@ -19,7 +23,7 @@ export default async function Profile() {
   return (
     <main className="md:py-3 h-full">
       <Card variant="page" className="max-h-full flex flex-col" asChild>
-        <ProfileUpdateForm>
+        <ProfileUpdateForm action={updateProfile}>
           <CardHeader className="mb-4 space-y-3">
             <CardTitle>Edit Profile</CardTitle>
             <dl className="grid grid-cols-2 mb-8 ">
@@ -56,7 +60,7 @@ export default async function Profile() {
           <CardFooter className="flex justify-between">
             {/* <Button variant="destructive">Delete Account</Button> */}
             <ProfileUpdateMessage />
-            <ProfileUpdateButton />
+            <FormSubmit>Save</FormSubmit>
           </CardFooter>
         </ProfileUpdateForm>
       </Card>

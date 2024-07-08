@@ -1,5 +1,4 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { SignupButton, SignupField, SignupForm, SignupMessage } from "./signup-form";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CountrySelect from "@/components/form/country-select";
 import { Input } from "@/components/ui/input";
@@ -7,12 +6,19 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import GenderSelect from "@/components/form/gender-select";
 import LanguageSelect from "@/components/form/language.select";
+import { Form, FormField, FormMessage, FormSubmit } from "@/components/form/form";
+import { SignupData } from "@/lib/schema/auth";
+import { signup } from "@/lib/actions/auth";
+
+const SignupForm = Form<SignupData>;
+const SignupMessage = FormMessage<SignupData>;
+const SignupField = FormField<SignupData>;
 
 export default function Signup() {
   return (
     <main className="md:pt-3 h-full">
       <Card variant="page" asChild>
-        <SignupForm className="flex flex-col">
+        <SignupForm action={signup} className="flex flex-col">
           <CardHeader>
             <CardTitle>Signup</CardTitle>
           </CardHeader>
@@ -81,7 +87,7 @@ export default function Signup() {
               </Link>
             </p>
             <SignupMessage />
-            <SignupButton />
+            <FormSubmit>Signup</FormSubmit>
           </CardFooter>
         </SignupForm>
       </Card>

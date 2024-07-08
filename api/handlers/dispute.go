@@ -68,12 +68,20 @@ func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 func (h Dispute) getDispute(c *gin.Context) {
 	id := c.Param("id")
 
-	var DisputeDetailsResponse models.DisputeDetailsResponse
-	err := h.DB.Raw("SELECT id, title, description, status, case_date FROM disputes WHERE id = ?", id).Scan(&DisputeDetailsResponse).Error
+	var disputes models.Dispute
+	err := h.DB.Raw("SELECT id, title, description, status, case_date FROM disputes WHERE id = ?", id).Scan(&disputes).Error
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
+	}
+
+	DisputeDetailsResponse := models.DisputeDetailsResponse{
+		ID:          *disputes.ID,
+		Title:       disputes.Title,
+		Description: disputes.Description,
+		Status:      disputes.Status,
+		DateCreated: disputes.CaseDate,
 	}
 
 	err = h.DB.Raw("SELECT file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error

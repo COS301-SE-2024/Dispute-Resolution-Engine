@@ -188,8 +188,8 @@ func (h Dispute) createDispute(c *gin.Context) {
 		}
 
 		// Generate URL for accessing the file
-		fileURL := fmt.Sprintf("https://your-domain.com%s", fileLocation)
-		fileURLs = append(fileURLs, fileURL)
+		// fileURL := fmt.Sprintf("https://your-domain.com%s", fileLocation)
+		fileURLs = append(fileURLs, fileLocation)
 	}
 
 	// Store file URLs in PostgreSQL database

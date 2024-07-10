@@ -105,3 +105,26 @@ The server will respond with a success or failure
 ```ts
 type UserAddressUpdateResponse = string;
 ```
+
+# user analytics
+- **Endpoint:** `POST /user/analytics`
+- **Headers:**
+  - `Autherization: Bearer <JWT>`
+```ts
+interface DateRange {
+  startDate: string;
+  endDate: string;
+}
+
+interface UserAnalytics {
+  columnValueComparison?: Array<{ column: string, value: any }>;
+  orderBy?: Array<{ column: string, direction: 'asc' | 'desc' }>;
+  dateRanges?: {
+    created_at?: DateRange;
+    updated_at?: DateRange;
+    last_login?: DateRange;
+  };
+  groupBy?: string[];
+  count: boolean;
+}
+```

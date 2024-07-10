@@ -27,6 +27,26 @@ type GetUser struct {
 	Theme   string  `json:"theme"`
 }
 
+type ColumnValueComparison struct {
+	Column string `json:"column"`
+	Value  string `json:"value"`
+}
+type DateRange struct {
+	StartDate string `json:"startDate"`
+	EndDate   string `json:"endDate"`
+}
+type OrderBy struct {
+	Column string `json:"column"`
+	Order  string `json:"order"`
+}
+type UserAnalytics struct {
+	ColumnvalueComparisons *[]ColumnValueComparison `json:"columnvalueComparisons,omitempty"`
+	OrderBy				*[]OrderBy `json:"orderBy,omitempty"`
+	DateRanges			*[]DateRange `json:"dateRanges,omitempty"`
+	GroupBy				*[]string `json:"groupBy,omitempty"`
+	Count				bool `json:"count,omitempty"`
+}
+
 type CreateUser struct {
 	//These are all the user details that are required to create a user
 	FirstName         string  `json:"first_name"`

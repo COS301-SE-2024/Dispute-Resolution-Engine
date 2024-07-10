@@ -16,6 +16,7 @@ func SetupUserRoutes(g *gin.RouterGroup, h User) {
 	g.GET("/profile", h.getUser)
 	g.PUT("/profile/address", h.UpdateUserAddress)
 	g.DELETE("/remove", h.RemoveAccount)
+	g.POST("/analytics", h.UserAnalyticsEndpoint)
 }
 
 // @Summary Get user profile
@@ -238,6 +239,16 @@ func (h User) UpdateUserAddress(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "User address updated successfully"})
 }
 
+// UserAnalyticsEndpoint is a handler for user analytics
+// @Summary User analytics
+// @Description User analytics
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body models.UserAnalytics true "User"
+// @Success 200 {object} models.Response "User analytics"
+// @Failure 400 {object} models.Response "Bad Request"
+// @Router /user/analytics [post]
 func (h *Handler) UserAnalyticsEndpoint(c *gin.Context) {
 	var analyticsReq models.UserAnalytics
 

@@ -69,12 +69,19 @@ func (h Dispute) getDispute(c *gin.Context) {
 	id := c.Param("id")
 
 	var disputes models.Dispute
-	err := h.DB.Raw("SELECT id, title, description, status, case_date FROM disputes WHERE id = ?", id).Scan(&disputes).Error
+	err := h.DB.Raw("SELECT id, title, description, status, case_date, respondant, complainant FROM disputes WHERE id = ?", id).Scan(&disputes).Error
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
+
+	//name and email
+	// var respondantData models.User
+	// err = h.DB.Where("id = ?", disputes.Respondant).Scan(&respondantData).Error
+	// if err!=nil {
+		
+	// }
 
 	DisputeDetailsResponse := models.DisputeDetailsResponse{
 		ID:          *disputes.ID,

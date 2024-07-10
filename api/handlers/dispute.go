@@ -40,13 +40,34 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 // @Success 200 {object} models.Response "Dispute Summary Endpoint"
 // @Router /dispute [get]
 func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
-	var disputes []models.DisputeSummaryResponse
-	err := h.DB.Raw("SELECT id, title, description, status FROM disputes").Scan(&disputes).Error
+	jwtClaims := middleware.GetClaims(c)
+	var disputes []models.Dispute
+	err := h.DB.Find(&disputes).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, models.Response{Data: disputes})
+	var disputeSummaries []models.DisputeSummaryResponse
+	userID := jwtClaims.User.ID
+	for _, dispute := range disputes {
+		var role string = ""
+		if dispute.Complainant == userID {
+			role = "Complainant"
+		}
+		if dispute.Respondant == &userID {
+			role = "Respondant"
+		}
+		summary := models.DisputeSummaryResponse{
+			ID:          *dispute.ID,
+			Title:       dispute.Title,
+			Description: dispute.Description,
+			Status:      dispute.Status,
+			Role:        &role,
+		}
+		disputeSummaries = append(disputeSummaries, summary)
+	}
+
+	c.JSON(http.StatusOK, models.Response{Data: disputeSummaries})
 }
 
 // @Summary Get a dispute

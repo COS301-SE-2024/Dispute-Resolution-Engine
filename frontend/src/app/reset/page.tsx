@@ -6,14 +6,24 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ResetForm, ResetButton, ResetField, ResetMessage } from "./reset-form";
+import { Form, FormField, FormMessage, FormSubmit } from "@/components/ui/form-server";
+
+const ResetForm = Form<ResetLinkData>;
+const ResetField = FormField<ResetLinkData>;
+const ResetMessage = FormMessage<ResetLinkData>;
+
 import { Input } from "@/components/ui/input";
+import { ResetLinkData } from "@/lib/schema/auth";
+import { sendResetLink } from "@/lib/actions/auth";
+import { useId } from "react";
 
 export default function Reset() {
+  const emailId = useId();
+
   return (
     <main className="md:pt-3 h-full">
       <Card variant="page" asChild>
-        <ResetForm className="flex flex-col">
+        <ResetForm action={sendResetLink} className="flex flex-col">
           <CardHeader>
             <CardTitle>Reset Password</CardTitle>
             <CardDescription>
@@ -21,13 +31,13 @@ export default function Reset() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-x-3 gap-y-4">
-            <ResetField name="email" label="Email">
-              <Input autoComplete="email" id="email" name="email" placeholder="Email" />
+            <ResetField id={emailId} name="email" label="Email">
+              <Input id={emailId} autoComplete="email" name="email" placeholder="Email" />
             </ResetField>
           </CardContent>
           <CardFooter className="mt-auto flex justify-between">
             <ResetMessage />
-            <ResetButton />
+            <FormSubmit>Send reset link</FormSubmit>
           </CardFooter>
         </ResetForm>
       </Card>

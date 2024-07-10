@@ -32,6 +32,7 @@ type ColumnValueComparison struct {
 	Value  string `json:"value"`
 }
 type DateRange struct {
+	Column   string `json:"column"`
 	StartDate string `json:"startDate"`
 	EndDate   string `json:"endDate"`
 }

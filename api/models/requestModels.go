@@ -98,3 +98,8 @@ type SendResetRequest struct {
 type ResetPassword struct {
 	NewPassword string `json:"newPassword"`
 }
+
+type DisputeStatusChange struct {
+	DisputeID string `json:"dispute_id"`
+	Status    string `json:"status"`
+}

@@ -105,3 +105,13 @@ type DisputeCreateResponse = string;
 
 **NOTE:** This endpoint involves files being exchanged. This requires the use of `multipart/form-data` instead of JSON.
 This is left incomplete until this exception is documenteda.
+
+# Dispute Status Change
+- **Endpoint:** `PUT /dispute/status_update`
+- **Headers:**
+    - `Authorization: Bearer <>JWT`
+```ts 
+type updateRequest = {
+  dispute_id : string;
+  status : string;
+};

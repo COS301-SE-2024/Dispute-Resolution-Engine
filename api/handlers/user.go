@@ -264,7 +264,7 @@ func (h *Handler) UserAnalyticsEndpoint(c *gin.Context) {
 	// Add WHERE clauses for column-value comparisons
 	if analyticsReq.ColumnvalueComparisons != nil {
 		for _, cvc := range *analyticsReq.ColumnvalueComparisons {
-			query = query.Where(cvc.Column+" = ?", cvc.Value)
+			query = query.Where(cvc.Column+" LIKE ?", "%" + cvc.Value + "%")
 		}
 	}
 
@@ -283,12 +283,12 @@ func (h *Handler) UserAnalyticsEndpoint(c *gin.Context) {
 	// Add date range filters
 	if analyticsReq.DateRanges != nil {
 		for _, dr := range *analyticsReq.DateRanges {
-			startDate, err := time.Parse("2006-01-02", dr.StartDate)
+			startDate, err := time.Parse("2006-01-02", *dr.StartDate)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid start date format"})
 				return
 			}
-			endDate, err := time.Parse("2006-01-02", dr.EndDate)
+			endDate, err := time.Parse("2006-01-02", *dr.EndDate)
 			if err != nil {
 				c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid end date format"})
 				return

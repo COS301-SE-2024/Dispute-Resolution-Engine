@@ -33,8 +33,8 @@ type ColumnValueComparison struct {
 }
 type DateRange struct {
 	Column   string `json:"column"`
-	StartDate string `json:"startDate"`
-	EndDate   string `json:"endDate"`
+	StartDate *string `json:"startDate, omitempty"`
+	EndDate   *string `json:"endDate, omitempty"`
 }
 type OrderBy struct {
 	Column string `json:"column"`

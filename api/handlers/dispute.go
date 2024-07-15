@@ -81,12 +81,27 @@ func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 func (h Dispute) getDispute(c *gin.Context) {
 	id := c.Param("id")
 
-	var DisputeDetailsResponse models.DisputeDetailsResponse
-	err := h.DB.Raw("SELECT id, title, description, status, case_date FROM disputes WHERE id = ?", id).Scan(&DisputeDetailsResponse).Error
+	var disputes models.Dispute
+	err := h.DB.Raw("SELECT id, title, description, status, case_date, respondant, complainant FROM disputes WHERE id = ?", id).Scan(&disputes).Error
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
+	}
+
+	//name and email
+	// var respondantData models.User
+	// err = h.DB.Where("id = ?", disputes.Respondant).Scan(&respondantData).Error
+	// if err!=nil {
+		
+	// }
+
+	DisputeDetailsResponse := models.DisputeDetailsResponse{
+		ID:          *disputes.ID,
+		Title:       disputes.Title,
+		Description: disputes.Description,
+		Status:      disputes.Status,
+		DateCreated: disputes.CaseDate,
 	}
 
 	err = h.DB.Raw("SELECT file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
@@ -201,8 +216,8 @@ func (h Dispute) createDispute(c *gin.Context) {
 		}
 
 		// Generate URL for accessing the file
-		fileURL := fmt.Sprintf("https://your-domain.com%s", fileLocation)
-		fileURLs = append(fileURLs, fileURL)
+		// fileURL := fmt.Sprintf("https://your-domain.com%s", fileLocation)
+		fileURLs = append(fileURLs, fileLocation)
 	}
 
 	// Store file URLs in PostgreSQL database

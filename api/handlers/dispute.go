@@ -4,7 +4,6 @@ import (
 	//"api/middleware"
 	"api/middleware"
 	"api/models"
-	"fmt"
 	"io"
 	"log"
 	"net/http"

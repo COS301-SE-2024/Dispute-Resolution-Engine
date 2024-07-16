@@ -50,7 +50,9 @@ function DisputeHeader({
         <dt className="text-right font-bold">Status: </dt>
         <dd>
           <DropdownMenu >
-            <DropdownMenuTrigger className="text-black bg-amber-50 px-5 justify-center rounded">{status}</DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
+              <Badge>{status}</Badge>
+              </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>Next Steps</DropdownMenuLabel>
               <DropdownMenuSeparator />

@@ -30,7 +30,7 @@ async function DisputeList() {
     <ul>
       {data.data ? (
         data.data.map((d) => (
-          <li key={d.id}>
+          <li className="w-auto overflow-scroll" key={d.id}>
             <DisputeLink href={`/disputes/${d.id}`}>{d.title}</DisputeLink>
           </li>
         ))

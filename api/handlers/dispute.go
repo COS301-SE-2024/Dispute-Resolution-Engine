@@ -4,7 +4,6 @@ import (
 	//"api/middleware"
 	"api/middleware"
 	"api/models"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -93,7 +92,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 	// var respondantData models.User
 	// err = h.DB.Where("id = ?", disputes.Respondant).Scan(&respondantData).Error
 	// if err!=nil {
-		
+
 	// }
 
 	DisputeDetailsResponse := models.DisputeDetailsResponse{
@@ -104,7 +103,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 		DateCreated: disputes.CaseDate,
 	}
 
-	err = h.DB.Raw("SELECT file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
+	err = h.DB.Raw("SELECT file_name,uploaded,file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return

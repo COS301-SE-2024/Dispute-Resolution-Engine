@@ -7,6 +7,7 @@ import { getDisputeDetails } from "@/lib/api/dispute";
 import { Metadata } from "next";
 import { File, WorkflowIcon } from "lucide-react";
 import React from "react";
+import ExpertItem from "@/components/dispute/negotiator";
 
 type Props = {
   params: { id: string };
@@ -55,9 +56,10 @@ export default async function DisputePage({ params }: Props) {
   if (error || !data) {
     return <h1>{error}</h1>;
   }
-  var eviStr : string = data.evidence[0].toString()
-  eviStr = eviStr.split("/").pop() as string
-  console.log("THIS IS THE DATA######################\n", data)
+  console.log(data);
+  var eviStr: string = data.evidence[0].toString();
+  eviStr = eviStr.split("/").pop() as string;
+  console.log("THIS IS THE DATA######################\n", data);
   return (
     <div className="grow overflow-y-auto flex flex-col">
       <DisputeHeader
@@ -79,13 +81,25 @@ export default async function DisputePage({ params }: Props) {
         <Card className="mb-4">
           <CardHeader>
             <CardTitle>Complainant&apos;s Evidence</CardTitle>
-            <CardDescription>
-              <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
-                <File className="mx-auto h-8 w-8" />
-                <p className="mt-2 text-sm font-medium">{eviStr}</p>
-              </div>
-            </CardDescription>
+            <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
+              <File className="mx-auto h-8 w-8" />
+              <p className="mt-2 text-sm font-medium">{eviStr}</p>
+            </div>
           </CardHeader>
+        </Card>
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle>Negotiating Parties</CardTitle>
+          </CardHeader>
+        <CardContent>
+            <ul>
+                {data.experts.map((e) => (
+                <li key={e.full_name}>
+                    <ExpertItem {...e} />
+                </li>
+                ))}
+            </ul>
+        </CardContent>
         </Card>
         {/*<Card className="mb-4">*/}
         {/*  <CardHeader>*/}

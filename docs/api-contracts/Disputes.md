@@ -58,7 +58,6 @@ Will return a list of dispute summaries the user is involved in:
 type DisputeListResponse = DisputeSummary[];
 ```
 
-
 # Dispute Details
 - **Endpoint:** `GET /disputes/{id}`
 - **Headers:**
@@ -115,3 +114,37 @@ type DisputeCreateResponse = string;
 
 **NOTE:** This endpoint involves files being exchanged. This requires the use of `multipart/form-data` instead of JSON.
 This is left incomplete until this exception is documenteda.
+
+# Dispute Negotiating Party Operations
+
+## Approving
+- **Endpoint:** `POST /disputes/{id}/experts/approve`
+- **Headers:**
+    - `Authorization: Bearer <JWT>`
+
+```ts
+interface ExpertApproveRequest {
+  expert_id: string;
+}
+```
+The response will return a success message
+```ts
+type ExpertApproveResponse = string;
+```
+
+## Rejecting
+- **Endpoint:** `POST /disputes/{id}/experts/reject`
+- **Headers:**
+    - `Authorization: Bearer <JWT>`
+
+```ts
+interface ExpertRejectRequest {
+  expert_id: string;
+  reason: string;
+}
+```
+
+The response will return a success message
+```ts
+type ExpertRejectResponse = string;
+```

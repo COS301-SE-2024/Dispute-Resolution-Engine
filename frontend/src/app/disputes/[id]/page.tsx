@@ -49,16 +49,13 @@ function DisputeHeader({
         <dd>{id}</dd>
         <dt className="text-right font-bold">Status: </dt>
         <dd>
-          <Badge>{status}</Badge>
-          <DropdownMenu>
-            <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+          <DropdownMenu >
+            <DropdownMenuTrigger className="text-black bg-amber-50 px-5 justify-center rounded">{status}</DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Next Steps</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
-              <DropdownMenuItem>Team</DropdownMenuItem>
-              <DropdownMenuItem>Subscription</DropdownMenuItem>
+              <DropdownMenuItem>Waiting for Admin Approval</DropdownMenuItem>
+              <DropdownMenuItem>Waiting for respondent</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </dd>
@@ -73,9 +70,15 @@ export default async function DisputePage({ params }: Props) {
   if (error || !data) {
     return <h1>{error}</h1>;
   }
-  var eviStr : string = data.evidence[0].toString()
-  eviStr = eviStr.split("/").pop() as string
-  console.log("THIS IS THE DATA######################\n", data)
+  var eviStr : string = "No evidence provided"
+  if(data.evidence){
+    if(data.evidence[0]){
+      var eviStr : string = data.evidence[0].toString()
+      eviStr = eviStr.split("/").pop() as string
+    }
+  }
+
+
   return (
     <div className="grow overflow-y-auto flex flex-col">
       <DisputeHeader
@@ -97,20 +100,15 @@ export default async function DisputePage({ params }: Props) {
         <Card className="mb-4">
           <CardHeader>
             <CardTitle>Complainant&apos;s Evidence</CardTitle>
-            <CardDescription>
-              <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
-                <File className="mx-auto h-8 w-8" />
-                <p className="mt-2 text-sm font-medium">{eviStr}</p>
-              </div>
-            </CardDescription>
+
           </CardHeader>
+          <CardContent>
+            <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
+              <File className="mx-auto h-8 w-8" />
+              <p className="mt-2 text-sm font-medium">{eviStr}</p>
+            </div>
+          </CardContent>
         </Card>
-        {/*<Card className="mb-4">*/}
-        {/*  <CardHeader>*/}
-        {/*    <CardTitle>Respondant Information</CardTitle>*/}
-        {/*    <CardDescription>Who you gon&apos; sue?</CardDescription>*/}
-        {/*  </CardHeader>*/}
-        {/*</Card>*/}
       </ScrollArea>
       <Separator />
     </div>

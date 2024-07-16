@@ -103,7 +103,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 		DateCreated: disputes.CaseDate,
 	}
 
-	err = h.DB.Raw("SELECT file_name, uploaded, file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
+	err = h.DB.Raw("SELECT file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return

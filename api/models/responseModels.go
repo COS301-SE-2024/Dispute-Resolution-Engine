@@ -10,6 +10,13 @@ type DisputeSummaryResponse struct {
 	Role        *string `json:"role,omitempty"`
 }
 
+type Expert struct {
+	ID       string `json:"id"`
+	FullName string `json:"full_name"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+}
+
 type DisputeDetailsResponse struct {
 	ID          int64     `json:"id"`
 	Title       string    `json:"title"`
@@ -17,7 +24,7 @@ type DisputeDetailsResponse struct {
 	Status      string    `json:"status"`
 	DateCreated time.Time `json:"case_date"`
 	Evidence    []string  `json:"evidence"`
-	Experts     []string  `json:"experts"`
+	Experts     []Expert  `json:"experts"`
 }
 
 type ArchiveSearchResponse struct {

@@ -4,7 +4,6 @@ import (
 	//"api/middleware"
 	"api/middleware"
 	"api/models"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -110,7 +109,26 @@ func (h Dispute) getDispute(c *gin.Context) {
 		return
 	}
 
-	DisputeDetailsResponse.Experts = []string{"Expert 1", "Expert 2", "Expert 3"}
+	DisputeDetailsResponse.Experts = []models.Expert{
+        {
+            ID: "1",
+            FullName: "Gluteus Maximus",
+            Email: "glut@gmail.com",
+            Phone: "234",
+        },
+        {
+            ID: "2",
+            FullName: "Marcus Arelius",
+            Email: "marcus@gmail.com",
+            Phone: "345",
+        },
+        {
+            ID: "3",
+            FullName: "Paddington",
+            Email: "paddy@gmail.com",
+            Phone: "456",
+        },
+    }
 
 	c.JSON(http.StatusOK, models.Response{Data: DisputeDetailsResponse})
 	// c.JSON(http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})

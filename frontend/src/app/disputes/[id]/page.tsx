@@ -92,7 +92,7 @@ export default async function DisputePage({ params }: Props) {
             <CardTitle>Negotiating Parties</CardTitle>
           </CardHeader>
         <CardContent>
-            <ul>
+            <ul className="space-y-4">
                 {data.experts.map((e) => (
                 <li key={e.full_name}>
                     <ExpertItem {...e} />

@@ -1,7 +1,7 @@
 "use server";
 
 import { Result } from "@/lib/types";
-import { DisputeCreateRequest, DisputeListResponse, DisputeResponse } from "../interfaces/dispute";
+import { DisputeListResponse, DisputeResponse } from "../interfaces/dispute";
 import { cookies } from "next/headers";
 import { JWT_KEY } from "../constants";
 import { API_URL } from "@/lib/utils";

@@ -115,18 +115,21 @@ func (h Dispute) getDispute(c *gin.Context) {
             FullName: "Gluteus Maximus",
             Email: "glut@gmail.com",
             Phone: "234",
+            Role: "Expert",
         },
         {
             ID: "2",
             FullName: "Marcus Arelius",
             Email: "marcus@gmail.com",
             Phone: "345",
+            Role: "Mediator",
         },
         {
             ID: "3",
             FullName: "Paddington",
             Email: "paddy@gmail.com",
             Phone: "456",
+            Role: "Mediator",
         },
     }
 

@@ -13,3 +13,11 @@ func SetupExpertRoutes(g *gin.RouterGroup, h Expert) {
 func (h Expert) getExpert(c *gin.Context) {
 	
 }
+
+func (h Expert) removeExpert(c *gin.Context) {
+	
+}
+
+func (h Expert) reselectExpert(c *gin.Context) {
+	
+}

@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm/logger"
 )
 
 func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
@@ -273,7 +272,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 	h.sendAdminNotification(c, email)
 	c.JSON(http.StatusCreated, models.Response{Data: "Dispute created successfully"})
 	log.Printf("Dispute created successfully: %s", title)
-	logger.Info("Dispute created successfully: %s", title)
+	logger.Info("Dispute created successfully: ", title)
 }
 
 // @Summary Update a dispute

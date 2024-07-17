@@ -2,6 +2,7 @@ name: Linting
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
+  fork:
   pull_request:
     branches:
       - release
@@ -11,7 +12,7 @@ on:
       - opened
       - reopened
 jobs:
-  jest-test:
+  linting:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,7 +25,7 @@ jobs:
         run: |
           cd frontend
           npm install -g yarn
-          yarn
+          yarn add eslint@8.57.0
       - name: Run linter
         run: |
           cd frontend

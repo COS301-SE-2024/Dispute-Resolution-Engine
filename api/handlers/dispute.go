@@ -22,6 +22,8 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 	g.GET("", h.getSummaryListOfDisputes)
 	g.POST("/create", h.createDispute)
 	g.GET("/:id", h.getDispute)
+	g.POST("/:id/experts/approve", h.approveExpert)
+	g.POST("/:id/experts/reject", h.rejectExpert)
 
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
@@ -92,7 +94,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 	// var respondantData models.User
 	// err = h.DB.Where("id = ?", disputes.Respondant).Scan(&respondantData).Error
 	// if err!=nil {
-		
+
 	// }
 
 	DisputeDetailsResponse := models.DisputeDetailsResponse{
@@ -110,28 +112,28 @@ func (h Dispute) getDispute(c *gin.Context) {
 	}
 
 	DisputeDetailsResponse.Experts = []models.Expert{
-        {
-            ID: "1",
-            FullName: "Gluteus Maximus",
-            Email: "glut@gmail.com",
-            Phone: "234",
-            Role: "Expert",
-        },
-        {
-            ID: "2",
-            FullName: "Marcus Arelius",
-            Email: "marcus@gmail.com",
-            Phone: "345",
-            Role: "Mediator",
-        },
-        {
-            ID: "3",
-            FullName: "Paddington",
-            Email: "paddy@gmail.com",
-            Phone: "456",
-            Role: "Mediator",
-        },
-    }
+		{
+			ID:       "1",
+			FullName: "Gluteus Maximus",
+			Email:    "glut@gmail.com",
+			Phone:    "234",
+			Role:     "Expert",
+		},
+		{
+			ID:       "2",
+			FullName: "Marcus Arelius",
+			Email:    "marcus@gmail.com",
+			Phone:    "345",
+			Role:     "Mediator",
+		},
+		{
+			ID:       "3",
+			FullName: "Paddington",
+			Email:    "paddy@gmail.com",
+			Phone:    "456",
+			Role:     "Mediator",
+		},
+	}
 
 	c.JSON(http.StatusOK, models.Response{Data: DisputeDetailsResponse})
 	// c.JSON(http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
@@ -294,4 +296,31 @@ func (h Dispute) patchDispute(c *gin.Context) {
 
 	id := c.Param("id")
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute Patch Endpoint for ID: " + id})
+}
+
+func (h Dispute) approveExpert(c *gin.Context) {
+	// disputeId := c.Param("id")
+	var req models.ExpertApproveRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, models.Response{Data: "Success"})
+	//currently does nothing because the expert is approved
+}
+
+func (h Dispute) rejectExpert(c *gin.Context) {
+	disputeId := c.Param("id")
+	var req models.ExpertRejectRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		return
+	}
+	var dbDisputeExperts models.DisputeExpert
+	if err := h.DB.Where("dispute = ?", disputeId).Where("user = ?", req.ExpertID).Delete(&dbDisputeExperts); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Something went wrong rejecting the expert.."})
+		return
+	}
+	c.JSON(http.StatusOK, models.Response{Data: "Success"})
+
 }

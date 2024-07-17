@@ -65,6 +65,7 @@ CREATE TABLE disputes (
 );
 
 CREATE TYPE exp_vote AS ENUM ('Pending','Approved','Rejected');
+CREATE TYPE expert_status AS ENUM ('Pending','Approved','Rejected','Review');
 
 CREATE TABLE dispute_experts (
 	dispute BIGINT REFERENCES disputes(id),
@@ -72,7 +73,7 @@ CREATE TABLE dispute_experts (
 	complainant_vote exp_vote DEFAULT 'Pending',
 	respondant_vote exp_vote DEFAULT 'Pending',
 	expert_vote exp_vote DEFAULT 'Pending',
-	decision exp_vote DEFAULT 'Pending',
+	status expert_status DEFAULT 'Pending',
 	PRIMARY KEY (dispute, "user")
 );
 

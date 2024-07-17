@@ -39,7 +39,7 @@ export default function ExpertItem(props: ExpertItemProps) {
                     <dt className="font-semibold">Phone</dt>
                     <dd>{props.phone}</dd>
                 </dl>
-                <div className="space-x-2">
+                <div className="flex gap-2">
                     <ApproveForm action={approveExpert}>
                         <input type="hidden" name="dispute_id" value={props.dispute_id} />
                         <input type="hidden" name="expert_id" value={props.id} />

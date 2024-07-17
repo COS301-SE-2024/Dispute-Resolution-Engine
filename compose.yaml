@@ -26,6 +26,7 @@ services:
       watch:
         - action: rebuild
           path: ./api
+    restart: unless-stopped
     logging:
       driver: loki
       options:

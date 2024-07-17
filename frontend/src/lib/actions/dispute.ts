@@ -1,8 +1,8 @@
 "use server";
 
-import { DisputeCreateError, ExpertRejectError, disputeCreateSchema, expertRejectSchema } from "../schema/dispute";
+import { DisputeCreateData, DisputeCreateError, ExpertRejectData, ExpertRejectError, disputeCreateSchema, expertApproveSchema, expertRejectSchema } from "../schema/dispute";
 import { Result } from "../types";
-import { API_URL } from "../utils";
+import { API_URL, formFetch } from "../utils";
 import { cookies } from "next/headers";
 import { JWT_KEY } from "../constants";
 import { revalidatePath } from "next/cache";
@@ -28,7 +28,7 @@ export async function createDispute(
     formData.append("files", data.get("file")!);
     console.log(formData);
 
-    const res = await fetch(`${API_URL}/disputes/create`, {
+    const res = await formFetch<DisputeCreateData, string>(`${API_URL}/disputes/create`, {
         method: "POST",
         headers: {
             // Sub this for the proper getAuthToken thing
@@ -36,22 +36,6 @@ export async function createDispute(
         },
         body: formData,
     })
-        .then((res) => res.json())
-        .then((res) =>
-            !res.error
-                ? res
-                : {
-                    error: {
-                        _errors: [res.error],
-                    },
-                }
-        )
-        .catch((e: Error) => ({
-            error: {
-                _errors: [e.message],
-            },
-        }));
-    console.log(res);
     return res;
 }
 
@@ -66,7 +50,7 @@ export async function rejectExpert(
         };
     }
 
-    const res = await fetch(`${API_URL}/disputes/${parsed.dispute_id}/experts/reject`, {
+    const res = await formFetch<ExpertRejectData, string>(`${API_URL}/disputes/${parsed.dispute_id}/experts/reject`, {
         method: "POST",
         headers: {
             // Sub this for the proper getAuthToken thing
@@ -76,22 +60,35 @@ export async function rejectExpert(
             expert_id: parsed.expert_id,
             reason: parsed.reason
         }),
-    })
-        .then((res) => res.json())
-        .then((res) =>
-            !res.error
-                ? res
-                : {
-                    error: {
-                        _errors: [res.error],
-                    },
-                }
-        )
-        .catch((e: Error) => ({
-            error: {
-                _errors: [e.message],
-            },
-        }));
+    });
+
+    if (!res.error) {
+        revalidatePath(`/disputes/${parsed.dispute_id}`);
+    }
+    return res;
+}
+
+export async function approveExpert(
+    _initial: unknown,
+    data: FormData
+): Promise<Result<string, ExpertRejectError>> {
+    const { data: parsed, error: parseErr } = expertApproveSchema.safeParse(Object.fromEntries(data));
+    if (parseErr) {
+        return {
+            error: parseErr.format(),
+        };
+    }
+
+    const res = await formFetch<ExpertRejectData, string>(`${API_URL}/disputes/${parsed.dispute_id}/experts/approve`, {
+        method: "POST",
+        headers: {
+            // Sub this for the proper getAuthToken thing
+            Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+        },
+        body: JSON.stringify({
+            expert_id: parsed.expert_id,
+        }),
+    });
 
     if (!res.error) {
         revalidatePath(`/disputes/${parsed.dispute_id}`);

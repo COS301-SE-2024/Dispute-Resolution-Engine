@@ -10,11 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormField, FormMessage, FormSubmit } from "../ui/form-server";
 import { ExpertRejectData } from "@/lib/schema/dispute";
-import { rejectExpert } from "@/lib/actions/dispute";
+import { approveExpert, rejectExpert } from "@/lib/actions/dispute";
 
 const RejectForm = Form<ExpertRejectData>;
 const RejectMessage = FormMessage<ExpertRejectData>;
 const RejectField = FormField<ExpertRejectData>;
+
+const ApproveForm = Form<ExpertRejectData>;
 
 export interface ExpertItemProps extends Expert {
     dispute_id: string;
@@ -38,7 +40,11 @@ export default function ExpertItem(props: ExpertItemProps) {
                     <dd>{props.phone}</dd>
                 </dl>
                 <div className="space-x-2">
-                    <Button type="submit">Approve</Button>
+                    <ApproveForm action={approveExpert}>
+                        <input type="hidden" name="dispute_id" value={props.dispute_id} />
+                        <input type="hidden" name="expert_id" value={props.id} />
+                        <Button type="submit">Approve</Button>
+                    </ApproveForm>
                     <Dialog>
                         <DialogTrigger asChild>
                             <Button variant="destructive">Reject</Button>

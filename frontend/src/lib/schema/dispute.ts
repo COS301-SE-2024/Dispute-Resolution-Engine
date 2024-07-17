@@ -23,3 +23,9 @@ export const expertRejectSchema = z.object({
 export type ExpertRejectData = z.infer<typeof expertRejectSchema>;
 export type ExpertRejectError = z.ZodFormattedError<ExpertRejectData>;
 
+export const expertApproveSchema = z.object({
+    dispute_id: z.string().min(1),
+    expert_id: z.string().min(1),
+});
+export type ApproveRejectData = z.infer<typeof expertApproveSchema>;
+export type ApproveRejectError = z.ZodFormattedError<ApproveRejectData>;

@@ -58,7 +58,7 @@ export default function ExpertItem(props: ExpertItemProps) {
                                 >
                                     <Textarea id={areaId} placeholder={`Why do you object to ${props.full_name}? (min. 20 characters)`} name="reason" />
                                 </RejectField>
-                                <div className="flex justify-end">
+                                <div className="flex justify-end gap-2 items-center">
                                     <RejectMessage />
                                     <FormSubmit>Reject</FormSubmit>
                                 </div>

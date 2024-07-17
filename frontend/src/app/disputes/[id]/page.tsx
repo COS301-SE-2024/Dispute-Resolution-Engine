@@ -95,7 +95,7 @@ export default async function DisputePage({ params }: Props) {
             <ul className="space-y-4">
                 {data.experts.map((e) => (
                 <li key={e.full_name}>
-                    <ExpertItem {...e} />
+                    <ExpertItem dispute_id={params.id} {...e} />
                 </li>
                 ))}
             </ul>

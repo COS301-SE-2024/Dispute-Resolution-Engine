@@ -38,12 +38,7 @@ func TestArchive(t *testing.T) {
 
 // Runs before every test to set up the DB and routers
 func (suite *ArchiveTestSuite) SetupTest() {
-	conn, mock, _ := sqlmock.New()
-	dialector := postgres.New(postgres.Config{
-		Conn:       conn,
-		DriverName: "postgres",
-	})
-	db, _ := gorm.Open(dialector, &gorm.Config{})
+	mock, db, _ := mockDatabase()
 
 	handler := handlers.Archive{DB: db}
 	gin.SetMode("release")
@@ -53,6 +48,24 @@ func (suite *ArchiveTestSuite) SetupTest() {
 	suite.mock = mock
 	suite.db = db
 	suite.router = router
+}
+
+func mockDatabase() (sqlmock.Sqlmock, *gorm.DB, error) {
+	conn, mock, err := sqlmock.New()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	dialector := postgres.New(postgres.Config{
+		Conn:       conn,
+		DriverName: "postgres",
+	})
+
+	db, err := gorm.Open(dialector, &gorm.Config{})
+	if err != nil {
+		return nil, nil, err
+	}
+	return mock, db, nil
 }
 
 func initCountRow(count int) *sqlmock.Rows {

@@ -13,3 +13,13 @@ export const disputeCreateSchema = z.object({
 
 export type DisputeCreateData = z.infer<typeof disputeCreateSchema>;
 export type DisputeCreateError = z.ZodFormattedError<DisputeCreateData>;
+
+
+export const expertRejectSchema = z.object({
+    dispute_id: z.string().min(1),
+    expert_id: z.string().min(1),
+    reason: z.string().min(20)
+});
+export type ExpertRejectData = z.infer<typeof expertRejectSchema>;
+export type ExpertRejectError = z.ZodFormattedError<ExpertRejectData>;
+

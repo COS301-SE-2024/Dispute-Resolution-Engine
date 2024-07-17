@@ -1,10 +1,11 @@
 "use server";
 
-import { DisputeCreateError, disputeCreateSchema } from "../schema/dispute";
+import { DisputeCreateError, ExpertRejectError, disputeCreateSchema, expertRejectSchema } from "../schema/dispute";
 import { Result } from "../types";
 import { API_URL } from "../utils";
 import { cookies } from "next/headers";
 import { JWT_KEY } from "../constants";
+import { revalidatePath } from "next/cache";
 
 export async function createDispute(
   _initial: unknown,
@@ -52,4 +53,22 @@ export async function createDispute(
     }));
   console.log(res);
   return res;
+}
+
+export async function rejectExpert(
+  _initial: unknown,
+  data: FormData
+): Promise<Result<string, ExpertRejectError>> {
+  const { data: parsed, error: parseErr } = expertRejectSchema.safeParse(Object.fromEntries(data));
+  if (parseErr) {
+    return {
+      error: parseErr.format(),
+    };
+  }
+
+  revalidatePath(`/disputes/${parsed.dispute_id}`);
+
+  return {
+      data: "wauw"
+  }
 }

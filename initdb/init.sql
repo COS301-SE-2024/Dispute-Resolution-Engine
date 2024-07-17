@@ -71,6 +71,7 @@ CREATE TABLE dispute_experts (
 	"user" BIGINT REFERENCES users(id),
 	complainant_vote exp_vote DEFAULT 'Pending',
 	respondant_vote exp_vote DEFAULT 'Pending',
+	expert_vote exp_vote DEFAULT 'Pending',
 	decision exp_vote DEFAULT 'Pending',
 	PRIMARY KEY (dispute, "user")
 );

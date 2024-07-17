@@ -2,9 +2,13 @@
 
 import { Result } from "@/lib/types";
 import {
+    LoginData,
   LoginError,
+  ResetLinkData,
   ResetLinkError,
+  ResetPassData,
   ResetPassError,
+  SignupData,
   SignupError,
   loginSchema,
   resetLinkSchema,
@@ -12,7 +16,7 @@ import {
   signupSchema,
   verifySchema,
 } from "@/lib/schema/auth";
-import { API_URL } from "@/lib/utils";
+import { API_URL, formFetch } from "@/lib/utils";
 import { cookies } from "next/headers";
 
 import { JWT_TIMEOUT, JWT_KEY, JWT_VERIFY_TIMEOUT } from "../constants";
@@ -42,7 +46,7 @@ export async function signup(
   }
 
   // TODO: uncomment once API works
-  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/signup`, {
+  const res = await formFetch<SignupData, string>(`${API_URL}/auth/signup`, {
     method: "POST",
     body: JSON.stringify({
       first_name: data.firstName,
@@ -59,16 +63,13 @@ export async function signup(
       timezone: ".",
       preferred_language: data.preferredLanguage,
     }),
-  }).then((res) => res.json());
+  });
 
-  if (resError) {
-    return {
-      error: {
-        _errors: [resError],
-      },
-    };
+  if (res.error) {
+    return res;
   }
-  setAuth(resData, JWT_VERIFY_TIMEOUT);
+
+  setAuth(res.data, JWT_VERIFY_TIMEOUT);
   redirect("/signup/verify");
 }
 
@@ -87,24 +88,19 @@ export async function login(
 
   // TODO: uncomment when API is working
   // Send request to the API
-  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/login`, {
+  const res = await formFetch<LoginData, string>(`${API_URL}/auth/login`, {
     method: "POST",
     body: JSON.stringify({
       email: data.email,
       password: data.password,
     }),
-  }).then((res) => res.json());
-  console.log(resData);
+  });
 
   // Handle errors
-  if (resError) {
-    return {
-      error: {
-        _errors: [resError],
-      },
-    };
+  if (res.error) {
+    return res;
   }
-  setAuth(resData);
+  setAuth(res.data);
   redirect("/disputes");
 }
 
@@ -133,7 +129,7 @@ export async function verify(
 
   // TODO: uncomment once API works
   // Send request to the API
-  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/verify`, {
+  const res = await formFetch<LoginData, string>(`${API_URL}/auth/verify`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${jwt}`,
@@ -141,20 +137,15 @@ export async function verify(
     body: JSON.stringify({
       pin: data.pin,
     }),
-  }).then((res) => res.json());
-  console.log(resData);
+  });
 
   // Handle Errors
-  if (resError) {
-    return {
-      error: {
-        _errors: [resError],
-      },
-    };
+  if (res.error) {
+    return res;
   }
 
   // Everything good
-  setAuth(resData);
+  setAuth(res.data);
   return {
     data: "Email verified and logged in",
   };
@@ -173,7 +164,7 @@ export async function sendResetLink(
     };
   }
 
-  const { data: resData, error: resError } = await fetch(
+  const res = await formFetch<ResetLinkData, string>(
     `${API_URL}/auth/reset-password/send-email`,
     {
       method: "POST",
@@ -181,18 +172,13 @@ export async function sendResetLink(
         email: data.email,
       }),
     }
-  ).then((res) => res.json());
-  console.log(resData);
+  );
 
   // Handle errors
-  if (resError) {
-    return {
-      error: {
-        _errors: [resError],
-      },
-    };
+  if (res.error) {
+    return res;
   }
-  setAuth(resData);
+  setAuth(res.data);
   redirect("/reset/success");
 }
 
@@ -209,22 +195,17 @@ export async function resetPassword(
     };
   }
 
-  const { data: resData, error: resError } = await fetch(`${API_URL}/auth/reset-password/reset`, {
+  const res = await formFetch<ResetPassData, string>(`${API_URL}/auth/reset-password/reset`, {
     method: "POST",
     body: JSON.stringify({
       newPassword: data.password,
     }),
-  }).then((res) => res.json());
-  console.log(resData);
+  });
 
   // Handle errors
-  if (resError) {
-    return {
-      error: {
-        _errors: [resError],
-      },
-    };
+  if (res.error) {
+    return res;
   }
-  setAuth(resData);
+  setAuth(res.data);
   redirect("/login");
 }

@@ -82,15 +82,15 @@ type DisputeResponse = {
     - `Authorization: Bearer <JWT>`
 
 
-```json
-{
-  "title": "string",
-  "description": "string",
-  "respondent[full_name]": "string",
-  "respondent[email]": "string",
-  "respondent[telephone]": "string",
-  "files": "all the files"
-}
+```ts
+type DisputeCreateRequest = {
+  title : string;
+  description : string;
+  respondent[full_name] : string;
+  respondent[email] : string;
+  respondent[telephone] : string;
+  files : File
+};
 ```
 
 The response will return a success message
@@ -107,11 +107,11 @@ type DisputeCreateResponse = string;
 This is left incomplete until this exception is documenteda.
 
 # Dispute Status Change
-- **Endpoint:** `PUT /dispute/status_update`
+- **Endpoint:** `PUT /dispute/status`
 - **Headers:**
-    - `Authorization: Bearer <>JWT`
+    - `Authorization: Bearer <JWT>`
 ```ts 
-type updateRequest = {
+type UpdateRequest = {
   dispute_id : string;
   status : string;
 };

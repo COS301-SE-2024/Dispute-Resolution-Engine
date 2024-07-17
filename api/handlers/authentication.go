@@ -236,7 +236,7 @@ func sendOTP(userInfo string) {
 
 	// Initialize the SMTP dialer
 	d := gomail.NewDialer(smtpServer, smtpPort, smtpUser, smtpPassword)
-	d.TLSConfig = &tls.Config{ServerName: smtpServer, InsecureSkipVerify: false}
+	d.TLSConfig = &tls.Config{ServerName: smtpServer, InsecureSkipVerify: true}
 	// Create a new email message
 	m := gomail.NewMessage()
 	m.SetHeader("From", smtpUser)

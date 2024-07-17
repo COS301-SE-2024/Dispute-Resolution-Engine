@@ -11,7 +11,7 @@ on:
       - opened
       - reopened
 jobs:
-  jest-test:
+  linting:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -24,7 +24,7 @@ jobs:
         run: |
           cd frontend
           npm install -g yarn
-          yarn
+          yarn add eslint
       - name: Run linter
         run: |
           cd frontend

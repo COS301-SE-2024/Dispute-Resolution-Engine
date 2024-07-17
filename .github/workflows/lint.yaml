@@ -11,6 +11,8 @@ on:
     types:
       - opened
       - reopened
+      - edit
+      - synchronize
 jobs:
   linting:
     runs-on: ubuntu-latest

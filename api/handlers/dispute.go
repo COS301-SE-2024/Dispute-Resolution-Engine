@@ -23,7 +23,7 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 	g.GET("", h.getSummaryListOfDisputes)
 	g.POST("/create", h.createDispute)
 	g.GET("/:id", h.getDispute)
-	g.PUT("/dispute/status_change", h.updateStatus)
+	g.PUT("/dispute/status", h.updateStatus)
 
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)

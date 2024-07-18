@@ -5,6 +5,8 @@ import { Result } from "../types";
 import { API_URL } from "../utils";
 import { cookies } from "next/headers";
 import { JWT_KEY } from "../constants";
+import { DisputeEvidenceUploadResponse } from "../interfaces/dispute";
+import { revalidatePath } from "next/cache";
 
 export async function createDispute(
   _initial: unknown,
@@ -54,5 +56,36 @@ export async function createDispute(
       },
     }));
   console.log(res);
+  return res;
+}
+
+export async function uploadEvidence(
+  _initial: unknown,
+  data: FormData
+): Promise<Result<DisputeEvidenceUploadResponse>> {
+  const disputeId = data.get("dispute_id");
+  const formData = new FormData();
+  data
+    .getAll("files")
+    .map((f) => f as File)
+    .forEach((file) => formData.append("files", file, file.name));
+
+  const res = await fetch(`${API_URL}/disputes/${disputeId}/evidence`, {
+    method: "POST",
+    headers: {
+      // Sub this for the proper getAuthToken thing
+      Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+    },
+    body: formData,
+  })
+    .then((res) => res.json())
+    .catch((e: Error) => ({
+      error: e.message,
+    }));
+
+  if (!res.error) {
+    revalidatePath(`/dispute/${disputeId}`);
+  }
+
   return res;
 }

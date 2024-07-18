@@ -1,4 +1,5 @@
 All endpoints follow the following general type:
+
 ```ts
 type Result<T> =
   | {
@@ -12,19 +13,23 @@ type Result<T> =
 ```
 
 Which corresponds to either returning:
+
 ```json5
 {
     "data": /* ... some data */
 }
 ```
+
 or
+
 ```json5
 {
-    "error": "error message"
+  error: "error message",
 }
 ```
 
 # Utility Types
+
 ```ts
 type DisputeSummary = {
   id: string;
@@ -47,22 +52,25 @@ type Expert = {
 ```
 
 # Dispute Summaries
+
 - **Endpoint:** `GET /disputes`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 Will return a list of dispute summaries the user is involved in:
+
 ```ts
 type DisputeListResponse = DisputeSummary[];
 ```
 
-
 # Dispute Details
+
 - **Endpoint:** `GET /disputes/{id}`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 Will return detailed information about a dispute the user is involved in:
+
 ```ts
 type DisputeResponse = {
   id: string;
@@ -77,9 +85,10 @@ type DisputeResponse = {
 ```
 
 # Dispute Creation
+
 - **Endpoint:** `POST /disputes/create`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 **NOTE:** This endpoint involves files being exchanged. This requires the use of `multipart/form-data` instead of JSON.
 Below is temporary description until this exception is documented
@@ -98,18 +107,25 @@ interface DisputeCreateRequest {
     telephone: string;
   };
 }
-
 ```
 
 The response will return a success message
+
 ```ts
 type DisputeCreateResponse = string;
 ```
 
 # Dispute Evidence upload
-- **Endpoint:** `POST /disputes/{id}/upload`
+
+- **Endpoint:** `POST /disputes/{id}/evidence`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 **NOTE:** This endpoint involves files being exchanged. This requires the use of `multipart/form-data` instead of JSON.
 This is left incomplete until this exception is documenteda.
+
+```ts
+interface EvidenceUploadRequest {
+  file: File[];
+}
+```

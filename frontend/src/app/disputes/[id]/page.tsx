@@ -6,7 +6,9 @@ import { Separator } from "@/components/ui/separator";
 import { getDisputeDetails } from "@/lib/api/dispute";
 import { Metadata } from "next";
 import { File, WorkflowIcon } from "lucide-react";
-import React from "react";
+import React, { ChangeEvent, useState } from "react";
+import { Input } from "@/components/ui/input";
+import DisputeClientPage from "./client-page";
 
 type Props = {
   params: { id: string };
@@ -55,6 +57,7 @@ export default async function DisputePage({ params }: Props) {
   if (error || !data) {
     return <h1>{error}</h1>;
   }
+
   return (
     <div className="grow overflow-y-auto flex flex-col">
       <DisputeHeader
@@ -65,34 +68,7 @@ export default async function DisputePage({ params }: Props) {
       />
       <Separator />
       <ScrollArea className="grow overflow-y-auto p-4">
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-white/70 mt-4">{data.description}</p>
-          </CardContent>
-        </Card>
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>Complainant&apos;s Evidence</CardTitle>
-            <CardDescription></CardDescription>
-          </CardHeader>
-          <CardContent className="flex gap-2">
-            {data.evidence.map((evi, i) => (
-              <div key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
-                <File className="mx-auto h-8 w-8" />
-                <p className="mt-2 text-sm font-medium">{evi.label}</p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-        {/*<Card className="mb-4">*/}
-        {/*  <CardHeader>*/}
-        {/*    <CardTitle>Respondant Information</CardTitle>*/}
-        {/*    <CardDescription>Who you gon&apos; sue?</CardDescription>*/}
-        {/*  </CardHeader>*/}
-        {/*</Card>*/}
+        <DisputeClientPage data={data} />
       </ScrollArea>
       <Separator />
     </div>

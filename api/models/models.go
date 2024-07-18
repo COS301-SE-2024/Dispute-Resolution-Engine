@@ -118,6 +118,7 @@ type Response struct {
 type DisputeExpert struct {
 	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
 	User    int64 `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+	Status  string `gorm:"column:status;type:varchar(255);"`
 }
 
 func (DisputeExpert) TableName() string {

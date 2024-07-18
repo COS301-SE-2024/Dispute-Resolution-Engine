@@ -55,9 +55,6 @@ export default async function DisputePage({ params }: Props) {
   if (error || !data) {
     return <h1>{error}</h1>;
   }
-  var eviStr : string = data.evidence[0].toString()
-  eviStr = eviStr.split("/").pop() as string
-  console.log("THIS IS THE DATA######################\n", data)
   return (
     <div className="grow overflow-y-auto flex flex-col">
       <DisputeHeader
@@ -79,13 +76,16 @@ export default async function DisputePage({ params }: Props) {
         <Card className="mb-4">
           <CardHeader>
             <CardTitle>Complainant&apos;s Evidence</CardTitle>
-            <CardDescription>
-              <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
-                <File className="mx-auto h-8 w-8" />
-                <p className="mt-2 text-sm font-medium">{eviStr}</p>
-              </div>
-            </CardDescription>
+            <CardDescription></CardDescription>
           </CardHeader>
+          <CardContent className="flex gap-2">
+            {data.evidence.map((evi, i) => (
+              <div key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
+                <File className="mx-auto h-8 w-8" />
+                <p className="mt-2 text-sm font-medium">{evi.label}</p>
+              </div>
+            ))}
+          </CardContent>
         </Card>
         {/*<Card className="mb-4">*/}
         {/*  <CardHeader>*/}

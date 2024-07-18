@@ -103,6 +103,7 @@ type ResetPassword struct {
 type DisputeStatusChange struct {
 	DisputeID string `json:"dispute_id"`
 	Status    string `json:"status"`
+}
 
 type RecommendExpert struct {
 	DisputeId int `json:"dispute_id"`

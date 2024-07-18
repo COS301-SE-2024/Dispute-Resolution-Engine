@@ -34,22 +34,22 @@ func (h Expert) recommendExpert(c *gin.Context) {
 	// currently select the first 4
 
 	var users []models.User
-    roles := []string{"mediator", "adjudicator", "arbitrator"}
+	roles := []string{"mediator", "adjudicator", "arbitrator"}
 
-    // Seed the random number generator
-    rand.Seed(time.Now().UnixNano())
+	// Seed the random number generator
+	rand.Seed(time.Now().UnixNano())
 
-    // Query for users with the specified roles
+	// Query for users with the specified roles
 	h.DB.Where("role IN ?", roles).Find(&users)
 
-    // Shuffle the results and take the first 4
-    rand.Shuffle(len(users), func(i, j int) { users[i], users[j] = users[j], users[i] })
+	// Shuffle the results and take the first 4
+	rand.Shuffle(len(users), func(i, j int) { users[i], users[j] = users[j], users[i] })
 
-    // Select the first 4 users after shuffle
-    selectedUsers := users
-    if len(users) > 4 {
-        selectedUsers = users[:4]
-    }
+	// Select the first 4 users after shuffle
+	selectedUsers := users
+	if len(users) > 4 {
+		selectedUsers = users[:4]
+	}
 
 	// insert the selected experts into the dispute_experts table
 	for _, expert := range selectedUsers {
@@ -58,7 +58,7 @@ func (h Expert) recommendExpert(c *gin.Context) {
 		h.DB.Create(&models.DisputeExpert{
 			Dispute: int64(recommendexpert.DisputeId),
 			User:    expert.ID,
-			Status: "approved",
+			Status:  "approved",
 		})
 	}
 
@@ -76,7 +76,7 @@ func (h Expert) rejectExpert(c *gin.Context) {
 	//set status to rejected
 
 	h.DB.Model(&models.DisputeExpert{}).Where("dispute = ? AND dispute_experts.user = ?", rejectexpert.DisputeId, rejectexpert.ExpertId).Update("status", "rejected")
-	
+
 	c.JSON(http.StatusOK, models.Response{Data: "Expert rejected"})
 }
 

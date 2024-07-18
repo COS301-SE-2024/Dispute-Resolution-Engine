@@ -12,12 +12,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { DisputeCreateRequest } from "@/lib/interfaces/dispute";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DisputeCreateData, disputeCreateSchema } from "@/lib/schema/dispute";
 import { useRef } from "react";
 import { createDispute } from "@/lib/actions/dispute";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function CreateDisputeClient() {
   const form = useForm<DisputeCreateData>({
@@ -38,27 +37,16 @@ export default function CreateDisputeClient() {
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">
-          Create a Dispute
-        </CardTitle>
-      </CardHeader>
-      <Form {...form}>
-        <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="w-full pt-0 p-10">
-          <div className="space-y-5">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Dispute Title" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+    <Form {...form}>
+      <form ref={formRef} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-10 py-5">
+        <Card>
+          <CardHeader>
+            <CardTitle className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">
+              Respondant Information
+            </CardTitle>
+            <CardDescription>Who are you filing a dispute against?</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
             <FormField
               control={form.control}
               name="respondentName"
@@ -95,6 +83,28 @@ export default function CreateDisputeClient() {
                 </FormItem>
               )}
             />
+          </CardContent>
+        </Card>
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">
+              Dispute Details
+            </CardTitle>
+            <CardDescription>What is the dispute about?</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Dispute Title" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="summary"
@@ -102,7 +112,7 @@ export default function CreateDisputeClient() {
                 <FormItem>
                   <FormLabel>Summary</FormLabel>
                   <FormControl>
-                    <Input placeholder="The aforementioned party..." {...field} />
+                    <Textarea placeholder="The aforementioned party..." {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -122,10 +132,10 @@ export default function CreateDisputeClient() {
                 );
               }}
             />
-            <Button type="submit">Submit</Button>
-          </div>
-        </form>
-      </Form>
-    </Card>
+            <Button type="submit">Create</Button>
+          </CardContent>
+        </Card>
+      </form>
+    </Form>
   );
 }

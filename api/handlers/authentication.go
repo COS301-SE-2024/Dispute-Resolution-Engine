@@ -3,7 +3,9 @@ package handlers
 import (
 	"api/middleware"
 	"api/models"
+	"api/redisDB"
 	"api/utilities"
+	"context"
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
@@ -118,10 +120,10 @@ func (h Auth) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
 		return
 	}
-	sendOTP(user.Email)
 
 	jwt, err := middleware.GenerateJWT(user)
-	if err != nil {
+	err2 := sendOTP(user.Email, user.Surname)
+	if err != nil || err2 != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
@@ -202,7 +204,15 @@ func (h Auth) Verify(c *gin.Context) {
 	if err := c.BindJSON(&pinReq); err != nil {
 		return
 	}
-	valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
+	var valid bool
+	valid = false
+	jwtClaims := middleware.GetClaims(c)
+	userkey := jwtClaims.Email + jwtClaims.User.Surname
+	// valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
+	pin, err := redisDB.RDB.Get(context.Background(), userkey).Result()
+	if pin == pinReq.Pin {
+		valid = true
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
 		return
@@ -220,7 +230,7 @@ func (h Handler) checkUserExists(email string) bool {
 	return user.Email != ""
 }
 
-func sendOTP(userInfo string) {
+func sendOTP(userInfo string, userSurname string) error {
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587
@@ -230,6 +240,12 @@ func sendOTP(userInfo string) {
 	// Recipient email address
 	to := userInfo
 	pin := utilities.GenerateVerifyEmailToken()
+
+	//store in redis
+	err2 := redisDB.RDB.Set(context.Background(), userInfo+userSurname, pin, 24*time.Hour).Err()
+	if err2 != nil {
+		return err2
+	}
 	// Email subject and body
 	subject := "Verify Account"
 	body := "Hello,\nPlease verify your DRE account using this pin: " + pin + "\n\nThanks,\nTeam Techtonic."
@@ -254,6 +270,7 @@ func sendOTP(userInfo string) {
 		fmt.Println("Error writing to file: " + err.Error())
 	}
 	fmt.Println("Email sent successfully!")
+	return nil
 }
 
 // resetPassword sends an email to the user with a link to reset their password

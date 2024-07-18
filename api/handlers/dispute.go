@@ -206,7 +206,8 @@ func (h Dispute) createDispute(c *gin.Context) {
 		// Generate a unique filename
 		fileName := filepath.Base(fileHeader.Filename)
 		fileNames = append(fileNames, fileName)
-		fileLocation := filepath.Join("/app/filestorage", fileName) // Assuming '/files' is where Docker mounts its storage
+
+		fileLocation := filepath.Join(os.Getenv("FILESTORAGE_ROOT"), fileName) // Assuming '/files' is where Docker mounts its storage
 
 		// Create the file in Docker (or any storage system you use)
 		f, err := os.Create(fileLocation)

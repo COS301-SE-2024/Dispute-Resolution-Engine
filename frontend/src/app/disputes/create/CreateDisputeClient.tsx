@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DisputeCreateData, disputeCreateSchema } from "@/lib/schema/dispute";
-import { useRef } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 import { createDispute } from "@/lib/actions/dispute";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -32,8 +32,20 @@ export default function CreateDisputeClient() {
 
   const formRef = useRef(null);
 
+  const [files, setFiles] = useState<File[]>([]);
+  const onFilesChange = async (ev: ChangeEvent<HTMLInputElement>) => {
+    setFiles([...files, ...ev.target.files!]);
+    ev.target.value = "";
+  };
+  const removeFile = async (i: number) => {
+    setFiles(files.filter((f, j) => i !== j));
+  };
+
   const onSubmit = async function (dataFromForm: DisputeCreateData) {
-    createDispute(null, new FormData(formRef.current!));
+    const formdata = new FormData(formRef.current!);
+    files.forEach((file) => formdata.append("file", file, file.name));
+
+    createDispute(null, formdata);
   };
 
   return (
@@ -117,6 +129,14 @@ export default function CreateDisputeClient() {
                 </FormItem>
               )}
             />
+            {files.map((file, i) => (
+              <div key={i}>
+                <span>{file.name}</span>
+                <Button variant="destructive" onClick={() => removeFile(i)}>
+                  Remove
+                </Button>
+              </div>
+            ))}
             <FormField
               control={form.control}
               name="file"
@@ -125,7 +145,7 @@ export default function CreateDisputeClient() {
                   <FormItem>
                     <FormLabel>Evidence</FormLabel>
                     <FormControl>
-                      <Input type="file" placeholder="shadcn" name="file" />
+                      <Input type="file" placeholder="shadcn" multiple onChange={onFilesChange} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

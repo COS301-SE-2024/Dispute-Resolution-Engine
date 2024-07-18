@@ -5,15 +5,19 @@ import (
 	"api/middleware"
 	"api/models"
 	"api/utilities"
+	"errors"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
@@ -23,6 +27,7 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 	g.GET("", h.getSummaryListOfDisputes)
 	g.POST("/create", h.createDispute)
 	g.GET("/:id", h.getDispute)
+	g.POST("/:id/evidence", h.uploadEvidence)
 	g.PUT("/dispute/status", h.updateStatus)
 
 	//patch is not to be integrated yet
@@ -31,6 +36,106 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 	//create dispute
 
 	//archive routes
+}
+
+func uploadFile(db *gorm.DB, header *multipart.FileHeader) (uint, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Open the form file
+	formFile, err := header.Open()
+	if err != nil {
+		logger.WithError(err).Error("Failed to open form file")
+		return 0, errors.New("Failed to open form file")
+	}
+	defer formFile.Close()
+
+	// Open the destination file
+	fileName := filepath.Base(header.Filename)
+	destPath := filepath.Join(os.Getenv("FILESTORAGE_ROOT"), fileName) // Assuming '/files' is where Docker mounts its storage
+	destFile, err := os.Create(destPath)
+	if err != nil {
+		logger.WithError(err).Error("Failed to create file in storage")
+		return 0, errors.New("Failed to create file in storage")
+	}
+	defer destFile.Close()
+
+	// Copy file content to destination
+	_, err = io.Copy(destFile, formFile)
+	if err != nil {
+		logger.WithError(err).Error("Failed to copy file content")
+		return 0, errors.New("Failed to copy file content")
+	}
+
+	// TODO: Change this to a proper URL
+	fileUrl := destPath
+	//add file to Database
+	file := models.File{
+		FileName: fileName,
+		Uploaded: time.Now(),
+
+		FilePath: fileUrl,
+	}
+
+	if err := db.Create(&file).Error; err != nil {
+		logger.WithError(err).Error("Error adding file to database")
+		return 0, errors.New("Error adding file to database")
+	}
+
+	//get id of the created file enrty
+	var fileFromDbInserted models.File
+	err = db.Where("file_name = ? AND file_path = ?", fileName, fileUrl).First(&fileFromDbInserted).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving file entry from database")
+		return 0, errors.New("Error retrieving file entry from database")
+	}
+	return *fileFromDbInserted.ID, nil
+}
+
+// @Summary Get a summary list of disputes
+// @Description Get a summary list of disputes
+// @Tags dispute
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response "Dispute Summary Endpoint"
+// @Router /dispute/:id/evidence [post]
+func (h Dispute) uploadEvidence(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	disputeId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to parse form data"})
+		return
+	}
+
+	files := form.File["files"]
+	for _, fileHeader := range files {
+		id, err := uploadFile(h.DB, fileHeader)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+			return
+		}
+
+		//add enrty to dispute evidence table
+		disputeEvidence := models.DisputeEvidence{
+			Dispute: int64(disputeId),
+			FileID:  int64(id),
+		}
+		
+        if err := h.DB.Create(&disputeEvidence).Error; err != nil {
+			logger.WithError(err).Error("Error creating dispute evidence")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating dispute evidence"})
+			return
+		}
+	}
+    c.JSON(http.StatusCreated, models.Response{
+        Data: "Files uploaded",
+    })
 }
 
 // @Summary Get a summary list of disputes
@@ -207,7 +312,8 @@ func (h Dispute) createDispute(c *gin.Context) {
 		// Generate a unique filename
 		fileName := filepath.Base(fileHeader.Filename)
 		fileNames = append(fileNames, fileName)
-		fileLocation := filepath.Join("/app/filestorage", fileName) // Assuming '/files' is where Docker mounts its storage
+
+		fileLocation := filepath.Join(os.Getenv("FILESTORAGE_ROOT"), fileName) // Assuming '/files' is where Docker mounts its storage
 
 		// Create the file in Docker (or any storage system you use)
 		f, err := os.Create(fileLocation)

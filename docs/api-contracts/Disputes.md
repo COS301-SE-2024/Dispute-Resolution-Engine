@@ -90,23 +90,16 @@ type DisputeResponse = {
 - **Headers:**
   - `Authorization: Bearer <JWT>`
 
-**NOTE:** This endpoint involves files being exchanged. This requires the use of `multipart/form-data` instead of JSON.
-Below is temporary description until this exception is documented
 
 ```ts
-interface DisputeCreateRequest {
-  title: string;
-  description: string;
-  evidence: {
-    label: string;
-    file: File;
-  }[];
-  respondent: {
-    full_name: string;
-    email: string;
-    telephone: string;
-  };
-}
+type DisputeCreateRequest = {
+  title : string;
+  description : string;
+  respondent[full_name] : string;
+  respondent[email] : string;
+  respondent[telephone] : string;
+  files : File
+};
 ```
 
 The response will return a success message
@@ -129,3 +122,13 @@ interface EvidenceUploadRequest {
   file: File[];
 }
 ```
+
+# Dispute Status Change
+- **Endpoint:** `PUT /dispute/status`
+- **Headers:**
+    - `Authorization: Bearer <JWT>`
+```ts 
+type UpdateRequest = {
+  dispute_id : string;
+  status : string;
+};

@@ -28,6 +28,7 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/create", h.createDispute)
 	g.GET("/:id", h.getDispute)
 	g.POST("/:id/evidence", h.uploadEvidence)
+	g.PUT("/dispute/status", h.updateStatus)
 
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
@@ -379,6 +380,24 @@ func (h Dispute) createDispute(c *gin.Context) {
 	c.JSON(http.StatusCreated, models.Response{Data: "Dispute created successfully"})
 	log.Printf("Dispute created successfully: %s", title)
 	logger.Info("Dispute created successfully: ", title)
+}
+
+func (h Dispute) updateStatus(c *gin.Context) {
+	var disputeStatus models.DisputeStatusChange
+
+	if err := c.BindJSON(&disputeStatus); err != nil {
+		c.JSON(http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	var dbDispute models.Dispute
+	h.DB.Where("id = ?", disputeStatus.DisputeID).First(&dbDispute)
+
+	dbDispute.Status = disputeStatus.Status
+
+	h.DB.Model(&dbDispute).Where("id = ?", dbDispute.ID).Updates(dbDispute)
+
+	c.JSON(http.StatusOK, models.Response{Data: "Dispute status update successful"})
 }
 
 // @Summary Update a dispute

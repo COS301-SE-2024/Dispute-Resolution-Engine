@@ -10,6 +10,8 @@ on:
     types:
       - opened
       - reopened
+      - edit
+      - synchronize
 jobs:
   jest-test:
     runs-on: ubuntu-latest
@@ -30,9 +32,10 @@ jobs:
         with:
           path: |
             frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('frontend/yarn.lock') }}
+            ~/.cache/yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('frontend/package.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-yarn-
       - name: Install dependencies
         run: |
           yarn install

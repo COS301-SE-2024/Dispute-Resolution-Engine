@@ -28,6 +28,10 @@ type Notification struct {
 	Handler
 }
 
+type Expert struct {
+	Handler
+}
+
 func new(db *gorm.DB) Handler {
 	return Handler{DB: db}
 }
@@ -50,4 +54,8 @@ func NewUtilitiesHandler(db *gorm.DB) Utility {
 
 func NewNotificationHandler(db *gorm.DB) Notification {
 	return Notification{new(db)}
+}
+
+func NewExpertHandler(db *gorm.DB) Expert {
+	return Expert{new(db)}
 }

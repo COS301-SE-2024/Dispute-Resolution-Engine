@@ -265,10 +265,6 @@ func sendOTP(userInfo string, userSurname string) error {
 		fmt.Println("Failed to send email:", err)
 		os.Exit(1)
 	}
-	err := utilities.WriteToFile(pin, "stubbedStorage/verify.txt")
-	if err != nil {
-		fmt.Println("Error writing to file: " + err.Error())
-	}
 	fmt.Println("Email sent successfully!")
 	return nil
 }

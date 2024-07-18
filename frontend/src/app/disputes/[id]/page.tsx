@@ -5,6 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { getDisputeDetails } from "@/lib/api/dispute";
 import { Metadata } from "next";
+import { File, WorkflowIcon } from "lucide-react";
+import React from "react";
 
 type Props = {
   params: { id: string };
@@ -53,13 +55,12 @@ export default async function DisputePage({ params }: Props) {
   if (error || !data) {
     return <h1>{error}</h1>;
   }
-
   return (
     <div className="grow overflow-y-auto flex flex-col">
       <DisputeHeader
         id={data.id}
         label={data.title}
-        startDate={data.date_created}
+        startDate={data.case_date.substring(0, 10)}
         status={data.status}
       />
       <Separator />
@@ -74,16 +75,24 @@ export default async function DisputePage({ params }: Props) {
         </Card>
         <Card className="mb-4">
           <CardHeader>
-            <CardTitle>Respondant&apos;s Evidence</CardTitle>
-            <CardDescription>All the evidence the respondant has submitted</CardDescription>
+            <CardTitle>Complainant&apos;s Evidence</CardTitle>
+            <CardDescription></CardDescription>
           </CardHeader>
+          <CardContent className="flex gap-2">
+            {data.evidence.map((evi, i) => (
+              <div key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
+                <File className="mx-auto h-8 w-8" />
+                <p className="mt-2 text-sm font-medium">{evi.label}</p>
+              </div>
+            ))}
+          </CardContent>
         </Card>
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>Respondant Information</CardTitle>
-            <CardDescription>Who you gon&apos; sue?</CardDescription>
-          </CardHeader>
-        </Card>
+        {/*<Card className="mb-4">*/}
+        {/*  <CardHeader>*/}
+        {/*    <CardTitle>Respondant Information</CardTitle>*/}
+        {/*    <CardDescription>Who you gon&apos; sue?</CardDescription>*/}
+        {/*  </CardHeader>*/}
+        {/*</Card>*/}
       </ScrollArea>
       <Separator />
     </div>

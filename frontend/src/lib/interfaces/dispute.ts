@@ -23,7 +23,7 @@ export type DisputeResponse = {
   title: string;
   description: string;
   status: string;
-  date_created: string;
+  case_date: string;
 
   evidence: Evidence[];
   experts: Expert[];

@@ -26,6 +26,14 @@ services:
       watch:
         - action: rebuild
           path: ./api
+    restart: unless-stopped
+    logging:
+      driver: loki
+      options:
+        loki-url: http://loki:3100/loki/api/v1/push
+        mode: non-blocking
+        max-buffer-size: 4m
+        loki-retries: "3"
   postgres: # ----------------------------------------------------------Postgres
     image: postgres
     ports:
@@ -77,6 +85,27 @@ services:
     environment:
       - allowlisted_container_labels=com.docker.swarm.service.name
     restart: unless-stopped
+  loki: # ---------------------------------------------------------------Loki
+    image: grafana/loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    configs:
+      - source: loki-config
+        target: /etc/loki/loki-config.yaml
+    user: root
+  promtail: # -----------------------------------------------------------Promtail
+    image: grafana/promtail
+    volumes:
+      - /var/log:/var/log
+      - /var/lib/docker/containers:/var/lib/docker/containers
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yaml
+    configs:
+      - source: promtail-config
+        target: /etc/promtail/config.yaml
 volumes: # ---------------------------------------------------------------Volumes
   pgdata:
   evi_files:
@@ -84,3 +113,11 @@ volumes: # ---------------------------------------------------------------Volume
     driver: local
   grafana-data:
     driver: local
+  loki-data:
+    driver: local
+
+configs: # ---------------------------------------------------------------Configs
+  loki-config:
+    file: ./loki-config.yaml
+  promtail-config:
+    file: ./promtail-config.yaml

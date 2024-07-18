@@ -17,10 +17,10 @@ jobs:
       #   uses: awalsh128/cache-apt-pkgs-action@latest
       #   with:
       #     packages: wireguard
-      - name: Install wireguard
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq wireguard
+      # - name: Install wireguard
+      #   run: |
+      #     sudo apt-get update -qq
+      #     sudo apt-get install -y -qq wireguard
       - name: Checkout Repo
         uses: actions/checkout@v4
 
@@ -64,34 +64,71 @@ jobs:
           file_name: red.env
           fail_on_empty: false
       
+      - name: Clear Docker Cache
+        run: |
+          docker builder prune -a -f
+
       - name: Docker compose build
         run: |
           cd $GITHUB_WORKSPACE
-          docker compose build
+          docker compose build --progress=plain
+          docker pull postgres
+          docker pull redis
       
       - name: Make it a tar file
         run: |
           cd $GITHUB_WORKSPACE
+          docker images
           docker save -o frontend.tar dispute-resolution-engine-frontend:latest
           docker save -o api.tar dispute-resolution-engine-api:latest
           docker save -o postgres.tar postgres:latest
           docker save -o redis.tar redis:latest
 
-      - name: Create WG Config
-        run: |
-          touch $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_ADDRESS}}@${{ secrets.WG_ADDRESS }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_ALLOWEDIPS}}@${{ secrets.WG_ALLOWEDIPS }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_DNS}}@${{ secrets.WG_DNS }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_ENDPOINT}}@${{ secrets.WG_ENDPOINT }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_PRIVATEKEY}}@${{ secrets.WG_PRIVATEKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sed -i -e "s@{{WG_PUBLICKEY}}@${{ secrets.WG_PUBLICKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
-          sudo cp $GITHUB_WORKSPACE/tunnel.conf /etc/wireguard/
+      # - name: Create WG Config
+      #   run: |
+      #     touch $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_ADDRESS}}@${{ secrets.WG_ADDRESS }}@" $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_ALLOWEDIPS}}@${{ secrets.WG_ALLOWEDIPS }}@" $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_DNS}}@${{ secrets.WG_DNS }}@" $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_ENDPOINT}}@${{ secrets.WG_ENDPOINT }}@" $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_PRIVATEKEY}}@${{ secrets.WG_PRIVATEKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
+      #     sed -i -e "s@{{WG_PUBLICKEY}}@${{ secrets.WG_PUBLICKEY }}@" $GITHUB_WORKSPACE/tunnel.conf
+          
 
-      - name: WG Creating Tunnel
-        run: |
-          wg-quick up $GITHUB_WORKSPACE/tunnel.conf
+      # - name: WG Creating Tunnel
+      #   run: |
+      #     wg-quick up $GITHUB_WORKSPACE/tunnel.conf
 
+      - name: Set up WireGuard Connection
+        uses: niklaskeerl/easy-wireguard-action@v2
+        with:
+          WG_CONFIG_FILE: ${{ secrets.WG_CONFIG_FILE }}
+      # - name: TEMP CREATE TAR FILES
+      #   run: |
+      #     touch api.tar
+      #     touch frontend.tar
+      #     touch postgres.tar
+      #     touch redis.tar
+      #     touch server_compose.yaml
+      # - name: Remove Old Files
+      #   uses: appleboy/ssh-action@v1.0.0
+      #   continue-on-error: true
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     password: ${{ secrets.SSH_PASSWORD }}
+      #     port: ${{ secrets.SSH_PORT }}
+      #     script: |
+      #       mv server_compose.yaml compose.yaml
+      #       rm api.tar
+      #       rm frontend.tar
+      #       rm postgres.tar
+      #       rm redis.tar
+      #       rm db.env
+      #       rm api.env
+      #       rm red.env
+      #       rm fe.env
+      #       rm compose.yaml
 
       - name: Send through the docker container using scp
         uses: appleboy/scp-action@v0.1.4
@@ -102,6 +139,9 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           source: "api.tar,frontend.tar,postgres.tar,redis.tar,db.env,api.env,red.env,fe.env,server_compose.yaml"
           target: ./
+          timeout: 3m
+          overwrite: true
+      
       - name: Spin up docker image
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -115,6 +155,7 @@ jobs:
             docker load -i api.tar
             docker load -i postgres.tar
             docker load -i redis.tar
+            docker compose down
             docker compose up -d
 
 

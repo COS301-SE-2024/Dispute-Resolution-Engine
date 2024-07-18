@@ -43,26 +43,6 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
     };
   }
 
-  // return {
-  //   data: {
-  //     id: id,
-  //     title: `Dispute ${id}`,
-  //     description: "Dispute description",
-  //     status: "status",
-  //     date_created: "",
-  //     evidence: [...Array(5).keys()].map((i) => ({
-  //       label: `Image ${i}`,
-  //       url: "https://picsum.photos/200",
-  //       date_submitted: "today",
-  //     })),
-  //     experts: [...Array(3).keys()].map((i) => ({
-  //       full_name: `Name ${i}`,
-  //       email: `coolguy${i}@example.com`,
-  //       phone: "phone number yes",
-  //     })),
-  //   },
-  // };
-
   return fetch(`${API_URL}/disputes/${id}`, {
     headers: {
       Authorization: `Bearer ${jwt}`,

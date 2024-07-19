@@ -3,7 +3,6 @@ package redisDB
 import (
 	"api/utilities"
 	"context"
-	"log"
 	"strconv"
 	"time"
 
@@ -40,7 +39,7 @@ func InitRedis() (*redis.Client, error) {
 	// Convert db to integer
 	dbNum, err := strconv.Atoi(db)
 	if err != nil {
-		logger.Fatal("Failed to convert REDIS_DB to integer")
+		logger.WithError(err).Fatal("Failed to convert REDIS_DB to integer")
 	}
 
 	// Create a new Redis client

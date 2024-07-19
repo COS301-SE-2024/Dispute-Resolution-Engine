@@ -292,77 +292,20 @@ func (h Dispute) createDispute(c *gin.Context) {
 	}
 
 	// Store files in Docker and retrieve URLs
-	fileURLs := []string{}
-	fileNames := []string{}
 	files := form.File["files"]
 	for _, fileHeader := range files {
-		file, err := fileHeader.Open()
+		fileId, err := uploadFile(h.DB, fileHeader)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to open file"})
-			return
-		}
-		defer file.Close()
-
-		// Generate a unique filename
-		fileName := filepath.Base(fileHeader.Filename)
-		fileNames = append(fileNames, fileName)
-
-		fileLocation := filepath.Join(os.Getenv("FILESTORAGE_ROOT"), fileName) // Assuming '/files' is where Docker mounts its storage
-
-		// Create the file in Docker (or any storage system you use)
-		f, err := os.Create(fileLocation)
-		if err != nil {
-			logger.WithError(err).Error("Failed to create file in storage")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to create file in storage"})
-			return
-		}
-		defer f.Close()
-
-		// Copy file content to destination
-		_, err = io.Copy(f, file)
-		if err != nil {
-			logger.WithError(err).Error("Failed to copy file content")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to copy file content"})
+			c.JSON(http.StatusInternalServerError, models.Response{Error: fmt.Sprintf("Failed to upload file: %s", fileHeader.Filename)})
 			return
 		}
 
-		// Generate URL for accessing the file
-		// fileURL := fmt.Sprintf("https://your-domain.com%s", fileLocation)
-		fileURLs = append(fileURLs, fileLocation)
-	}
-
-	// Store file URLs in PostgreSQL database
-	for i, fileURL := range fileURLs {
-		//add file to Database
-		file := models.File{
-			FileName: fileNames[i],
-			Uploaded: time.Now(),
-			FilePath: fileURL,
-		}
-
-		err = h.DB.Create(&file).Error
-		if err != nil {
-			logger.WithError(err).Error("Error creating file")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating file"})
-			return
-		}
-
-		//get id of the created file enrty
-		var fileFromDbInserted models.File
-		err = h.DB.Where("file_name = ? AND file_path = ?", fileNames[i], fileURL).First(&fileFromDbInserted).Error
-		if err != nil {
-			logger.WithError(err).Error("Error retrieving file")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving file"})
-			return
-		}
-
-		//add enrty to dispute evidence table
 		disputeEvidence := models.DisputeEvidence{
 			Dispute: *disputeFromDbInserted.ID,
-			FileID:  int64(*fileFromDbInserted.ID),
+			FileID:  int64(fileId),
 		}
-		err = h.DB.Create(&disputeEvidence).Error
-		if err != nil {
+
+		if err := h.DB.Create(&disputeEvidence).Error; err != nil {
 			logger.WithError(err).Error("Error creating dispute evidence")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating dispute evidence"})
 			return

@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -118,13 +119,35 @@ func (h Auth) CreateUser(c *gin.Context) {
 	user.Role = "user"
 	user.LastLogin = nil
 
-	if result := h.DB.Create(&user); result.Error != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
+	// if result := h.DB.Create(&user); result.Error != nil {
+	// 	c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
+	// 	return
+	// }
+
+	jwt, err := middleware.GenerateJWT(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
 
-	jwt, err := middleware.GenerateJWT(user)
-	err2 := sendOTP(user.Email, user.Surname)
+	// generate a pin code
+	pin := utilities.GenerateVerifyEmailToken()
+
+	// create UserVerify struct in redis
+	userkey := user.Email + user.Surname
+	userVerify := models.ConvertUserToUserVerify(user, pin)
+
+	//convert to json
+	userVerifyJSON, err := json.Marshal(userVerify)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+	}
+
+	//store in redis cacher
+	err = redisDB.RDB.Set(context.Background(), userkey, userVerifyJSON, 24*time.Hour).Err();
+
+	//send OTP
+	err2 := sendOTP(user.Email, pin)
 	if err != nil || err2 != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
@@ -220,7 +243,23 @@ func (h Auth) Verify(c *gin.Context) {
 	}
 	userkey := jwtClaims.Email + jwtClaims.User.Surname
 	// valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
-	pin, err := redisDB.RDB.Get(context.Background(), userkey).Result()
+	userVerifyJSON, err := redisDB.RDB.Get(context.Background(), userkey).Result()
+	if err != nil {
+		logger.WithError(err).Error("Error getting userVerify from redis")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
+		return
+	}
+	//unmarshal result
+	var userVerify models.UserVerify
+	err = json.Unmarshal([]byte(userVerifyJSON), &userVerify)
+	if err != nil {
+		logger.WithError(err).Error("Error unmarshalling userVerify")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
+		return
+	}
+
+	//check if the pin is correct
+	pin := userVerify.Pin
 	if pin == pinReq.Pin {
 		valid = true
 	}
@@ -235,7 +274,29 @@ func (h Auth) Verify(c *gin.Context) {
 		return
 	}
 	logger.Info("Email verified successfully")
-	c.JSON(http.StatusOK, models.Response{Data: "Email verified successfully"})
+
+	// insert the user into database with updated status status to verified
+	user := models.ConvertUserVerifyToUser(userVerify)
+	user.Status = "Active"
+	
+	if result := h.DB.Create(&user); result.Error != nil {
+		logger.WithError(result.Error).Error("Error creating user")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
+		return
+	}
+	logger.Info("User added to the Database")
+
+	//create new jwt from the claims
+	var updatedUser models.User
+	h.DB.Where("email = ?", jwtClaims.Email).First(&updatedUser)
+	newJWT, err := middleware.GenerateJWT(updatedUser)
+	if err != nil {
+		logger.WithError(err).Error("Error generating token")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		return
+		
+	}
+	c.JSON(http.StatusOK, models.Response{Data: newJWT})
 }
 
 func (h Handler) checkUserExists(email string) bool {
@@ -247,7 +308,7 @@ func (h Handler) checkUserExists(email string) bool {
 	return user.Email != "" // Check if email is not empty
 }
 
-func sendOTP(userInfo string, userSurname string) error {
+func sendOTP(userInfo string, pin string) error {
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587
@@ -256,13 +317,6 @@ func sendOTP(userInfo string, userSurname string) error {
 
 	// Recipient email address
 	to := userInfo
-	pin := utilities.GenerateVerifyEmailToken()
-
-	//store in redis
-	err2 := redisDB.RDB.Set(context.Background(), userInfo+userSurname, pin, 24*time.Hour).Err()
-	if err2 != nil {
-		return err2
-	}
 	// Email subject and body
 	subject := "Verify Account"
 	body := "Hello,\nPlease verify your DRE account using this pin: " + pin + "\n\nThanks,\nTeam Techtonic."

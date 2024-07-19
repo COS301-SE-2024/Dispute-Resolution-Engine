@@ -222,6 +222,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
 		logger.WithError(err).Error("Error parsing form")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Failed to parse form data"})
 		return
 	}
 

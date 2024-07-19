@@ -44,18 +44,14 @@ func (l *Logger) WithError(err error) *Logger {
 }
 
 func (l *Logger) LogWithCaller() *Logger {
-    if pc, file, line, ok := runtime.Caller(1); ok {
-        fName := runtime.FuncForPC(pc).Name()
-        splitFName := strings.Split(fName, ".")
-        return &Logger{l.WithField("caller", struct {
-            File     string `json:"file"`
-            Line     int    `json:"line"`
-            Function string `json:"function"`
-        }{
-            File:     file,
-            Line:     line,
-            Function: splitFName[len(splitFName)-1],
-        })}
-    }
-    return l
+	if pc, file, line, ok := runtime.Caller(1); ok {
+		fName := runtime.FuncForPC(pc).Name()
+		splitFName := strings.Split(fName, ".")
+		return &Logger{
+			l.WithField("caller_file", file).
+				WithField("caller_line", line).
+				WithField("caller_function", splitFName[len(splitFName)-1]),
+		}
+	}
+	return l
 }

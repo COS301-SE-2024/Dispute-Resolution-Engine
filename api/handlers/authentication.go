@@ -215,7 +215,6 @@ func (h Auth) Verify(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
 		return
 	}
-	fmt.Println(jwtClaims.Email + jwtClaims.User.Surname)
 	userkey := jwtClaims.Email + jwtClaims.User.Surname
 	// valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
 	pin, err := redisDB.RDB.Get(context.Background(), userkey).Result()

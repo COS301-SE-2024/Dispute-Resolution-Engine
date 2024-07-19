@@ -5,8 +5,8 @@ import (
 	_ "api/docs" // This is important to import your generated docs package
 	"api/handlers"
 	"api/middleware"
+	"api/utilities"
 	"api/redisDB"
-	"log"
 	"net/http"
 	"os"
 
@@ -20,11 +20,12 @@ import (
 
 // Tries to load env files. If an error occurs, it will ignore the file and log the error
 func loadEnvFile(files ...string) {
+	logger := utilities.NewLogger().LogWithCaller()
 	for _, path := range files {
 		if err := godotenv.Load(path); err != nil {
-			log.Printf("Error loading env file: %v\n", err.Error())
+			logger.WithError(err).Warning("Env file not found")
 		} else {
-			log.Printf("Loaded env file: %v\n", path)
+			logger.Info("Loaded env file")
 		}
 	}
 }
@@ -44,19 +45,20 @@ func loadEnvFile(files ...string) {
 // @host localhost:8080
 // @BasePath /api
 func main() {
+	logger := utilities.NewLogger().LogWithCaller()
 	loadEnvFile(".env", "api.env")
 
 	DB, err := db.Init()
 	if err != nil {
-		log.Fatalf("Error initializing database: %v\n", err)
+		logger.WithError(err).Fatal("Failed to connect to database")
 	}
-	log.Println("Connected to database successfully")
+	logger.Info("Connected to database successfully")
 
 	_, err = redisDB.InitRedis()
 	if err != nil {
-		log.Fatalf("Error initializing Redis: %v\n", err)
+		logger.WithError(err).Fatal("Error initializing Redis")
 	}
-	log.Println("Connected to Redis successfully")
+	logger.Info("Connected to Redis successfully")
 
 	authHandler := handlers.NewAuthHandler(DB)
 	userHandler := handlers.NewUserHandler(DB)
@@ -95,6 +97,6 @@ func main() {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	log.Println("API server is running on port 8080")
 	http.ListenAndServe(":8080", router)
+	logger.Info("API started successfully on port 8080")
 }

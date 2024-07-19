@@ -15,28 +15,34 @@ const (
 )
 
 func Init() (*gorm.DB, error) {
+	logger := utilities.NewLogger().LogWithCaller()
 	host, err := utilities.GetRequiredEnv("DATABASE_URL")
 	if err != nil {
+		logger.WithError(err).Error("Failed to get DATABASE_URL")
 		return nil, err
 	}
 
 	port, err := utilities.GetRequiredEnv("DATABASE_PORT")
 	if err != nil {
+		logger.WithError(err).Error("Failed to get DATABASE_PORT")
 		return nil, err
 	}
 
 	user, err := utilities.GetRequiredEnv("DATABASE_USER")
 	if err != nil {
+		logger.WithError(err).Error("Failed to get DATABASE_USER")
 		return nil, err
 	}
 
 	password, err := utilities.GetRequiredEnv("DATABASE_PASSWORD")
 	if err != nil {
+		logger.WithError(err).Error("Failed to get DATABASE_PASSWORD")
 		return nil, err
 	}
 
 	dbname, err := utilities.GetRequiredEnv("DATABASE_NAME")
 	if err != nil {
+		logger.WithError(err).Error("Failed to get DATABASE_NAME")
 		return nil, err
 	}
 
@@ -50,8 +56,9 @@ func Init() (*gorm.DB, error) {
 		time.Sleep(retryTimeout * time.Second)
 	}
 	if err != nil {
+		logger.WithError(err).Error("Failed to connect to database")
 		return nil, err
 	}
-
+	logger.Info("Connected to database")
 	return db, nil
 }

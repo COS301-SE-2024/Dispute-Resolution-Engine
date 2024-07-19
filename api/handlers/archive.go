@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"api/models"
+	"api/utilities"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -33,8 +34,12 @@ func SetupArchiveRoutes(g *gin.RouterGroup, h Archive) {
 // @Success 200 {object} models.Response "Archive Summary Endpoint"
 // @Router /archive [post]
 func (h Archive) SearchArchive(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
 	var body models.ArchiveSearchRequest
+
 	if err := c.BindJSON(&body); err != nil {
+		logger.WithError(err).Error("Error binding request body")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
 		return
 	}
 
@@ -57,13 +62,13 @@ func (h Archive) SearchArchive(c *gin.Context) {
 	if body.Order != nil {
 		order = *body.Order
 		if strings.ToLower(order) != "asc" && strings.ToLower(order) != "desc" {
+			logger.Error("Invalid order value")
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid order value"})
 			return
 		}
 	}
 	if body.Sort != nil {
 		sort = string(*body.Sort)
-
 	}
 
 	// Query the database
@@ -88,11 +93,13 @@ func (h Archive) SearchArchive(c *gin.Context) {
 
 	// Execute the query
 	if err := query.Find(&disputes).Error; err != nil {
+		logger.WithError(err).Error("Error retrieving disputes")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving disputes"})
 		return
 	}
 
 	if len(disputes) == 0 {
+		logger.Info("No disputes found")
 		c.JSON(http.StatusOK, models.Response{Data: []models.ArchivedDisputeSummary{}})
 		return
 	}
@@ -112,6 +119,7 @@ func (h Archive) SearchArchive(c *gin.Context) {
 	}
 
 	// Return the response
+	logger.Info("Successfully retrieved disputes")
 	c.JSON(http.StatusOK, models.Response{Data: models.ArchiveSearchResponse{
 		Archives: archiveDisputeSummaries,
 		Total:    count,
@@ -127,11 +135,12 @@ func (h Archive) SearchArchive(c *gin.Context) {
 // @Success 200 {object} models.Response "Archive Detail Endpoint"
 // @Router /archive/{id} [get]
 func (h Archive) getArchive(c *gin.Context) {
-
+	logger := utilities.NewLogger().LogWithCaller()
 	id := c.Param("id")
 
 	intID, err := strconv.Atoi(id)
 	if err != nil {
+		logger.WithError(err).Error("Invalid ID")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid ID"})
 		return
 	}
@@ -166,9 +175,11 @@ func (h Archive) getArchive(c *gin.Context) {
 
 	err = h.DB.Where("id = ?", intID).First(&dispute).Error
 	if err != nil && err.Error() == "record not found" {
+		logger.WithError(err).Error("Dispute not found")
 		c.JSON(http.StatusNotFound, models.Response{Data: ""})
 		return
 	} else if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving dispute"})
 		return
 	}
@@ -188,10 +199,11 @@ func (h Archive) getArchive(c *gin.Context) {
 			},
 			Events: []models.Event{},
 		}
+		logger.Info("Successfully retrieved dispute")
 		c.JSON(http.StatusOK, models.Response{Data: archiveDispute})
 		return
 	} else {
+		logger.Info("Dispute not found")
 		c.JSON(http.StatusNotFound, models.Response{Data: ""})
 	}
-
 }

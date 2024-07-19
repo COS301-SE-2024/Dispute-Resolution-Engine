@@ -27,9 +27,11 @@ func SetupUserRoutes(g *gin.RouterGroup, h User) {
 // @Success 200 {object} models.Response "User profile not available yet..."
 // @Router /user/profile [get]
 func (h User) getUser(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
 	// Get the user ID from the request
 	jwtClaims := middleware.GetClaims(c)
 	if jwtClaims == nil {
+		logger.Error("Unauthorized")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
@@ -37,6 +39,7 @@ func (h User) getUser(c *gin.Context) {
 	// Retrieve the user from the database
 	var dbUser models.User
 	if err := h.DB.Where("email = ?", jwtClaims.Email).First(&dbUser).Error; err != nil {
+		logger.WithError(err).Error("Failed to retrieve user")
 		c.JSON(http.StatusNotFound, models.Response{Error: "User not found"})
 		return
 	}
@@ -45,6 +48,7 @@ func (h User) getUser(c *gin.Context) {
 	var dbAddresses models.Address
 	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddresses)
 	if err := h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddresses).Error; err != nil {
+		// If no addresses are found, create an empty address object
 		dbAddresses = models.Address{}
 	}
 
@@ -63,8 +67,8 @@ func (h User) getUser(c *gin.Context) {
 		Theme:             "dark",
 	}
 
-	// Print the dbAddresses object for debug purposes
-	print(dbAddresses.Country)
+
+	logger.Info("User address retrieved successfully")
 	// Return the response
 	c.JSON(http.StatusOK, models.Response{Data: user})
 }
@@ -79,11 +83,14 @@ func (h User) getUser(c *gin.Context) {
 // @Failure 400 {object} models.Response "Bad Request"
 // @Router /user/profile [put]
 func (h User) updateUser(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
 	jwtClaims := middleware.GetClaims(c)
 
 	//get the user id from the request
 	var updateUser models.UpdateUser
 	if err := c.BindJSON(&updateUser); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
+		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
 
@@ -120,7 +127,7 @@ func (h User) updateUser(c *gin.Context) {
 	//now update the user and address
 	h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)
 	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
-
+	logger.Info("User updated successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "User updated successfully"})
 }
 
@@ -134,15 +141,18 @@ func (h User) updateUser(c *gin.Context) {
 // @Failure 400 {object} models.Response "Bad Request"
 // @Router /user/remove [delete]
 func (h User) RemoveAccount(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
 	var user models.DeleteUser
 	if err := c.BindJSON(&user); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
 
 	if !h.checkUserExists(user.Email) {
+		logger.Error("User does not exist")
 		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
 		return
 	}
@@ -152,18 +162,19 @@ func (h User) RemoveAccount(c *gin.Context) {
 
 	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
 	if err != nil {
+		logger.WithError(err).Error("Failed to decode salt")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
 	checkHash, err := hasher.GenerateHash([]byte(user.Password), realSalt)
 	if err != nil {
+		logger.WithError(err).Error("Failed to generate hash")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
 
 	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
-		print(dbUser.PasswordHash)
-		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
+		logger.Error("Invalid credentials")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}
@@ -175,16 +186,19 @@ func (h User) RemoveAccount(c *gin.Context) {
 	h.DB.Where("id = ?", dbUser.AddressID).Delete(&dbAddress)
 
 	h.DB.Where("email = ?", user.Email).Delete(&dbUser)
+	logger.Info("User account removed successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "User account removed successfully"})
 }
 
 func (h User) UpdateUserAddress(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
 	jwtClaims := middleware.GetClaims(c)
 	insertAddress := false
 
 	//here we get the details of the request
 	var updateUserAddress models.UpdateAddress
 	if err := c.BindJSON(&updateUserAddress); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
@@ -229,13 +243,14 @@ func (h User) UpdateUserAddress(c *gin.Context) {
 		h.DB.Create(&dbAddress)
 		dbUser.AddressID = &dbAddress.ID
 		h.DB.Model(&dbUser).Where("id = ?", dbUser.ID).Updates(dbUser)
+		logger.Info("User address updated/inserted successfully")
 		c.JSON(http.StatusOK, models.Response{Data: "User address updated successfully"})
 		return
 	}
 
 	//now update the address
 	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
-
+	logger.Info("User address updated successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "User address updated successfully"})
 }
 

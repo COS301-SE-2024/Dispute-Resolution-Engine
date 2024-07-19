@@ -6,6 +6,7 @@ import (
 	"api/utilities"
 	"encoding/base64"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,6 +16,7 @@ func SetupUserRoutes(g *gin.RouterGroup, h User) {
 	g.GET("/profile", h.getUser)
 	g.PUT("/profile/address", h.UpdateUserAddress)
 	g.DELETE("/remove", h.RemoveAccount)
+	g.POST("/analytics", h.UserAnalyticsEndpoint)
 }
 
 // @Summary Get user profile
@@ -250,4 +252,88 @@ func (h User) UpdateUserAddress(c *gin.Context) {
 	h.DB.Model(&dbAddress).Where("id = ?", dbUser.AddressID).Updates(dbAddress)
 	logger.Info("User address updated successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "User address updated successfully"})
+}
+
+// UserAnalyticsEndpoint is a handler for user analytics
+// @Summary User analytics
+// @Description User analytics
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param user body models.UserAnalytics true "User"
+// @Success 200 {object} models.Response "User analytics"
+// @Failure 400 {object} models.Response "Bad Request"
+// @Router /user/analytics [post]
+func (h *Handler) UserAnalyticsEndpoint(c *gin.Context) {
+	var analyticsReq models.UserAnalytics
+
+	// Parse JSON request body
+	if err := c.BindJSON(&analyticsReq); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
+		return
+	}
+
+	// Construct the base query
+	query := h.DB.Model(&models.User{})
+
+	// Add WHERE clauses for column-value comparisons
+	if analyticsReq.ColumnvalueComparisons != nil {
+		for _, cvc := range *analyticsReq.ColumnvalueComparisons {
+			query = query.Where(cvc.Column+" LIKE ?", "%" + cvc.Value + "%")
+		}
+	}
+
+	// Add ORDER BY clauses
+	if analyticsReq.OrderBy != nil {
+		for _, ob := range *analyticsReq.OrderBy {
+			switch ob.Order {
+			case "asc":
+				query = query.Order(ob.Column + " ASC")
+			case "desc":
+				query = query.Order(ob.Column + " DESC")
+			}
+		}
+	}
+
+	// Add date range filters
+	if analyticsReq.DateRanges != nil {
+		for _, dr := range *analyticsReq.DateRanges {
+			startDate, err := time.Parse("2006-01-02", *dr.StartDate)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid start date format"})
+				return
+			}
+			endDate, err := time.Parse("2006-01-02", *dr.EndDate)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid end date format"})
+				return
+			}
+
+			query = query.Where(dr.Column+" BETWEEN ? AND ?", startDate, endDate)
+		}
+	}
+
+	// Add GROUP BY clauses
+	if analyticsReq.GroupBy != nil {
+		for _, gb := range *analyticsReq.GroupBy {
+			query = query.Group(gb)
+		}
+	}
+
+	// Execute the query based on count or fetch all records
+	if analyticsReq.Count {
+		var count int64
+		if err := query.Count(&count).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to fetch user count"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"count": count})
+	} else {
+		var users []models.User
+		if err := query.Find(&users).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to fetch users"})
+			return
+		}
+		c.JSON(http.StatusOK, models.Response{Data: users})
+	}
 }

@@ -8,24 +8,16 @@ export const disputeCreateSchema = z.object({
   summary: z.string().min(3).max(500),
 
   // Dummy variable to make RHF happy
-  file: z.any()
+  file: z.any(),
 });
 
 export type DisputeCreateData = z.infer<typeof disputeCreateSchema>;
 export type DisputeCreateError = z.ZodFormattedError<DisputeCreateData>;
 
-
 export const expertRejectSchema = z.object({
-    dispute_id: z.string().min(1),
-    expert_id: z.string().min(1),
-    reason: z.string().min(20)
+  dispute_id: z.string().min(1),
+  expert_id: z.string().min(1),
+  reason: z.string().min(20),
 });
 export type ExpertRejectData = z.infer<typeof expertRejectSchema>;
 export type ExpertRejectError = z.ZodFormattedError<ExpertRejectData>;
-
-export const expertApproveSchema = z.object({
-    dispute_id: z.string().min(1),
-    expert_id: z.string().min(1),
-});
-export type ApproveRejectData = z.infer<typeof expertApproveSchema>;
-export type ApproveRejectError = z.ZodFormattedError<ApproveRejectData>;

@@ -7,7 +7,6 @@ import (
 	"api/middleware"
 	"api/utilities"
 	"api/redisDB"
-	"log"
 	"net/http"
 
 	"github.com/gin-contrib/cors"

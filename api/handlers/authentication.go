@@ -235,7 +235,21 @@ func (h Auth) Verify(c *gin.Context) {
 		return
 	}
 	logger.Info("Email verified successfully")
-	c.JSON(http.StatusOK, models.Response{Data: "Email verified successfully"})
+
+	// Update user status to verified
+	h.DB.Model(&models.User{}).Where("email = ?", jwtClaims.Email).Update("status", "Active")
+
+	//create new jwt from the claims
+	var updatedUser models.User
+	h.DB.Where("email = ?", jwtClaims.Email).First(&updatedUser)
+	newJWT, err := middleware.GenerateJWT(updatedUser)
+	if err != nil {
+		logger.WithError(err).Error("Error generating token")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		return
+		
+	}
+	c.JSON(http.StatusOK, models.Response{Data: newJWT})
 }
 
 func (h Handler) checkUserExists(email string) bool {

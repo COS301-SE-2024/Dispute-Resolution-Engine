@@ -47,6 +47,7 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
             <div key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
               <FileIcon className="mx-auto h-8 w-8" />
               <p className="mt-2 text-sm font-medium">{evi.label}</p>
+              <a href={evi.url}>Download</a>
             </div>
           ))}
         </CardContent>

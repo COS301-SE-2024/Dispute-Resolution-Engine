@@ -6,6 +6,7 @@ import (
 	"api/models"
 	"api/utilities"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
@@ -38,57 +39,50 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 	//archive routes
 }
 
+// Uploads a multipart file to the file storage, returning the id of the file entry in the database
 func uploadFile(db *gorm.DB, header *multipart.FileHeader) (uint, error) {
 	logger := utilities.NewLogger().LogWithCaller()
+
+	fileName := filepath.Base(header.Filename)
+	storePath := filepath.Join(os.Getenv("FILESTORAGE_ROOT"), fileName)
+	storeUrl := fmt.Sprintf("%s/%s", os.Getenv("FILESTORAGE_URL"), fileName)
 
 	// Open the form file
 	formFile, err := header.Open()
 	if err != nil {
-		logger.WithError(err).Error("Failed to open form file")
-		return 0, errors.New("Failed to open form file")
+		logger.WithError(err).Error("failed to open form file")
+		return 0, errors.New("failed to open form file")
 	}
 	defer formFile.Close()
 
 	// Open the destination file
-	fileName := filepath.Base(header.Filename)
-	destPath := filepath.Join(os.Getenv("FILESTORAGE_ROOT"), fileName) // Assuming '/files' is where Docker mounts its storage
-	destFile, err := os.Create(destPath)
+	storeFile, err := os.Create(storePath)
 	if err != nil {
-		logger.WithError(err).Error("Failed to create file in storage")
-		return 0, errors.New("Failed to create file in storage")
+		logger.WithError(err).Error("failed to create file in storage")
+		return 0, errors.New("failed to create file in storage")
 	}
-	defer destFile.Close()
+	defer storeFile.Close()
 
 	// Copy file content to destination
-	_, err = io.Copy(destFile, formFile)
+	_, err = io.Copy(storeFile, formFile)
 	if err != nil {
-		logger.WithError(err).Error("Failed to copy file content")
-		return 0, errors.New("Failed to copy file content")
+		logger.WithError(err).Error("failed to copy file content")
+		return 0, errors.New("failed to copy file content")
 	}
 
-	// TODO: Change this to a proper URL
-	fileUrl := destPath
-	//add file to Database
+	// Add file entry to Database
 	file := models.File{
 		FileName: fileName,
+		FilePath: storeUrl,
 		Uploaded: time.Now(),
-
-		FilePath: fileUrl,
 	}
 
 	if err := db.Create(&file).Error; err != nil {
-		logger.WithError(err).Error("Error adding file to database")
-		return 0, errors.New("Error adding file to database")
+		logger.WithError(err).Error("error adding file to database")
+		return 0, errors.New("error adding file to database")
 	}
 
-	//get id of the created file enrty
-	var fileFromDbInserted models.File
-	err = db.Where("file_name = ? AND file_path = ?", fileName, fileUrl).First(&fileFromDbInserted).Error
-	if err != nil {
-		logger.WithError(err).Error("Error retrieving file entry from database")
-		return 0, errors.New("Error retrieving file entry from database")
-	}
-	return *fileFromDbInserted.ID, nil
+	return *file.ID, nil
 }
 
 // @Summary Get a summary list of disputes
@@ -126,16 +120,16 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 			Dispute: int64(disputeId),
 			FileID:  int64(id),
 		}
-		
-        if err := h.DB.Create(&disputeEvidence).Error; err != nil {
+
+		if err := h.DB.Create(&disputeEvidence).Error; err != nil {
 			logger.WithError(err).Error("Error creating dispute evidence")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating dispute evidence"})
 			return
 		}
 	}
-    c.JSON(http.StatusCreated, models.Response{
-        Data: "Files uploaded",
-    })
+	c.JSON(http.StatusCreated, models.Response{
+		Data: "Files uploaded",
+	})
 }
 
 // @Summary Get a summary list of disputes

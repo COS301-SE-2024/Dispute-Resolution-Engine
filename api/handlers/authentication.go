@@ -200,13 +200,17 @@ func (h Auth) LoginUser(c *gin.Context) {
 // @Failure 500 {object} interface{} "Error verifying pin - Example error response: { 'error': 'Error verifying pin' }"
 // @Router /auth/verify [post]
 func (h Auth) Verify(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
 	var pinReq models.VerifyUser
 	if err := c.BindJSON(&pinReq); err != nil {
+		logger.WithError(err).Error("Invalid Request")
 		return
 	}
 	var valid bool
 	valid = false
 	jwtClaims := middleware.GetClaims(c)
+	fmt.Println(jwtClaims.Email + jwtClaims.User.Surname)
 	userkey := jwtClaims.Email + jwtClaims.User.Surname
 	// valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
 	pin, err := redisDB.RDB.Get(context.Background(), userkey).Result()
@@ -214,13 +218,16 @@ func (h Auth) Verify(c *gin.Context) {
 		valid = true
 	}
 	if err != nil {
+		logger.WithError(err).Error("Error verifying pin")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
 		return
 	}
 	if !valid {
+		logger.Error("Invalid pin")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid pin"})
 		return
 	}
+	logger.Info("Email verified successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "Email verified successfully"})
 }
 

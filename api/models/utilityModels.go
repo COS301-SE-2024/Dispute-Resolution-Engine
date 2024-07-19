@@ -39,12 +39,17 @@ func ConvertUserVerifyToUser(dbUser UserVerify) *User {
 		Nationality:       dbUser.Nationality,
 		Role:              dbUser.Role,
 		Email:             dbUser.Email,
+		PasswordHash:      dbUser.PasswordHash,
 		PhoneNumber:       dbUser.PhoneNumber,
 		AddressID:         dbUser.AddressID,
+		CreatedAt:         dbUser.CreatedAt,
+		UpdatedAt:         dbUser.UpdatedAt,
+		LastLogin:         dbUser.LastLogin,
 		Status:            dbUser.Status,
 		Gender:            dbUser.Gender,
 		PreferredLanguage: dbUser.PreferredLanguage,
 		Timezone:          dbUser.Timezone,
+		Salt:              dbUser.Salt,
 	}
 }
 

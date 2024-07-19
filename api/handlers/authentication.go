@@ -16,7 +16,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/gomail.v2"
-	"gorm.io/gorm/logger"
 )
 
 type StringWrapper struct {

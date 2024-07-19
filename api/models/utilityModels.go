@@ -18,28 +18,62 @@ type UserInfoJWT struct {
 	Timezone          *string   `json:"timezone,omitempty"`
 }
 
-func ConvertUserToJWTUser(dbUser User) *UserInfoJWT{
-	return &UserInfoJWT{
-		ID: dbUser.ID,
-		FirstName: dbUser.FirstName,
-		Surname: dbUser.Surname,
-		Birthdate: dbUser.Birthdate,
-		Nationality: dbUser.Nationality,
-		Role: dbUser.Role,
-		Email: dbUser.Email,
-		PhoneNumber: dbUser.PhoneNumber,
-		AddressID: dbUser.AddressID,
-		Status: dbUser.Status,
-		Gender: dbUser.Gender,
+type UserVerify struct {
+	User
+	Pin string `json:"pin"`
+}
+
+func ConvertUserToUserVerify(dbUser User, pin string) *UserVerify {
+	return &UserVerify{
+		User: dbUser,
+		Pin:  pin,
+	}
+}
+
+func ConvertUserVerifyToUser(dbUser UserVerify) *User {
+	return &User{
+		ID:                dbUser.ID,
+		FirstName:         dbUser.FirstName,
+		Surname:           dbUser.Surname,
+		Birthdate:         dbUser.Birthdate,
+		Nationality:       dbUser.Nationality,
+		Role:              dbUser.Role,
+		Email:             dbUser.Email,
+		PasswordHash:      dbUser.PasswordHash,
+		PhoneNumber:       dbUser.PhoneNumber,
+		AddressID:         dbUser.AddressID,
+		CreatedAt:         dbUser.CreatedAt,
+		UpdatedAt:         dbUser.UpdatedAt,
+		LastLogin:         dbUser.LastLogin,
+		Status:            dbUser.Status,
+		Gender:            dbUser.Gender,
 		PreferredLanguage: dbUser.PreferredLanguage,
-		Timezone: dbUser.Timezone,
+		Timezone:          dbUser.Timezone,
+		Salt:              dbUser.Salt,
+	}
+}
+
+func ConvertUserToJWTUser(dbUser User) *UserInfoJWT {
+	return &UserInfoJWT{
+		ID:                dbUser.ID,
+		FirstName:         dbUser.FirstName,
+		Surname:           dbUser.Surname,
+		Birthdate:         dbUser.Birthdate,
+		Nationality:       dbUser.Nationality,
+		Role:              dbUser.Role,
+		Email:             dbUser.Email,
+		PhoneNumber:       dbUser.PhoneNumber,
+		AddressID:         dbUser.AddressID,
+		Status:            dbUser.Status,
+		Gender:            dbUser.Gender,
+		PreferredLanguage: dbUser.PreferredLanguage,
+		Timezone:          dbUser.Timezone,
 	}
 }
 
 type Email struct {
-	From		 string
-	To           string
-	Subject      string
-	Body         string
+	From    string
+	To      string
+	Subject string
+	Body    string
 }
-

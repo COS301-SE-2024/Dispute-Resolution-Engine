@@ -8,6 +8,7 @@ import (
 	"api/utilities"
 	"api/redisDB"
 	"net/http"
+	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -72,6 +73,7 @@ func main() {
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{"Content-Type", "Authorization"},
 	}))
+	router.Static("/filestorage", os.Getenv("FILESTORAGE_ROOT"))
 
 	//setup handlers
 	utilGroup := router.Group("/utils")
@@ -94,6 +96,7 @@ func main() {
 	handlers.SetupExpertRoutes(expertGroup, expertHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	http.ListenAndServe(":8080", router)
 	logger.Info("API started successfully on port 8080")
 }

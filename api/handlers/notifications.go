@@ -3,6 +3,7 @@ package handlers
 import (
 	"api/middleware"
 	"api/models"
+	"api/utilities"
 	"net/http"
 	"os"
 
@@ -14,10 +15,11 @@ import (
 // }
 
 func (h Handler) sendAdminNotification(c *gin.Context, resEmail string) {
-
+	logger := utilities.NewLogger().LogWithCaller()
 	//get claims
 	jwtClaims := middleware.GetClaims(c)
 	if jwtClaims == nil {
+		logger.Error("Unauthorized")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
@@ -25,6 +27,7 @@ func (h Handler) sendAdminNotification(c *gin.Context, resEmail string) {
 	//parse the request body
 	var reqInv models.DisputeNotify
 	if err := c.BindJSON(&reqInv); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
 		return
 	}
@@ -43,18 +46,19 @@ func (h Handler) sendAdminNotification(c *gin.Context, resEmail string) {
 	}
 
 	if err := sendMail(email); err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending notification email."})
+		logger.WithError(err).Error("Failed to send admin email")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending admin notification email."})
 		return
 	}
-
-	c.JSON(http.StatusOK, models.Response{Data: "Email notification send successfully"})
-
+	logger.Info("Admin email notification sent successfully")
+	c.JSON(http.StatusOK, models.Response{Data: "Admin email notification sent successfully"})
 }
 
 func (h Notification) AcceptanceNotification(c *gin.Context) {
-
+	logger := utilities.NewLogger().LogWithCaller()
 	jwtClaims := middleware.GetClaims(c)
 	if jwtClaims == nil {
+		logger.Error("Unauthorized")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 	}
 
@@ -62,6 +66,7 @@ func (h Notification) AcceptanceNotification(c *gin.Context) {
 	var reqNotif models.DisputeNotify
 
 	if err := c.BindJSON(&reqNotif); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Bad request body"})
 	}
 
@@ -88,12 +93,14 @@ func (h Notification) AcceptanceNotification(c *gin.Context) {
 	}
 
 	if err := sendMail(email1); err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal server error notifying."})
+		logger.WithError(err).Error("Failed to send respondent email")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal server error notifying"})
 	}
 
 	if err := sendMail(email2); err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal server error notifying."})
+		logger.WithError(err).Error("Failed to send complainant email")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal server error notifying"})
 	}
-
-	c.JSON(http.StatusOK, models.Response{Error: "Email sent successfully"})
+	logger.Info("Email notifications sent successfully")
+	c.JSON(http.StatusOK, models.Response{Error: "Email notifications sent successfully"})
 }

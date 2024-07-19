@@ -18,25 +18,29 @@ const (
 var RDB *redis.Client
 
 func InitRedis() (*redis.Client, error) {
+	logger := utilities.NewLogger().LogWithCaller()
 	host, err := utilities.GetRequiredEnv("REDIS_URL")
 	if err != nil {
+		logger.WithError(err).Error("Failed to get REDIS_URL")
 		return nil, err
 	}
 
 	password, err := utilities.GetRequiredEnv("REDIS_PASSWORD")
 	if err != nil {
+		logger.WithError(err).Error("Failed to get REDIS_PASSWORD")
 		return nil, err
 	}
 
 	db, err := utilities.GetRequiredEnv("REDIS_DB")
 	if err != nil {
+		logger.WithError(err).Error("Failed to get REDIS_DB")
 		return nil, err
 	}
 
 	// Convert db to integer
 	dbNum, err := strconv.Atoi(db)
 	if err != nil {
-		log.Fatalf("Invalid REDIS_DB value: %v", err)
+		logger.Fatal("Failed to convert REDIS_DB to integer")
 	}
 
 	// Create a new Redis client

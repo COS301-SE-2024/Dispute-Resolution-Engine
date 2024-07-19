@@ -1,13 +1,11 @@
 package handlers
 
 import (
-	//"api/middleware"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
 	"errors"
 	"io"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -88,6 +86,7 @@ func uploadFile(db *gorm.DB, header *multipart.FileHeader) (uint, error) {
 		logger.WithError(err).Error("Error retrieving file entry from database")
 		return 0, errors.New("Error retrieving file entry from database")
 	}
+	logger.Info("File uploaded successfully")
 	return *fileFromDbInserted.ID, nil
 }
 
@@ -103,12 +102,14 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 
 	disputeId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
+		logger.WithError(err).Error("Invalid Dispute ID")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
 		return
 	}
 
 	form, err := c.MultipartForm()
 	if err != nil {
+		logger.WithError(err).Error("Failed to parse form data")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to parse form data"})
 		return
 	}
@@ -117,6 +118,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 	for _, fileHeader := range files {
 		id, err := uploadFile(h.DB, fileHeader)
 		if err != nil {
+			logger.WithError(err).Error("Error uploading evidence")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 			return
 		}
@@ -128,11 +130,12 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 		}
 		
         if err := h.DB.Create(&disputeEvidence).Error; err != nil {
-			logger.WithError(err).Error("Error creating dispute evidence")
+			logger.WithError(err).Error("Error creating dispute evidence in DB")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating dispute evidence"})
 			return
 		}
 	}
+	logger.Info("Evidence uploaded successfully")
     c.JSON(http.StatusCreated, models.Response{
         Data: "Files uploaded",
     })
@@ -146,10 +149,12 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 // @Success 200 {object} models.Response "Dispute Summary Endpoint"
 // @Router /dispute [get]
 func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
 	jwtClaims := middleware.GetClaims(c)
 	var disputes []models.Dispute
 	err := h.DB.Find(&disputes).Error
 	if err != nil {
+		logger.WithError(err).Error("Error retrieving disputes")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
@@ -172,7 +177,7 @@ func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 		}
 		disputeSummaries = append(disputeSummaries, summary)
 	}
-
+	logger.Info("Dispute summaries retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: disputeSummaries})
 }
 
@@ -186,11 +191,11 @@ func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 // @Router /dispute/{id} [get]
 func (h Dispute) getDispute(c *gin.Context) {
 	id := c.Param("id")
-
+	logger := utilities.NewLogger().LogWithCaller()
 	var disputes models.Dispute
 	err := h.DB.Raw("SELECT id, title, description, status, case_date, respondant, complainant FROM disputes WHERE id = ?", id).Scan(&disputes).Error
-
 	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute")		
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
@@ -212,12 +217,13 @@ func (h Dispute) getDispute(c *gin.Context) {
 
 	err = h.DB.Raw("SELECT file_name,uploaded,file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
 	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute evidence")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
 
 	DisputeDetailsResponse.Experts = []string{"Expert 1", "Expert 2", "Expert 3"}
-
+	logger.Info("Dispute details retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: DisputeDetailsResponse})
 	// c.JSON(http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
 }
@@ -228,6 +234,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
 		logger.WithError(err).Error("Error parsing form")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Error parsing form"})
 		return
 	}
 
@@ -252,7 +259,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 	var respondent models.User
 	err = h.DB.Where("email = ? AND phone_number = ?", email, telephone).First(&respondent).Error
 	if err != nil && err.Error() == "record not found" {
-		//create a deafult entry for the user
+		//create a default entry for the user
 		nameSplit := strings.Split(fullName, " ")
 		if len(nameSplit) < 2 {
 			logger.Error("Invalid full name")
@@ -353,7 +360,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 			return
 		}
 
-		//get id of the created file enrty
+		//get id of the created file entry
 		var fileFromDbInserted models.File
 		err = h.DB.Where("file_name = ? AND file_path = ?", fileNames[i], fileURL).First(&fileFromDbInserted).Error
 		if err != nil {
@@ -362,7 +369,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 			return
 		}
 
-		//add enrty to dispute evidence table
+		//add entry to dispute evidence table
 		disputeEvidence := models.DisputeEvidence{
 			Dispute: *disputeFromDbInserted.ID,
 			FileID:  int64(*fileFromDbInserted.ID),
@@ -377,15 +384,16 @@ func (h Dispute) createDispute(c *gin.Context) {
 
 	// Respond with success message
 	h.sendAdminNotification(c, email)
+	logger.Info("Admin email sent")
 	c.JSON(http.StatusCreated, models.Response{Data: "Dispute created successfully"})
-	log.Printf("Dispute created successfully: %s", title)
 	logger.Info("Dispute created successfully: ", title)
 }
 
 func (h Dispute) updateStatus(c *gin.Context) {
 	var disputeStatus models.DisputeStatusChange
-
+	logger := utilities.NewLogger().LogWithCaller()
 	if err := c.BindJSON(&disputeStatus); err != nil {
+		logger.WithError(err).Error("Invalid request body")
 		c.JSON(http.StatusBadRequest, "Invalid request body")
 		return
 	}
@@ -396,7 +404,7 @@ func (h Dispute) updateStatus(c *gin.Context) {
 	dbDispute.Status = disputeStatus.Status
 
 	h.DB.Model(&dbDispute).Where("id = ?", dbDispute.ID).Updates(dbDispute)
-
+	logger.Info("Dispute status updated successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute status update successful"})
 }
 
@@ -409,7 +417,8 @@ func (h Dispute) updateStatus(c *gin.Context) {
 // @Success 200 {object} models.Response "Dispute Patch Endpoint"
 // @Router /dispute/{id} [patch]
 func (h Dispute) patchDispute(c *gin.Context) {
-
+	logger := utilities.NewLogger().LogWithCaller()
 	id := c.Param("id")
+	logger.Info("Dispute Patch Endpoint for ID: ", id)
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute Patch Endpoint for ID: " + id})
 }

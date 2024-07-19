@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/gomail.v2"
+	"gorm.io/gorm"
 )
 
 type StringWrapper struct {
@@ -127,6 +129,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
+	log.Println(jwt)
 	c.JSON(http.StatusCreated, models.Response{Data: jwt})
 }
 
@@ -237,8 +240,11 @@ func (h Auth) Verify(c *gin.Context) {
 
 func (h Handler) checkUserExists(email string) bool {
 	var user models.User
-	h.DB.Where("email = ?", email).First(&user)
-	return user.Email != ""
+	result := h.DB.Where("email = ?", email).First(&user)
+	if result.Error != nil && errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return false // User does not exist
+	}
+	return user.Email != "" // Check if email is not empty
 }
 
 func sendOTP(userInfo string, userSurname string) error {

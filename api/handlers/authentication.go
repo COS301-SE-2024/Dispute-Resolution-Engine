@@ -210,6 +210,11 @@ func (h Auth) Verify(c *gin.Context) {
 	var valid bool
 	valid = false
 	jwtClaims := middleware.GetClaims(c)
+	if jwtClaims == nil {
+		logger.Error("No claims found")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+		return
+	}
 	fmt.Println(jwtClaims.Email + jwtClaims.User.Surname)
 	userkey := jwtClaims.Email + jwtClaims.User.Surname
 	// valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)

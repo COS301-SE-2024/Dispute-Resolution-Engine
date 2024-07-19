@@ -118,6 +118,7 @@ type Response struct {
 type DisputeExpert struct {
 	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
 	User    int64 `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+	Status  string `gorm:"column:status;type:varchar(255);"`
 }
 
 func (DisputeExpert) TableName() string {
@@ -125,10 +126,10 @@ func (DisputeExpert) TableName() string {
 }
 
 type File struct {
-	ID       *uint     `gorm:"primaryKey;column:id;type:serial;autoIncrement:true"`
-	FileName string    `gorm:"column:file_name;type:varchar(255);not null"`
-	Uploaded time.Time `gorm:"column:uploaded;type:timestamp;default:CURRENT_TIMESTAMP"`
-	FilePath string    `gorm:"column:file_path;type:varchar(255);not null"`
+	ID       *uint     `json:"id" gorm:"primaryKey;column:id;type:serial;autoIncrement:true"`
+	FileName string    `json:"label" gorm:"column:file_name;type:varchar(255);not null"`
+	Uploaded time.Time `json:"date_submitted" gorm:"column:uploaded;type:timestamp;default:CURRENT_TIMESTAMP"`
+	FilePath string    `json:"url" gorm:"column:file_path;type:varchar(255);not null"`
 }
 
 func (File) TableName() string {

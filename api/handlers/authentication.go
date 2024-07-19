@@ -3,9 +3,12 @@ package handlers
 import (
 	"api/middleware"
 	"api/models"
+	"api/redisDB"
 	"api/utilities"
+	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -14,6 +17,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/gomail.v2"
+	"gorm.io/gorm"
 )
 
 type StringWrapper struct {
@@ -118,13 +122,14 @@ func (h Auth) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
 		return
 	}
-	sendOTP(user.Email)
 
 	jwt, err := middleware.GenerateJWT(user)
-	if err != nil {
+	err2 := sendOTP(user.Email, user.Surname)
+	if err != nil || err2 != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
+	log.Println(jwt)
 	c.JSON(http.StatusCreated, models.Response{Data: jwt})
 }
 
@@ -198,29 +203,51 @@ func (h Auth) LoginUser(c *gin.Context) {
 // @Failure 500 {object} interface{} "Error verifying pin - Example error response: { 'error': 'Error verifying pin' }"
 // @Router /auth/verify [post]
 func (h Auth) Verify(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
 	var pinReq models.VerifyUser
 	if err := c.BindJSON(&pinReq); err != nil {
+		logger.WithError(err).Error("Invalid Request")
 		return
 	}
-	valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
+	var valid bool
+	valid = false
+	jwtClaims := middleware.GetClaims(c)
+	if jwtClaims == nil {
+		logger.Error("No claims found")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+		return
+	}
+	userkey := jwtClaims.Email + jwtClaims.User.Surname
+	// valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
+	pin, err := redisDB.RDB.Get(context.Background(), userkey).Result()
+	if pin == pinReq.Pin {
+		valid = true
+	}
 	if err != nil {
+		logger.WithError(err).Error("Error verifying pin")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
 		return
 	}
 	if !valid {
+		logger.Error("Invalid pin")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid pin"})
 		return
 	}
+	logger.Info("Email verified successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "Email verified successfully"})
 }
 
 func (h Handler) checkUserExists(email string) bool {
 	var user models.User
-	h.DB.Where("email = ?", email).First(&user)
-	return user.Email != ""
+	result := h.DB.Where("email = ?", email).First(&user)
+	if result.Error != nil && errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return false // User does not exist
+	}
+	return user.Email != "" // Check if email is not empty
 }
 
-func sendOTP(userInfo string) {
+func sendOTP(userInfo string, userSurname string) error {
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587
@@ -230,13 +257,19 @@ func sendOTP(userInfo string) {
 	// Recipient email address
 	to := userInfo
 	pin := utilities.GenerateVerifyEmailToken()
+
+	//store in redis
+	err2 := redisDB.RDB.Set(context.Background(), userInfo+userSurname, pin, 24*time.Hour).Err()
+	if err2 != nil {
+		return err2
+	}
 	// Email subject and body
 	subject := "Verify Account"
 	body := "Hello,\nPlease verify your DRE account using this pin: " + pin + "\n\nThanks,\nTeam Techtonic."
 
 	// Initialize the SMTP dialer
 	d := gomail.NewDialer(smtpServer, smtpPort, smtpUser, smtpPassword)
-	d.TLSConfig = &tls.Config{ServerName: smtpServer, InsecureSkipVerify: false}
+	d.TLSConfig = &tls.Config{ServerName: smtpServer, InsecureSkipVerify: true}
 	// Create a new email message
 	m := gomail.NewMessage()
 	m.SetHeader("From", smtpUser)
@@ -249,11 +282,8 @@ func sendOTP(userInfo string) {
 		fmt.Println("Failed to send email:", err)
 		os.Exit(1)
 	}
-	err := utilities.WriteToFile(pin, "stubbedStorage/verify.txt")
-	if err != nil {
-		fmt.Println("Error writing to file: " + err.Error())
-	}
 	fmt.Println("Email sent successfully!")
+	return nil
 }
 
 // resetPassword sends an email to the user with a link to reset their password

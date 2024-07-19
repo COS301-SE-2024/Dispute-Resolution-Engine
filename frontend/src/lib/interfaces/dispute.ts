@@ -58,3 +58,4 @@ export interface DisputeCreateRequest {
 export type DisputeCreateResponse = string;
 
 // TODO: File upload endpoint
+export type DisputeEvidenceUploadResponse = string;

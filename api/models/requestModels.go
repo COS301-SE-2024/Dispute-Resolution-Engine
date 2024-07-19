@@ -27,6 +27,27 @@ type GetUser struct {
 	Theme   string  `json:"theme"`
 }
 
+type ColumnValueComparison struct {
+	Column string `json:"column"`
+	Value  string `json:"value"`
+}
+type DateRange struct {
+	Column   string `json:"column"`
+	StartDate *string `json:"startDate, omitempty"`
+	EndDate   *string `json:"endDate, omitempty"`
+}
+type OrderBy struct {
+	Column string `json:"column"`
+	Order  string `json:"order"`
+}
+type UserAnalytics struct {
+	ColumnvalueComparisons *[]ColumnValueComparison `json:"columnvalueComparisons,omitempty"`
+	OrderBy				*[]OrderBy `json:"orderBy,omitempty"`
+	DateRanges			*[]DateRange `json:"dateRanges,omitempty"`
+	GroupBy				*[]string `json:"groupBy,omitempty"`
+	Count				bool `json:"count,omitempty"`
+}
+
 type CreateUser struct {
 	//These are all the user details that are required to create a user
 	FirstName         string  `json:"first_name"`
@@ -106,4 +127,18 @@ type ExpertApproveRequest struct {
 type ExpertRejectRequest struct {
 	ExpertID string `json:"expert_id"`
 	Reason   string `json:"reason"`
+}
+
+type DisputeStatusChange struct {
+	DisputeID string `json:"dispute_id"`
+	Status    string `json:"status"`
+}
+
+type RecommendExpert struct {
+	DisputeId int `json:"dispute_id"`
+}
+
+type RejectExpert struct {
+	DisputeId int64 `json:"dispute_id"`
+	ExpertId  int64 `json:"expert_id"`
 }

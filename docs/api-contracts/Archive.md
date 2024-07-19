@@ -84,3 +84,4 @@ type ArchiveSearchResponse = ArchivedDisputeSummary[];
 ```ts
 type ArchiveGetResponse = ArchivedDispute;
 ```
+

@@ -6,8 +6,9 @@ import { Separator } from "@/components/ui/separator";
 import { getDisputeDetails } from "@/lib/api/dispute";
 import { Metadata } from "next";
 import { File, WorkflowIcon } from "lucide-react";
-import React from "react";
+
 import ExpertItem from "@/components/dispute/negotiator";
+import DisputeClientPage from "./client-page";
 
 type Props = {
   params: { id: string };
@@ -56,10 +57,7 @@ export default async function DisputePage({ params }: Props) {
   if (error || !data) {
     return <h1>{error}</h1>;
   }
-  console.log(data);
-  var eviStr: string = data.evidence[0].toString();
-  eviStr = eviStr.split("/").pop() as string;
-  console.log("THIS IS THE DATA######################\n", data);
+
   return (
     <div className="grow overflow-y-auto flex flex-col">
       <DisputeHeader
@@ -70,43 +68,7 @@ export default async function DisputePage({ params }: Props) {
       />
       <Separator />
       <ScrollArea className="grow overflow-y-auto p-4">
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-white/70 mt-4">{data.description}</p>
-          </CardContent>
-        </Card>
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>Complainant&apos;s Evidence</CardTitle>
-            <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
-              <File className="mx-auto h-8 w-8" />
-              <p className="mt-2 text-sm font-medium">{eviStr}</p>
-            </div>
-          </CardHeader>
-        </Card>
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>Negotiating Parties</CardTitle>
-          </CardHeader>
-        <CardContent>
-            <ul className="space-y-4">
-                {data.experts.map((e) => (
-                <li key={e.full_name}>
-                    <ExpertItem dispute_id={params.id} {...e} />
-                </li>
-                ))}
-            </ul>
-        </CardContent>
-        </Card>
-        {/*<Card className="mb-4">*/}
-        {/*  <CardHeader>*/}
-        {/*    <CardTitle>Respondant Information</CardTitle>*/}
-        {/*    <CardDescription>Who you gon&apos; sue?</CardDescription>*/}
-        {/*  </CardHeader>*/}
-        {/*</Card>*/}
+        <DisputeClientPage data={data} />
       </ScrollArea>
       <Separator />
     </div>

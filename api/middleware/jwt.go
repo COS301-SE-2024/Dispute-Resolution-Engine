@@ -4,6 +4,7 @@ package middleware
 import (
 	"api/models"
 	"api/redisDB"
+	"api/utilities"
 	"net/http"
 	"os"
 	"strings"
@@ -117,15 +118,19 @@ func JWTMiddleware(c *gin.Context) {
 
 // return claims
 func GetClaims(c *gin.Context) *Claims {
+	logger := utilities.NewLogger().LogWithCaller()
+	
 	secret := []byte(os.Getenv("JWT_SECRET"))
 
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
+		logger.Error("No Authorization header")
 		return nil
 	}
 
 	tokenString := strings.Split(authHeader, " ")[1]
 	if tokenString == "" {
+		logger.Error("No token")
 		return nil
 	}
 
@@ -133,11 +138,13 @@ func GetClaims(c *gin.Context) *Claims {
 		return secret, nil
 	})
 	if err != nil {
+		logger.WithError(err).Error("Error parsing token")
 		return nil
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
+		logger.Error("Error getting claims")
 		return nil
 	}
 	return claims

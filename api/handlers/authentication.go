@@ -277,15 +277,14 @@ func (h Auth) Verify(c *gin.Context) {
 
 	// insert the user into database with updated status status to verified
 	user := models.ConvertUserVerifyToUser(userVerify)
-	user.Status = "Verified"
+	user.Status = "Active"
 	
 	if result := h.DB.Create(&user); result.Error != nil {
 		logger.WithError(result.Error).Error("Error creating user")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
 		return
 	}
-
-
+	logger.Info("User added to the Database")
 
 	//create new jwt from the claims
 	var updatedUser models.User

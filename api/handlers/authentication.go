@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -69,9 +70,12 @@ func (h Auth) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/signup [post]
 func (h Auth) CreateUser(c *gin.Context) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
+	logger := utilities.NewLogger().LogWithCaller()
 
 	var reqUser models.CreateUser
 	if err := c.BindJSON(&reqUser); err != nil {
+		logger.WithError(err).Error("Invalid Request")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
 		return
 	}
 
@@ -100,6 +104,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 	duplicate := h.checkUserExists(user.Email)
 
 	if duplicate {
+		logger.Error("Email already in use")
 		c.JSON(http.StatusConflict, models.Response{Error: "Email already in use"})
 		return
 	}
@@ -118,18 +123,49 @@ func (h Auth) CreateUser(c *gin.Context) {
 	user.Role = "user"
 	user.LastLogin = nil
 
-	if result := h.DB.Create(&user); result.Error != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
-		return
-	}
+
+	// if result := h.DB.Create(&user); result.Error != nil {
+	// 	c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
+	// 	return
+	// }
 
 	jwt, err := middleware.GenerateJWT(user)
-	err2 := sendOTP(user.Email, user.Surname)
-	if err != nil || err2 != nil {
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
-	log.Println(jwt)
+
+	// generate a pin code
+	pin := utilities.GenerateVerifyEmailToken()
+
+	// create UserVerify struct in redis
+	userkey := user.Email + user.Surname
+	userVerify := models.ConvertUserToUserVerify(user, pin)
+
+	//convert to json
+	userVerifyJSON, err := json.Marshal(userVerify)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+	}
+
+	//store in redis cacher
+	err = redisDB.RDB.Set(context.Background(), userkey, userVerifyJSON, 24*time.Hour).Err();
+
+	//send OTP
+	err2 := sendOTP(user.Email, pin)
+	if err != nil || err2 != nil {
+		var temperr error
+		if err != nil {
+			temperr = err
+		} else {
+			temperr = err2
+		}
+		logger.WithError(temperr).Error("Error generating token")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		return
+	}
+
+	logger.Info("User created successfully")
 	c.JSON(http.StatusCreated, models.Response{Data: jwt})
 }
 
@@ -145,13 +181,17 @@ func (h Auth) CreateUser(c *gin.Context) {
 // @Router /auth/login [post]
 func (h Auth) LoginUser(c *gin.Context) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
+	logger := utilities.NewLogger().LogWithCaller()
+
 
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
+		logger.WithError(err).Error("Invalid Request")
 		return
 	}
 
 	if !h.checkUserExists(user.Email) {
+		logger.Error("User does not exist")
 		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
 		return
 	}
@@ -161,11 +201,13 @@ func (h Auth) LoginUser(c *gin.Context) {
 
 	realSalt, err := base64.StdEncoding.DecodeString(dbUser.Salt)
 	if err != nil {
+		logger.WithError(err).Error("Error decoding salt")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
 	checkHash, err := hasher.GenerateHash([]byte(user.PasswordHash), realSalt)
 	if err != nil {
+		logger.WithError(err).Error("Error hashing password")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
@@ -173,6 +215,7 @@ func (h Auth) LoginUser(c *gin.Context) {
 	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
 		print(dbUser.PasswordHash)
 		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
+		logger.Error("Invalid credentials")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}
@@ -182,12 +225,13 @@ func (h Auth) LoginUser(c *gin.Context) {
 
 	token, err := middleware.GenerateJWT(dbUser)
 	if err != nil {
+		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
 
+	logger.Info("User logged in successfully")
 	c.JSON(http.StatusOK, models.Response{Data: token})
-
 }
 
 // Verify verifies the user's email through a pin code
@@ -220,7 +264,23 @@ func (h Auth) Verify(c *gin.Context) {
 	}
 	userkey := jwtClaims.Email + jwtClaims.User.Surname
 	// valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
-	pin, err := redisDB.RDB.Get(context.Background(), userkey).Result()
+	userVerifyJSON, err := redisDB.RDB.Get(context.Background(), userkey).Result()
+	if err != nil {
+		logger.WithError(err).Error("Error getting userVerify from redis")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
+		return
+	}
+	//unmarshal result
+	var userVerify models.UserVerify
+	err = json.Unmarshal([]byte(userVerifyJSON), &userVerify)
+	if err != nil {
+		logger.WithError(err).Error("Error unmarshalling userVerify")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error verifying pin"})
+		return
+	}
+
+	//check if the pin is correct
+	pin := userVerify.Pin
 	if pin == pinReq.Pin {
 		valid = true
 	}
@@ -235,7 +295,29 @@ func (h Auth) Verify(c *gin.Context) {
 		return
 	}
 	logger.Info("Email verified successfully")
-	c.JSON(http.StatusOK, models.Response{Data: "Email verified successfully"})
+
+	// insert the user into database with updated status status to verified
+	user := models.ConvertUserVerifyToUser(userVerify)
+	user.Status = "Active"
+	
+	if result := h.DB.Create(&user); result.Error != nil {
+		logger.WithError(result.Error).Error("Error creating user")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
+		return
+	}
+	logger.Info("User added to the Database")
+
+	//create new jwt from the claims
+	var updatedUser models.User
+	h.DB.Where("email = ?", jwtClaims.Email).First(&updatedUser)
+	newJWT, err := middleware.GenerateJWT(updatedUser)
+	if err != nil {
+		logger.WithError(err).Error("Error generating token")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		return
+		
+	}
+	c.JSON(http.StatusOK, models.Response{Data: newJWT})
 }
 
 func (h Handler) checkUserExists(email string) bool {
@@ -247,7 +329,8 @@ func (h Handler) checkUserExists(email string) bool {
 	return user.Email != "" // Check if email is not empty
 }
 
-func sendOTP(userInfo string, userSurname string) error {
+func sendOTP(userInfo string, pin string) error {
+  logger := utilities.NewLogger().LogWithCaller()
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587
@@ -256,13 +339,6 @@ func sendOTP(userInfo string, userSurname string) error {
 
 	// Recipient email address
 	to := userInfo
-	pin := utilities.GenerateVerifyEmailToken()
-
-	//store in redis
-	err2 := redisDB.RDB.Set(context.Background(), userInfo+userSurname, pin, 24*time.Hour).Err()
-	if err2 != nil {
-		return err2
-	}
 	// Email subject and body
 	subject := "Verify Account"
 	body := "Hello,\nPlease verify your DRE account using this pin: " + pin + "\n\nThanks,\nTeam Techtonic."
@@ -279,10 +355,10 @@ func sendOTP(userInfo string, userSurname string) error {
 
 	// Send the email
 	if err := d.DialAndSend(m); err != nil {
-		fmt.Println("Failed to send email:", err)
-		os.Exit(1)
+		logger.WithError(err).Error("Error sending OTP email")
+		return err
 	}
-	fmt.Println("Email sent successfully!")
+	logger.Info("OTP Email sent successfully")
 	return nil
 }
 
@@ -298,20 +374,20 @@ func sendOTP(userInfo string, userSurname string) error {
 
 func (h Auth) ResetPassword(c *gin.Context) {
 	defer c.Request.Body.Close()
-
+	logger := utilities.NewLogger().LogWithCaller()
 	//check the body of the request
-
 	var body models.SendResetRequest
 	if err := c.BindJSON(&body); err != nil {
+		logger.WithError(err).Error("Invalid Request")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
 		return
 	}
 
 	//check if the email exists in the database
-
 	var user models.User
 	h.DB.Where("email = ?", body.Email).First(&user)
 	if !h.checkUserExists(user.Email) {
+		logger.Error("User does not exist")
 		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
 		return
 	}
@@ -323,6 +399,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 
 	jwt, err := middleware.GenerateJWT(tempUser)
 	if err != nil {
+		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
@@ -337,12 +414,12 @@ func (h Auth) ResetPassword(c *gin.Context) {
 	}
 	log.Println(email)
 	if err := sendMail(email); err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending email"})
+		logger.WithError(err).Error("Error sending reset email")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending reset email"})
 		return
 	}
-
-	c.JSON(http.StatusOK, models.Response{Data: "Email sent successfully"})
-
+	logger.Info("Reset Email sent successfully")
+	c.JSON(http.StatusOK, models.Response{Data: "Reset Email sent successfully"})
 }
 
 // activate reset password
@@ -357,23 +434,25 @@ func (h Auth) ResetPassword(c *gin.Context) {
 // @Router /auth/reset-password/reset [post]
 func (h Auth) ActivateResetPassword(c *gin.Context) {
 	defer c.Request.Body.Close()
-
+	logger := utilities.NewLogger().LogWithCaller()
 	//get the token from the url
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
-		c.JSON(http.StatusBadRequest, models.Response{Error: "missing token"})
+		logger.Error("Missing token")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing token"})
 		return
 	}
 	claims := middleware.GetClaims(c)
 	if claims == nil {
-		c.JSON(http.StatusBadRequest, models.Response{Error: "missing token"})
+		logger.Error("Missing token")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing token"})
 		return
 	}
 
 	//check the body of the request
-
 	var body models.ResetPassword
 	if err := c.BindJSON(&body); err != nil {
+		logger.WithError(err).Error("Invalid Request")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
 		return
 	}
@@ -382,6 +461,7 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 	var user models.User
 	h.DB.Where("email = ?", claims.Email).First(&user)
 	if !h.checkUserExists(user.Email) {
+		logger.Error("User does not exist")
 		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
 		return
 	}
@@ -390,6 +470,7 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 	// WARNING: this function changes the salt of the user.
 	hashedPassword, err := hashPassword(body.NewPassword, &user)
 	if err != nil {
+		logger.WithError(err).Error("Error hashing password")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error hashing password"})
 		return
 	}
@@ -404,6 +485,7 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 }
 
 func sendMail(email models.Email) error {
+	logger := utilities.NewLogger().LogWithCaller()
 	d := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("COMPANY_EMAIL"), os.Getenv("COMPANY_AUTH"))
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
@@ -412,18 +494,21 @@ func sendMail(email models.Email) error {
 	m.SetHeader("To", email.To)
 	m.SetHeader("Subject", email.Subject)
 	m.SetBody("text/html", email.Body)
-	log.Println(email)
+	logger.WithField("email", email).Info("Sending email")
 
 	if err := d.DialAndSend(m); err != nil {
+		logger.WithError(err).Error("Error sending email")
 		return err
 	}
 	return nil
 }
 
 func hashPassword(newPassword string, user *models.User) (string, error) {
+	logger := utilities.NewLogger().LogWithCaller()
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
 	hashAndSalt := hasher.HashPassword(newPassword)
 	user.Salt = base64.StdEncoding.EncodeToString(hashAndSalt.Salt)
+	logger.Info("Password hashed successfully")
 	return base64.StdEncoding.EncodeToString(hashAndSalt.Hash), nil
 }

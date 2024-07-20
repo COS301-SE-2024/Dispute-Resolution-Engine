@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"api/models"
+	"api/utilities"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	// "github.com/gorilla/mux"
 )
 
 type Role struct {
@@ -54,11 +54,13 @@ func (r *Role) matchKeyToValue(value string) (int, bool) {
 }
 
 func RoleMiddleware(reqAuthlevel int) gin.HandlerFunc {
+	logger := utilities.NewLogger().LogWithCaller()
 	roles := NewRole()
 
 	return func(c *gin.Context) {
 		claims := GetClaims(c)
 		if claims == nil {
+			logger.Error("No claims")
 			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
 		}
@@ -69,12 +71,14 @@ func RoleMiddleware(reqAuthlevel int) gin.HandlerFunc {
 		authLevel, ok := roles.matchKeyToValue(userRole)
 
 		if !ok {
+			logger.Error("Role not found")
 			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
 		}
 
 		//check if the role is allowed to access the resource
 		if authLevel < reqAuthlevel {
+			logger.Error("Unauthorized")
 			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
 		}

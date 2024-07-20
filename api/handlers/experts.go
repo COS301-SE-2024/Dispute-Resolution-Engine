@@ -3,6 +3,7 @@ package handlers
 import (
 	"api/middleware"
 	"api/models"
+	"api/utilities"
 	"math/rand"
 	"net/http"
 	"time"
@@ -22,10 +23,12 @@ func SetupExpertRoutes(g *gin.RouterGroup, h Expert) {
 }
 
 func (h Expert) recommendExpert(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+	
 	//get the dispute id from the request
-
 	var recommendexpert models.RecommendExpert
 	if err := c.BindJSON(&recommendexpert); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
@@ -61,14 +64,16 @@ func (h Expert) recommendExpert(c *gin.Context) {
 			Status:  "approved",
 		})
 	}
-
+	logger.Info("Recommended experts successfully")
 	c.JSON(http.StatusOK, models.Response{Data: selectedUsers})
 }
 
 func (h Expert) rejectExpert(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
 	//get dispute ID and expert ID from the request
 	var rejectexpert models.RejectExpert
 	if err := c.BindJSON(&rejectexpert); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
@@ -76,17 +81,18 @@ func (h Expert) rejectExpert(c *gin.Context) {
 	//set status to rejected
 
 	h.DB.Model(&models.DisputeExpert{}).Where("dispute = ? AND dispute_experts.user = ?", rejectexpert.DisputeId, rejectexpert.ExpertId).Update("status", "rejected")
-
+	logger.Info("Expert rejected successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "Expert rejected"})
 }
 
 func (h Expert) getDisputeExperts(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
 	//get dispute ID from the request
 	disputeID := c.Param("dispute_id")
 
 	//get the experts assigned to the dispute
 	var disputeExperts []models.DisputeExpert
 	h.DB.Where("dispute = ?", disputeID).Find(&disputeExperts)
-
+	logger.Info("Dispute experts retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: disputeExperts})
 }

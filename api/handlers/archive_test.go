@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 const (
@@ -61,7 +62,9 @@ func mockDatabase() (sqlmock.Sqlmock, *gorm.DB, error) {
 		DriverName: "postgres",
 	})
 
-	db, err := gorm.Open(dialector, &gorm.Config{})
+	db, err := gorm.Open(dialector, &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
 	if err != nil {
 		return nil, nil, err
 	}

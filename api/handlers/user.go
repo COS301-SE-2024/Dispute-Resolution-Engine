@@ -132,8 +132,6 @@ func (h User) updateUser(c *gin.Context) {
 // @Failure 400 {object} models.Response "Bad Request"
 // @Router /user/remove [delete]
 func (h User) RemoveAccount(c *gin.Context) {
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
-
 	var user models.DeleteUser
 	if err := c.BindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
@@ -153,15 +151,11 @@ func (h User) RemoveAccount(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
-	checkHash, err := hasher.GenerateHash([]byte(user.Password), realSalt)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
-		return
-	}
+	checkHash := utilities.HashPasswordWithSalt(user.Password, realSalt)
 
-	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
+	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash) {
 		print(dbUser.PasswordHash)
-		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
+		print(base64.StdEncoding.EncodeToString(checkHash))
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}

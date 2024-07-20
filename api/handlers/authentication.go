@@ -64,7 +64,6 @@ func (h Auth) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Response "Internal Server Error"
 // @Router /auth/signup [post]
 func (h Auth) CreateUser(c *gin.Context) {
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
 	var reqUser models.CreateUser
 	if err := c.BindJSON(&reqUser); err != nil {
@@ -101,9 +100,9 @@ func (h Auth) CreateUser(c *gin.Context) {
 	}
 
 	//Hash the password
-	hashAndSalt := hasher.HashPassword(user.PasswordHash)
-	user.PasswordHash = base64.StdEncoding.EncodeToString(hashAndSalt.Hash)
-	user.Salt = base64.StdEncoding.EncodeToString(hashAndSalt.Salt)
+	hashed, salt, _ := utilities.HashPassword(user.PasswordHash)
+	user.PasswordHash = base64.StdEncoding.EncodeToString(hashed)
+	user.Salt = base64.StdEncoding.EncodeToString(salt)
 
 	//update log metrics
 	user.CreatedAt = utilities.GetCurrentTime()
@@ -139,8 +138,6 @@ func (h Auth) CreateUser(c *gin.Context) {
 // @Failure 401 {object} string "Unauthorized"
 // @Router /auth/login [post]
 func (h Auth) LoginUser(c *gin.Context) {
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
-
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
 		return
@@ -159,15 +156,11 @@ func (h Auth) LoginUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
-	checkHash, err := hasher.GenerateHash([]byte(user.PasswordHash), realSalt)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
-		return
-	}
+	checkHash := utilities.HashPasswordWithSalt(user.PasswordHash, realSalt)
 
-	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
+	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash) {
 		print(dbUser.PasswordHash)
-		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
+		print(base64.StdEncoding.EncodeToString(checkHash))
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}
@@ -391,9 +384,10 @@ func sendMail(email models.Email) error {
 }
 
 func hashPassword(newPassword string, user *models.User) (string, error) {
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
-
-	hashAndSalt := hasher.HashPassword(newPassword)
-	user.Salt = base64.StdEncoding.EncodeToString(hashAndSalt.Salt)
-	return base64.StdEncoding.EncodeToString(hashAndSalt.Hash), nil
+	hash, salt, err := utilities.HashPassword(newPassword)
+	if err != nil {
+		return "", err
+	}
+	user.Salt = base64.StdEncoding.EncodeToString(salt)
+	return base64.StdEncoding.EncodeToString(hash), nil
 }

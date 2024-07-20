@@ -1,4 +1,5 @@
 All endpoints follow the following general type:
+
 ```ts
 type Result<T> =
   | {
@@ -12,23 +13,26 @@ type Result<T> =
 ```
 
 Which corresponds to either returning:
+
 ```json5
 {
     "data": /* ... some data */
 }
 ```
+
 or
+
 ```json5
 {
-    "error": "error message"
+  error: "error message",
 }
 ```
 
-
 # User Profile
+
 - **Endpoint:** `GET /user/profile`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 ```ts
 interface UserProfileResponse {
@@ -50,9 +54,10 @@ interface UserProfileResponse {
 ```
 
 # Updating User Profile
+
 - **Endpoint:** `PUT /user/profile`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 ```ts
 interface UserProfileUpdateRequest {
@@ -72,24 +77,29 @@ interface UserProfileUpdateRequest {
 ```
 
 The server will respond with the new updated user information:
+
 ```ts
 type UserProfileUpdateResponse = string;
 ```
 
 # Deleting Account
+
 - **Endpoint:** `DELETE /user/profile`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 The response will simply be a success message
+
 ```ts
 type UserProfileRemoveResponse = string;
 ```
 
 # Update Address
+
 - **Endpoint:** `PUT /user/profile/address`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
+
 ```ts
 interface UserAddressUpdateRequest {
   country?: string;
@@ -101,30 +111,67 @@ interface UserAddressUpdateRequest {
   address_type?: string;
 }
 ```
+
 The server will respond with a success or failure
+
 ```ts
 type UserAddressUpdateResponse = string;
 ```
 
-# user analytics
+# User analytics
+
 - **Endpoint:** `POST /user/analytics`
 - **Headers:**
   - `Autherization: Bearer <JWT>`
+
 ```ts
 interface DateRange {
   startDate: string;
   endDate: string;
 }
 
-interface UserAnalytics {
-  columnValueComparison?: Array<{ column: string, value: any }>;
-  orderBy?: Array<{ column: string, direction: 'asc' | 'desc' }>;
+interface UserAnalyticsRequest {
+  // Used to fuzzy search columns from the users table, e.g. { "column": "role", value: "Mediator" }
+  columnValueComparison?: Array<{ column: string; value: any }>;
+
+  // Used to order the results obtained. Multiple elements are only useful when a column contains items with the same key
+  orderBy?: Array<{ column: string; direction: "asc" | "desc" }>;
+
   dateRanges?: {
     created_at?: DateRange;
     updated_at?: DateRange;
     last_login?: DateRange;
   };
+
+  // Column names to group by
   groupBy?: string[];
+
+  // Whether to return a count instead of concrete results
   count: boolean;
 }
+
+type UserAnalyticsResponse =
+  | {
+      count: number;
+    }
+  | {
+      users: Array<{
+        id: number;
+        first_name: string;
+        surname: string;
+        birthdate: string;
+        nationality: string;
+        role: string;
+        email: string;
+        phone_number?: string;
+        address_id?: number;
+        created_at: string;
+        updated_at?: string;
+        last_login?: string;
+        status: string;
+        gender: string;
+        preferred_language?: string;
+        timezone?: string;
+      }>;
+    };
 ```

@@ -279,7 +279,7 @@ func (h *Handler) UserAnalyticsEndpoint(c *gin.Context) {
 	// Add WHERE clauses for column-value comparisons
 	if analyticsReq.ColumnvalueComparisons != nil {
 		for _, cvc := range *analyticsReq.ColumnvalueComparisons {
-			query = query.Where(cvc.Column+" LIKE ?", "%" + cvc.Value + "%")
+			query = query.Where(cvc.Column+"::text LIKE ?", "%" + cvc.Value + "%")
 		}
 	}
 

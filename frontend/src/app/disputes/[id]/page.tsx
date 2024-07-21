@@ -3,10 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { getDisputeDetails } from "@/lib/api/dispute";
+import { getDisputeDetails, updateDisputeStatus } from "@/lib/api/dispute";
 import { Metadata } from "next";
 import { File, WorkflowIcon } from "lucide-react";
-import React from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +36,15 @@ function DisputeHeader({
   startDate: string;
   status: string;
 }) {
+  const [funcStatus, setStatus] = useState("")
+  const handleStatusChange = async (newStatus: string) => {
+    const result = await updateDisputeStatus(id, newStatus);
+    if (!result.error) {
+      setStatus(newStatus); // Update status state if API call is successful
+    } else {
+      console.error("Failed to update status:", result.error);
+    }
+  }
   return (
     <header className="p-4 py-6 flex">
       <div className="grow">

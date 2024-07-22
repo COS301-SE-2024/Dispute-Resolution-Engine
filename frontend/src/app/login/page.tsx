@@ -6,6 +6,7 @@ import { Form, FormField, FormMessage, FormSubmit } from "@/components/ui/form-s
 import { LoginData } from "@/lib/schema/auth";
 import { login } from "@/lib/actions/auth";
 import { useId } from "react";
+import { cn } from "@/lib/utils";
 
 const LoginForm = Form<LoginData>;
 const LoginField = FormField<LoginData>;
@@ -34,12 +35,15 @@ export default function Login() {
                 placeholder="Password"
                 type="password"
               />
+              <Link href="/reset" className={buttonVariants({ variant: "link" })}>
+                Forgot Password?
+              </Link>
             </LoginField>
           </CardContent>
           <CardFooter className="mt-auto flex justify-between">
             <p>
               {"Don't have an account?"}
-              <Link href="/signup" className={buttonVariants({ variant: "link" })}>
+              <Link href="/signup" className={cn(buttonVariants({ variant: "link" }), "text-left")}>
                 Create one
               </Link>
             </p>

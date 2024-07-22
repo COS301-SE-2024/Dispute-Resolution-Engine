@@ -87,7 +87,20 @@ CREATE TABLE files (
 CREATE TABLE dispute_evidence (
 	dispute BIGINT REFERENCES disputes(id),
 	file_id BIGINT REFERENCES files(id),
+	user_id BIGINT REFERENCES users(id),
 	PRIMARY KEY (dispute, file_id)
+);
+
+CREATE TYPE exp_obj_status AS ENUM ('Review','Sustained','Overruled');
+
+CREATE TABLE expert_objections (
+	id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	dispute_id BIGINT REFERENCES disputes(id),
+	expert_id BIGINT REFERENCES users(id),
+	user_id BIGINT REFERENCES users(id),
+	reason TEXT,
+	status exp_obj_status DEFAULT 'Review'
 );
 
 -- Initialization of tables

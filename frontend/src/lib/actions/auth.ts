@@ -146,6 +146,7 @@ export async function verify(
 
   // Everything good
   setAuth(res.data);
+  redirect("/disputes");
   return {
     data: "Email verified and logged in",
   };

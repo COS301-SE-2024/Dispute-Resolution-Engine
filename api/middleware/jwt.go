@@ -134,7 +134,7 @@ func JWTMiddleware(c *gin.Context) {
 // return claims
 func GetClaims(c *gin.Context) *Claims {
 	logger := utilities.NewLogger().LogWithCaller()
-	
+
 	secret := []byte(os.Getenv("JWT_SECRET"))
 
 	authHeader := c.GetHeader("Authorization")
@@ -165,5 +165,3 @@ func GetClaims(c *gin.Context) *Claims {
 	logger.Info("Claims retrieved successfully")
 	return claims
 }
-
-

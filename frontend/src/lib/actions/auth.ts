@@ -113,7 +113,7 @@ export async function verify(
   if (!jwt) {
     return {
       error: {
-        _errors: ["OTP Expired"],
+        _errors: ["JWT Expired"],
       },
     };
   }
@@ -197,6 +197,9 @@ export async function resetPassword(
 
   const res = await formFetch<ResetPassData, string>(`${API_URL}/auth/reset-password/reset`, {
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${data.jwt}`,
+    },
     body: JSON.stringify({
       newPassword: data.password,
     }),

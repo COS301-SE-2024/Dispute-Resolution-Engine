@@ -152,13 +152,11 @@ func (h Auth) CreateUser(c *gin.Context) {
 	err = redisDB.RDB.Set(context.Background(), userkey, userVerifyJSON, 24*time.Hour).Err()
 
 	//send OTP
-	err2 := sendOTP(user.Email, pin)
-	if err != nil || err2 != nil {
+	go sendOTP(user.Email, pin)
+	if err != nil {
 		var temperr error
 		if err != nil {
 			temperr = err
-		} else {
-			temperr = err2
 		}
 		logger.WithError(temperr).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -359,11 +357,7 @@ func (h Auth) ResendOTP(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
-	err = sendOTP(userVerify.Email, pin)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error resending OTP."})
-		return
-	}
+	go sendOTP(userVerify.Email, pin)
 	c.JSON(http.StatusOK, models.Response{Data: "Pin resent!"})
 }
 
@@ -394,7 +388,6 @@ func sendOTP(userInfo string, pin string) error {
 	// Send the email
 	if err := d.DialAndSend(m); err != nil {
 		logger.WithError(err).Error("Error sending OTP email")
-		return err
 	}
 	logger.Info("OTP Email sent successfully")
 	return nil

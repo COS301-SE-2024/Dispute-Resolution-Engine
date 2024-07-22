@@ -103,7 +103,13 @@ CREATE TABLE expert_objections (
 	status exp_obj_status DEFAULT 'Review'
 );
 
-CREATE TYPE event_types AS ENUM ('ERROR','FATAL');
+CREATE TYPE event_types AS ENUM (
+	'NOTIFICATION'
+	'DISPUTE',
+	'USER',
+	'EXPERT',
+	'WORKFLOW'
+	);
 
 CREATE TABLE event_log (
 	id SERIAL PRIMARY KEY,

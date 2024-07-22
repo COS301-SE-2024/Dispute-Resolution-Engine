@@ -103,6 +103,15 @@ CREATE TABLE expert_objections (
 	status exp_obj_status DEFAULT 'Review'
 );
 
+CREATE TYPE event_types AS ENUM ('ERROR','FATAL');
+
+CREATE TABLE event_log (
+	id SERIAL PRIMARY KEY,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	event_type event_types,
+	event_data JSON
+);
+
 -- Initialization of tables
 
 INSERT INTO Countries (country_code, country_name) VALUES

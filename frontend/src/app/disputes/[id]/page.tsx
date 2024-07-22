@@ -1,3 +1,4 @@
+"use client"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,16 +15,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useState } from "react";
+// eslint-disable-next-line @next/next/no-document-import-in-page
+import { Head } from "next/document";
 type Props = {
   params: { id: string };
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  return {
-    title: `Dispute ${params.id}`,
-    description: "Dispute description",
-  };
-}
+// export async function generateMetadata({ params }: Props): Promise<Metadata> {
+//   return {
+//     title: `Dispute ${params.id}`,
+//     description: "Dispute description",
+//   };
+// }
 
 function DisputeHeader({
   id,
@@ -91,6 +95,10 @@ export default async function DisputePage({ params }: Props) {
 
   return (
     <div className="grow overflow-y-auto flex flex-col">
+      <Head>
+        <title>{`Dispute ${params.id}`}</title>
+        <meta name="description" content="Dispute description" />
+      </Head>
       <DisputeHeader
         id={data.id}
         label={data.title}

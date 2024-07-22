@@ -37,6 +37,7 @@ func SetupAuthRoutes(group *gin.RouterGroup, h Auth) {
 	group.POST("/verify", h.Verify)
 	group.POST("/reset-password/send-email", h.ResetPassword)
 	group.POST("/reset-password/reset", h.ActivateResetPassword)
+	group.POST("/resend-otp", h.ResendOTP)
 	/*
 		group.Handle("/reset-password", middleware.RoleMiddleware(http.AuthFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
 		// router.Handle("/verify", middleware.RoleMiddleware(http.AuthFunc(h.Verify), 0)).Methods(http.MethodPost)
@@ -123,7 +124,6 @@ func (h Auth) CreateUser(c *gin.Context) {
 	user.Role = "user"
 	user.LastLogin = nil
 
-
 	// if result := h.DB.Create(&user); result.Error != nil {
 	// 	c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
 	// 	return
@@ -149,7 +149,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 	}
 
 	//store in redis cacher
-	err = redisDB.RDB.Set(context.Background(), userkey, userVerifyJSON, 24*time.Hour).Err();
+	err = redisDB.RDB.Set(context.Background(), userkey, userVerifyJSON, 24*time.Hour).Err()
 
 	//send OTP
 	err2 := sendOTP(user.Email, pin)
@@ -182,7 +182,6 @@ func (h Auth) CreateUser(c *gin.Context) {
 func (h Auth) LoginUser(c *gin.Context) {
 	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 	logger := utilities.NewLogger().LogWithCaller()
-
 
 	var user models.User
 	if err := c.BindJSON(&user); err != nil {
@@ -299,7 +298,7 @@ func (h Auth) Verify(c *gin.Context) {
 	// insert the user into database with updated status status to verified
 	user := models.ConvertUserVerifyToUser(userVerify)
 	user.Status = "Active"
-	
+
 	if result := h.DB.Create(&user); result.Error != nil {
 		logger.WithError(result.Error).Error("Error creating user")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
@@ -315,7 +314,7 @@ func (h Auth) Verify(c *gin.Context) {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
-		
+
 	}
 	c.JSON(http.StatusOK, models.Response{Data: newJWT})
 }
@@ -329,8 +328,47 @@ func (h Handler) checkUserExists(email string) bool {
 	return user.Email != "" // Check if email is not empty
 }
 
+func (h Auth) ResendOTP(c *gin.Context) {
+	pin := utilities.GenerateVerifyEmailToken()
+	jwtClaims := middleware.GetClaims(c)
+	if jwtClaims == nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "IDIOT"})
+		return
+	}
+	userkey := jwtClaims.Email + jwtClaims.User.Surname
+	fmt.Println(userkey)
+	userVerifyJSON, err := redisDB.RDB.Get(context.Background(), userkey).Result()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+		return
+	}
+	var userVerify models.UserVerify
+	err = json.Unmarshal([]byte(userVerifyJSON), &userVerify)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+	userVerify.Pin = pin
+	newVerifyJSON, err := json.Marshal(userVerify)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+	}
+
+	err = redisDB.RDB.Set(context.Background(), userkey, newVerifyJSON, 24*time.Hour).Err()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
+		return
+	}
+	err = sendOTP(userVerify.Email, pin)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error resending OTP."})
+		return
+	}
+	c.JSON(http.StatusOK, models.Response{Data: "Pin resent!"})
+}
+
 func sendOTP(userInfo string, pin string) error {
-  logger := utilities.NewLogger().LogWithCaller()
+	logger := utilities.NewLogger().LogWithCaller()
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587

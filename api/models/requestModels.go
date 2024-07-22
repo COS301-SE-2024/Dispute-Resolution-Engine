@@ -120,6 +120,14 @@ type ResetPassword struct {
 	NewPassword string `json:"newPassword"`
 }
 
+type ExpertApproveRequest struct {
+	ExpertID string `json:"expert_id"`
+}
+
+type ExpertRejectRequest struct {
+	ExpertID string `json:"expert_id"`
+	Reason   string `json:"reason"`
+}
 
 type DisputeStatusChange struct {
 	DisputeID string `json:"dispute_id"`
@@ -133,5 +141,4 @@ type RecommendExpert struct {
 type RejectExpert struct {
 	DisputeId int64 `json:"dispute_id"`
 	ExpertId  int64 `json:"expert_id"`
-
 }

@@ -6,8 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { getDisputeDetails } from "@/lib/api/dispute";
 import { Metadata } from "next";
 import { File, WorkflowIcon } from "lucide-react";
-import React, { ChangeEvent, useState } from "react";
-import { Input } from "@/components/ui/input";
+
+import ExpertItem from "@/components/dispute/negotiator";
 import DisputeClientPage from "./client-page";
 
 type Props = {

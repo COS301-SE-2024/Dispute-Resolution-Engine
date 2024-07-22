@@ -12,6 +12,8 @@ export type Evidence = {
 };
 
 export type Expert = {
+  id: string;
+  role: string;
   full_name: string;
   email: string;
   phone: string;

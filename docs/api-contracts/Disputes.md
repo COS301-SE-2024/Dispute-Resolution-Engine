@@ -45,9 +45,11 @@ type Evidence = {
 };
 
 type Expert = {
+  id: string;
   full_name: string;
   email: string;
   phone: string;
+  role: string;
 };
 ```
 
@@ -132,3 +134,37 @@ type UpdateRequest = {
   dispute_id : string;
   status : string;
 };
+
+# Dispute Negotiating Party Operations
+
+## Approving
+- **Endpoint:** `POST /disputes/{id}/experts/approve`
+- **Headers:**
+    - `Authorization: Bearer <JWT>`
+
+```ts
+interface ExpertApproveRequest {
+  expert_id: string;
+}
+```
+The response will return a success message
+```ts
+type ExpertApproveResponse = string;
+```
+
+## Rejecting
+- **Endpoint:** `POST /disputes/{id}/experts/reject`
+- **Headers:**
+    - `Authorization: Bearer <JWT>`
+
+```ts
+interface ExpertRejectRequest {
+  expert_id: string;
+  reason: string;
+}
+```
+
+The response will return a success message
+```ts
+type ExpertRejectResponse = string;
+```

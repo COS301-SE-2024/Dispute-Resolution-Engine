@@ -87,7 +87,46 @@ CREATE TABLE files (
 CREATE TABLE dispute_evidence (
 	dispute BIGINT REFERENCES disputes(id),
 	file_id BIGINT REFERENCES files(id),
+	user_id BIGINT REFERENCES users(id),
 	PRIMARY KEY (dispute, file_id)
+);
+
+CREATE TYPE exp_obj_status AS ENUM ('Review','Sustained','Overruled');
+
+CREATE TABLE expert_objections (
+	id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	dispute_id BIGINT REFERENCES disputes(id),
+	expert_id BIGINT REFERENCES users(id),
+	user_id BIGINT REFERENCES users(id),
+	reason TEXT,
+	status exp_obj_status DEFAULT 'Review'
+);
+
+CREATE TYPE event_types AS ENUM (
+	'NOTIFICATION'
+	'DISPUTE',
+	'USER',
+	'EXPERT',
+	'WORKFLOW'
+	);
+
+CREATE TABLE event_log (
+	id SERIAL PRIMARY KEY,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	event_type event_types,
+	event_data JSON
+);
+
+CREATE TABLE tags (
+	id SERIAL PRIMARY KEY,
+	tag_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE labelled_disputes (
+	dispute_id BIGINT REFERENCES disputes(id),
+	tag_id BIGINT REFERENCES tags(id),
+	PRIMARY KEY (dispute_id, tag_id)
 );
 
 -- Initialization of tables

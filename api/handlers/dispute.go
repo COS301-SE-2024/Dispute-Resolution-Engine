@@ -219,7 +219,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 		Description: disputes.Description,
 		Status:      disputes.Status,
 		DateCreated: disputes.CaseDate,
-		Role:        &role,
+		Role:        role,
 	}
 
 	err = h.DB.Raw("SELECT file_name,uploaded,file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error

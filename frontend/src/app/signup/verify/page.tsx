@@ -10,6 +10,7 @@ import {
 import { verify } from "@/lib/actions/auth";
 import { VerifyData } from "@/lib/schema/auth";
 import { useId } from "react";
+import ResendForm from "./resend-form";
 
 const VerifyForm = Form<VerifyData>;
 const VerifyMessage = FormMessage<VerifyData>;
@@ -43,6 +44,7 @@ export default function Verify() {
         <FormSubmit>Verify</FormSubmit>
         <VerifyMessage />
       </VerifyForm>
+      <ResendForm />
     </main>
   );
 }

@@ -2,7 +2,7 @@
 
 import { Result } from "@/lib/types";
 import {
-    LoginData,
+  LoginData,
   LoginError,
   ResetLinkData,
   ResetLinkError,
@@ -16,7 +16,7 @@ import {
   signupSchema,
   verifySchema,
 } from "@/lib/schema/auth";
-import { API_URL, formFetch } from "@/lib/utils";
+import { API_URL, formFetch, safeFetch } from "@/lib/utils";
 import { cookies } from "next/headers";
 
 import { JWT_TIMEOUT, JWT_KEY, JWT_VERIFY_TIMEOUT } from "../constants";
@@ -113,7 +113,7 @@ export async function verify(
   if (!jwt) {
     return {
       error: {
-        _errors: ["OTP Expired"],
+        _errors: ["JWT Expired"],
       },
     };
   }
@@ -146,9 +146,30 @@ export async function verify(
 
   // Everything good
   setAuth(res.data);
+  redirect("/disputes");
   return {
     data: "Email verified and logged in",
   };
+}
+
+export async function resendOTP(_initialState: any, formData: FormData): Promise<Result<string>> {
+  // Retrieve the temporary JWT
+  const jwt = getAuth();
+  if (!jwt) {
+    return {
+      error: "JWT Expired",
+    };
+  }
+
+  // TODO: uncomment once API works
+  const res = await safeFetch<string>(`${API_URL}/auth/resend-otp`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
+
+  return res;
 }
 
 export async function sendResetLink(
@@ -164,15 +185,12 @@ export async function sendResetLink(
     };
   }
 
-  const res = await formFetch<ResetLinkData, string>(
-    `${API_URL}/auth/reset-password/send-email`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        email: data.email,
-      }),
-    }
-  );
+  const res = await formFetch<ResetLinkData, string>(`${API_URL}/auth/reset-password/send-email`, {
+    method: "POST",
+    body: JSON.stringify({
+      email: data.email,
+    }),
+  });
 
   // Handle errors
   if (res.error) {
@@ -197,6 +215,9 @@ export async function resetPassword(
 
   const res = await formFetch<ResetPassData, string>(`${API_URL}/auth/reset-password/reset`, {
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${data.jwt}`,
+    },
     body: JSON.stringify({
       newPassword: data.password,
     }),

@@ -198,6 +198,9 @@ func (h Dispute) getDispute(c *gin.Context) {
 		return
 	}
 
+	jwtClaims := middleware.GetClaims(c)
+	userId := jwtClaims.User.ID
+	role := ""
 	//name and email
 	// var respondantData models.User
 	// err = h.DB.Where("id = ?", disputes.Respondant).Scan(&respondantData).Error
@@ -205,12 +208,19 @@ func (h Dispute) getDispute(c *gin.Context) {
 
 	// }
 
+	if userId == disputes.Complainant {
+		role = "Complainant"
+	} else if userId == *(disputes.Respondent) {
+		role = "Respondent"
+	}
+
 	DisputeDetailsResponse := models.DisputeDetailsResponse{
 		ID:          *disputes.ID,
 		Title:       disputes.Title,
 		Description: disputes.Description,
 		Status:      disputes.Status,
 		DateCreated: disputes.CaseDate,
+		Role:        role,
 	}
 
 	err = h.DB.Raw("SELECT file_name,uploaded,file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
@@ -304,7 +314,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 		Status:      "Awaiting Respondant",
 		Description: description,
 		Complainant: complainantID,
-		Respondant:  respondantID,
+		Respondent:  respondantID,
 		Resolved:    false,
 		Decision:    models.Unresolved,
 	}

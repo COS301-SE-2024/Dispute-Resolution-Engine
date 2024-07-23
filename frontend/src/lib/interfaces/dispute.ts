@@ -1,8 +1,11 @@
+export type Role = "Complainant" | "Respondant";
+
 export type DisputeSummary = {
   id: string;
   title: string;
   description: string;
   status: string;
+  role: Role;
 };
 
 export type Evidence = {
@@ -26,6 +29,7 @@ export type DisputeResponse = {
   description: string;
   status: string;
   case_date: string;
+  role: Role;
 
   evidence: Evidence[];
   experts: Expert[];

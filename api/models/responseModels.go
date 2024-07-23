@@ -15,7 +15,7 @@ type Expert struct {
 	FullName string `json:"full_name"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
-    Role     string `json:"role"`
+	Role     string `json:"role"`
 }
 
 type DisputeDetailsResponse struct {
@@ -24,8 +24,9 @@ type DisputeDetailsResponse struct {
 	Description string    `json:"description"`
 	Status      string    `json:"status"`
 	DateCreated time.Time `json:"case_date"`
-	Evidence    []File  `json:"evidence"`
+	Evidence    []File    `json:"evidence"`
 	Experts     []Expert  `json:"experts"`
+	Role        string   `json:"role"`
 }
 
 type ArchiveSearchResponse struct {

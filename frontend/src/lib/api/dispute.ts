@@ -18,8 +18,7 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
     };
   }
 
-  // TODO: Uncomment once API is working
-  return fetch(`${API_URL}/disputes`, {
+  const res = await fetch(`${API_URL}/disputes`, {
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
@@ -28,6 +27,8 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
     .catch((e: Error) => ({
       error: e.message,
     }));
+  console.log("HEY BRO", res);
+  return res;
 }
 
 export async function getDisputeDetails(id: string): Promise<Result<DisputeResponse>> {
@@ -38,7 +39,7 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
     };
   }
 
-  return fetch(`${API_URL}/disputes/${id}`, {
+  const res = await fetch(`${API_URL}/disputes/${id}`, {
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
@@ -75,4 +76,7 @@ export async function updateDisputeStatus(
     .catch((e: Error) => ({
       error: e.message,
     }));
+
+  console.log("HEY BRO", res);
+  return res;
 }

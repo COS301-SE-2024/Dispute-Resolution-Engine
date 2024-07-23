@@ -23,7 +23,9 @@ An expert is an individual who can have one or more of the following roles: Medi
 
 ## What do I need to file a dispute or open a case?
 
-## How will I know when there is a change to a case/dispute I'm involved with?
+## How will I know when there is a change to a case/dispute I am involved with?
+
+The system communicates and notifies relevant parties primerily via email. Hence, all important events and status changes, that pertain to a case you are involved with, will trigger a relevant email notification to be send to the parties.
 
 ## If I want to file a case/dispute, Do all participants need to have a registered account?
 

@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { getDisputeDetails } from "@/lib/api/dispute";
 import { Metadata } from "next";
 
+import DisputeHeader from "@/app/disputes/[id]/Dropdown";
 import DisputeClientPage from "./client-page";
 
 type Props = {
@@ -17,39 +18,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-function DisputeHeader({
-  id,
-  label,
-  startDate,
-  status,
-}: {
-  id: string;
-  label: string;
-  startDate: string;
-  status: string;
-}) {
-  return (
-    <header className="p-4 py-6 flex">
-      <div className="grow">
-        <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">{label}</h1>
-        <span>Started: {startDate}</span>
-      </div>
-
-      <dl className="grid grid-cols-2 gap-2">
-        <dt className="text-right font-bold">Dispute ID: </dt>
-        <dd>{id}</dd>
-        <dt className="text-right font-bold">Status: </dt>
-        <dd>
-          <Badge>{status}</Badge>
-        </dd>
-      </dl>
-    </header>
-  );
-}
-
 export default async function DisputePage({ params }: Props) {
   const { data, error } = await getDisputeDetails(params.id);
-
   if (error || !data) {
     return <h1>{error}</h1>;
   }

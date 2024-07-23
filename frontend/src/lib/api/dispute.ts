@@ -77,7 +77,4 @@ export async function updateDisputeStatus(
     .catch((e: Error) => ({
       error: e.message,
     }));
-
-  console.log("HEY BRO", res);
-  return res;
 }

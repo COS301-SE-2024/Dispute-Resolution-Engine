@@ -1,32 +1,4 @@
-All endpoints follow the following general type:
-
-```ts
-type Result<T> =
-  | {
-      data: T;
-      error?: never;
-    }
-  | {
-      data?: never;
-      error: string;
-    };
-```
-
-Which corresponds to either returning:
-
-```json5
-{
-    "data": /* ... some data */
-}
-```
-
-or
-
-```json5
-{
-  error: "error message",
-}
-```
+# Disputes
 
 # Utility Types
 
@@ -92,7 +64,6 @@ type DisputeResponse = {
 - **Headers:**
   - `Authorization: Bearer <JWT>`
 
-
 ```ts
 type DisputeCreateRequest = {
   title : string;
@@ -126,10 +97,12 @@ interface EvidenceUploadRequest {
 ```
 
 # Dispute Status Change
+
 - **Endpoint:** `PUT /dispute/status`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
-```ts 
+  - `Authorization: Bearer <JWT>`
+
+````ts
 type UpdateRequest = {
   dispute_id : string;
   status : string;
@@ -146,16 +119,19 @@ type UpdateRequest = {
 interface ExpertApproveRequest {
   expert_id: string;
 }
-```
+````
+
 The response will return a success message
+
 ```ts
 type ExpertApproveResponse = string;
 ```
 
 ## Rejecting
+
 - **Endpoint:** `POST /disputes/{id}/experts/reject`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 ```ts
 interface ExpertRejectRequest {
@@ -165,6 +141,7 @@ interface ExpertRejectRequest {
 ```
 
 The response will return a success message
+
 ```ts
 type ExpertRejectResponse = string;
 ```

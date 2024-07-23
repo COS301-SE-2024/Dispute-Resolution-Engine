@@ -1,31 +1,7 @@
-
-All endpoints follow the following general type:
-```ts
-type Result<T> =
-  | {
-      data: T;
-      error?: never;
-    }
-  | {
-      data?: never;
-      error: string;
-    };
-```
-
-Which corresponds to either returning:
-```json5
-{
-    "data": /* ... some data */
-}
-```
-or
-```json5
-{
-    "error": "error message"
-}
-```
+# Authentication
 
 # Login
+
 - **Endpoint:** `POST /auth/login`
 
 ```ts
@@ -36,11 +12,13 @@ interface LoginRequest {
 ```
 
 The response returns the JWT of the logged-in user:
+
 ```ts
 type LoginResponse = string;
 ```
 
 # Signup
+
 - **Endpoint:** `POST /auth/signup`
 
 ```ts
@@ -71,9 +49,10 @@ type SignupResponse = string;
 ```
 
 # Email Verification
+
 - **Endpoint:** `POST /auth/signup`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 ```ts
 interface VerifyRequest {
@@ -88,6 +67,7 @@ type VerifyResponse = string;
 ```
 
 # Password Resetting
+
 - **Endpoint:** `POST /auth/reset-password/send-email`
 
 ```ts
@@ -97,14 +77,16 @@ interface SendResetRequest {
 ```
 
 The response will return a success message
+
 ```ts
 type SendResetResponse = string;
 ```
 
 ## Password Resetting (Resetting)
+
 - **Endpoint:** `POST /auth/reset-password/reset`
 - **Headers:**
-    - `Authorization: Bearer <Temp-JWT>`
+  - `Authorization: Bearer <Temp-JWT>`
 
 ```ts
 interface ResetPasswordRequest {
@@ -113,6 +95,7 @@ interface ResetPasswordRequest {
 ```
 
 The response will return a success message
+
 ```ts
 type ResetPasswordResponse = string;
 ```

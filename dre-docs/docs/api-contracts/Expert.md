@@ -1,68 +1,41 @@
-All endpoints follow the following general type:
-```ts
-type Result<T> =
-  | {
-      data: T;
-      error?: never;
-    }
-  | {
-      data?: never;
-      error: string;
-    };
-```
+# Experts
 
-Which corresponds to either returning:
-```json5
-{
-    "data": /* ... some data */
-}
-```
-or
-```json5
-{
-    "error": "error message"
-}
-```
 # Get Expert
+
 - **Endpoint:** `GET /expert`
-- **Headers:** 
+- **Headers:**
   - `Authorization: Bearer <JWT>`
 
 ```ts
-interface GetExperts{
-
-}
+interface GetExperts {}
 ```
 
 # suggest Assignment
+
 - **Endpoint:** `GET /expert/suggest-assign`
-- **Headers:** 
+- **Headers:**
   - `Authorization: Bearer <JWT>`
 
 ```ts
-interface SuggestAssign{
-
-}
+interface SuggestAssign {}
 ```
 
 # Expert Assignment
+
 - **Endpoint:** `GET /expert/assign`
-- **Headers:** 
+- **Headers:**
   - `Authorization: Bearer <JWT>`
 
 ```ts
-interface ExpertAssign{
-
-}
+interface ExpertAssign {}
 ```
 
 # ReAssign Expert
+
 - **Endpoint:** `GET /expert/reassign`
-- **Headers:** 
+- **Headers:**
   - `Authorization: Bearer <JWT>`
 
 ```ts
-interface ReAssignExperts{
-    
-}
+interface ReAssignExperts {}
 ```

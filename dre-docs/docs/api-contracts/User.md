@@ -1,34 +1,10 @@
-All endpoints follow the following general type:
-```ts
-type Result<T> =
-  | {
-      data: T;
-      error?: never;
-    }
-  | {
-      data?: never;
-      error: string;
-    };
-```
-
-Which corresponds to either returning:
-```json5
-{
-    "data": /* ... some data */
-}
-```
-or
-```json5
-{
-    "error": "error message"
-}
-```
-
+# User
 
 # User Profile
+
 - **Endpoint:** `GET /user/profile`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 ```ts
 interface UserProfileResponse {
@@ -50,9 +26,10 @@ interface UserProfileResponse {
 ```
 
 # Updating User Profile
+
 - **Endpoint:** `PUT /user/profile`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 ```ts
 interface UserProfileUpdateRequest {
@@ -72,24 +49,29 @@ interface UserProfileUpdateRequest {
 ```
 
 The server will respond with the new updated user information:
+
 ```ts
 type UserProfileUpdateResponse = string;
 ```
 
 # Deleting Account
+
 - **Endpoint:** `DELETE /user/profile`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 The response will simply be a success message
+
 ```ts
 type UserProfileRemoveResponse = string;
 ```
 
 # Update Address
+
 - **Endpoint:** `PUT /user/profile/address`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
+
 ```ts
 interface UserAddressUpdateRequest {
   country?: string;
@@ -101,15 +83,19 @@ interface UserAddressUpdateRequest {
   address_type?: string;
 }
 ```
+
 The server will respond with a success or failure
+
 ```ts
 type UserAddressUpdateResponse = string;
 ```
 
 # user analytics
+
 - **Endpoint:** `POST /user/analytics`
 - **Headers:**
   - `Autherization: Bearer <JWT>`
+
 ```ts
 interface DateRange {
   startDate: string;
@@ -117,8 +103,8 @@ interface DateRange {
 }
 
 interface UserAnalytics {
-  columnValueComparison?: Array<{ column: string, value: any }>;
-  orderBy?: Array<{ column: string, direction: 'asc' | 'desc' }>;
+  columnValueComparison?: Array<{ column: string; value: any }>;
+  orderBy?: Array<{ column: string; direction: "asc" | "desc" }>;
   dateRanges?: {
     created_at?: DateRange;
     updated_at?: DateRange;

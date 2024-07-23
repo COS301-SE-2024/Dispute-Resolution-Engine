@@ -131,7 +131,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 			return
 		}
 	}
-  logger.Info("Evidence uploaded successfully")
+	logger.Info("Evidence uploaded successfully")
 	c.JSON(http.StatusCreated, models.Response{
 		Data: "Files uploaded",
 	})
@@ -191,11 +191,14 @@ func (h Dispute) getDispute(c *gin.Context) {
 	var disputes models.Dispute
 	err := h.DB.Raw("SELECT id, title, description, status, case_date, respondant, complainant FROM disputes WHERE id = ?", id).Scan(&disputes).Error
 	if err != nil {
-		logger.WithError(err).Error("Error retrieving dispute")		
+		logger.WithError(err).Error("Error retrieving dispute")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
 
+	jwtClaims := middleware.GetClaims(c)
+	userId := jwtClaims.User.ID
+	role := ""
 	//name and email
 	// var respondantData models.User
 	// err = h.DB.Where("id = ?", disputes.Respondant).Scan(&respondantData).Error
@@ -203,12 +206,20 @@ func (h Dispute) getDispute(c *gin.Context) {
 
 	// }
 
+	if userId == disputes.Complainant {
+		role = "Complainant"
+	}
+	if userId == *disputes.Respondant {
+		role = "Respondant"
+	}
+
 	DisputeDetailsResponse := models.DisputeDetailsResponse{
 		ID:          *disputes.ID,
 		Title:       disputes.Title,
 		Description: disputes.Description,
 		Status:      disputes.Status,
 		DateCreated: disputes.CaseDate,
+		Role:        &role,
 	}
 
 	err = h.DB.Raw("SELECT file_name,uploaded,file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error

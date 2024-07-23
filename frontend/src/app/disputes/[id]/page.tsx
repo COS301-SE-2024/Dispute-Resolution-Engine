@@ -3,7 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { getDisputeDetails } from "@/lib/api/dispute";
 import { Metadata } from "next";
 
-import DisputeHeader from "@/app/disputes/[id]/Dropdown";
+import DisputeHeader from "@/app/disputes/[id]/dropdown";
 import DisputeClientPage from "./client-page";
 
 type Props = {

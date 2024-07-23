@@ -7,7 +7,7 @@ import { InfoIcon, SaveIcon, WorkflowIcon } from "lucide-react";
 export default function Splash() {
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 flex flex-col items-center justify-center">
-      <h1 className="text-white font-bold text-center text-5xl mt-10 dark:text-white text-black">
+      <h1 className="font-bold text-center text-5xl mt-10 dark:text-white text-black">
         Here to streamline your ADR process
       </h1>
 

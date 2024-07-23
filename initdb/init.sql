@@ -118,6 +118,17 @@ CREATE TABLE event_log (
 	event_data JSON
 );
 
+CREATE TABLE tags (
+	id SERIAL PRIMARY KEY,
+	tag_name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE dispute_tags (
+	dispute_id BIGINT REFERENCES disputes(id),
+	tag_id BIGINT REFERENCES tags(id),
+	PRIMARY KEY (dispute_id, tag_id)
+);
+
 -- Initialization of tables
 
 INSERT INTO Countries (country_code, country_name) VALUES

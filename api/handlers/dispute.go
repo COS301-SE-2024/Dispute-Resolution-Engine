@@ -131,7 +131,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 			return
 		}
 	}
-  logger.Info("Evidence uploaded successfully")
+	logger.Info("Evidence uploaded successfully")
 	c.JSON(http.StatusCreated, models.Response{
 		Data: "Files uploaded",
 	})
@@ -163,8 +163,7 @@ func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 		var role string = ""
 		if dispute.Complainant == userID {
 			role = "Complainant"
-		}
-		if *(dispute.Respondant) == userID {
+		} else if *(dispute.Respondant) == userID {
 			role = "Respondant"
 		}
 		summary := models.DisputeSummaryResponse{
@@ -194,7 +193,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 	var disputes models.Dispute
 	err := h.DB.Raw("SELECT id, title, description, status, case_date, respondant, complainant FROM disputes WHERE id = ?", id).Scan(&disputes).Error
 	if err != nil {
-		logger.WithError(err).Error("Error retrieving dispute")		
+		logger.WithError(err).Error("Error retrieving dispute")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}

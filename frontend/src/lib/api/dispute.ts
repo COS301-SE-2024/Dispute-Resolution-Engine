@@ -14,17 +14,7 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
     };
   }
 
-  // return {
-  //   data: [...Array(10).keys()].map((i) => ({
-  //     id: i.toString(),
-  //     title: `Dispute ${i}`,
-  //     description: "Lorem ipsum",
-  //     status: "active",
-  //   })),
-  // };
-
-  // TODO: Uncomment once API is working
-  return fetch(`${API_URL}/disputes`, {
+  const res = await fetch(`${API_URL}/disputes`, {
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
@@ -33,6 +23,8 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
     .catch((e: Error) => ({
       error: e.message,
     }));
+  console.log(res);
+  return res;
 }
 
 export async function getDisputeDetails(id: string): Promise<Result<DisputeResponse>> {

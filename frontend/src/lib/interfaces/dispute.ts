@@ -3,6 +3,7 @@ export type DisputeSummary = {
   title: string;
   description: string;
   status: string;
+  role: "Complainant" | "Respondant";
 };
 
 export type Evidence = {

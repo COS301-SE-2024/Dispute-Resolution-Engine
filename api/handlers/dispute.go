@@ -209,7 +209,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 	if userId == disputes.Complainant {
 		role = "Complainant"
 	}
-	if userId == *disputes.Respondant {
+	if &userId == disputes.Respondant {
 		role = "Respondant"
 	}
 

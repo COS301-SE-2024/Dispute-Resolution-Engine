@@ -19,7 +19,7 @@ The purpose of the Dispute Resolution Engine is to make the dispute resoltuion p
 
 ## What is an Expert?
 
-An expert is an individual who can have one or more of the following roles: Mediator, Adjudicator, Arbitrator, Administrator. When you file your dispute, is will typically first be processed by an Administrator. From this point the Administrator will oversee, and interviene, the resolution process. Once the dispute case reaches a state where parties are ready to proceed with the resolution process, one or more experts will be assigned to the case. The experts assigned will be a fully qualified to either  Mediate, Adjudicate or Arbitrate for your dispute.
+An expert is an individual who can have one or more of the following roles: Mediator, Adjudicator, Arbitrator, Administrator. When you file your dispute, is will typically first be processed by an Administrator. From this point the Administrator will oversee, and interviene, the resolution process. Once the dispute case reaches a state where parties are ready to proceed with the resolution process, experts will be assigned to the case. The experts assigned will be a fully qualified to either  Mediate, Adjudicate or Arbitrate for your dispute.
 
 ## What do I need to file a dispute or open a case?
 
@@ -31,7 +31,9 @@ The system communicates and notifies relevant parties primerily via email. Hence
 
 The answer is yes, all parties that participate in the dispute will need to have a registered account. This is to aid in ensuring fairness throughout the dispute resolution process, by allowing us to accoractely "record-keep" events and communications petaining to a case.
 
-## After my case/dispute moves to into a state ready for mediation/arbitration/concilation?
+## After my case/dispute moves to into a state ready for mediation/arbitration/concilation, how will relevant experts be assigned to the case?
+
+
 
 ## What happens if I am not happy with the Expert assigned to my case/dispute?
 

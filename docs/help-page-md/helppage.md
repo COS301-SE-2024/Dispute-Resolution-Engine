@@ -27,7 +27,9 @@ An expert is an individual who can have one or more of the following roles: Medi
 
 The system communicates and notifies relevant parties primerily via email. Hence, all important events and status changes, that pertain to a case you are involved with, will trigger a relevant email notification to be send to the parties.
 
-## If I want to file a case/dispute, Do all participants need to have a registered account?
+## If I want to file a case/dispute, do all participants need to have a registered account?
+
+The answer is yes, all parties that participate in the dispute will need to have a registered account. This is to aid in ensuring fairness throughout the dispute resolution process, by allowing us to accoractely "record-keep" events and communications petaining to a case.
 
 ## After my case/dispute moves to into a state ready for mediation/arbitration/concilation?
 

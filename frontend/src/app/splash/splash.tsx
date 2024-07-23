@@ -4,14 +4,6 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { InfoIcon, SaveIcon, WorkflowIcon } from "lucide-react";
 
-const placeholderText5Paragraph: string =
-  "Alternative Dispute Resolution (ADR) provides a way for parties to resolve disputes without involving the judicial system. Traditional litigation processes are costly and time-consuming, varying significantly across different companies and domains. By automating these processes through custom workflow generation and NLP enhancements, the Dispute Resolution Engine aims to drastically increase the speed and cost-effectiveness of ADR.\n" +
-  "\n" +
-  "The Dispute Resolution Engine (affectionately known as DRE) offers users a convenient way to manage disputes, regardless of their role. The Archive feature allows users to access previously resolved disputes and related analytics. When involved in a dispute, users can easily upload their evidence with a click of a button, and rest assured that they will be notified as events unfold, ensuring they stay informed.\n" +
-  "\n" +
-  "The star of our show is our flexible workflow management. Users can choose from a selection of pre-made templates, create and customize one to fit their specific case, or ask our LLM-integrated engine to generate one automatically.\n" +
-  "\n" +
-  "No matter the case, we ensure a swift and smooth experience that will save you time and money.";
 export default function Splash() {
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 flex flex-col items-center justify-center">
@@ -68,7 +60,7 @@ export default function Splash() {
 }
 
 function RalphTextGlasses(props: any) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState("L o q g r O I D I 8 5 i g 0 C x C k O d o m y u N r l B I V m n e z 5 g i e O X 8 D x 8 C k F o W t g R h i k k H Z q f v B B 9 P y W E 4 o R 4 j G J L F m G H P z 0 F y k F I v J 0 K 5 B v r h H X q");
 
   useEffect(() => {
     const generateRandomText = () => {

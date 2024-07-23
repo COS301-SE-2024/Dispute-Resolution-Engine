@@ -161,7 +161,7 @@ func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 		if dispute.Complainant == userID {
 			role = "Complainant"
 		}
-		if dispute.Respondant == &userID {
+		if dispute.Respondent == &userID {
 			role = "Respondant"
 		}
 		summary := models.DisputeSummaryResponse{
@@ -208,8 +208,8 @@ func (h Dispute) getDispute(c *gin.Context) {
 
 	if userId == disputes.Complainant {
 		role = "Complainant"
-	} else if userId == *(disputes.Respondant) {
-		role = "Respondant"
+	} else if userId == *(disputes.Respondent) {
+		role = "Respondent"
 	}
 
 	DisputeDetailsResponse := models.DisputeDetailsResponse{
@@ -312,7 +312,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 		Status:      "Awaiting Respondant",
 		Description: description,
 		Complainant: complainantID,
-		Respondant:  respondantID,
+		Respondent:  respondantID,
 		Resolved:    false,
 		Decision:    models.Unresolved,
 	}

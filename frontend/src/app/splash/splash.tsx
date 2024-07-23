@@ -7,7 +7,7 @@ import { InfoIcon, SaveIcon, WorkflowIcon } from "lucide-react";
 export default function Splash() {
   return (
     <div className="container mx-auto px-4 md:px-6 lg:px-8 flex flex-col items-center justify-center">
-      <h1 className="text-white font-bold text-center text-5xl mt-10">
+      <h1 className="text-white font-bold text-center text-5xl mt-10 dark:text-white text-black">
         Here to streamline your ADR process
       </h1>
 
@@ -34,7 +34,7 @@ export default function Splash() {
         <RalphTextGlasses size={400} />
       </div>
       <div className="bg-dre-400 bg-opacity-30 w-fit rounded-3xl mt-9 border-dre-200 border-2">
-        <h1 className="text-white font-bold text-center text-4xl mt-8 pt-2">More About Us</h1>
+        <h1 className="dark:text-white text-black font-bold text-center text-4xl mt-8 pt-2">More About Us</h1>
         <p className="max-w-3xl mt-8 text-justify mx-28 mb-8">Alternative Dispute Resolution (ADR) provides a way for
           parties
           to resolve disputes without involving the judicial system. Traditional litigation processes are costly and

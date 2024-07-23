@@ -147,15 +147,16 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	jwtClaims := middleware.GetClaims(c)
+	userID := jwtClaims.User.ID
+
 	var disputes []models.Dispute
-	err := h.DB.Find(&disputes).Error
+	err := h.DB.Find(&disputes).Where("complainant = ? OR respondant = ?", userID, userID).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
 	var disputeSummaries []models.DisputeSummaryResponse
-	userID := jwtClaims.User.ID
 	for _, dispute := range disputes {
 		var role string = ""
 		if dispute.Complainant == userID {

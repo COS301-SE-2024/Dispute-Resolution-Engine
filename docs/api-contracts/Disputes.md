@@ -133,7 +133,7 @@ interface EvidenceUploadRequest {
 
 ````ts
 type UpdateRequest = {
-  dispute_id : string;
+  dispute_id : int;
   status : string;
 };
 

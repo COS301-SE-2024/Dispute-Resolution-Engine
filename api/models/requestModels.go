@@ -32,7 +32,7 @@ type ColumnValueComparison struct {
 	Value  string `json:"value"`
 }
 type DateRange struct {
-	Column   string `json:"column"`
+	Column    string  `json:"column"`
 	StartDate *string `json:"startDate, omitempty"`
 	EndDate   *string `json:"endDate, omitempty"`
 }
@@ -42,10 +42,10 @@ type OrderBy struct {
 }
 type UserAnalytics struct {
 	ColumnvalueComparisons *[]ColumnValueComparison `json:"columnvalueComparisons,omitempty"`
-	OrderBy				*[]OrderBy `json:"orderBy,omitempty"`
-	DateRanges			*[]DateRange `json:"dateRanges,omitempty"`
-	GroupBy				*[]string `json:"groupBy,omitempty"`
-	Count				bool `json:"count,omitempty"`
+	OrderBy                *[]OrderBy               `json:"orderBy,omitempty"`
+	DateRanges             *[]DateRange             `json:"dateRanges,omitempty"`
+	GroupBy                *[]string                `json:"groupBy,omitempty"`
+	Count                  bool                     `json:"count,omitempty"`
 }
 
 type CreateUser struct {
@@ -130,7 +130,7 @@ type ExpertRejectRequest struct {
 }
 
 type DisputeStatusChange struct {
-	DisputeID string `json:"dispute_id"`
+	DisputeID int64  `json:"dispute_id"`
 	Status    string `json:"status"`
 }
 

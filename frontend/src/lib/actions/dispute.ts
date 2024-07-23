@@ -48,6 +48,8 @@ export async function createDispute(
     },
     body: formData,
   });
+  revalidatePath("disputes/create")
+  revalidatePath("disputes")
   return res;
 }
 

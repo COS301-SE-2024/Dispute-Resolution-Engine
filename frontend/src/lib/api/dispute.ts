@@ -19,15 +19,6 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
     };
   }
 
-  // return {
-  //   data: [...Array(10).keys()].map((i) => ({
-  //     id: i.toString(),
-  //     title: `Dispute ${i}`,
-  //     description: "Lorem ipsum",
-  //     status: "active",
-  //   })),
-  // };
-
   // TODO: Uncomment once API is working
   return fetch(`${API_URL}/disputes`, {
     headers: {
@@ -54,7 +45,6 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
     },
   })
     .then(function (res) {
-      console.log(res);
       return res.json();
     })
     .catch((e: Error) => ({
@@ -69,6 +59,7 @@ export async function updateDisputeStatus(id: string, status: string): Promise<R
     };
   }
   const body : DisputeStatusUpdateRequest = {id, status}
+  console.log("BODY", body)
   return fetch(`${API_URL}/dispute/status`, {
     method: "POST",
     headers: {
@@ -77,7 +68,6 @@ export async function updateDisputeStatus(id: string, status: string): Promise<R
     body: JSON.stringify(body),
   })
     .then(function (res) {
-      console.log(res);
       return res.json();
     })
     .catch((e: Error) => ({

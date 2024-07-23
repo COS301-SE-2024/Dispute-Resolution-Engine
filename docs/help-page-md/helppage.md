@@ -30,3 +30,8 @@ Have a question about our site here are some commonly asked questions.
 ## How many Experts will be assigned to my case/dispute?
 
 ## Can I file a dispute against DRE?
+
+# Found a bug or have an issue?
+Contact us directly:
+email:
+telephone:

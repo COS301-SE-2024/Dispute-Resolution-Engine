@@ -1,13 +1,9 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { getDisputeDetails } from "@/lib/api/dispute";
 import { Metadata } from "next";
-import { File, WorkflowIcon } from "lucide-react";
 
-import ExpertItem from "@/components/dispute/negotiator";
 import DisputeClientPage from "./client-page";
 
 type Props = {

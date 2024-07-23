@@ -95,6 +95,12 @@ func uploadFile(db *gorm.DB, header *multipart.FileHeader) (uint, error) {
 // @Router /dispute/:id/evidence [post]
 func (h Dispute) uploadEvidence(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
+	claims := middleware.GetClaims(c)
+	if claims == nil {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
 
 	disputeId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -123,6 +129,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 		disputeEvidence := models.DisputeEvidence{
 			Dispute: int64(disputeId),
 			FileID:  int64(id),
+			UserID:  claims.User.ID,
 		}
 
 		if err := h.DB.Create(&disputeEvidence).Error; err != nil {
@@ -261,6 +268,12 @@ func (h Dispute) getDispute(c *gin.Context) {
 
 func (h Dispute) createDispute(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
+	claims := middleware.GetClaims(c)
+	if claims == nil {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
 
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -277,12 +290,6 @@ func (h Dispute) createDispute(c *gin.Context) {
 	telephone := form.Value["respondent[telephone]"][0]
 
 	//get complainants id
-	claims := middleware.GetClaims(c)
-	if claims == nil {
-		logger.Error("Unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
-		return
-	}
 	complainantID := claims.User.ID
 
 	//check if respondant is in database by email and phone number
@@ -347,6 +354,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 		disputeEvidence := models.DisputeEvidence{
 			Dispute: *disputeFromDbInserted.ID,
 			FileID:  int64(fileId),
+			UserID:  complainantID,
 		}
 
 		if err := h.DB.Create(&disputeEvidence).Error; err != nil {

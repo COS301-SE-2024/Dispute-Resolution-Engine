@@ -23,7 +23,7 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
     .catch((e: Error) => ({
       error: e.message,
     }));
-  console.log(res);
+  console.log("HEY BRO", res);
   return res;
 }
 
@@ -35,7 +35,7 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
     };
   }
 
-  return fetch(`${API_URL}/disputes/${id}`, {
+  const res = await fetch(`${API_URL}/disputes/${id}`, {
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
@@ -47,4 +47,7 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
     .catch((e: Error) => ({
       error: e.message,
     }));
+
+  console.log("HEY BRO", res);
+  return res;
 }

@@ -26,7 +26,7 @@ type DisputeDetailsResponse struct {
 	DateCreated time.Time `json:"case_date"`
 	Evidence    []File    `json:"evidence"`
 	Experts     []Expert  `json:"experts"`
-	Role        *string   `json:"role"`
+	Role        string   `json:"role"`
 }
 
 type ArchiveSearchResponse struct {

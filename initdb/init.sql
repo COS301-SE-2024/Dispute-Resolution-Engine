@@ -123,7 +123,7 @@ CREATE TABLE tags (
 	tag_name VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE dispute_tags (
+CREATE TABLE labelled_disputes (
 	dispute_id BIGINT REFERENCES disputes(id),
 	tag_id BIGINT REFERENCES tags(id),
 	PRIMARY KEY (dispute_id, tag_id)

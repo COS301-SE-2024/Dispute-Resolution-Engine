@@ -210,7 +210,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 
 	if userId == disputes.Complainant {
 		role = "Complainant"
-	} else if userId == *(disputes.Respondent) {
+	} else if userId == *(disputes.Respondant) {
 		role = "Respondent"
 	}
 
@@ -314,7 +314,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 		Status:      "Awaiting Respondant",
 		Description: description,
 		Complainant: complainantID,
-		Respondent:  respondantID,
+		Respondant:  respondantID,
 		Resolved:    false,
 		Decision:    models.Unresolved,
 	}

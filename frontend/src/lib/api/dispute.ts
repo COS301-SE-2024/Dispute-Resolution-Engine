@@ -50,6 +50,7 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
     .catch((e: Error) => ({
       error: e.message,
     }));
+  return res;
 }
 export async function updateDisputeStatus(
   id: string,
@@ -76,7 +77,4 @@ export async function updateDisputeStatus(
     .catch((e: Error) => ({
       error: e.message,
     }));
-
-  console.log("HEY BRO", res);
-  return res;
 }

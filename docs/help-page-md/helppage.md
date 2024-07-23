@@ -1,15 +1,25 @@
-# Quick introduction to our site?
+# How To:
 
-# Frequently Asked Questions (FAQ)
+## How to File a dispute?
+
+## How do I design a "Workflow" for the Dispute?
+
+## How do I upload evidence?
+
+## How do I delete my account?
+
+## How do 
+
+# Frequently Asked Questions (FAQ):
 Have a question about our site here are some commonly asked questions.
 
 ## What is the purpose of DRE?
 
 ## What is an Expert?
 
-## How Do I File a Dispute?
+## What do I need to file a dispute or open a case?
 
-## How do I design a "Workflow" for the Dispute?
+## How will I know when there is a change to a case/dispute I'm involved with?
 
 ## If I want to file a case/dispute, Do all participants need to have a registered account?
 
@@ -18,3 +28,5 @@ Have a question about our site here are some commonly asked questions.
 ## What happens if I am not happy with the Expert assigned to my case/dispute?
 
 ## How many Experts will be assigned to my case/dispute?
+
+## Can I file a dispute against DRE?

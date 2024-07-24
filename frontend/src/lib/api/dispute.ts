@@ -27,7 +27,6 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
     .catch((e: Error) => ({
       error: e.message,
     }));
-  console.log("HEY BRO", res);
   return res;
 }
 
@@ -63,7 +62,6 @@ export async function updateDisputeStatus(
     };
   }
   const body: DisputeStatusUpdateRequest = { id, status };
-  console.log("BODY", body);
   return fetch(`${API_URL}/dispute/status`, {
     method: "POST",
     headers: {

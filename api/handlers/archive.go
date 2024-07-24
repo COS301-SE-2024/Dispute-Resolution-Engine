@@ -100,7 +100,10 @@ func (h Archive) SearchArchive(c *gin.Context) {
 
 	if len(disputes) == 0 {
 		logger.Info("No disputes found")
-		c.JSON(http.StatusOK, models.Response{Data: []models.ArchivedDisputeSummary{}})
+		c.JSON(http.StatusOK, models.Response{Data: models.ArchiveSearchResponse{
+			Archives: []models.ArchivedDisputeSummary{},
+			Total:    0,
+		}})
 		return
 	}
 

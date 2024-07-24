@@ -264,16 +264,17 @@ func (h Dispute) getDispute(c *gin.Context) {
 	expertQuery := `
 		SELECT 
 			u.id,
-			u.full_name,
+			u.first_name || ' ' || u.surname AS full_name,
 			u.email,
-			u.phone,
-			e.role
+			u.phone_number AS phone,
+			u.role
 		FROM 
-			dispute_experts de
-		JOIN 
-			users u ON de.user_id = u.id
+			dispute_experts de, users u
 		WHERE 
-			de.dispute_id = ? AND (e.role = 'Mediator' OR e.role = 'Arbitrator' OR e.role = 'Conciliator')
+			de.dispute = ? 
+			AND de.user = u.id
+			AND de.status = 'Approved'
+			AND (u.role = 'Mediator' OR u.role = 'Arbitrator' OR u.role = 'Conciliator')
 	`
 
 	err = h.DB.Raw(expertQuery, id).Scan(&DisputeDetailsResponse.Experts).Error

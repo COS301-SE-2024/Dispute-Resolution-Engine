@@ -24,9 +24,17 @@ type DisputeDetailsResponse struct {
 	Description string    `json:"description"`
 	Status      string    `json:"status"`
 	DateCreated time.Time `json:"case_date"`
-	Evidence    []File    `json:"evidence"`
+	Evidence    []Evidence    `json:"evidence"`
 	Experts     []Expert  `json:"experts"`
 	Role        string   `json:"role"`
+}
+
+type Evidence struct {
+	ID          uint      `json:"id"`
+	FileName    string    `json:"file_name"`
+	Uploaded    time.Time `json:"uploaded"`
+	FilePath    string    `json:"file_path"`
+	UploaderRole string   `json:"uploader_role"`
 }
 
 type ArchiveSearchResponse struct {

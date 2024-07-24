@@ -231,35 +231,56 @@ func (h Dispute) getDispute(c *gin.Context) {
 		Role:        role,
 	}
 
-	err = h.DB.Raw("SELECT file_name,uploaded,file_path,  FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
+	evidenceQuery := `
+		SELECT 
+			f.id,
+			f.file_name,
+			f.uploaded,
+			f.file_path,
+			CASE
+				WHEN d.complainant = de.user_id THEN 'Complainant'
+				WHEN d.respondant = de.user_id THEN 'Respondent'
+				ELSE 'Other'
+			END AS uploader_role
+		FROM 
+			dispute_evidence de
+		JOIN 
+			files f ON de.file_id = f.id
+		JOIN 
+			disputes d ON de.dispute = d.id
+		WHERE 
+			de.dispute = ?
+	`
+
+
+	err = h.DB.Raw(evidenceQuery, id).Scan(&DisputeDetailsResponse.Evidence).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute evidence")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
 
-	DisputeDetailsResponse.Experts = []models.Expert{
-		{
-			ID:       "1",
-			FullName: "Gluteus Maximus",
-			Email:    "glut@gmail.com",
-			Phone:    "234",
-			Role:     "Expert",
-		},
-		{
-			ID:       "2",
-			FullName: "Marcus Arelius",
-			Email:    "marcus@gmail.com",
-			Phone:    "345",
-			Role:     "Mediator",
-		},
-		{
-			ID:       "3",
-			FullName: "Paddington",
-			Email:    "paddy@gmail.com",
-			Phone:    "456",
-			Role:     "Mediator",
-		},
+
+	expertQuery := `
+		SELECT 
+			u.id,
+			u.full_name,
+			u.email,
+			u.phone,
+			e.role
+		FROM 
+			dispute_experts de
+		JOIN 
+			users u ON de.user_id = u.id
+		WHERE 
+			de.dispute_id = ? AND (e.role = 'Mediator' OR e.role = 'Arbitrator' OR e.role = 'Conciliator')
+	`
+
+	err = h.DB.Raw(expertQuery, id).Scan(&DisputeDetailsResponse.Experts).Error
+	if err != nil && err.Error() != "record not found" {
+		logger.WithError(err).Error("Error retrieving dispute experts")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+		return
 	}
 
 	logger.Info("Dispute details retrieved successfully")

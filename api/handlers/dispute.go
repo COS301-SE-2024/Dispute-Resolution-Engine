@@ -231,29 +231,12 @@ func (h Dispute) getDispute(c *gin.Context) {
 		Role:        role,
 	}
 
-	evidenceQuery := `
-		SELECT 
-			f.id,
-			f.file_name,
-			f.uploaded,
-			f.file_path,
-			CASE
-				WHEN d.complainant = de.user_id THEN 'Complainant'
-				WHEN d.respondant = de.user_id THEN 'Respondent'
-				ELSE 'Other'
-			END AS uploader_role
-		FROM 
-			dispute_evidence de
-		JOIN 
-			files f ON de.file_id = f.id
-		JOIN 
-			disputes d ON de.dispute = d.id
-		WHERE 
-			de.dispute = ?
-	`
-
 	var evidence []models.Evidence
-	err = h.DB.Raw(evidenceQuery, id).Scan(&evidence).Error
+	err = h.DB.Table("dispute_evidence").Select(`files.id, file_name, uploaded, file_path,  CASE
+            WHEN disputes.complainant = dispute_evidence.user_id THEN 'Complainant'
+            WHEN disputes.respondant = dispute_evidence.user_id THEN 'Respondent'
+            ELSE 'Other'
+        END AS uploader_role`).Joins("JOIN files ON dispute_evidence.file_id = files.id").Joins("JOIN disputes ON dispute_evidence.dispute = disputes.id").Where("dispute = ?", id).Find(&evidence).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute evidence")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
@@ -263,24 +246,8 @@ func (h Dispute) getDispute(c *gin.Context) {
 		evidence = []models.Evidence{}
 	}
 
-	expertQuery := `
-		SELECT 
-			u.id,
-			u.first_name || ' ' || u.surname AS full_name,
-			u.email,
-			u.phone_number AS phone,
-			u.role
-		FROM 
-			dispute_experts de, users u
-		WHERE 
-			de.dispute = ? 
-			AND de.user = u.id
-			AND de.status = 'Approved'
-			AND (u.role = 'Mediator' OR u.role = 'Arbitrator' OR u.role = 'Conciliator')
-	`
-
 	var experts []models.Expert
-	err = h.DB.Raw(expertQuery, id).Scan(&experts).Error
+	err = h.DB.Table("dispute_experts").Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").Joins("JOIN users ON dispute_experts.user = users.id").Where("dispute = ?", id).Where("dispute_experts.status = 'Approved'").Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator'").Find(&experts).Error
 	if err != nil && err.Error() != "record not found" {
 		logger.WithError(err).Error("Error retrieving dispute experts")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})

@@ -150,14 +150,13 @@ func (h Auth) CreateUser(c *gin.Context) {
 
 	//store in redis cacher
 	err = redisDB.RDB.Set(context.Background(), userkey, userVerifyJSON, 24*time.Hour).Err()
-
-	//send OTP
-	go sendOTP(user.Email, pin)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
+	//send OTP
+	go sendOTP(user.Email, pin)
 
 	logger.Info("User created successfully")
 	c.JSON(http.StatusCreated, models.Response{Data: jwt})

@@ -252,14 +252,16 @@ func (h Dispute) getDispute(c *gin.Context) {
 			de.dispute = ?
 	`
 
-
-	err = h.DB.Raw(evidenceQuery, id).Scan(&DisputeDetailsResponse.Evidence).Error
+	var evidence []models.Evidence
+	err = h.DB.Raw(evidenceQuery, id).Scan(&evidence).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute evidence")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
-
+	if evidence == nil {
+		evidence = []models.Evidence{}
+	}
 
 	expertQuery := `
 		SELECT 
@@ -277,12 +279,20 @@ func (h Dispute) getDispute(c *gin.Context) {
 			AND (u.role = 'Mediator' OR u.role = 'Arbitrator' OR u.role = 'Conciliator')
 	`
 
-	err = h.DB.Raw(expertQuery, id).Scan(&DisputeDetailsResponse.Experts).Error
+	var experts []models.Expert
+	err = h.DB.Raw(expertQuery, id).Scan(&experts).Error
 	if err != nil && err.Error() != "record not found" {
 		logger.WithError(err).Error("Error retrieving dispute experts")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
 	}
+
+	if experts == nil {
+		experts = []models.Expert{}
+	}
+
+	DisputeDetailsResponse.Evidence = evidence
+	DisputeDetailsResponse.Experts = experts
 
 	logger.Info("Dispute details retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: DisputeDetailsResponse})

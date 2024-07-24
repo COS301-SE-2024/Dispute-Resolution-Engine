@@ -92,7 +92,6 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
     limit: PAGE_SIZE,
   });
 
-
   if (error) {
     return <ErrorPage msg={error} />;
   }
@@ -113,9 +112,11 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
       </form>
       <main className="mx-20 grid grid-cols-2">
         <ol className="space-y-5">
-          {data!.archives.map((dispute) => (
-            <SearchResult key={dispute.id} {...dispute} />
-          ))}
+          {data!.archives.length > 0 ? (
+            data!.archives.map((dispute) => <SearchResult key={dispute.id} {...dispute} />)
+          ) : (
+            <p>No results</p>
+          )}
         </ol>
       </main>
       <footer className="my-10">

@@ -103,6 +103,13 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 		return
 	}
 
+	claim := middleware.GetClaims(c)
+	if claim == nil {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
 	form, err := c.MultipartForm()
 	if err != nil {
 		logger.WithError(err).Error("Failed to parse form data")
@@ -123,6 +130,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 		disputeEvidence := models.DisputeEvidence{
 			Dispute: int64(disputeId),
 			FileID:  int64(id),
+			UserID: claim.User.ID,
 		}
 
 		if err := h.DB.Create(&disputeEvidence).Error; err != nil {
@@ -223,7 +231,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 		Role:        role,
 	}
 
-	err = h.DB.Raw("SELECT file_name,uploaded,file_path FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
+	err = h.DB.Raw("SELECT file_name,uploaded,file_path,  FROM files WHERE id IN (SELECT file_id FROM dispute_evidence WHERE dispute = ?)", id).Scan(&DisputeDetailsResponse.Evidence).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute evidence")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})

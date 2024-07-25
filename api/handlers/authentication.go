@@ -131,6 +131,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 
 	jwt, err := middleware.GenerateJWT(user)
 	if err != nil {
+		logger.WithError(err).Error("Error getting user jwt.")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
@@ -145,13 +146,14 @@ func (h Auth) CreateUser(c *gin.Context) {
 	//convert to json
 	userVerifyJSON, err := json.Marshal(userVerify)
 	if err != nil {
+		logger.WithError(err).Error("Error marshalling user-verify JSON.")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 	}
 
 	//store in redis cacher
 	err = redisDB.RDB.Set(context.Background(), userkey, userVerifyJSON, 24*time.Hour).Err()
 	if err != nil {
-		logger.WithError(err).Error("Error generating token")
+		logger.WithError(err).Error("Error storing OTP in redis.")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}

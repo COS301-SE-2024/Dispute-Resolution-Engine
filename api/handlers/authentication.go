@@ -155,6 +155,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
+	logger.Info("OTP generated")
 	//send OTP
 	go sendOTP(user.Email, pin)
 

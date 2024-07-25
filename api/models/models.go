@@ -139,6 +139,7 @@ func (File) TableName() string {
 type DisputeEvidence struct {
 	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
 	FileID  int64 `gorm:"primaryKey;column:file_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:FileID;references:id"`
+	UserID  int64 `gorm:"column:user_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
 }
 
 func (DisputeEvidence) TableName() string {

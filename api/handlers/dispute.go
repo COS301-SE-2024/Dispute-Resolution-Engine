@@ -41,12 +41,23 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 }
 
 // Uploads a multipart file to the file storage, returning the id of the file entry in the database
-func uploadFile(db *gorm.DB, header *multipart.FileHeader) (uint, error) {
+func uploadFile(db *gorm.DB, path string, header *multipart.FileHeader) (uint, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	fileName := filepath.Base(header.Filename)
-	storePath := filepath.Join(os.Getenv("FILESTORAGE_ROOT"), fileName)
-	storeUrl := fmt.Sprintf("%s/%s", os.Getenv("FILESTORAGE_URL"), fileName)
+	storePath := filepath.Join(os.Getenv("FILESTORAGE_ROOT"), path, fileName)
+
+	if err := os.MkdirAll(filepath.Join(os.Getenv("FILESTORAGE_ROOT"), path), 0755); err != nil {
+		logger.WithError(err).Error("failed to create folder for file upload")
+		return 0, err
+	}
+
+	var storeUrl string
+	if path != "" {
+		storeUrl = strings.Join([]string{os.Getenv("FILESTORAGE_URL"), path, fileName}, "/")
+	} else {
+		storeUrl = strings.Join([]string{os.Getenv("FILESTORAGE_URL"), fileName}, "/")
+	}
 
 	// Open the form file
 	formFile, err := header.Open()
@@ -95,6 +106,12 @@ func uploadFile(db *gorm.DB, header *multipart.FileHeader) (uint, error) {
 // @Router /dispute/:id/evidence [post]
 func (h Dispute) uploadEvidence(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
+	claims := middleware.GetClaims(c)
+	if claims == nil {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
 
 	disputeId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -111,8 +128,9 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 	}
 
 	files := form.File["files"]
+	folder := fmt.Sprintf("%d", disputeId)
 	for _, fileHeader := range files {
-		id, err := uploadFile(h.DB, fileHeader)
+		id, err := uploadFile(h.DB, folder, fileHeader)
 		if err != nil {
 			logger.WithError(err).Error("Error uploading evidence")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
@@ -123,6 +141,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 		disputeEvidence := models.DisputeEvidence{
 			Dispute: int64(disputeId),
 			FileID:  int64(id),
+			UserID:  claims.User.ID,
 		}
 
 		if err := h.DB.Create(&disputeEvidence).Error; err != nil {
@@ -261,6 +280,12 @@ func (h Dispute) getDispute(c *gin.Context) {
 
 func (h Dispute) createDispute(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
+	claims := middleware.GetClaims(c)
+	if claims == nil {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
 
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -277,12 +302,6 @@ func (h Dispute) createDispute(c *gin.Context) {
 	telephone := form.Value["respondent[telephone]"][0]
 
 	//get complainants id
-	claims := middleware.GetClaims(c)
-	if claims == nil {
-		logger.Error("Unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
-		return
-	}
 	complainantID := claims.User.ID
 
 	//check if respondant is in database by email and phone number
@@ -326,27 +345,20 @@ func (h Dispute) createDispute(c *gin.Context) {
 		return
 	}
 
-	//get the id of the created dispute
-	var disputeFromDbInserted models.Dispute
-	err = h.DB.Where("title = ? AND case_date = ? AND status = ? AND description = ? AND complainant = ? AND resolved = ? AND decision = ?", title, time.Now(), "Awaiting Respondant", description, complainantID, false, models.Unresolved).First(&disputeFromDbInserted).Error
-	if err != nil {
-		logger.WithError(err).Error("Error retrieving dispute")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving dispute"})
-		return
-	}
-
 	// Store files in Docker and retrieve URLs
 	files := form.File["files"]
+	folder := fmt.Sprintf("%d", *dispute.ID)
 	for _, fileHeader := range files {
-		fileId, err := uploadFile(h.DB, fileHeader)
+		fileId, err := uploadFile(h.DB, folder, fileHeader)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, models.Response{Error: fmt.Sprintf("Failed to upload file: %s", fileHeader.Filename)})
 			return
 		}
 
 		disputeEvidence := models.DisputeEvidence{
-			Dispute: *disputeFromDbInserted.ID,
+			Dispute: *dispute.ID,
 			FileID:  int64(fileId),
+			UserID:  complainantID,
 		}
 
 		if err := h.DB.Create(&disputeEvidence).Error; err != nil {

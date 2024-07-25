@@ -63,7 +63,7 @@ export async function updateDisputeStatus(
   }
   const body: DisputeStatusUpdateRequest = { id, status };
   return fetch(`${API_URL}/dispute/status`, {
-    method: "POST",
+    method: "PUT",
     headers: {
       Authorization: `Bearer ${jwt}`,
     },

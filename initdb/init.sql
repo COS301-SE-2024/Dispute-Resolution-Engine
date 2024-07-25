@@ -87,7 +87,7 @@ CREATE TABLE files (
 CREATE TABLE dispute_evidence (
 	dispute BIGINT REFERENCES disputes(id),
 	file_id BIGINT REFERENCES files(id),
-	user_id BIGINT REFERENCES users(id),
+	user_id BIGINT REFERENCES users(id) NOT NULL,
 	PRIMARY KEY (dispute, file_id)
 );
 

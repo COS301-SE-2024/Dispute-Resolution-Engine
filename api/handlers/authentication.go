@@ -131,6 +131,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 
 	jwt, err := middleware.GenerateJWT(user)
 	if err != nil {
+		logger.WithError(err).Error("Error getting user jwt.")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
@@ -145,25 +146,20 @@ func (h Auth) CreateUser(c *gin.Context) {
 	//convert to json
 	userVerifyJSON, err := json.Marshal(userVerify)
 	if err != nil {
+		logger.WithError(err).Error("Error marshalling user-verify JSON.")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 	}
 
 	//store in redis cacher
 	err = redisDB.RDB.Set(context.Background(), userkey, userVerifyJSON, 24*time.Hour).Err()
-
-	//send OTP
-	err2 := sendOTP(user.Email, pin)
-	if err != nil || err2 != nil {
-		var temperr error
-		if err != nil {
-			temperr = err
-		} else {
-			temperr = err2
-		}
-		logger.WithError(temperr).Error("Error generating token")
+	if err != nil {
+		logger.WithError(err).Error("Error storing OTP in redis.")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
+	logger.Info("OTP generated")
+	//send OTP
+	go sendOTP(user.Email, pin)
 
 	logger.Info("User created successfully")
 	c.JSON(http.StatusCreated, models.Response{Data: jwt})
@@ -359,15 +355,11 @@ func (h Auth) ResendOTP(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
-	err = sendOTP(userVerify.Email, pin)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error resending OTP."})
-		return
-	}
+	go sendOTP(userVerify.Email, pin)
 	c.JSON(http.StatusOK, models.Response{Data: "Pin resent!"})
 }
 
-func sendOTP(userInfo string, pin string) error {
+func sendOTP(userInfo string, pin string) {
 	logger := utilities.NewLogger().LogWithCaller()
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
@@ -394,10 +386,8 @@ func sendOTP(userInfo string, pin string) error {
 	// Send the email
 	if err := d.DialAndSend(m); err != nil {
 		logger.WithError(err).Error("Error sending OTP email")
-		return err
 	}
 	logger.Info("OTP Email sent successfully")
-	return nil
 }
 
 // resetPassword sends an email to the user with a link to reset their password

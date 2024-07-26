@@ -53,6 +53,15 @@ type Expert = {
   role: string;
 };
 ```
+# Utility Functions
+- **Endpoint:** `GET /utils/dispute_statuses`
+- **Headers:**
+  - None expected
+- Will return a list of all possible states a dispute can be in:
+
+```ts
+  type DisputeStatusesResponse = string[];
+```
 
 # Dispute Summaries
 

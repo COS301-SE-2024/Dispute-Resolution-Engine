@@ -76,3 +76,13 @@ export async function updateDisputeStatus(
       error: e.message,
     }));
 }
+export async function getStatusEnum(){
+  const res = await fetch(`${API_URL}/utils/dispute_statuses`, {
+    method: "GET"
+  })
+    .then((res) => res.json())
+    .catch((e: Error) => ({
+      error: e.message,
+    }));
+  return res;
+}

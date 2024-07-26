@@ -370,7 +370,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 			return
 		}
 	}
-	disputeID := *disputeFromDbInserted.ID
+	disputeID := *dispute.ID
 	// Respond with success message
 	go h.sendAdminNotification(c, disputeID, email)
 	logger.Info("Admin email sent")

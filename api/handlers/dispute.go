@@ -366,9 +366,9 @@ func (h Dispute) createDispute(c *gin.Context) {
 			return
 		}
 	}
-
+	disputeID := *disputeFromDbInserted.ID
 	// Respond with success message
-	h.sendAdminNotification(c, email)
+	go h.sendAdminNotification(c, disputeID, email)
 	logger.Info("Admin email sent")
 	c.JSON(http.StatusCreated, models.Response{Data: "Dispute created successfully"})
 	logger.Info("Dispute created successfully: ", title)

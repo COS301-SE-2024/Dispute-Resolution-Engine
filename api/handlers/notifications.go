@@ -14,27 +14,20 @@ import (
 // 	g.POST("/invite", h.sendAdminNotification)
 // }
 
-func (h Handler) sendAdminNotification(c *gin.Context, resEmail string) {
+func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail string) {
 	logger := utilities.NewLogger().LogWithCaller()
 	//get claims
 	jwtClaims := middleware.GetClaims(c)
 	if jwtClaims == nil {
 		logger.Error("Unauthorized")
-		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
 
 	//parse the request body
-	var reqInv models.DisputeNotify
-	if err := c.BindJSON(&reqInv); err != nil {
-		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
-		return
-	}
 
 	//get the dispute details using ID from request body
 	var dbDispute models.Dispute
-	h.DB.Where("id = ?", reqInv.DisputeID).First(&dbDispute)
+	h.DB.Where("id = ?", disputeID).First(&dbDispute)
 
 	var respondentEmail = resEmail
 
@@ -47,14 +40,13 @@ func (h Handler) sendAdminNotification(c *gin.Context, resEmail string) {
 
 	if err := sendMail(email); err != nil {
 		logger.WithError(err).Error("Failed to send admin email")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending admin notification email."})
 		return
 	}
 	logger.Info("Admin email notification sent successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "Admin email notification sent successfully"})
 }
 
-func (h Notification) AcceptanceNotification(c *gin.Context) {
+/*func (h Notification) AcceptanceNotification(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	jwtClaims := middleware.GetClaims(c)
 	if jwtClaims == nil {
@@ -63,12 +55,6 @@ func (h Notification) AcceptanceNotification(c *gin.Context) {
 	}
 
 	var respondentEmail = jwtClaims.Email
-	var reqNotif models.DisputeNotify
-
-	if err := c.BindJSON(&reqNotif); err != nil {
-		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Bad request body"})
-	}
 
 	var disputeDetails models.Dispute
 	h.DB.Where("id = ?", reqNotif.DisputeID).First(&disputeDetails)
@@ -103,4 +89,4 @@ func (h Notification) AcceptanceNotification(c *gin.Context) {
 	}
 	logger.Info("Email notifications sent successfully")
 	c.JSON(http.StatusOK, models.Response{Error: "Email notifications sent successfully"})
-}
+}*/

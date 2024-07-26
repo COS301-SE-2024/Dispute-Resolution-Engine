@@ -306,7 +306,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 	//check if respondant is in database by email and phone number
 	var respondantID *int64
 	var respondent models.User
-	err = h.DB.Where("email = ? AND phone_number = ?", email, telephone).First(&respondent).Error
+	err = h.DB.Where("email = ? ", email, telephone).First(&respondent).Error
 	if err != nil && err.Error() == "record not found" {
 		//create a default entry for the user
 		nameSplit := strings.Split(fullName, " ")

@@ -62,7 +62,7 @@ export interface DisputeCreateRequest {
 export type DisputeCreateResponse = string;
 
 export interface DisputeStatusUpdateRequest {
-  id: string;
+  dispute_id: string;
   status: string;
 }
 // TODO: File upload endpoint

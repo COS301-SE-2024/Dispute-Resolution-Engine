@@ -7,8 +7,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { updateDisputeStatus } from "@/lib/api/dispute";
-import { useState } from "react";
+import { getStatusEnum, updateDisputeStatus } from "@/lib/api/dispute";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
 export default function DisputeHeader({ id, label, startDate, status: initialStatus }: {
@@ -18,15 +18,34 @@ export default function DisputeHeader({ id, label, startDate, status: initialSta
   status: string;
 }) {
   const [status, setStatus] = useState(initialStatus);
+  const [nextStates, setNextStates] = useState<string[]>([]);
+  useEffect(() => {
+    const fetchStatusEnum = async () => {
+      try {
+        const states = await getStatusEnum();
+        setNextStates(states);
+      } catch (error) {
+        console.error("Failed to fetch status enum:", error);
+      }
+    };
+    fetchStatusEnum();
+  }, []);
+
   const handleStatusChange = async (newStatus: string) => {
     try {
       const response = await updateDisputeStatus(id, newStatus);
-      console.log("RESPONSE", response)
-      setStatus(newStatus)
+      console.log("RESPONSE", response);
+      setStatus(newStatus);
     } catch (error) {
       console.error("Failed to update dispute status:", error);
     }
   };
+
+  const optionsJSX = nextStates.map((state: string, i: number) => (
+    <DropdownMenuItem key={i} onSelect={() => handleStatusChange(`${state}`)}>
+      {state}
+    </DropdownMenuItem>
+  ));
 
   return (
     <header className="p-4 py-6 flex">
@@ -48,12 +67,7 @@ export default function DisputeHeader({ id, label, startDate, status: initialSta
             <DropdownMenuContent>
               <DropdownMenuLabel>Next Steps</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => handleStatusChange("Waiting for admin approval")}>
-                Waiting for Admin Approval
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleStatusChange("Waiting for respondent")}>
-                Waiting for respondent
-              </DropdownMenuItem>
+              {optionsJSX}
             </DropdownMenuContent>
           </DropdownMenu>
         </dd>

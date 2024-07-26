@@ -61,8 +61,8 @@ export async function updateDisputeStatus(
       error: "Unauthorized",
     };
   }
-  const body: DisputeStatusUpdateRequest = { id, status };
-  return fetch(`${API_URL}/dispute/status`, {
+  const body: DisputeStatusUpdateRequest = { dispute_id: id, status };
+  const res = await fetch(`${API_URL}/disputes/dispute/status`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${jwt}`,
@@ -75,4 +75,17 @@ export async function updateDisputeStatus(
     .catch((e: Error) => ({
       error: e.message,
     }));
+  console.log("RESPONSE IN UPDATE DISPUTE\n", res)
+  console.log("BODY WAS\n", JSON.stringify(body))
+  return res
+}
+export async function getStatusEnum() : Promise<string[]>{
+  const res = await fetch(`${API_URL}/utils/dispute_statuses`, {
+    method: "GET"
+  })
+    .then((res) => res.json())
+    .catch((e: Error) => ({
+      error: e.message,
+    }));
+  return res.data;
 }

@@ -244,8 +244,8 @@ func (h Dispute) getDispute(c *gin.Context) {
 
 	var evidence []models.Evidence
 	err = h.DB.Table("dispute_evidence").Select(`files.id, file_name, uploaded, file_path,  CASE
-            WHEN disputes.complainant = dispute_evidence.user THEN 'Complainant'
-            WHEN disputes.respondant = dispute_evidence.user THEN 'Respondent'
+            WHEN disputes.complainant = dispute_evidence.user_id THEN 'Complainant'
+            WHEN disputes.respondant = dispute_evidence.user_id THEN 'Respondent'
             ELSE 'Other'
         END AS uploader_role`).Joins("JOIN files ON dispute_evidence.file_id = files.id").Joins("JOIN disputes ON dispute_evidence.dispute = disputes.id").Where("dispute = ?", id).Find(&evidence).Error
 	if err != nil {

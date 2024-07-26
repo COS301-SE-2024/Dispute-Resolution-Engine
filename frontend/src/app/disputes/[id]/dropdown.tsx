@@ -7,11 +7,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { updateDisputeStatus } from "@/lib/api/dispute";
+import { getStatusEnum, updateDisputeStatus } from "@/lib/api/dispute";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
-export default function DisputeHeader({ id, label, startDate, status: initialStatus }: {
+export default async function DisputeHeader({ id, label, startDate, status: initialStatus }: {
   id: string;
   label: string;
   startDate: string;
@@ -27,6 +27,12 @@ export default function DisputeHeader({ id, label, startDate, status: initialSta
       console.error("Failed to update dispute status:", error);
     }
   };
+  const nextStates = await getStatusEnum()
+  const optionsJSX = nextStates.map((state : string, i : number) => (
+    <DropdownMenuItem key={i} onSelect={() => handleStatusChange("Waiting for admin approval")}>
+      {state}
+    </DropdownMenuItem>
+  ))
 
   return (
     <header className="p-4 py-6 flex">
@@ -48,12 +54,7 @@ export default function DisputeHeader({ id, label, startDate, status: initialSta
             <DropdownMenuContent>
               <DropdownMenuLabel>Next Steps</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => handleStatusChange("Waiting for admin approval")}>
-                Waiting for Admin Approval
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleStatusChange("Waiting for respondent")}>
-                Waiting for respondent
-              </DropdownMenuItem>
+              {optionsJSX}
             </DropdownMenuContent>
           </DropdownMenu>
         </dd>

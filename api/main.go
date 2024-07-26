@@ -5,8 +5,8 @@ import (
 	_ "api/docs" // This is important to import your generated docs package
 	"api/handlers"
 	"api/middleware"
-	"api/utilities"
 	"api/redisDB"
+	"api/utilities"
 	"net/http"
 	"os"
 
@@ -78,6 +78,7 @@ func main() {
 	//setup handlers
 	utilGroup := router.Group("/utils")
 	utilGroup.GET("/countries", utilityHandler.GetCountries)
+	utilGroup.GET("/dispute_statuses", utilityHandler.GetDisputeStatuses)
 
 	authGroup := router.Group("/auth")
 	handlers.SetupAuthRoutes(authGroup, authHandler)

@@ -314,6 +314,10 @@ func (h Dispute) createDispute(c *gin.Context) {
 			logger.Error("Invalid full name")
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid full name"})
 			return
+		}else {
+			logger.WithError(err).Error("Error retrieving respondent")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})	
+			return
 		}
 
 	} else if err != nil {

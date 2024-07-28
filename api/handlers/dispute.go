@@ -28,6 +28,7 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 	g.GET("/:id", h.getDispute)
 
 	g.POST("/:id/experts/reject", h.expertObjection)
+	g.POST("/:id/experts/review-rejection", h.expertObjectionsReview)
 	g.POST("/:id/evidence", h.uploadEvidence)
 	g.PUT("/dispute/status", h.updateStatus)
 

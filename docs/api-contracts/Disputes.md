@@ -183,3 +183,16 @@ The response will return a success message
 ```ts
 type ExpertRejectResponse = string;
 ```
+
+## Reviewing Rejection
+
+- **Endpoint:** `POST /disputes/{id}/experts/review-rejection`
+- **Headers:**
+  - `Authorization: Bearer <JWT>`
+
+```ts
+interface ExpertRejectRequest {
+  expert_id: string;
+  accepted: boolean;
+}
+```

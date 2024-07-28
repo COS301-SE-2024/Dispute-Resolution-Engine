@@ -70,7 +70,7 @@ jobs:
           docker pull grafana/loki
           docker pull prom/prometheus
           docker pull grafana/grafana
-          docker pull cadvisor
+          docker pull google/cadvisor
           
                 
       - name: Make it a tar file
@@ -85,7 +85,7 @@ jobs:
           docker save -o loki.tar grafana/loki:latest
           docker save -o prom.tar prom/prometheus:latest
           docker save -o grafana.tar graphana/grafana:latest
-          docker save -o cadvisor.tar cadvisor:latest
+          docker save -o cadvisor.tar google/cadvisor:latest
           
       - name: Set up WireGuard Connection
         uses: niklaskeerl/easy-wireguard-action@v2

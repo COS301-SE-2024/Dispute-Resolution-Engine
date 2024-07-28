@@ -500,7 +500,7 @@ func (h Dispute) expertObjectionsReview(c *gin.Context ) {
 	}
 
 	//get expert objections
-	var expertObjections []models.ExpertObjection
+	var expertObjections models.ExpertObjection
 	err = h.DB.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeIdInt, req.ExpertID, models.ReviewStatus).First(&expertObjections).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving expert objections")
@@ -517,6 +517,26 @@ func (h Dispute) expertObjectionsReview(c *gin.Context ) {
 	}
 	
 	//update expert objections
+	if req.Accepted {
+		expertObjections.Status = models.Sustained
+		disputeExpert.Status = models.RejectedStatus
+	} else {
+		expertObjections.Status = models.Overruled
+		disputeExpert.Status = models.ApprovedStatus
+	}
 
+	if err := h.DB.Save(&expertObjections).Error; err != nil {
+		logger.WithError(err).Error("Error updating expert objections")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating expert objections"})
+		return
+	}
 
+	if err := h.DB.Save(&disputeExpert).Error; err != nil {
+		logger.WithError(err).Error("Error updating dispute expert")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating expert objections"})
+		return
+	}
+
+	logger.Info("Expert objections reviewed successfully")
+	c.JSON(http.StatusOK, models.Response{Data: "Expert objections reviewed successfully"})
 }

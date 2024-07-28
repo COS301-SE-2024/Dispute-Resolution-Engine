@@ -1,11 +1,11 @@
 package handlers
 
 import (
+	"api/env"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,8 +31,14 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 
 	var respondentEmail = resEmail
 
+	companyEmail, err := env.Get("COMPANY_EMAIL")
+	if err != nil {
+		utilities.InternalError(c)
+		return
+	}
+
 	email := models.Email{
-		From:    os.Getenv("COMPANY_EMAIL"),
+		From:    companyEmail,
 		To:      respondentEmail,
 		Subject: "Notification of formal dispute",
 		Body:    "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system. Please login to your DRE account and review it, if you do not have an account you may create one.",
@@ -65,14 +71,14 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 	var complainantEmail = dbComplainant.Email
 
 	email1 := models.Email{
-		From:    os.Getenv("COMPANY_EMAIL"),
+		From:    env.Get("COMPANY_EMAIL"),
 		To:      respondentEmail,
 		Subject: "Formal Dispute Accepted",
 		Body:    "Dear users,\n A dispute has been accepted from both parties and will now commence, please stay active on DRE to always be up to date.",
 	}
 
 	email2 := models.Email{
-		From:    os.Getenv("COMPANY_EMAIL"),
+		From:    env.Get("COMPANY_EMAIL"),
 		To:      complainantEmail,
 		Subject: "Formal Dispute Accepted",
 		Body:    "Dear users,\n A dispute has been accepted from both parties and will now commence, please stay active on DRE to always be up to date.",

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"api/env"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
@@ -42,21 +43,30 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 
 // Uploads a multipart file to the file storage, returning the id of the file entry in the database
 func uploadFile(db *gorm.DB, path string, header *multipart.FileHeader) (uint, error) {
+	fileStorageRoot, err := env.Get("FILESTORAGE_ROOT")
+	if err != nil {
+		return 0, err
+	}
+	fileStorageUrl, err := env.Get("FILESTORAGE_URL")
+	if err != nil {
+		return 0, err
+	}
+
 	logger := utilities.NewLogger().LogWithCaller()
 
 	fileName := filepath.Base(header.Filename)
-	storePath := filepath.Join(os.Getenv("FILESTORAGE_ROOT"), path, fileName)
+	storePath := filepath.Join(fileStorageRoot, path, fileName)
 
-	if err := os.MkdirAll(filepath.Join(os.Getenv("FILESTORAGE_ROOT"), path), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Join(fileStorageRoot, path), 0755); err != nil {
 		logger.WithError(err).Error("failed to create folder for file upload")
 		return 0, err
 	}
 
 	var storeUrl string
 	if path != "" {
-		storeUrl = strings.Join([]string{os.Getenv("FILESTORAGE_URL"), path, fileName}, "/")
+		storeUrl = strings.Join([]string{fileStorageUrl, path, fileName}, "/")
 	} else {
-		storeUrl = strings.Join([]string{os.Getenv("FILESTORAGE_URL"), fileName}, "/")
+		storeUrl = strings.Join([]string{fileStorageUrl, fileName}, "/")
 	}
 
 	// Open the form file
@@ -141,7 +151,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 		disputeEvidence := models.DisputeEvidence{
 			Dispute: int64(disputeId),
 			FileID:  int64(id),
-			UserID: claims.User.ID,
+			UserID:  claims.User.ID,
 		}
 
 		if err := h.DB.Create(&disputeEvidence).Error; err != nil {
@@ -314,9 +324,9 @@ func (h Dispute) createDispute(c *gin.Context) {
 			logger.Error("Invalid full name")
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid full name"})
 			return
-		}else {
+		} else {
 			logger.WithError(err).Error("Error retrieving respondent")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})	
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
 			return
 		}
 

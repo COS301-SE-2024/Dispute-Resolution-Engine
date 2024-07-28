@@ -27,7 +27,6 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/create", h.createDispute)
 	g.GET("/:id", h.getDispute)
 
-	g.POST("/:id/experts/approve", h.approveExpert)
 	g.POST("/:id/experts/reject", h.rejectExpert)
 	g.POST("/:id/evidence", h.uploadEvidence)
 	g.PUT("/dispute/status", h.updateStatus)
@@ -412,29 +411,50 @@ func (h Dispute) patchDispute(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute Patch Endpoint for ID: " + id})
 }
 
-func (h Dispute) approveExpert(c *gin.Context) {
-	// disputeId := c.Param("id")
-	var req models.ExpertApproveRequest
-	if err := c.BindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+func (h Dispute) rejectExpert(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	//get dispute id
+	disputeId := c.Param("id")
+	disputeIdInt, err := strconv.Atoi(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Cannot convert dispute ID to integer")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
 		return
 	}
-	c.JSON(http.StatusOK, models.Response{Data: "Success"})
-	//currently does nothing because the expert is approved
-}
 
-func (h Dispute) rejectExpert(c *gin.Context) {
-	disputeId := c.Param("id")
+	//get info from body of post
 	var req models.ExpertRejectRequest
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
-	var dbDisputeExperts models.DisputeExpert
-	if err := h.DB.Where("dispute = ?", disputeId).Where("user = ?", req.ExpertID).Delete(&dbDisputeExperts); err != nil {
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Something went wrong rejecting the expert.."})
+
+	//get user properties from token
+	claims := middleware.GetClaims(c)
+	if claims == nil {
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
+
+	//add entry to expert objections table
+	expertObjection := models.ExpertObjection{
+		DisputeID: int64(disputeIdInt),
+		ExpertID:  req.ExpertID,
+		UserID:   claims.User.ID,
+		Reason:    req.Reason,
+	}
+
+	if err := h.DB.Create(&expertObjection).Error; err != nil {
+		logger.WithError(err).Error("Error creating expert objection")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating expert objection"})
+		return
+	}
+
+	//update dispute experts table
+	
+
+	logger.Info("Expert rejected suggestion")
 	c.JSON(http.StatusOK, models.Response{Data: "Success"})
 
 }

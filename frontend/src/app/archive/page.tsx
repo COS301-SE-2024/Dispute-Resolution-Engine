@@ -15,17 +15,22 @@ export const metadata: Metadata = {
 
 function ArchivedDispute(props: ArchivedDisputeSummary) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{props.title}</CardTitle>
+    <Card className="flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between flex-wrap">
+        <div>
+          <CardTitle>{props.title}</CardTitle>
+          <p>{props.date_resolved}</p>
+        </div>
+        <ul className="flex gap-1 flex-wrap">
+          {props.category.map((cat, i) => (
+            <Badge key={i}>{cat}</Badge>
+          ))}
+        </ul>
       </CardHeader>
-      <CardContent asChild className="dark:text-white/50">
+      <CardContent asChild className="dark:text-white/50 grow">
         <p>{props.summary}</p>
       </CardContent>
       <CardFooter className="flex justify-between">
-        {props.category.map((cat, i) => (
-          <Badge key={i}>{cat}</Badge>
-        ))}
         <Button asChild>
           <Link href={`/archive/${props.id}`}>
             <ExternalLink size="1rem" className="mr-2" />

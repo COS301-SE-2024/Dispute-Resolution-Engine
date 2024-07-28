@@ -7,18 +7,25 @@ export type Country = {
   country_name: string;
 };
 
+export type Language = {
+  id: string;
+  label: string;
+};
+
 export async function fetchCountries(): Promise<Result<Country[]>> {
-  // return {
-  //   data: [
-  //     {
-  //       id: 1,
-  //       country_code: "za",
-  //       country_name: "South Africa",
-  //     },
-  //   ],
-  // };
   const result = await fetch(`${API_URL}/utils/countries`, {
     cache: "no-store",
   });
   return await result.json();
+}
+
+export async function fetchLanguages(): Promise<Result<Language[]>> {
+  return {
+    data: [
+      {
+        id: "en-US",
+        label: "English",
+      },
+    ],
+  };
 }

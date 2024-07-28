@@ -73,6 +73,9 @@ function pager(params: SearchParams, offset: number) {
   return { pathname: "/archive/search", query: { ...params, offset } };
 }
 
+// The number of disputes to display per-page
+const PAGE_SIZE = 10;
+
 export default async function ArchiveSearch({ searchParams }: { searchParams: unknown }) {
   const { data: params, error: searchError } = searchSchema.safeParse(searchParams);
   if (!params) {
@@ -85,16 +88,16 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
 
   const { data, error } = await searchArchive({
     search: params.q,
-    offset: params.offset * 10,
-    limit: 10,
+    offset: params.offset * PAGE_SIZE,
+    limit: PAGE_SIZE,
   });
-
-  // TODO: replace this with response information
-  const total = 10;
 
   if (error) {
     return <ErrorPage msg={error} />;
   }
+
+  // TODO: replace this with response information
+  const total = Math.ceil(data!.total / PAGE_SIZE) - 1;
 
   return (
     <>
@@ -109,9 +112,11 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
       </form>
       <main className="mx-20 grid grid-cols-2">
         <ol className="space-y-5">
-          {data!.map((dispute) => (
-            <SearchResult key={dispute.id} {...dispute} />
-          ))}
+          {data!.archives.length > 0 ? (
+            data!.archives.map((dispute) => <SearchResult key={dispute.id} {...dispute} />)
+          ) : (
+            <p>No results</p>
+          )}
         </ol>
       </main>
       <footer className="my-10">

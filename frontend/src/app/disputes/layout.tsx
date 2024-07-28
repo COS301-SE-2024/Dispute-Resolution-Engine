@@ -1,27 +1,17 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { getDisputeList } from "../../lib/api/dispute";
 import { Suspense } from "react";
 import Loader from "@/components/Loader";
 import { Metadata } from "next";
+import { Badge } from "@/components/ui/badge";
+import { DisputeLink } from "./link";
 
 export const metadata: Metadata = {
   title: "DRE - Disputes",
 };
-
-function DisputeLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Button variant="ghost" className="w-full grow text-left">
-      <Link href={href} className="inline-flex w-full">
-        <span className="grow">{children}</span>
-        <ChevronRightIcon />
-      </Link>
-    </Button>
-  );
-}
 
 async function DisputeList() {
   const data = await getDisputeList();
@@ -31,7 +21,16 @@ async function DisputeList() {
       {data.data ? (
         data.data.map((d) => (
           <li key={d.id}>
-            <DisputeLink href={`/disputes/${d.id}`}>{d.title}</DisputeLink>
+            <DisputeLink href={`/disputes/${d.id}`}>
+              {d.title}
+              {d.role == "Complainant" ? (
+                <Badge className="ml-2">{d.role.substring(0, 1)}</Badge>
+              ) : d.role == "Respondant" ? (
+                <Badge className="ml-2" variant="secondary">
+                  {d.role.substring(0, 1)}
+                </Badge>
+              ) : null}
+            </DisputeLink>
           </li>
         ))
       ) : (
@@ -48,7 +47,7 @@ export default function DisputeRootLayout({
 }>) {
   return (
     <div className="flex items-stretch h-full lg:w-3/4 mx-auto">
-      <div className="w-56 flex shrink-0 flex-col p-2 gap-4">
+      <div className="flex shrink-0 flex-col p-2 gap-4">
         <Input placeholder="Search" />
         <nav>
           <Suspense fallback={<Loader />}>

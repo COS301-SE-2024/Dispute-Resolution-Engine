@@ -6,17 +6,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { GENDERS } from "@/lib/constants";
 import { SelectProps } from "@radix-ui/react-select";
 
-const GENDERS = ["Male", "Female", "Non-binary", "Prefer not to say", "Other"];
+type GenderSelectProps = SelectProps & {
+  id: string;
+};
 
-interface GenderSelectProps extends SelectProps {}
-
-export default function GenderSelect(props: GenderSelectProps) {
+export default function GenderSelect({ id, ...props }: GenderSelectProps) {
   return (
     <Select {...props}>
       <SelectTrigger>
-        <SelectValue placeholder="Select a gender" />
+        <SelectValue id={id} placeholder="Select a gender" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>

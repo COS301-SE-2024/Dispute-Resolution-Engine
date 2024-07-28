@@ -4,7 +4,8 @@ import (
 	"api/models"
 	"api/utilities"
 	"net/http"
-	// "github.com/gorilla/mux"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Role struct {
@@ -52,13 +53,15 @@ func (r *Role) matchKeyToValue(value string) (int, bool) {
 	return -1, false
 }
 
-func RoleMiddleware(next http.Handler, reqAuthlevel int) http.Handler {
+func RoleMiddleware(reqAuthlevel int) gin.HandlerFunc {
+	logger := utilities.NewLogger().LogWithCaller()
 	roles := NewRole()
 
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		claims := GetClaims(r)
+	return func(c *gin.Context) {
+		claims := GetClaims(c)
 		if claims == nil {
-			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			logger.Error("No claims")
+			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
 		}
 		//string match the role to the map
@@ -68,16 +71,17 @@ func RoleMiddleware(next http.Handler, reqAuthlevel int) http.Handler {
 		authLevel, ok := roles.matchKeyToValue(userRole)
 
 		if !ok {
-			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			logger.Error("Role not found")
+			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
 		}
 
 		//check if the role is allowed to access the resource
 		if authLevel < reqAuthlevel {
-			utilities.WriteJSON(w, http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			logger.Error("Unauthorized")
+			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
 		}
-
-		next.ServeHTTP(w, r)
-	})
+        c.Next()
+	}
 }

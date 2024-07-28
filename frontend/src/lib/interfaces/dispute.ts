@@ -1,8 +1,11 @@
+export type Role = "Complainant" | "Respondant";
+
 export type DisputeSummary = {
   id: string;
   title: string;
   description: string;
   status: string;
+  role: Role;
 };
 
 export type Evidence = {
@@ -12,6 +15,8 @@ export type Evidence = {
 };
 
 export type Expert = {
+  id: string;
+  role: string;
   full_name: string;
   email: string;
   phone: string;
@@ -23,7 +28,8 @@ export type DisputeResponse = {
   title: string;
   description: string;
   status: string;
-  date_created: string;
+  case_date: string;
+  role: Role;
 
   evidence: Evidence[];
   experts: Expert[];
@@ -55,4 +61,9 @@ export interface DisputeCreateRequest {
 
 export type DisputeCreateResponse = string;
 
+export interface DisputeStatusUpdateRequest {
+  dispute_id: string;
+  status: string;
+}
 // TODO: File upload endpoint
+export type DisputeEvidenceUploadResponse = string;

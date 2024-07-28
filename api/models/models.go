@@ -60,14 +60,14 @@ const (
 )
 
 type Dispute struct {
-	ID          *int64            `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	ID          *int64           `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
 	CaseDate    time.Time        `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
-	Workflow    *int64            `json:"workflow" gorm:"column:workflow"`
+	Workflow    *int64           `json:"workflow" gorm:"column:workflow"`
 	Status      string           `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
 	Title       string           `json:"title" gorm:"type:varchar(255);not null;column:title"`
 	Description string           `json:"description" gorm:"type:text;column:description"`
 	Complainant int64            `json:"complainant" gorm:"column:complainant"`
-	Respondant  *int64            `json:"respondant" gorm:"column:respondant"`
+	Respondant  *int64           `json:"respondant" gorm:"column:respondant"`
 	Resolved    bool             `json:"resolved" gorm:"default:false;column:resolved"`
 	Decision    dispute_decision `json:"decision" gorm:"type:dispute_decision_enum;default:'Unresolved';column:decision"`
 }
@@ -116,8 +116,12 @@ type Response struct {
 }
 
 type DisputeExpert struct {
-	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
-	User    int64 `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+	Dispute         int64  `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
+	User            int64  `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+	ComplainantVote string `gorm:"column:complainant_vote;type:varchar(255);"`
+	RespondantVote  string `gorm:"column:respondant_vote;type:varchar(255);"`
+	ExpertVote      string `gorm:"column:expert_vote;type:varchar(255);"`
+	Status          string `gorm:"column:status;type:varchar(255);"`
 }
 
 func (DisputeExpert) TableName() string {
@@ -125,10 +129,10 @@ func (DisputeExpert) TableName() string {
 }
 
 type File struct {
-	ID       *uint      `gorm:"primaryKey;column:id;type:serial;autoIncrement:true"`
-	FileName string    `gorm:"column:file_name;type:varchar(255);not null"`
-	Uploaded time.Time `gorm:"column:uploaded;type:timestamp;default:CURRENT_TIMESTAMP"`
-	FilePath string    `gorm:"column:file_path;type:varchar(255);not null"`
+	ID       *uint     `json:"id" gorm:"primaryKey;column:id;type:serial;autoIncrement:true"`
+	FileName string    `json:"label" gorm:"column:file_name;type:varchar(255);not null"`
+	Uploaded time.Time `json:"date_submitted" gorm:"column:uploaded;type:timestamp;default:CURRENT_TIMESTAMP"`
+	FilePath string    `json:"url" gorm:"column:file_path;type:varchar(255);not null"`
 }
 
 func (File) TableName() string {
@@ -138,6 +142,8 @@ func (File) TableName() string {
 type DisputeEvidence struct {
 	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
 	FileID  int64 `gorm:"primaryKey;column:file_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:FileID;references:id"`
+	UserID  int64 `gorm:"primaryKey;column:user_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+
 }
 
 func (DisputeEvidence) TableName() string {

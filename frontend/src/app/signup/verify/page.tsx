@@ -1,24 +1,23 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Form, FormField, FormMessage, FormSubmit } from "@/components/ui/form-server";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
   InputOTPSeparator,
 } from "@/components/ui/input-otp";
-import Link from "next/link";
+
+import { verify } from "@/lib/actions/auth";
+import { VerifyData } from "@/lib/schema/auth";
 import { useId } from "react";
-import { VerifyButton, VerifyField, VerifyForm, VerifyMessage } from "./verify-form";
+import ResendForm from "./resend-form";
+
+const VerifyForm = Form<VerifyData>;
+const VerifyMessage = FormMessage<VerifyData>;
+const VerifyField = FormField<VerifyData>;
 
 export default function Verify() {
-  const formId = useId();
+  const pinId = useId();
 
   return (
     <main className="flex flex-col justify-center items-center h-full gap-5">
@@ -26,9 +25,9 @@ export default function Verify() {
         <CardTitle>Check your email</CardTitle>
         <CardDescription>We sent an OTP to your email address</CardDescription>
       </div>
-      <VerifyForm className="flex flex-col justify-center items-center gap-3">
-        <VerifyField name="pin" label="Pin" className="flex flex-col items-center">
-          <InputOTP maxLength={6} name="pin">
+      <VerifyForm action={verify} className="flex flex-col justify-center items-center gap-3">
+        <VerifyField id={pinId} name="pin" label="Pin" className="flex flex-col items-center">
+          <InputOTP maxLength={6} name="pin" id={pinId}>
             <InputOTPGroup>
               <InputOTPSlot index={0} />
               <InputOTPSlot index={1} />
@@ -42,9 +41,10 @@ export default function Verify() {
             </InputOTPGroup>
           </InputOTP>
         </VerifyField>
-        <VerifyButton />
+        <FormSubmit>Verify</FormSubmit>
         <VerifyMessage />
       </VerifyForm>
+      <ResendForm />
     </main>
   );
 }

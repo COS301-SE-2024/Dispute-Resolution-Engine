@@ -1,5 +1,5 @@
 services:
-  frontend:
+  frontend: # ---------------------------------------------------------Frontend
     build: ./frontend
     ports:
       - "3000:3000"
@@ -11,22 +11,33 @@ services:
       watch:
         - action: rebuild
           path: ./frontend
-  api:
+  api: # ------------------------------------------------------------------API
     build: ./api
     ports:
       - "8080:8080"
     env_file:
       - api.env
+    environment:
+      FILESTORAGE_ROOT: /app/filestorage # Root where dispute files will be stored
+      FILESTORAGE_URL: http://http://capstone-dre.dns.net.za/filestorage # Root where dispute files will be served
     depends_on:
       - "postgres"
       - "redis-cache"
     volumes:
-      - evi_files:/app/filestorage 
+      - evi_files:/app/filestorage
     develop:
       watch:
         - action: rebuild
           path: ./api
-  postgres:
+    restart: unless-stopped
+    logging:
+      driver: loki
+      options:
+        loki-url: http://loki:3100/loki/api/v1/push
+        mode: non-blocking
+        max-buffer-size: 4m
+        loki-retries: "3"
+  postgres: # ----------------------------------------------------------Postgres
     image: postgres
     ports:
       - "5432:5432"
@@ -35,13 +46,81 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
-  redis-cache:
+  redis-cache: # --------------------------------------------------------Redis
     image: redis
     ports:
       - "6379:6379"
     env_file:
       - red.env
     command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
-volumes:
+  prometheus: # ----------------------------------------------------------Prometheus
+    image: docker.io/prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    command: "--config.file=/etc/prometheus/prometheus.yml"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+  grafana: # -------------------------------------------------------------Grafana
+    image: docker.io/grafana/grafana-oss
+    container_name: grafana
+    ports:
+      - "3001:3000" # Changed Grafana's port to avoid conflict with frontend
+    volumes:
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+  cadvisor: # -----------------------------------------------------------Cadvisor
+    image: gcr.io/cadvisor/cadvisor
+    container_name: cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - 8081:8080
+    environment:
+      - allowlisted_container_labels=com.docker.swarm.service.name
+    restart: unless-stopped
+  loki: # ---------------------------------------------------------------Loki
+    image: grafana/loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    configs:
+      - source: loki-config
+        target: /etc/loki/loki-config.yaml
+    user: root
+  promtail: # -----------------------------------------------------------Promtail
+    image: grafana/promtail
+    volumes:
+      - /var/log:/var/log
+      - /var/lib/docker/containers:/var/lib/docker/containers
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yaml
+    configs:
+      - source: promtail-config
+        target: /etc/promtail/config.yaml
+volumes: # ---------------------------------------------------------------Volumes
   pgdata:
   evi_files:
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  loki-data:
+    driver: local
+
+configs: # ---------------------------------------------------------------Configs
+  loki-config:
+    file: ./loki-config.yaml
+  promtail-config:
+    file: ./promtail-config.yaml

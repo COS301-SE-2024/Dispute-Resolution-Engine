@@ -9,7 +9,7 @@ import { API_URL } from "../utils";
 export async function searchArchive(
   params: ArchiveSearchRequest
 ): Promise<Result<ArchiveSearchResponse>> {
-  const res = await fetch(`${API_URL}/disputes/archive/search`, {
+  const res = await fetch(`${API_URL}/archive/search`, {
     method: "POST",
     body: JSON.stringify(params),
   });
@@ -18,7 +18,7 @@ export async function searchArchive(
   }));
 }
 export async function fetchArchivedDispute(id: string): Promise<Result<ArchiveGetResponse>> {
-  return fetch(`${API_URL}/disputes/archive/${id}`)
+  return fetch(`${API_URL}/archive/${id}`)
     .then((res) => res.json())
     .catch((e: Error) => ({
       error: e.message,

@@ -14,6 +14,15 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
+// Retrieves an environment variable, producing an error if the variable is not found
+func GetRequiredEnv(key string) (string, error) {
+	value, found := os.LookupEnv(key)
+	if !found {
+		return "", fmt.Errorf("environment variable %s required, but not found", key)
+	}
+	return value, nil
+}
+
 func (a *Argon2idHash) HashPassword(password string) *HashSalt {
 	salt, err := RandomSalt(16)
 	if err != nil {
@@ -84,8 +93,8 @@ func (a *Argon2idHash) Compare(hash, salt, password []byte) bool {
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(v)
 }

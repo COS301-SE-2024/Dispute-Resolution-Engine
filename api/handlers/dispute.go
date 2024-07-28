@@ -447,14 +447,27 @@ func (h Dispute) rejectExpert(c *gin.Context) {
 
 	if err := h.DB.Create(&expertObjection).Error; err != nil {
 		logger.WithError(err).Error("Error creating expert objection")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating expert objection"})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error filing objection"})
 		return
 	}
 
 	//update dispute experts table
-	
+	var disputeExpert models.DisputeExpert
+	err = h.DB.Where("dispute = ? AND user = ?", disputeId, req.ExpertID).First(&disputeExpert).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute expert")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error filing objection"})
+		return
+	}
+
+	disputeExpert.Status = models.ReviewStatus
+	if err := h.DB.Save(&disputeExpert).Error; err != nil {
+		logger.WithError(err).Error("Error updating dispute expert")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error filing objection"})
+		return
+	}
 
 	logger.Info("Expert rejected suggestion")
-	c.JSON(http.StatusOK, models.Response{Data: "Success"})
+	c.JSON(http.StatusOK, models.Response{Data: "objection filed successfully"})
 
 }

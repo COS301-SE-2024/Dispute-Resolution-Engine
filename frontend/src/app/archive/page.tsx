@@ -49,12 +49,21 @@ export default async function Archive() {
         <p className="dark:text-white/50">Explore our previously handled cases</p>
       </header>
       <main className="w-2/3">
-        <form action="/archive/search">
+        <form action="/archive/search" className="flex flex-col items-center gap-2">
           <Input
             name="q"
             className="rounded-full dark:bg-dre-bg-light/5 px-8 py-6 border-none"
             placeholder="Search the Archive..."
           />
+          <div className="flex gap-2">
+            <Button type="submit">Search</Button>
+            <Button asChild>
+              <Link href="/archive/browse">
+                <ExternalLink size="1rem" className="mr-2" />
+                Browse
+              </Link>
+            </Button>
+          </div>
         </form>
       </main>
       <footer>

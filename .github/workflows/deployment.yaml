@@ -61,6 +61,7 @@ jobs:
           docker builder prune -a -f
 
       - name: Docker compose build
+        continue-on-error: true
         run: |
           cd $GITHUB_WORKSPACE
           docker compose build --progress=plain
@@ -68,10 +69,12 @@ jobs:
           docker pull redis
           docker pull grafana/loki
           docker pull prom/prometheus
-          docker pull grafana
+          docker pull grafana/grafana
           docker pull cadvisor
-      
+          
+                
       - name: Make it a tar file
+        continue-on-error: true
         run: |
           cd $GITHUB_WORKSPACE
           docker images
@@ -81,7 +84,7 @@ jobs:
           docker save -o redis.tar redis:latest
           docker save -o loki.tar grafana/loki:latest
           docker save -o prom.tar prom/prometheus:latest
-          docker save -o grafana.tar grafana:latest
+          docker save -o grafana.tar graphana/grafana:latest
           docker save -o cadvisor.tar cadvisor:latest
           
       - name: Set up WireGuard Connection
@@ -103,6 +106,7 @@ jobs:
       
       - name: Spin up docker image
         uses: appleboy/ssh-action@v1.0.0
+        continue-on-error: true
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}

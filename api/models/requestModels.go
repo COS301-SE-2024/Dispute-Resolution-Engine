@@ -124,6 +124,12 @@ type ExpertRejectRequest struct {
 	Reason   string `json:"reason"`
 }
 
+
+type RejectExpertReview struct {
+	ExpertID int64 `json:"expert_id"`
+	Accepted  bool  `json:"accepted"`
+}
+
 type DisputeStatusChange struct {
 	DisputeID int64  `json:"dispute_id"`
 	Status    string `json:"status"`

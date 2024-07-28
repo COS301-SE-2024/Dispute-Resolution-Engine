@@ -27,7 +27,7 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/create", h.createDispute)
 	g.GET("/:id", h.getDispute)
 
-	g.POST("/:id/experts/reject", h.rejectExpert)
+	g.POST("/:id/experts/reject", h.expertObjection)
 	g.POST("/:id/evidence", h.uploadEvidence)
 	g.PUT("/dispute/status", h.updateStatus)
 
@@ -411,7 +411,7 @@ func (h Dispute) patchDispute(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute Patch Endpoint for ID: " + id})
 }
 
-func (h Dispute) rejectExpert(c *gin.Context) {
+func (h Dispute) expertObjection(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	//get dispute id
@@ -469,5 +469,54 @@ func (h Dispute) rejectExpert(c *gin.Context) {
 
 	logger.Info("Expert rejected suggestion")
 	c.JSON(http.StatusOK, models.Response{Data: "objection filed successfully"})
+}
+
+func (h Dispute) expertObjectionsReview(c *gin.Context ) {
+	logger := utilities.NewLogger().LogWithCaller()
+	
+	//get dispute id
+	disputeId := c.Param("id")
+	disputeIdInt, err := strconv.Atoi(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Cannot convert dispute ID to integer")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+
+	//get info from token
+	claims := middleware.GetClaims(c)
+	if claims == nil {
+		logger.WithError(err).Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
+	//get body of post
+	var req models.RejectExpertReview
+	if err := c.BindJSON(&req); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Request failed"})
+		return
+	}
+
+	//get expert objections
+	var expertObjections []models.ExpertObjection
+	err = h.DB.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeIdInt, req.ExpertID, models.ReviewStatus).First(&expertObjections).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving expert objections")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating expert objections"})
+		return
+	}
+
+	var disputeExpert models.DisputeExpert
+	err = h.DB.Where("dispute = ? AND user = ? AND status = ?", disputeId, req.ExpertID, models.ReviewStatus).First(&disputeExpert).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute expert")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating expert objections"})
+		return
+	}
+	
+	//update expert objections
+
 
 }

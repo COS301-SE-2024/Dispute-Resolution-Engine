@@ -141,7 +141,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 		disputeEvidence := models.DisputeEvidence{
 			Dispute: int64(disputeId),
 			FileID:  int64(id),
-			UserID: claims.User.ID,
+			UserID:  claims.User.ID,
 		}
 
 		if err := h.DB.Create(&disputeEvidence).Error; err != nil {
@@ -314,9 +314,9 @@ func (h Dispute) createDispute(c *gin.Context) {
 			logger.Error("Invalid full name")
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid full name"})
 			return
-		}else {
+		} else {
 			logger.WithError(err).Error("Error retrieving respondent")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})	
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
 			return
 		}
 
@@ -427,6 +427,7 @@ func (h Dispute) expertObjection(c *gin.Context) {
 	//get info from body of post
 	var req models.ExpertRejectRequest
 	if err := c.BindJSON(&req); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
@@ -434,27 +435,14 @@ func (h Dispute) expertObjection(c *gin.Context) {
 	//get user properties from token
 	claims := middleware.GetClaims(c)
 	if claims == nil {
+		logger.Error("Unauthorized access attempt in function expertObjection")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
-		return
-	}
-
-	//add entry to expert objections table
-	expertObjection := models.ExpertObjection{
-		DisputeID: int64(disputeIdInt),
-		ExpertID:  req.ExpertID,
-		UserID:   claims.User.ID,
-		Reason:    req.Reason,
-	}
-
-	if err := h.DB.Create(&expertObjection).Error; err != nil {
-		logger.WithError(err).Error("Error creating expert objection")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error filing objection"})
 		return
 	}
 
 	//update dispute experts table
 	var disputeExpert models.DisputeExpert
-	err = h.DB.Where("dispute = ? AND user = ?", disputeId, req.ExpertID).First(&disputeExpert).Error
+	err = h.DB.Where("dispute = ? AND dispute_experts.user = ?", int64(disputeIdInt), req.ExpertID).First(&disputeExpert).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute expert")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error filing objection"})
@@ -468,13 +456,27 @@ func (h Dispute) expertObjection(c *gin.Context) {
 		return
 	}
 
+	//add entry to expert objections table
+	expertObjection := models.ExpertObjection{
+		DisputeID: int64(disputeIdInt),
+		ExpertID:  req.ExpertID,
+		UserID:    claims.User.ID,
+		Reason:    req.Reason,
+	}
+
+	if err := h.DB.Create(&expertObjection).Error; err != nil {
+		logger.WithError(err).Error("Error creating expert objection")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error filing objection"})
+		return
+	}
+
 	logger.Info("Expert rejected suggestion")
 	c.JSON(http.StatusOK, models.Response{Data: "objection filed successfully"})
 }
 
-func (h Dispute) expertObjectionsReview(c *gin.Context ) {
+func (h Dispute) expertObjectionsReview(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	
+
 	//get dispute id
 	disputeId := c.Param("id")
 	disputeIdInt, err := strconv.Atoi(disputeId)
@@ -516,7 +518,7 @@ func (h Dispute) expertObjectionsReview(c *gin.Context ) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating expert objections"})
 		return
 	}
-	
+
 	//update expert objections
 	if req.Accepted {
 		expertObjections.Status = models.Sustained

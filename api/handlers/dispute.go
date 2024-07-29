@@ -141,7 +141,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 		disputeEvidence := models.DisputeEvidence{
 			Dispute: int64(disputeId),
 			FileID:  int64(id),
-			UserID: claims.User.ID,
+			UserID:  claims.User.ID,
 		}
 
 		if err := h.DB.Create(&disputeEvidence).Error; err != nil {
@@ -314,9 +314,9 @@ func (h Dispute) createDispute(c *gin.Context) {
 			logger.Error("Invalid full name")
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid full name"})
 			return
-		}else {
+		} else {
 			logger.WithError(err).Error("Error retrieving respondent")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})	
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
 			return
 		}
 
@@ -393,6 +393,7 @@ func (h Dispute) updateStatus(c *gin.Context) {
 	dbDispute.Status = disputeStatus.Status
 
 	h.DB.Model(&dbDispute).Where("id = ?", dbDispute.ID).Updates(dbDispute)
+	go h.StateChangeNotifications(c, disputeStatus.DisputeID, disputeStatus.Status)
 	logger.Info("Dispute status updated successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute status update successful"})
 }

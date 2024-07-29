@@ -77,7 +77,7 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 	c.JSON(http.StatusOK, models.Response{Error: "Email notifications sent successfully"})
 }*/
 
-func (h Handler) StateChangeNotifications(c *gin.Context, disputeID string, disputeStatus string) {
+func (h Handler) StateChangeNotifications(c *gin.Context, disputeID int64, disputeStatus string) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var dbDispute models.Dispute

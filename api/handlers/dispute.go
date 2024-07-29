@@ -512,7 +512,7 @@ func (h Dispute) expertObjectionsReview(c *gin.Context) {
 	}
 
 	var disputeExpert models.DisputeExpert
-	err = h.DB.Where("dispute = ? AND user = ? AND status = ?", disputeId, req.ExpertID, models.ReviewStatus).First(&disputeExpert).Error
+	err = h.DB.Where("dispute = ? AND dispute_experts.user = ? AND status = ?", disputeId, req.ExpertID, models.ReviewStatus).First(&disputeExpert).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute expert")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating expert objections"})

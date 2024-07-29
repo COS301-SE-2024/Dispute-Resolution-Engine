@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	"api/env"
 	"api/models"
 	"api/utilities"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,8 +21,14 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 
 	var respondentEmail = resEmail
 
+	companyEmail, err := env.Get("COMPANY_EMAIL")
+	if err != nil {
+		utilities.InternalError(c)
+		return
+	}
+
 	email := models.Email{
-		From:    os.Getenv("COMPANY_EMAIL"),
+		From:    companyEmail,
 		To:      respondentEmail,
 		Subject: "Notification of formal dispute",
 		Body:    "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system. Please login to your DRE account and review it, if you do not have an account you may create one.",
@@ -51,14 +57,14 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 	var complainantEmail = dbComplainant.Email
 
 	email1 := models.Email{
-		From:    os.Getenv("COMPANY_EMAIL"),
+		From:    env.Get("COMPANY_EMAIL"),
 		To:      respondentEmail,
 		Subject: "Formal Dispute Accepted",
 		Body:    "Dear users,\n A dispute has been accepted from both parties and will now commence, please stay active on DRE to always be up to date.",
 	}
 
 	email2 := models.Email{
-		From:    os.Getenv("COMPANY_EMAIL"),
+		From:    env.Get("COMPANY_EMAIL"),
 		To:      complainantEmail,
 		Subject: "Formal Dispute Accepted",
 		Body:    "Dear users,\n A dispute has been accepted from both parties and will now commence, please stay active on DRE to always be up to date.",
@@ -76,39 +82,3 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 	logger.Info("Email notifications sent successfully")
 	c.JSON(http.StatusOK, models.Response{Error: "Email notifications sent successfully"})
 }*/
-
-func (h Handler) StateChangeNotifications(c *gin.Context, disputeID int64, disputeStatus string) {
-	logger := utilities.NewLogger().LogWithCaller()
-
-	var dbDispute models.Dispute
-	h.DB.Where("id = ?", disputeID).First(&dbDispute)
-
-	var respondent models.User
-	var complainant models.User
-	err := h.DB.Where("id = ?", dbDispute.Respondant).First(&respondent)
-	if err != nil {
-		logger.WithError(err.Error).Error("Failed to get the respondent details")
-		return
-	}
-	err = h.DB.Where("id = ?", dbDispute.Complainant).First(&complainant)
-	if err != nil {
-		logger.WithError(err.Error).Error("Failed to get the complainant details")
-		return
-	}
-	body := "Dear valued user,\n We hope this email finds you well. The status of a dispute you are involved with has changed to " + disputeStatus + ". Please visit DRE and check your emails regularly for future updates."
-	emailRespondent := models.Email{
-		From:    os.Getenv("COMPANY_EMAIL"),
-		To:      respondent.Email,
-		Subject: "Dispute Status Change",
-		Body:    body,
-	}
-	emailComplainant := models.Email{
-		From:    os.Getenv("COMPANY_EMAIL"),
-		To:      complainant.Email,
-		Subject: "Dispute Status Change",
-		Body:    body,
-	}
-	go sendMail(emailComplainant)
-	go sendMail(emailRespondent)
-	logger.Info("Emails sent out")
-}

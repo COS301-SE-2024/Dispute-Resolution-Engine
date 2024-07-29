@@ -17,6 +17,15 @@ export async function searchArchive(
     error: e.message,
   }));
 }
+
+export async function fetchArchiveHighlights(
+  limit: number
+): Promise<Result<ArchiveSearchResponse>> {
+  const res = await fetch(`${API_URL}/archive/highlights?limit=${limit}`);
+  return res.json().catch(async (e: Error) => ({
+    error: e.message,
+  }));
+}
 export async function fetchArchivedDispute(id: string): Promise<Result<ArchiveGetResponse>> {
   return fetch(`${API_URL}/archive/${id}`)
     .then((res) => res.json())

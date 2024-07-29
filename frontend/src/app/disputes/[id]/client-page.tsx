@@ -1,5 +1,6 @@
 "use client";
 
+import FileInput from "@/components/form/file-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,13 +11,6 @@ import { ChangeEvent, FormEvent, ReactNode, useState } from "react";
 
 export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
   const [files, setFiles] = useState<File[]>([]);
-  const onFilesChange = async (ev: ChangeEvent<HTMLInputElement>) => {
-    setFiles([...files, ...ev.target.files!]);
-    ev.target.value = "";
-  };
-  const removeFile = async (i: number) => {
-    setFiles(files.filter((_f, j) => i !== j));
-  };
 
   const onFilesSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -85,18 +79,10 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
         <CardHeader>
           <CardTitle>Actions</CardTitle>
         </CardHeader>
-        <CardContent asChild>
+        <CardContent>
           <form onSubmit={onFilesSubmit}>
             <input type="hidden" name="dispute_id" value={data.id} />
-            {files.map((file, i) => (
-              <div key={i}>
-                <span>{file.name}</span>
-                <Button variant="destructive" onClick={() => removeFile(i)}>
-                  Remove
-                </Button>
-              </div>
-            ))}
-            <Input type="file" placeholder="shadcn" multiple onChange={onFilesChange} />
+            <FileInput onValueChange={setFiles} />
             <Button disabled={files.length == 0} type="submit">
               Upload
             </Button>

@@ -2,11 +2,11 @@ package middleware
 
 // Add JWT-related imports
 import (
+	"api/env"
 	"api/models"
 	"api/redisDB"
 	"api/utilities"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -27,7 +27,10 @@ type Claims struct {
 // GenerateJWT generates a JWT token for the given user
 func GenerateJWT(user models.User) (string, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtSec := os.Getenv("JWT_SECRET")
+	jwtSec, err := env.Get("JWT_SECRET")
+	if err != nil {
+		return "", err
+	}
 
 	claims := &Claims{
 		Email: user.Email,
@@ -96,7 +99,14 @@ func JWTMiddleware(c *gin.Context) {
 	}
 
 	// Get JWT secret key
-	jwtSecretKey := []byte(os.Getenv("JWT_SECRET"))
+	var jwtSecretKey []byte
+	{
+		secret, err := env.Get("JWT_SECRET")
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
+		}
+		jwtSecretKey = []byte(secret)
+	}
 
 	// Parse token
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -135,7 +145,14 @@ func JWTMiddleware(c *gin.Context) {
 func GetClaims(c *gin.Context) *Claims {
 	logger := utilities.NewLogger().LogWithCaller()
 
-	secret := []byte(os.Getenv("JWT_SECRET"))
+	var secret []byte
+	{
+		s, err := env.Get("JWT_SECRET")
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
+		}
+		secret = []byte(s)
+	}
 
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {

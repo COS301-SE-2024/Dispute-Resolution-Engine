@@ -82,3 +82,44 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 	logger.Info("Email notifications sent successfully")
 	c.JSON(http.StatusOK, models.Response{Error: "Email notifications sent successfully"})
 }*/
+
+func (h Handler) StateChangeNotifications(c *gin.Context, disputeID int64, disputeStatus string) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	var dbDispute models.Dispute
+	h.DB.Where("id = ?", disputeID).First(&dbDispute)
+
+	var respondent models.User
+	var complainant models.User
+	err := h.DB.Where("id = ?", dbDispute.Respondant).First(&respondent)
+	if err != nil {
+		logger.WithError(err.Error).Error("Failed to get the respondent details")
+		return
+	}
+	err = h.DB.Where("id = ?", dbDispute.Complainant).First(&complainant)
+	if err != nil {
+		logger.WithError(err.Error).Error("Failed to get the complainant details")
+		return
+	}
+	body := "Dear valued user,\n We hope this email finds you well. The status of a dispute you are involved with has changed to " + disputeStatus + ". Please visit DRE and check your emails regularly for future updates."
+	companyEmail, err2 := env.Get("COMPANY_EMAIL")
+	if err2 != nil {
+		utilities.InternalError(c)
+		return
+	}
+	emailRespondent := models.Email{
+		From:    companyEmail,
+		To:      respondent.Email,
+		Subject: "Dispute Status Change",
+		Body:    body,
+	}
+	emailComplainant := models.Email{
+		From:    companyEmail,
+		To:      complainant.Email,
+		Subject: "Dispute Status Change",
+		Body:    body,
+	}
+	go sendMail(emailComplainant)
+	go sendMail(emailRespondent)
+	logger.Info("Emails sent out")
+}

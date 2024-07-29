@@ -403,6 +403,7 @@ func (h Dispute) updateStatus(c *gin.Context) {
 	dbDispute.Status = disputeStatus.Status
 
 	h.DB.Model(&dbDispute).Where("id = ?", dbDispute.ID).Updates(dbDispute)
+	go h.StateChangeNotifications(c, disputeStatus.DisputeID, disputeStatus.Status)
 	logger.Info("Dispute status updated successfully")
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute status update successful"})
 }

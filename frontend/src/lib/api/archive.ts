@@ -21,7 +21,7 @@ export async function searchArchive(
 export async function fetchArchiveHighlights(
   limit: number
 ): Promise<Result<ArchiveSearchResponse>> {
-  const res = await fetch(`${API_URL}/archive/highlights?limit=${limit}`);
+  const res = await fetch(`${API_URL}/archive/highlights?limit=${limit}`, {cache: "no-store",});
   return res.json().catch(async (e: Error) => ({
     error: e.message,
   }));

@@ -16,35 +16,30 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-func (a *Argon2idHash) HashPassword(password string) *HashSalt {
-	salt, err := RandomSalt(16)
+const (
+	argonTime    = 1
+	argonSaltlen = 12288
+	argonMemory  = 4
+	argonThreads = 32
+	argonKeylen  = 16
+)
+
+// Hashes the passed-in password with a randomly generated salt
+func HashPassword(password string) (hash, salt []byte, err error) {
+	salt, err = RandomSalt(16)
 	if err != nil {
-		return nil
+		return
 	}
-	hashSalt, err := a.GenerateHash([]byte(password), salt)
-	if err != nil {
-		return nil
-	}
-	return hashSalt
+	hash = HashPasswordWithSalt(password, salt)
+	return hash, salt, err
 }
 
-type Argon2idHash struct {
-	time    uint32
-	memory  uint32
-	threads uint8
-	keylen  uint32
-	saltlen uint32
+// Hashes a password with the passed-in salt
+func HashPasswordWithSalt(password string, salt []byte) []byte {
+	return argon2.IDKey([]byte(password), salt, argonTime, argonMemory, argonThreads, argonKeylen)
 }
 
-type HashSalt struct {
-	Hash []byte
-	Salt []byte
-}
-
-func NewArgon2idHash(time, saltLen uint32, memory uint32, threads uint8, keylen uint32) *Argon2idHash {
-	return &Argon2idHash{time, memory, threads, keylen, saltLen}
-}
-
+// Generates a random salt of the specified length
 func RandomSalt(length uint32) ([]byte, error) {
 	secret := make([]byte, length)
 
@@ -56,28 +51,13 @@ func RandomSalt(length uint32) ([]byte, error) {
 	return secret, nil
 }
 
-func (a *Argon2idHash) GenerateHash(password, salt []byte) (*HashSalt, error) {
-	var err error
-	if len(salt) == 0 {
-		salt, err = RandomSalt(a.saltlen)
-	}
-	if err != nil {
-		return nil, err
-	}
-	hash := argon2.IDKey(password, salt, a.time, a.memory, a.threads, a.keylen)
-	return &HashSalt{Hash: hash, Salt: salt}, nil
-
-}
-
-func (a *Argon2idHash) Compare(hash, salt, password []byte) bool {
+func Compare(hash, salt, password []byte) bool {
 	// Generate hash for comparison.
-	hashSalt, err := a.GenerateHash(password, salt)
-	if err != nil {
-		return false
-	}
+	passHash := HashPasswordWithSalt(string(password), salt)
+
 	// Compare the generated hash with the stored hash.
 	// If they don't match return error.
-	if !bytes.Equal(hash, hashSalt.Hash) {
+	if !bytes.Equal(hash, passHash) {
 		return false
 	}
 	return true

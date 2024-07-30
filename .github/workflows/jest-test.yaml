@@ -10,7 +10,7 @@ on:
     types:
       - opened
       - reopened
-      - edit
+      - edited
       - synchronize
 jobs:
   jest-test:

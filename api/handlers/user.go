@@ -67,7 +67,6 @@ func (h User) getUser(c *gin.Context) {
 		Theme:             "dark",
 	}
 
-
 	logger.Info("User address retrieved successfully")
 	// Return the response
 	c.JSON(http.StatusOK, models.Response{Data: user})
@@ -142,7 +141,6 @@ func (h User) updateUser(c *gin.Context) {
 // @Router /user/remove [delete]
 func (h User) RemoveAccount(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
 	var user models.DeleteUser
 	if err := c.BindJSON(&user); err != nil {
@@ -166,14 +164,9 @@ func (h User) RemoveAccount(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
-	checkHash, err := hasher.GenerateHash([]byte(user.Password), realSalt)
-	if err != nil {
-		logger.WithError(err).Error("Failed to generate hash")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
-		return
-	}
 
-	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
+	checkHash := utilities.HashPasswordWithSalt(user.Password, realSalt)
+	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash) {
 		logger.Error("Invalid credentials")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
@@ -279,7 +272,7 @@ func (h *Handler) UserAnalyticsEndpoint(c *gin.Context) {
 	// Add WHERE clauses for column-value comparisons
 	if analyticsReq.ColumnvalueComparisons != nil {
 		for _, cvc := range *analyticsReq.ColumnvalueComparisons {
-			query = query.Where(cvc.Column+" LIKE ?", "%" + cvc.Value + "%")
+			query = query.Where(cvc.Column+" LIKE ?", "%"+cvc.Value+"%")
 		}
 	}
 

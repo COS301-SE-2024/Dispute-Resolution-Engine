@@ -107,3 +107,33 @@ func initUserRows() *sqlmock.Rows {
 	return rows
 }
 
+func initAddressRows() *sqlmock.Rows {
+	rows := sqlmock.NewRows([]string{
+		"id",
+		"code",
+		"country",
+		"province",
+		"city",
+		"street3",
+		"street2",
+		"street",
+		"address_type",
+		"last_updated",
+	})
+	// Add mock data here
+	for i := 1; i <= mockUserCount; i++ {
+		rows.AddRow(
+			i,
+			"ZA",
+			fmt.Sprintf("Country%d", i),
+			fmt.Sprintf("Province%d", i),
+			fmt.Sprintf("City%d", i),
+			fmt.Sprintf("Street3%d", i),
+			fmt.Sprintf("Street2%d", i),
+			fmt.Sprintf("Street%d", i),
+			"Postal",
+			"2023-01-01 00:00:00",
+		)
+	}
+	return rows
+}

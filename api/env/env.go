@@ -41,7 +41,7 @@ func RegisterDefault(key, fallback string) {
 		environment[key] = value
 	} else {
 		logger.Warningf("environment variable %s not found. Using fallback value", key)
-		environment[fallback] = value
+		environment[key] = fallback
 	}
 }
 

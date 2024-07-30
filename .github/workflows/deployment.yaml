@@ -59,7 +59,7 @@ jobs:
       - name: Tar the repo
         run: |
           cd $GITHUB_WORKSPACE
-          tar -czvf archive.tar.gz --exclude='**/node_modules' .
+          tar --ignore-failed-read -czvf archive.tar.gz --exclude='**/node_modules' .
 
       - name: Set up WireGuard Connection
         uses: niklaskeerl/easy-wireguard-action@v2

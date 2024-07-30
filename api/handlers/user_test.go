@@ -2,13 +2,15 @@ package handlers_test
 
 import (
 	"api/handlers"
-	"api/middleware"
+	// "api/middleware"
 	"api/models"
-	"api/utilities"
-	"encoding/base64"
+	// "api/utilities"
+	// "encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+	"net/http/httptest"
+	// "time"
 
 	"testing"
 
@@ -48,7 +50,7 @@ func (suite *UserTestSuite) SetupTest() {
 	handler := handlers.NewUserHandler(db)
 	gin.SetMode("release")
 	router := gin.Default()
-	router.PUT("/user/profile",handler.UpdateUser)
+	router.PUT("/user/profile", handler.UpdateUser)
 	router.GET("/user/profile", handler.GetUser)
 	router.PUT("/user/profile/address", handler.UpdateUserAddress)
 	router.DELETE("/user/remove", handler.RemoveAccount)
@@ -59,7 +61,7 @@ func (suite *UserTestSuite) SetupTest() {
 	suite.router = router
 }
 
-func initUserRows() *sqlmock.Rows {
+func initUserTestRows() *sqlmock.Rows {
 	rows := sqlmock.NewRows([]string{
 		"id",
 		"first_name",
@@ -80,8 +82,7 @@ func initUserRows() *sqlmock.Rows {
 		"timezone",
 		"salt",
 	})
-	// Add mock data here
-	// Add mock data here
+
 	for i := 1; i <= mockUserCount; i++ {
 		rows.AddRow(
 			i,
@@ -93,10 +94,10 @@ func initUserRows() *sqlmock.Rows {
 			fmt.Sprintf("user%d@example.com", i),
 			"mocked_hash",
 			fmt.Sprintf("123-456-789%d", i),
-			nil, // address_id is null
+			i,                   // address_id is null
 			"2023-01-01 00:00:00", // created_at
 			"2023-01-01 00:00:00", // updated_at
-			nil, // last_login is null
+			"2023-01-01 00:00:00", // last_login
 			"Active",
 			"Male",
 			"English",
@@ -136,4 +137,19 @@ func initAddressRows() *sqlmock.Rows {
 		)
 	}
 	return rows
+}
+
+func (suite *UserTestSuite) TestGetUser() {
+	rows := initUserTestRows()
+	suite.mock.ExpectQuery("SELECT (.+) FROM \"users\"").WillReturnRows(rows)
+
+	req, _ := http.NewRequest("GET", "/user/profile", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
+
+	var result models.Response
+	assert.NoError(suite.T(),json.Unmarshal(w.Body.Bytes(), &result))
+	assert.NotEmpty(suite.T(), result.Error)
 }

@@ -2,7 +2,7 @@ name: Deployment
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
-  # fork:
+  fork:
   pull_request:
     branches:
       - main
@@ -59,7 +59,15 @@ jobs:
       - name: Tar the repo
         run: |
           cd $GITHUB_WORKSPACE
-          tar --ignore-failed-read -czvf archive.tar.gz --exclude='**/node_modules' .
+          mkdir temp
+          rsync -a . ./temp
+          tar -cvf archive.tar -C ./temp .
+        continue-on-error: true
+      - name: Tar the repo
+        run: |
+          cd $GITHUB_WORKSPACE
+          ls
+        continue-on-error: true
 
       - name: Set up WireGuard Connection
         uses: niklaskeerl/easy-wireguard-action@v2
@@ -73,7 +81,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
-          source: "archive.tar"
+          source: "archive.tar.gz"
           target: ./
           timeout: 3m
           overwrite: true

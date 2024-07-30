@@ -29,6 +29,8 @@ An expert is an individual who can have one or more of the following roles: Medi
 
 ## What do I need to file a dispute or open a case?
 
+To file a dispute, you will need the other parties full name, email address and phone number. Evidence does not need to filed initially, but would be beneficial for more serious disputes. Once the case was submitted it will be reviewed by an administrator.
+
 ## How will I know when there is a change to a case/dispute I am involved with?
 
 The system communicates and notifies relevant parties primerily via email. Hence, all important events and status changes, that pertain to a case you are involved with, will trigger a relevant email notification to be send to the parties.
@@ -39,9 +41,9 @@ The answer is yes, all parties that participate in the dispute will need to have
 
 ## After my case/dispute moves to into a state ready for mediation/arbitration/concilation, how will relevant experts be assigned to the case?
 
-
-
 ## What happens if I am not happy with the Expert assigned to my case/dispute?
+
+Once Experts are assigned to the case, if you have a valid reason to as to why an Expert is not suited to you case, you can submit your objection and reason through the system. The administrator of your case will then review your objection and either "overrule" or "sustain" your reason.
 
 ## How many Experts will be assigned to my case/dispute?
 
@@ -49,5 +51,4 @@ The answer is yes, all parties that participate in the dispute will need to have
 
 # Found a bug or have an issue?
 Contact us directly:
-email:
-telephone:
+email: the.techtonic.team@gmail.com

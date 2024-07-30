@@ -61,7 +61,7 @@ jobs:
           cd $GITHUB_WORKSPACE
           mkdir temp
           rsync -a . ./temp
-          tar -cvf archive.tar -C ./temp .
+          tar -czvf archive.tar.gz -C ./temp .
         continue-on-error: true
       - name: Tar the repo
         run: |

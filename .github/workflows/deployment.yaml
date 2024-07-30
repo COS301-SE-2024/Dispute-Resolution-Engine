@@ -61,9 +61,9 @@ jobs:
           cd $GITHUB_WORKSPACE
           mkdir temp
           rsync -a . ./temp
-          tar -czvf archive.tar.gz -C ./temp .
+          tar -czpvf archive.tar.gz -C ./temp .
         continue-on-error: true
-      - name: Tar the repo
+      - name: Ensure Tarball exists
         run: |
           cd $GITHUB_WORKSPACE
           ls

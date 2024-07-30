@@ -12,8 +12,8 @@ import (
 )
 
 func SetupUserRoutes(g *gin.RouterGroup, h User) {
-	g.PUT("/profile", h.updateUser)
-	g.GET("/profile", h.getUser)
+	g.PUT("/profile", h.UpdateUser)
+	g.GET("/profile", h.GetUser)
 	g.PUT("/profile/address", h.UpdateUserAddress)
 	g.DELETE("/remove", h.RemoveAccount)
 	g.POST("/analytics", h.UserAnalyticsEndpoint)
@@ -26,7 +26,7 @@ func SetupUserRoutes(g *gin.RouterGroup, h User) {
 // @Produce json
 // @Success 200 {object} models.Response "User profile not available yet..."
 // @Router /user/profile [get]
-func (h User) getUser(c *gin.Context) {
+func (h User) GetUser(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	// Get the user ID from the request
 	jwtClaims := middleware.GetClaims(c)
@@ -82,7 +82,7 @@ func (h User) getUser(c *gin.Context) {
 // @Success 200 {object} models.Response "User updated successfully"
 // @Failure 400 {object} models.Response "Bad Request"
 // @Router /user/profile [put]
-func (h User) updateUser(c *gin.Context) {
+func (h User) UpdateUser(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	jwtClaims := middleware.GetClaims(c)
 

@@ -59,7 +59,7 @@ func initCountRow(count int) *sqlmock.Rows {
 	return sqlmock.NewRows([]string{"count"}).AddRow(count)
 }
 
-func initRows() *sqlmock.Rows {
+func initDisputeRows() *sqlmock.Rows {
 	rows := sqlmock.NewRows([]string{
 		"id",
 		"case_date",
@@ -111,7 +111,7 @@ func (suite *ArchiveTestSuite) TestBadRequestReturnsError() {
 }
 
 func (suite *ArchiveTestSuite) TestReturnsValidJSON() {
-	rows := initRows()
+	rows := initDisputeRows()
 	suite.mock.ExpectQuery("^SELECT count(.+) FROM \"?disputes\"?.*").WillReturnRows(initCountRow(mockDisputeCount))
 	suite.mock.ExpectQuery("^SELECT (.+) FROM \"?disputes\"?.*").WillReturnRows(rows)
 

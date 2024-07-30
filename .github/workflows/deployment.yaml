@@ -95,10 +95,11 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           # extract to a temporary folder for extration
           script: |
-            mkdir extTemp
+            rm -rf repo
             mkdir repo
             tar -xzvf archive.tar.gz -C repo
-      
+            cd repo
+
             docker compose down
             docker builder prune -a -f
             docker compose build --progress=plain

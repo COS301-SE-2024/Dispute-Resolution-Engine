@@ -461,7 +461,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		Body:    "Click here to reset your password: " + linkURL,
 	}
 	log.Println(email)
-	if err := sendMail(email); err != nil {
+	if err := SendMail(email); err != nil {
 		logger.WithError(err).Error("Error sending reset email")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending reset email"})
 		return
@@ -532,7 +532,7 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Password reset successfully"})
 }
 
-func sendMail(email models.Email) error {
+func SendMail(email models.Email) error {
 	companyEmail, err := env.Get("COMPANY_EMAIL")
 	if err != nil {
 		return err

@@ -17,31 +17,32 @@ const (
 
 func Init() (*gorm.DB, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	host, err := env.Get("DATABASE_URL")
+	envLoader := env.NewEnvLoader()
+	host, err := envLoader.Get("DATABASE_URL")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_URL")
 		return nil, err
 	}
 
-	port, err := env.Get("DATABASE_PORT")
+	port, err := envLoader.Get("DATABASE_PORT")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_PORT")
 		return nil, err
 	}
 
-	user, err := env.Get("DATABASE_USER")
+	user, err := envLoader.Get("DATABASE_USER")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_USER")
 		return nil, err
 	}
 
-	password, err := env.Get("DATABASE_PASSWORD")
+	password, err := envLoader.Get("DATABASE_PASSWORD")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_PASSWORD")
 		return nil, err
 	}
 
-	dbname, err := env.Get("DATABASE_NAME")
+	dbname, err := envLoader.Get("DATABASE_NAME")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_NAME")
 		return nil, err

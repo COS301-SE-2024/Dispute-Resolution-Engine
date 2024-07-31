@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"gorm.io/gorm"
+	"api/env"
+
 )
 
 type Handler struct {
 	DB *gorm.DB
+	EnvReader env.Env
 }
 
 type Auth struct {
@@ -33,7 +36,7 @@ type Expert struct {
 }
 
 func new(db *gorm.DB) Handler {
-	return Handler{DB: db}
+	return Handler{DB: db, EnvReader: env.NewEnvLoader()}
 }
 
 func NewAuthHandler(db *gorm.DB) Auth {

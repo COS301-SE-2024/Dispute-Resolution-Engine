@@ -14,6 +14,7 @@ import (
 
 func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail string) {
 	logger := utilities.NewLogger().LogWithCaller()
+	envReader := env.NewEnvLoader()
 
 	//get the dispute details using ID from request body
 	var dbDispute models.Dispute
@@ -21,7 +22,7 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 
 	var respondentEmail = resEmail
 
-	companyEmail, err := env.Get("COMPANY_EMAIL")
+	companyEmail, err := envReader.Get("COMPANY_EMAIL")
 	if err != nil {
 		utilities.InternalError(c)
 		return
@@ -85,6 +86,7 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 
 func (h Handler) StateChangeNotifications(c *gin.Context, disputeID int64, disputeStatus string) {
 	logger := utilities.NewLogger().LogWithCaller()
+	envLoader := env.NewEnvLoader()
 
 	var dbDispute models.Dispute
 	h.DB.Where("id = ?", disputeID).First(&dbDispute)
@@ -102,7 +104,7 @@ func (h Handler) StateChangeNotifications(c *gin.Context, disputeID int64, dispu
 		return
 	}
 	body := "Dear valued user,\n We hope this email finds you well. The status of a dispute you are involved with has changed to " + disputeStatus + ". Please visit DRE and check your emails regularly for future updates."
-	companyEmail, err2 := env.Get("COMPANY_EMAIL")
+	companyEmail, err2 := envLoader.Get("COMPANY_EMAIL")
 	if err2 != nil {
 		utilities.InternalError(c)
 		return

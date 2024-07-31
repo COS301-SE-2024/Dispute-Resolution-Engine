@@ -60,10 +60,11 @@ var requiredEnvVariables = []string{
 // @BasePath /api
 func main() {
 	logger := utilities.NewLogger().LogWithCaller()
-	env.LoadFromFile(".env", "api.env")
+	envLoader := env.NewEnvLoader()
+	envLoader.LoadFromFile(".env", "api.env")
 
 	for _, key := range requiredEnvVariables {
-		env.Register(key)
+		envLoader.Register(key)
 	}
 
 	DB, err := db.Init()
@@ -91,7 +92,7 @@ func main() {
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{"Content-Type", "Authorization"},
 	}))
-	fileStorageRoot, err := env.Get("FILESTORAGE_ROOT")
+	fileStorageRoot, err := envLoader.Get("FILESTORAGE_ROOT")
 	if err != nil {
 		return
 	}

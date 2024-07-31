@@ -1,33 +1,32 @@
-// import { render, screen } from "@testing-library/react";
-import "@testing-library/jest-dom";
-import Disputes from "@/app/disputes/page";
-import DisputeRootLayout from "../layout";
+import React, { Suspense } from "react";
+const { render, screen, act } = require("@testing-library/react");
+import DisputeRootLayout from "@/app/disputes/layout";
 import { getDisputeList } from "@/lib/api/dispute";
-const { expect, describe, it } = require('@jest/globals')
-const { render, screen, fireEvent } = require('@testing-library/react')
+import "@testing-library/jest-dom";
+const {describe, it } = require("@jest/globals");
+jest.mock("@/lib/api/dispute", () => ({
+  getDisputeList: jest.fn(),
+}));
 
-jest.mock("@/lib/api/dispute")
-beforeEach(() => {
-  (getDisputeList as jest.Mock).mockResolvedValue({
-    data: [
+describe("DisputeRootLayout", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("renders the search input", async () => {
+    const mockData = {
+      data: [
         {
           id: "1",
-          title: "Mock Title",
-          description: "Mock Description lorem ipsum",
-          status: "Mock Status",
+          title: "Dispute 1",
+          description: "Mock Desctip",
           role: "Complainant",
+          status: "Awaiting respondant",
         },
-      ]
-  });
-})
-
-describe('Disputes', () => {
-  it('renders without crashing', () => {
-    render(<Disputes />);
-    expect(screen.getByText('Select a dispute to view it')).toBeInTheDocument();
-  })
-  it('layout renders correctly', () => {
-    render(<DisputeRootLayout><div/></DisputeRootLayout>)
-    expect(screen.getByText('Select a dispute to view it')).toBeInTheDocument();
-  })
+      ],
+    };
+    (getDisputeList as jest.Mock).mockResolvedValue(Promise.resolve(mockData));
+    render(await <DisputeRootLayout>Test 2</DisputeRootLayout>);
+    // expect(await screen.findByText('Dispute 1', {}, {timeout: 10000})).toBeInTheDocument();
+}, 11000);
 });

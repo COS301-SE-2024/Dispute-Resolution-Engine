@@ -23,6 +23,8 @@ type Claims struct {
 	User models.UserInfoJWT `json:"user"`
 }
 
+type JwtMiddleware struct{}
+
 // GenerateJWT generates a JWT token
 // GenerateJWT generates a JWT token for the given user
 func GenerateJWT(user models.User) (string, error) {

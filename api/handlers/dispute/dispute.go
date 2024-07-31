@@ -1,6 +1,8 @@
 package dispute
 
 import (
+	"api/env"
+	"api/handlers/notifications"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
@@ -14,18 +16,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type Dispute struct {
+	Model DisputeModel
+	Email notifications.EmailSystem
+	Env   env.Env
+}
+
 func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	//dispute routes
 	g.Use(middleware.JWTMiddleware)
 
-	g.GET("", h.getSummaryListOfDisputes)
-	g.POST("/create", h.createDispute)
-	g.GET("/:id", h.getDispute)
+	g.GET("", h.GetSummaryListOfDisputes)
+	g.POST("/create", h.CreateDispute)
+	g.GET("/:id", h.GetDispute)
 
-	g.POST("/:id/experts/reject", h.expertObjection)
-	g.POST("/:id/experts/review-rejection", h.expertObjectionsReview)
-	g.POST("/:id/evidence", h.uploadEvidence)
-	g.PUT("/dispute/status", h.updateStatus)
+	g.POST("/:id/experts/reject", h.ExpertObjection)
+	g.POST("/:id/experts/review-rejection", h.ExpertObjectionsReview)
+	g.POST("/:id/evidence", h.UploadEvidence)
+	g.PUT("/dispute/status", h.UpdateStatus)
 
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
@@ -42,7 +50,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 // @Produce json
 // @Success 200 {object} models.Response "Dispute Summary Endpoint"
 // @Router /dispute/:id/evidence [post]
-func (h Dispute) uploadEvidence(c *gin.Context) {
+func (h Dispute) UploadEvidence(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	claims := middleware.GetClaims(c)
 	if claims == nil {
@@ -96,7 +104,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} models.Response "Dispute Summary Endpoint"
 // @Router /dispute [get]
-func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
+func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	jwtClaims := middleware.GetClaims(c)
 	userID := jwtClaims.User.ID
@@ -136,7 +144,7 @@ func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 // @Param id path string true "Dispute ID"
 // @Success 200 {object} models.Response "Dispute Detail Endpoint"
 // @Router /dispute/{id} [get]
-func (h Dispute) getDispute(c *gin.Context) {
+func (h Dispute) GetDispute(c *gin.Context) {
 
 	logger := utilities.NewLogger().LogWithCaller()
 
@@ -208,7 +216,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 	// c.JSON(http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
 }
 
-func (h Dispute) createDispute(c *gin.Context) {
+func (h Dispute) CreateDispute(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	claims := middleware.GetClaims(c)
 	if claims == nil {
@@ -302,7 +310,7 @@ func (h Dispute) createDispute(c *gin.Context) {
 	logger.Info("Dispute created successfully: ", title)
 }
 
-func (h Dispute) updateStatus(c *gin.Context) {
+func (h Dispute) UpdateStatus(c *gin.Context) {
 	var disputeStatus models.DisputeStatusChange
 	logger := utilities.NewLogger().LogWithCaller()
 	if err := c.BindJSON(&disputeStatus); err != nil {
@@ -338,7 +346,7 @@ func (h Dispute) patchDispute(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute Patch Endpoint for ID: " + id})
 }
 
-func (h Dispute) expertObjection(c *gin.Context) {
+func (h Dispute) ExpertObjection(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	//get dispute id
@@ -376,7 +384,7 @@ func (h Dispute) expertObjection(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "objection filed successfully"})
 }
 
-func (h Dispute) expertObjectionsReview(c *gin.Context) {
+func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	// Get dispute id

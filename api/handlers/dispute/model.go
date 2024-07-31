@@ -31,11 +31,6 @@ type DisputeModel interface {
 	ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error
 }
 
-type Dispute struct {
-	Model DisputeModel
-	Email notifications.EmailSystem
-}
-
 type disputeModelReal struct {
 	db *gorm.DB
 }

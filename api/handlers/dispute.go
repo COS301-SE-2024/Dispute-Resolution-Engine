@@ -27,8 +27,6 @@ type DisputeModel interface {
 	GetDisputesByUser(userId int64) ([]models.Dispute, error)
 	GetDispute(disputeId int64) (models.Dispute, error)
 
-	CreateRespondent(disputeId int64) (models.Dispute, error)
-
 	GetUserByEmail(email string) (models.User, error)
 	CreateDispute(dispute models.Dispute) (int64, error)
 	UpdateDisputeStatus(disputeId int64, status string) error
@@ -53,7 +51,7 @@ type disputeModelReal struct {
 
 func NewDisputeHandler(db gorm.DB) Dispute {
 	return Dispute{
-		Model: disputeModelReal{db: db},
+		Model: &disputeModelReal{db: db},
 	}
 }
 
@@ -144,14 +142,31 @@ func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 	jwtClaims := middleware.GetClaims(c)
 	userID := jwtClaims.User.ID
 
-	summary, err := h.Model.GetDisputesByUser(userID)
+	disputes, err := h.Model.GetDisputesByUser(userID)
 	if err != nil {
 		logger.WithError(err).Error("error retrieving disputes")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving disputes"})
 		return
 	}
+
+	summaries := make([]models.DisputeSummaryResponse, len(disputes))
+	for i, dispute := range disputes {
+		var role string = ""
+		if dispute.Complainant == userID {
+			role = "Complainant"
+		} else if *(dispute.Respondant) == userID {
+			role = "Respondant"
+		}
+		summaries[i] = models.DisputeSummaryResponse{
+			ID:          *dispute.ID,
+			Title:       dispute.Title,
+			Description: dispute.Description,
+			Status:      dispute.Status,
+			Role:        &role,
+		}
+	}
 	logger.Info("Dispute summaries retrieved successfully")
-	c.JSON(http.StatusOK, models.Response{Data: summary})
+	c.JSON(http.StatusOK, models.Response{Data: summaries})
 }
 
 // @Summary Get a dispute
@@ -391,38 +406,6 @@ func (h Dispute) expertObjection(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
-
-	/*
-			//update dispute experts table
-			var disputeExpert models.DisputeExpert
-			err = h.DB.Where("dispute = ? AND dispute_experts.user = ?", int64(disputeIdInt), req.ExpertID).First(&disputeExpert).Error
-			if err != nil {
-				logger.WithError(err).Error("Error retrieving dispute expert")
-				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error filing objection"})
-				return
-			}
-
-			disputeExpert.Status = models.ReviewStatus
-			if err := h.DB.Save(&disputeExpert).Error; err != nil {
-				logger.WithError(err).Error("Error updating dispute expert")
-				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error filing objection"})
-				return
-			}
-
-		//add entry to expert objections table
-		expertObjection := models.ExpertObjection{
-			DisputeID: int64(disputeIdInt),
-			ExpertID:  req.ExpertID,
-			UserID:    claims.User.ID,
-			Reason:    req.Reason,
-		}
-
-		if err := h.DB.Create(&expertObjection).Error; err != nil {
-			logger.WithError(err).Error("Error creating expert objection")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error filing objection"})
-			return
-		}
-	*/
 	err = h.Model.ObjectExpert(claims.User.ID, int64(disputeIdInt), req.ExpertID, req.Reason)
 	if err != nil {
 		logger.Error("Unauthorized access attempt in function expertObjection")
@@ -462,78 +445,6 @@ func (h Dispute) expertObjectionsReview(c *gin.Context) {
 		return
 	}
 
-	// Get expert objections
-	/*
-		var expertObjections []models.ExpertObjection
-		err = h.DB.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeIdInt, req.ExpertID, models.ReviewStatus).Find(&expertObjections).Error
-		if err != nil {
-			logger.WithError(err).Error("Error retrieving expert objections")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating expert objections"})
-			return
-		}
-
-		var disputeExpert models.DisputeExpert
-		err = h.DB.Where("dispute = ? AND dispute_experts.user = ? AND status = ?", disputeId, req.ExpertID, models.ReviewStatus).First(&disputeExpert).Error
-		if err != nil {
-			logger.WithError(err).Error("Error retrieving dispute expert")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating expert objections"})
-			return
-		}
-
-		// Start a transaction
-		tx := h.DB.Begin()
-		if tx.Error != nil {
-			logger.WithError(tx.Error).Error("Error starting transaction")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error starting transaction"})
-			return
-		}
-
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-				logger.Error("Recovered in deferred function, rolled back transaction")
-				c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal server error"})
-			}
-		}()
-
-		// Update expert objections
-		if req.Accepted {
-			for i := range expertObjections {
-				expertObjections[i].Status = models.Sustained
-			}
-			disputeExpert.Status = models.RejectedStatus
-		} else {
-			for i := range expertObjections {
-				expertObjections[i].Status = models.Overruled
-			}
-			disputeExpert.Status = models.ApprovedStatus
-		}
-
-		// Save the expert objections
-		for _, objection := range expertObjections {
-			if err := tx.Save(&objection).Error; err != nil {
-				tx.Rollback()
-				logger.WithError(err).Error("Error updating expert objections")
-				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating expert objections"})
-				return
-			}
-		}
-
-		// Save the dispute expert
-		if err := tx.Save(&disputeExpert).Error; err != nil {
-			tx.Rollback()
-			logger.WithError(err).Error("Error updating dispute expert")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating expert objections"})
-			return
-		}
-
-		// Commit the transaction
-		if err := tx.Commit().Error; err != nil {
-			logger.WithError(err).Error("Error committing transaction")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error committing transaction"})
-			return
-		}
-	*/
 	err = h.Model.ReviewExpertObjection(claims.User.ID, int64(disputeIdInt), req.ExpertID, req.Accepted)
 	if err != nil {
 		logger.WithError(err).Error("failed to review objection")
@@ -664,4 +575,104 @@ func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.
 		experts = []models.Expert{}
 	}
 	return experts, err
+}
+
+func (m *disputeModelReal) GetDisputesByUser(userId int64) (disputes []models.Dispute, err error) {
+	err = m.db.Where("complainant = ? OR respondant = ?", userId, userId).Find(&disputes).Error
+	return disputes, err
+}
+
+func (m *disputeModelReal) GetUserByEmail(email string) (user models.User, err error) {
+	err = m.db.Where("email = ?", email).First(&user).Error
+	return user, err
+}
+func (m *disputeModelReal) CreateDispute(dispute models.Dispute) (id int64, err error) {
+	disputeCloned := dispute
+	err = m.db.Create(&disputeCloned).Error
+	return *disputeCloned.ID, nil
+}
+func (m *disputeModelReal) UpdateDisputeStatus(disputeId int64, status string) error {
+	return m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).Update("status", status).Error
+}
+func (m *disputeModelReal) ObjectExpert(userId, disputeId, expertId int64, reason string) error {
+	//update dispute experts table
+	var disputeExpert models.DisputeExpert
+	if err := m.db.Where("dispute = ? AND dispute_experts.user = ?", disputeId, expertId).First(&disputeExpert).Error; err != nil {
+		return err
+	}
+
+	disputeExpert.Status = models.ReviewStatus
+	if err := m.db.Save(&disputeExpert).Error; err != nil {
+		return err
+	}
+
+	//add entry to expert objections table
+	expertObjection := models.ExpertObjection{
+		DisputeID: disputeId,
+		ExpertID:  expertId,
+		UserID:    userId,
+		Reason:    reason,
+	}
+
+	if err := m.db.Create(&expertObjection).Error; err != nil {
+		return err
+	}
+	return nil
+}
+func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error {
+
+	var expertObjections []models.ExpertObjection
+	if err := m.db.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeId, expertId, models.ReviewStatus).Find(&expertObjections).Error; err != nil {
+		return err
+	}
+
+	var disputeExpert models.DisputeExpert
+	if err := m.db.Where("dispute = ? AND dispute_experts.user = ? AND status = ?", disputeId, expertId, models.ReviewStatus).First(&disputeExpert).Error; err != nil {
+		return nil
+	}
+
+	// Start a transaction
+	tx := m.db.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Update expert objections
+	if approved {
+		for i := range expertObjections {
+			expertObjections[i].Status = models.Sustained
+		}
+		disputeExpert.Status = models.RejectedStatus
+	} else {
+		for i := range expertObjections {
+			expertObjections[i].Status = models.Overruled
+		}
+		disputeExpert.Status = models.ApprovedStatus
+	}
+
+	// Save the expert objections
+	for _, objection := range expertObjections {
+		if err := tx.Save(&objection).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// Save the dispute expert
+	if err := tx.Save(&disputeExpert).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Commit the transaction
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+	return nil
 }

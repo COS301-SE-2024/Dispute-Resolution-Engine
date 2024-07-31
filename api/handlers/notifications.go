@@ -34,7 +34,7 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 		Body:    "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system. Please login to your DRE account and review it, if you do not have an account you may create one.",
 	}
 
-	go sendMail(email)
+	go SendMail(email)
 	logger.Info("Admin email notification sent successfully")
 }
 
@@ -70,12 +70,12 @@ func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail
 		Body:    "Dear users,\n A dispute has been accepted from both parties and will now commence, please stay active on DRE to always be up to date.",
 	}
 
-	if err := sendMail(email1); err != nil {
+	if err := SendMail(email1); err != nil {
 		logger.WithError(err).Error("Failed to send respondent email")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal server error notifying"})
 	}
 
-	if err := sendMail(email2); err != nil {
+	if err := SendMail(email2); err != nil {
 		logger.WithError(err).Error("Failed to send complainant email")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal server error notifying"})
 	}
@@ -119,7 +119,7 @@ func (h Handler) StateChangeNotifications(c *gin.Context, disputeID int64, dispu
 		Subject: "Dispute Status Change",
 		Body:    body,
 	}
-	go sendMail(emailComplainant)
-	go sendMail(emailRespondent)
+	go SendMail(emailComplainant)
+	go SendMail(emailRespondent)
 	logger.Info("Emails sent out")
 }

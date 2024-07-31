@@ -60,6 +60,7 @@ var requiredEnvVariables = []string{
 // @host localhost:8080
 // @BasePath /api
 func main() {
+	jwt := middleware.NewJwtMiddleware()
 	logger := utilities.NewLogger().LogWithCaller()
 	envLoader := env.NewEnvLoader()
 	envLoader.LoadFromFile(".env", "api.env")
@@ -108,7 +109,7 @@ func main() {
 	handlers.SetupAuthRoutes(authGroup, authHandler)
 
 	userGroup := router.Group("/user")
-	userGroup.Use(middleware.JWTMiddleware)
+	userGroup.Use(jwt.JWTMiddleware)
 	handlers.SetupUserRoutes(userGroup, userHandler)
 
 	disputeGroup := router.Group("/disputes")

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"api/middleware"
+
 	"gorm.io/gorm"
 	"api/env"
 
@@ -9,6 +11,7 @@ import (
 type Handler struct {
 	DB *gorm.DB
 	EnvReader env.Env
+	jwt middleware.Jwt
 }
 
 type Auth struct {
@@ -32,7 +35,7 @@ type Expert struct {
 }
 
 func new(db *gorm.DB) Handler {
-	return Handler{DB: db, EnvReader: env.NewEnvLoader()}
+	return Handler{DB: db, EnvReader: env.NewEnvLoader(), jwt: middleware.NewJwtMiddleware()}
 }
 
 func NewAuthHandler(db *gorm.DB) Auth {

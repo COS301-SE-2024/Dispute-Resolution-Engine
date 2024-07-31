@@ -4,11 +4,12 @@ import (
 	"api/models"
 	"api/utilities"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
 
-type Role struct {
+type RoleMiddleware struct {
 	roles map[int][]string
 }
 
@@ -20,8 +21,18 @@ type Role struct {
 // 	inner        Handler
 // }
 
+var roleMiddleware Role
+var onceRole sync.Once
+
+func NewRole() Role {
+	onceRole.Do(func() {
+		roleMiddleware = createRole()
+	})
+	return roleMiddleware
+}
+
 // NewRole creates a new Role struct
-func NewRole() *Role {
+func createRole() Role {
 	accessLevels := map[int][]string{
 		0: {"guest"},
 		1: {"user"},
@@ -31,7 +42,7 @@ func NewRole() *Role {
 		5: {"systemAnalyst"},
 		6: {"systemAdmin"},
 	}
-	return &Role{roles: accessLevels}
+	return &RoleMiddleware{roles: accessLevels}
 }
 
 // func NewRestrictedRoleEndpoint(inner Handler, accessLevel int) *RestrictedRoleEndpoint {
@@ -42,7 +53,7 @@ func NewRole() *Role {
 // 	}
 // }
 
-func (r *Role) matchKeyToValue(value string) (int, bool) {
+func (r *RoleMiddleware) matchKeyToValue(value string) (int, bool) {
 	for key, values := range r.roles {
 		for _, v := range values {
 			if v == value {
@@ -53,12 +64,12 @@ func (r *Role) matchKeyToValue(value string) (int, bool) {
 	return -1, false
 }
 
-func RoleMiddleware(reqAuthlevel int) gin.HandlerFunc {
+func (r *RoleMiddleware) RoleMiddleware(reqAuthlevel int) gin.HandlerFunc {
 	logger := utilities.NewLogger().LogWithCaller()
-	roles := NewRole()
+	jwt := NewJwtMiddleware()
 
 	return func(c *gin.Context) {
-		claims := GetClaims(c)
+		claims := jwt.GetClaims(c)
 		if claims == nil {
 			logger.Error("No claims")
 			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -68,7 +79,7 @@ func RoleMiddleware(reqAuthlevel int) gin.HandlerFunc {
 		userRole := claims.User.Role
 
 		//check if the role is in the map
-		authLevel, ok := roles.matchKeyToValue(userRole)
+		authLevel, ok := r.matchKeyToValue(userRole)
 
 		if !ok {
 			logger.Error("Role not found")

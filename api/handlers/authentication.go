@@ -3,7 +3,6 @@ package handlers
 import (
 	"api/env"
 	"api/handlers/notifications"
-	"api/middleware"
 	"api/models"
 	"api/redisDB"
 	"api/utilities"
@@ -133,7 +132,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 	// 	return
 	// }
 
-	jwt, err := middleware.GenerateJWT(user)
+	jwt, err := h.jwt.GenerateJWT(user)
 	if err != nil {
 		logger.WithError(err).Error("Error getting user jwt.")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -217,7 +216,7 @@ func (h Auth) LoginUser(c *gin.Context) {
 	dbUser.LastLogin = utilities.GetCurrentTimePtr()
 	h.DB.Where("email = ?", user.Email).Update("last_login", utilities.GetCurrentTime())
 
-	token, err := middleware.GenerateJWT(dbUser)
+	token, err := h.jwt.GenerateJWT(dbUser)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -250,7 +249,7 @@ func (h Auth) Verify(c *gin.Context) {
 	}
 	var valid bool
 	valid = false
-	jwtClaims := middleware.GetClaims(c)
+	jwtClaims := h.jwt.GetClaims(c)
 	if jwtClaims == nil {
 		logger.Error("No claims found")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
@@ -304,7 +303,7 @@ func (h Auth) Verify(c *gin.Context) {
 	//create new jwt from the claims
 	var updatedUser models.User
 	h.DB.Where("email = ?", jwtClaims.Email).First(&updatedUser)
-	newJWT, err := middleware.GenerateJWT(updatedUser)
+	newJWT, err := h.jwt.GenerateJWT(updatedUser)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -325,7 +324,7 @@ func (h Handler) checkUserExists(email string) bool {
 
 func (h Auth) ResendOTP(c *gin.Context) {
 	pin := utilities.GenerateVerifyEmailToken()
-	jwtClaims := middleware.GetClaims(c)
+	jwtClaims := h.jwt.GetClaims(c)
 	if jwtClaims == nil {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "IDIOT"})
 		return
@@ -435,7 +434,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		Email: user.Email,
 	}
 
-	jwt, err := middleware.GenerateJWT(tempUser)
+	jwt, err := h.jwt.GenerateJWT(tempUser)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -492,7 +491,7 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing token"})
 		return
 	}
-	claims := middleware.GetClaims(c)
+	claims := h.jwt.GetClaims(c)
 	if claims == nil {
 		logger.Error("Missing token")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing token"})

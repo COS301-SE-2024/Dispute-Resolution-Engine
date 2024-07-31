@@ -27,12 +27,13 @@ func (suite *JWTTestSuite) SetupTest() {
 // TestGenerateJWT tests the GenerateJWT function
 func (suite *JWTTestSuite) TestGenerateJWTSuccess() {
 	// Create a mock user
+
 	user := models.User{
 		Email: "test@example.com",
 	}
-
+	jwtMiddleware := middleware.NewJwtMiddleware()
 	// Call the GenerateJWT function
-	token, err := middleware.GenerateJWT(user)
+	token, err := jwtMiddleware.GenerateJWT(user)
 
 	// Assert that no error is returned
 	suite.NoError(err)
@@ -47,7 +48,8 @@ func (suite *JWTTestSuite) TestGenerateJWTError() {
 	}
 
 	// Call the GenerateJWT function with an invalid user
-	token, err := middleware.GenerateJWT(user)
+	jwtMiddleware := middleware.NewJwtMiddleware()
+	token, err := jwtMiddleware.GenerateJWT(user)
 
 	// Assert that an error is returned
 	suite.Error(err)

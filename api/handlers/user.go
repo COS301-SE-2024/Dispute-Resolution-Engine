@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"api/middleware"
 	"api/models"
 	"api/utilities"
 	"encoding/base64"
@@ -29,7 +28,7 @@ func SetupUserRoutes(g *gin.RouterGroup, h User) {
 func (h User) GetUser(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	// Get the user ID from the request
-	jwtClaims := middleware.GetClaims(c)
+	jwtClaims := h.jwt.GetClaims(c)
 	if jwtClaims == nil {
 		logger.Error("Unauthorized")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -83,7 +82,7 @@ func (h User) GetUser(c *gin.Context) {
 // @Router /user/profile [put]
 func (h User) UpdateUser(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtClaims := middleware.GetClaims(c)
+	jwtClaims := h.jwt.GetClaims(c)
 
 	//get the user id from the request
 	var updateUser models.UpdateUser
@@ -190,7 +189,7 @@ func (h User) RemoveAccount(c *gin.Context) {
 
 func (h User) UpdateUserAddress(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtClaims := middleware.GetClaims(c)
+	jwtClaims := h.jwt.GetClaims(c)
 	insertAddress := false
 
 	if jwtClaims == nil {

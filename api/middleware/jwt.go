@@ -8,6 +8,7 @@ import (
 	"api/utilities"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"context"
@@ -23,9 +24,27 @@ type Claims struct {
 	User models.UserInfoJWT `json:"user"`
 }
 
+type JwtMiddleware struct{}
+
+var jwtMiddleware Jwt
+var once sync.Once
+
+func NewJwtMiddleware() Jwt {
+	once.Do(func() {
+		jwtMiddleware = createJwtMiddleware()
+	})
+	return jwtMiddleware
+}
+
+func createJwtMiddleware() Jwt {
+	return &JwtMiddleware{}
+}
+
+
+
 // GenerateJWT generates a JWT token
 // GenerateJWT generates a JWT token for the given user
-func GenerateJWT(user models.User) (string, error) {
+func (j* JwtMiddleware) GenerateJWT(user models.User) (string, error) {
 	envReader := env.NewEnvLoader()
 	logger := utilities.NewLogger().LogWithCaller()
 	jwtSec, err := envReader.Get("JWT_SECRET")
@@ -48,12 +67,12 @@ func GenerateJWT(user models.User) (string, error) {
 		return "", err
 	}
 
-	StoreJWT(user.Email, signedToken)
+	j.StoreJWT(user.Email, signedToken)
 	logger.Info("Token signed successfully")
 	return signedToken, nil
 }
 
-func StoreJWT(email string, jwt string) error {
+func (j *JwtMiddleware) StoreJWT(email string, jwt string) error {
 	logger := utilities.NewLogger().LogWithCaller()
 	err := redisDB.RDB.Set(context.Background(), email, jwt, 24*time.Hour).Err()
 	if err != nil {
@@ -64,7 +83,7 @@ func StoreJWT(email string, jwt string) error {
 	return nil
 }
 
-func GetJWT(userEmail string) (string, error) {
+func (j *JwtMiddleware) GetJWT(userEmail string) (string, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	jwt, err := redisDB.RDB.Get(context.Background(), userEmail).Result()
 	if err != nil {
@@ -75,7 +94,7 @@ func GetJWT(userEmail string) (string, error) {
 	return jwt, nil
 }
 
-func JWTMiddleware(c *gin.Context) {
+func (j *JwtMiddleware) JWTMiddleware(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	envLoader := env.NewEnvLoader()
 
@@ -125,7 +144,7 @@ func JWTMiddleware(c *gin.Context) {
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		//ctx := context.WithValue(r.Context(), "user", claims)
 		userEmail := claims.Email
-		jwtFromDB, err := GetJWT(userEmail)
+		jwtFromDB, err := j.GetJWT(userEmail)
 		if err != nil {
 			logger.WithError(err).Error("Couldn't retrieve JWT from Redis")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -145,7 +164,7 @@ func JWTMiddleware(c *gin.Context) {
 }
 
 // return claims
-func GetClaims(c *gin.Context) *Claims {
+func (j *JwtMiddleware) GetClaims(c *gin.Context) *Claims {
 	logger := utilities.NewLogger().LogWithCaller()
 	envLoader := env.NewEnvLoader()
 	var secret []byte

@@ -3,6 +3,7 @@ package dispute
 import (
 	"api/env"
 	"api/handlers/notifications"
+	"api/middleware"
 	"api/models"
 	"api/utilities"
 	"errors"
@@ -31,6 +32,11 @@ type DisputeModel interface {
 	ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error
 }
 
+type Dispute struct {
+	Model DisputeModel
+	Email notifications.EmailSystem
+	JWT   middleware.Jwt
+}
 type disputeModelReal struct {
 	db *gorm.DB
 }
@@ -39,6 +45,7 @@ func NewHandler(db *gorm.DB) Dispute {
 	return Dispute{
 		Email: notifications.NewHandler(db),
 		Model: &disputeModelReal{db: db},
+		JWT:   middleware.NewJwtMiddleware(),
 	}
 }
 

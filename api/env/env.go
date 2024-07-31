@@ -23,7 +23,7 @@ func NewEnvLoader() Env {
 	once.Do(func() {
 		envInstance = createEnvLoader()
 	})
-	return envInstance
+	return envInstance				
 }
 
 func createEnvLoader() Env {

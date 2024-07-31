@@ -144,7 +144,8 @@ func initAddressRows() *sqlmock.Rows {
 }
 
 func (suite *UserTestSuite) TestGetUser() {
-	env.RegisterDefault("JWT_SECRET", "secret")
+	envLoader := env.NewEnvLoader()
+	envLoader.RegisterDefault("JWT_SECRET", "secret")
 	rows := initUserTestRows()
 	suite.mock.ExpectQuery("SELECT (.+) FROM \"users\"").WillReturnRows(rows)
 
@@ -161,7 +162,8 @@ func (suite *UserTestSuite) TestGetUser() {
 }
 
 func (suite *UserTestSuite) TestUpdateUser() {
-	env.RegisterDefault("JWT_SECRET", "secret")
+	envLoader := env.NewEnvLoader()
+	envLoader.RegisterDefault("JWT_SECRET", "secret")
 	updatePayload := map[string]interface{}{
 		"first_name":         "NewFirstName",
 		"surname":            "NewSurname",

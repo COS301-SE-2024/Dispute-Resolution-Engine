@@ -43,11 +43,12 @@ func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
 
 // Uploads a multipart file to the file storage, returning the id of the file entry in the database
 func uploadFile(db *gorm.DB, path string, header *multipart.FileHeader) (uint, error) {
-	fileStorageRoot, err := env.Get("FILESTORAGE_ROOT")
+	envReader := env.NewEnvLoader()
+	fileStorageRoot, err := envReader.Get("FILESTORAGE_ROOT")
 	if err != nil {
 		return 0, err
 	}
-	fileStorageUrl, err := env.Get("FILESTORAGE_URL")
+	fileStorageUrl, err := envReader.Get("FILESTORAGE_URL")
 	if err != nil {
 		return 0, err
 	}

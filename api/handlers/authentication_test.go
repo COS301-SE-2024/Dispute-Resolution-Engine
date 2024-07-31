@@ -111,7 +111,8 @@ func createJSONRequest(method string, url string, req any) (*http.Request, error
 }
 
 func (suite *AuthTestSuite) TestSignupWithValidInformation() {
-	env.RegisterDefault("JWT_SECRET", "your_secret_key")
+	envReader := env.NewEnvLoader()
+	envReader.RegisterDefault("JWT_SECRET", "your_secret_key")
 	// Create the expected result for the INSERT query
 	result := sqlmock.NewResult(1, 1) // 1 is the last insert ID, 1 is the number of rows affected
 

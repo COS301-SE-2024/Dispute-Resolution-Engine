@@ -26,8 +26,9 @@ type Claims struct {
 // GenerateJWT generates a JWT token
 // GenerateJWT generates a JWT token for the given user
 func GenerateJWT(user models.User) (string, error) {
+	envReader := env.NewEnvLoader()
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtSec, err := env.Get("JWT_SECRET")
+	jwtSec, err := envReader.Get("JWT_SECRET")
 	if err != nil {
 		return "", err
 	}
@@ -76,6 +77,8 @@ func GetJWT(userEmail string) (string, error) {
 
 func JWTMiddleware(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
+	envLoader := env.NewEnvLoader()
+
 	authorizationHeader := c.GetHeader("Authorization")
 	if authorizationHeader == "" {
 		logger.Error("No Authorization header")
@@ -101,7 +104,7 @@ func JWTMiddleware(c *gin.Context) {
 	// Get JWT secret key
 	var jwtSecretKey []byte
 	{
-		secret, err := env.Get("JWT_SECRET")
+		secret, err := envLoader.Get("JWT_SECRET")
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
 		}
@@ -144,10 +147,10 @@ func JWTMiddleware(c *gin.Context) {
 // return claims
 func GetClaims(c *gin.Context) *Claims {
 	logger := utilities.NewLogger().LogWithCaller()
-
+	envLoader := env.NewEnvLoader()
 	var secret []byte
 	{
-		s, err := env.Get("JWT_SECRET")
+		s, err := envLoader.Get("JWT_SECRET")
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
 		}

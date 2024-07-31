@@ -359,6 +359,7 @@ func (h Auth) ResendOTP(c *gin.Context) {
 
 func sendOTP(userInfo string, pin string) {
 	logger := utilities.NewLogger().LogWithCaller()
+	env := env.NewEnvLoader()
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587
@@ -440,13 +441,13 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	frontendBase, err := env.Get("FRONTEND_BASE_URL")
+	frontendBase, err := h.EnvReader.Get("FRONTEND_BASE_URL")
 	if err != nil {
 		utilities.InternalError(c)
 		return
 	}
 
-	companyEmail, err := env.Get("COMPANY_EMAIL")
+	companyEmail, err := h.EnvReader.Get("COMPANY_EMAIL")
 	if err != nil {
 		utilities.InternalError(c)
 		return
@@ -533,11 +534,12 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 }
 
 func SendMail(email models.Email) error {
-	companyEmail, err := env.Get("COMPANY_EMAIL")
+	envReader := env.NewEnvLoader()
+	companyEmail, err := envReader.Get("COMPANY_EMAIL")
 	if err != nil {
 		return err
 	}
-	companyAuth, err := env.Get("COMPANY_AUTH")
+	companyAuth, err := envReader.Get("COMPANY_AUTH")
 	if err != nil {
 		return err
 	}

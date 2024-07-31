@@ -13,3 +13,8 @@ type Jwt interface {
 	JWTMiddleware(c *gin.Context)
 	GetClaims(c *gin.Context) *Claims
 }
+
+type Role interface {
+	matchKeyToValue(value string) (int, bool)
+	RoleMiddleware(reqAuthlevel int) gin.HandlerFunc
+}

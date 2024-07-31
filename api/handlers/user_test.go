@@ -1,7 +1,10 @@
 package handlers_test
 
 import (
+	"api/env"
 	"api/handlers"
+	"bytes"
+
 	// "api/middleware"
 	"api/models"
 	// "api/utilities"
@@ -10,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+
 	// "time"
 
 	"testing"
@@ -140,16 +144,41 @@ func initAddressRows() *sqlmock.Rows {
 }
 
 func (suite *UserTestSuite) TestGetUser() {
+	env.RegisterDefault("JWT_SECRET", "secret")
 	rows := initUserTestRows()
 	suite.mock.ExpectQuery("SELECT (.+) FROM \"users\"").WillReturnRows(rows)
 
 	req, _ := http.NewRequest("GET", "/user/profile", nil)
+	req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	assert.Equal(suite.T(), http.StatusOK, w.Code)
+	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
 
 	var result models.Response
 	assert.NoError(suite.T(),json.Unmarshal(w.Body.Bytes(), &result))
 	assert.NotEmpty(suite.T(), result.Error)
+}
+
+func (suite *UserTestSuite) TestUpdateUser() {
+	env.RegisterDefault("JWT_SECRET", "secret")
+	updatePayload := map[string]interface{}{
+		"first_name":         "NewFirstName",
+		"surname":            "NewSurname",
+		"phone_number":       "123-456-7891",
+		"gender":             "Male",
+		"nationality":        "NewNationality",
+		"timezone":           "UTC",
+		"preferred_language": "English",
+	}
+	payloadBytes, _ := json.Marshal(updatePayload)
+	req, _ := http.NewRequest("PUT", "/user/profile", bytes.NewBuffer(payloadBytes))
+	req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
+
+	var result models.Response
+	assert.Empty(suite.T(), result.Error)
 }

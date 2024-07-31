@@ -19,10 +19,6 @@ type User struct {
 	Handler
 }
 
-type Dispute struct {
-	Handler
-}
-
 type Utility struct {
 	Handler
 }
@@ -45,10 +41,6 @@ func NewAuthHandler(db *gorm.DB) Auth {
 
 func NewUserHandler(db *gorm.DB) User {
 	return User{new(db)}
-}
-
-func NewDisputeHandler(db *gorm.DB) Dispute {
-	return Dispute{new(db)}
 }
 
 func NewUtilitiesHandler(db *gorm.DB) Utility {

@@ -92,6 +92,11 @@ func (h User) UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
+	if jwtClaims == nil {
+		logger.Error("jwtClaims is nil")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
 
 	//retrieve the user from the database
 	var dbUser models.User

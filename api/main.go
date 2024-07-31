@@ -5,6 +5,7 @@ import (
 	_ "api/docs" // This is important to import your generated docs package
 	"api/env"
 	"api/handlers"
+	"api/handlers/dispute"
 	"api/middleware"
 	"api/redisDB"
 	"api/utilities"
@@ -81,7 +82,7 @@ func main() {
 
 	authHandler := handlers.NewAuthHandler(DB)
 	userHandler := handlers.NewUserHandler(DB)
-	disputeHandler := handlers.NewDisputeHandler(DB)
+	disputeHandler := dispute.NewHandler(DB)
 	archiveHandler := handlers.NewArchiveHandler(DB)
 	expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
@@ -111,7 +112,7 @@ func main() {
 	handlers.SetupUserRoutes(userGroup, userHandler)
 
 	disputeGroup := router.Group("/disputes")
-	handlers.SetupDisputeRoutes(disputeGroup, disputeHandler)
+	dispute.SetupRoutes(disputeGroup, disputeHandler)
 
 	archiveGroup := router.Group("/archive")
 	handlers.SetupArchiveRoutes(archiveGroup, archiveHandler)

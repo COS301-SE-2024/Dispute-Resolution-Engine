@@ -1,6 +1,7 @@
 package utilities
 
 import (
+	"api/models"
 	"bufio"
 	"bytes"
 	"encoding/json"
@@ -11,17 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/argon2"
 )
-
-// Retrieves an environment variable, producing an error if the variable is not found
-func GetRequiredEnv(key string) (string, error) {
-	value, found := os.LookupEnv(key)
-	if !found {
-		return "", fmt.Errorf("environment variable %s required, but not found", key)
-	}
-	return value, nil
-}
 
 func (a *Argon2idHash) HashPassword(password string) *HashSalt {
 	salt, err := RandomSalt(16)
@@ -191,4 +184,8 @@ func ContainsString(arr []string, target string) bool {
 		}
 	}
 	return false
+}
+
+func InternalError(c *gin.Context) {
+	c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
 }

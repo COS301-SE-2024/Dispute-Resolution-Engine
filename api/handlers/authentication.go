@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"api/env"
+	"api/middleware"
 	"api/models"
 	"api/redisDB"
 	"api/utilities"
@@ -12,7 +14,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -363,8 +364,18 @@ func sendOTP(userInfo string, pin string) {
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587
-	smtpUser := os.Getenv("COMPANY_EMAIL")
-	smtpPassword := os.Getenv("COMPANY_AUTH") // Use app password if 2-factor authentication is enabled
+
+	smtpUser, err := env.Get("COMPANY_EMAIL")
+	if err != nil {
+		// I'm sorry, this is the way it has to be
+		return
+	}
+
+	smtpPassword, err := env.Get("COMPANY_AUTH") // Use app password if 2-factor authentication is enabled
+	if err != nil {
+		// I'm sorry, this is the way it has to be
+		return
+	}
 
 	// Recipient email address
 	to := userInfo
@@ -431,10 +442,22 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		return
 	}
 
+	frontendBase, err := env.Get("FRONTEND_BASE_URL")
+	if err != nil {
+		utilities.InternalError(c)
+		return
+	}
+
+	companyEmail, err := env.Get("COMPANY_EMAIL")
+	if err != nil {
+		utilities.InternalError(c)
+		return
+	}
+
 	//send an email to the user with a temporary link to reset the password
-	linkURL := fmt.Sprintf("%s/reset-password/%s", os.Getenv("FRONTEND_BASE_URL"), jwt)
+	linkURL := fmt.Sprintf("%s/reset-password/%s", frontendBase, jwt)
 	email := models.Email{
-		From:    os.Getenv("COMPANY_EMAIL"),
+		From:    companyEmail,
 		To:      user.Email,
 		Subject: "Password Reset",
 		Body:    "Click here to reset your password: " + linkURL,
@@ -512,8 +535,17 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 }
 
 func sendMail(email models.Email) error {
+	companyEmail, err := env.Get("COMPANY_EMAIL")
+	if err != nil {
+		return err
+	}
+	companyAuth, err := env.Get("COMPANY_AUTH")
+	if err != nil {
+		return err
+	}
+
 	logger := utilities.NewLogger().LogWithCaller()
-	d := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("COMPANY_EMAIL"), os.Getenv("COMPANY_AUTH"))
+	d := gomail.NewDialer("smtp.gmail.com", 587, companyEmail, companyAuth)
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
 	m := gomail.NewMessage()

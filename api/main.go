@@ -3,31 +3,45 @@ package main
 import (
 	"api/db"
 	_ "api/docs" // This is important to import your generated docs package
+	"api/env"
 	"api/handlers"
 	"api/middleware"
 	"api/redisDB"
 	"api/utilities"
 	"net/http"
-	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// Tries to load env files. If an error occurs, it will ignore the file and log the error
-func loadEnvFile(files ...string) {
-	logger := utilities.NewLogger().LogWithCaller()
-	for _, path := range files {
-		if err := godotenv.Load(path); err != nil {
-			logger.WithError(err).Warning("Env file not found")
-		} else {
-			logger.Info("Loaded env file")
-		}
-	}
+var requiredEnvVariables = []string{
+
+	// PostGres-related variables
+	"DATABASE_URL",
+	"DATABASE_PORT",
+	"DATABASE_USER",
+	"DATABASE_PASSWORD",
+	"DATABASE_NAME",
+
+	// Redis-related variables
+	"REDIS_URL",
+	"REDIS_PASSWORD",
+	"REDIS_DB",
+
+	// Variables for file storage
+	"FILESTORAGE_ROOT",
+	"FILESTORAGE_URL",
+
+	// Variables for sending email using SMTP
+	"COMPANY_EMAIL",
+	"COMPANY_AUTH",
+
+	// Miscellaneous
+	"FRONTEND_BASE_URL",
+	"JWT_SECRET",
 }
 
 // @title Dispute Resolution Engine - v1
@@ -47,7 +61,11 @@ func loadEnvFile(files ...string) {
 func main() {
 	jwt := middleware.NewJwtMiddleware()
 	logger := utilities.NewLogger().LogWithCaller()
-	loadEnvFile(".env", "api.env")
+	env.LoadFromFile(".env", "api.env")
+
+	for _, key := range requiredEnvVariables {
+		env.Register(key)
+	}
 
 	DB, err := db.Init()
 	if err != nil {
@@ -74,7 +92,11 @@ func main() {
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{"Content-Type", "Authorization"},
 	}))
-	router.Static("/filestorage", os.Getenv("FILESTORAGE_ROOT"))
+	fileStorageRoot, err := env.Get("FILESTORAGE_ROOT")
+	if err != nil {
+		return
+	}
+	router.Static("/filestorage", fileStorageRoot)
 
 	//setup handlers
 	utilGroup := router.Group("/utils")

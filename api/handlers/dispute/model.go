@@ -37,7 +37,6 @@ type Dispute struct {
 	Email notifications.EmailSystem
 	JWT   middleware.Jwt
 }
-
 type disputeModelReal struct {
 	db *gorm.DB
 }

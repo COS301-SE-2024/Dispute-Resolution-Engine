@@ -1,8 +1,6 @@
 package dispute
 
 import (
-	"api/env"
-	"api/handlers/notifications"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
@@ -15,12 +13,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-type Dispute struct {
-	Model DisputeModel
-	Email notifications.EmailSystem
-	Env   env.Env
-}
 
 func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	//dispute routes

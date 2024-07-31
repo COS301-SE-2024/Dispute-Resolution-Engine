@@ -36,6 +36,7 @@ type Dispute struct {
 	Model DisputeModel
 	Email notifications.EmailSystem
 	JWT   middleware.Jwt
+	Env   env.Env
 }
 type disputeModelReal struct {
 	db *gorm.DB
@@ -46,6 +47,7 @@ func NewHandler(db *gorm.DB) Dispute {
 		Email: notifications.NewHandler(db),
 		Model: &disputeModelReal{db: db},
 		JWT:   middleware.NewJwtMiddleware(),
+		Env:   env.NewEnvLoader(),
 	}
 }
 

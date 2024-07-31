@@ -112,8 +112,8 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 		path := filepath.Join(folder, fileHeader.Filename)
 		file, err := fileHeader.Open()
 		if err != nil {
-			logger.WithError(err).Error("error opening file")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "error opening file"})
+			logger.WithError(err).Error("error opening multipart file")
+			utilities.InternalError(c)
 			return
 		}
 
@@ -465,6 +465,7 @@ func (m *disputeModelReal) UploadEvidence(userId, disputeId int64, path string, 
 	if err != nil {
 		return 0, err
 	}
+
 	logger := utilities.NewLogger().LogWithCaller()
 
 	name := filepath.Base(path)
@@ -499,7 +500,7 @@ func (m *disputeModelReal) UploadEvidence(userId, disputeId int64, path string, 
 		Uploaded: time.Now(),
 	}
 
-	if err := m.db.Create(&file).Error; err != nil {
+	if err := m.db.Create(&fileRow).Error; err != nil {
 		logger.WithError(err).Error("error adding file to database")
 		return 0, errors.New("error adding file to database")
 	}
@@ -519,45 +520,24 @@ func (m *disputeModelReal) UploadEvidence(userId, disputeId int64, path string, 
 	return *fileRow.ID, nil
 }
 
-func (m *disputeModelReal) GetDisputeSummaries(userId int64) ([]models.DisputeSummaryResponse, error) {
-	var disputes []models.Dispute
-	err := m.db.Where("complainant = ? OR respondant = ?", userId, userId).Find(&disputes).Error
-	if err != nil {
-		return nil, err
-	}
-
-	var summaries []models.DisputeSummaryResponse
-	for _, dispute := range disputes {
-		var role string = ""
-		if dispute.Complainant == userId {
-			role = "Complainant"
-		} else if *(dispute.Respondant) == userId {
-			role = "Respondant"
-		}
-		summary := models.DisputeSummaryResponse{
-			ID:          *dispute.ID,
-			Title:       dispute.Title,
-			Description: dispute.Description,
-			Status:      dispute.Status,
-			Role:        &role,
-		}
-		summaries = append(summaries, summary)
-	}
-	return summaries, nil
-}
-
 func (m *disputeModelReal) GetDispute(disputeId int64) (dispute models.Dispute, err error) {
+	logger := utilities.NewLogger().LogWithCaller()
 	err = m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).First(&dispute).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute")
+	}
 	return dispute, err
 }
 
 func (m *disputeModelReal) GetEvidenceByDispute(disputeId int64) (evidence []models.Evidence, err error) {
+	logger := utilities.NewLogger().LogWithCaller()
 	err = m.db.Table("dispute_evidence").Select(`files.id, file_name, uploaded, file_path,  CASE
             WHEN disputes.complainant = dispute_evidence.user_id THEN 'Complainant'
             WHEN disputes.respondant = dispute_evidence.user_id THEN 'Respondent'
             ELSE 'Other'
         END AS uploader_role`).Joins("JOIN files ON dispute_evidence.file_id = files.id").Joins("JOIN disputes ON dispute_evidence.dispute = disputes.id").Where("dispute = ?", disputeId).Find(&evidence).Error
 	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute evidence")
 		return
 	}
 	if evidence == nil {
@@ -566,8 +546,10 @@ func (m *disputeModelReal) GetEvidenceByDispute(disputeId int64) (evidence []mod
 	return evidence, err
 }
 func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.Expert, err error) {
+	logger := utilities.NewLogger().LogWithCaller()
 	err = m.db.Table("dispute_experts").Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").Joins("JOIN users ON dispute_experts.user = users.id").Where("dispute = ?", disputeId).Where("dispute_experts.status = 'Approved'").Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator'").Find(&experts).Error
 	if err != nil && err.Error() != "record not found" {
+		logger.WithError(err).Error("Error retrieving dispute experts")
 		return
 	}
 
@@ -578,31 +560,52 @@ func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.
 }
 
 func (m *disputeModelReal) GetDisputesByUser(userId int64) (disputes []models.Dispute, err error) {
+	logger := utilities.NewLogger().LogWithCaller()
 	err = m.db.Where("complainant = ? OR respondant = ?", userId, userId).Find(&disputes).Error
+	if err != nil {
+		logger.WithError(err).Errorf("Failed to find disputes of user with ID %d", userId)
+	}
 	return disputes, err
 }
 
 func (m *disputeModelReal) GetUserByEmail(email string) (user models.User, err error) {
+	logger := utilities.NewLogger().LogWithCaller()
 	err = m.db.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		logger.WithError(err).Errorf("Failed to find user with email '%s'", email)
+	}
 	return user, err
 }
-func (m *disputeModelReal) CreateDispute(dispute models.Dispute) (id int64, err error) {
+func (m *disputeModelReal) CreateDispute(dispute models.Dispute) (int64, error) {
+	logger := utilities.NewLogger().LogWithCaller()
 	disputeCloned := dispute
-	err = m.db.Create(&disputeCloned).Error
+	if err := m.db.Create(&disputeCloned).Error; err != nil {
+		logger.WithError(err).Error("Error creating dispute in database")
+		return 0, err
+	}
 	return *disputeCloned.ID, nil
 }
 func (m *disputeModelReal) UpdateDisputeStatus(disputeId int64, status string) error {
-	return m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).Update("status", status).Error
+	logger := utilities.NewLogger().LogWithCaller()
+	err := m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).Update("status", status).Error
+	if err != nil {
+		logger.WithError(err).Errorf("Failed to update dispute (ID = %d) status to '%s'", disputeId, status)
+	}
+	return err
 }
 func (m *disputeModelReal) ObjectExpert(userId, disputeId, expertId int64, reason string) error {
+	logger := utilities.NewLogger().LogWithCaller()
+
 	//update dispute experts table
 	var disputeExpert models.DisputeExpert
 	if err := m.db.Where("dispute = ? AND dispute_experts.user = ?", disputeId, expertId).First(&disputeExpert).Error; err != nil {
+		logger.WithError(err).Error("Error retrieving dispute expert")
 		return err
 	}
 
 	disputeExpert.Status = models.ReviewStatus
 	if err := m.db.Save(&disputeExpert).Error; err != nil {
+		logger.WithError(err).Error("Error updating dispute expert")
 		return err
 	}
 
@@ -615,30 +618,36 @@ func (m *disputeModelReal) ObjectExpert(userId, disputeId, expertId int64, reaso
 	}
 
 	if err := m.db.Create(&expertObjection).Error; err != nil {
+		logger.WithError(err).Error("Error creating expert objection")
 		return err
 	}
 	return nil
 }
 func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error {
+	logger := utilities.NewLogger().LogWithCaller()
 
 	var expertObjections []models.ExpertObjection
 	if err := m.db.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeId, expertId, models.ReviewStatus).Find(&expertObjections).Error; err != nil {
+		logger.WithError(err).Error("Error retrieving expert objections")
 		return err
 	}
 
 	var disputeExpert models.DisputeExpert
 	if err := m.db.Where("dispute = ? AND dispute_experts.user = ? AND status = ?", disputeId, expertId, models.ReviewStatus).First(&disputeExpert).Error; err != nil {
+		logger.WithError(err).Error("Error retrieving dispute expert")
 		return nil
 	}
 
 	// Start a transaction
 	tx := m.db.Begin()
 	if tx.Error != nil {
+		logger.WithError(tx.Error).Error("Error starting transaction")
 		return tx.Error
 	}
 
 	defer func() {
 		if r := recover(); r != nil {
+			logger.Error("Goroutine panicked, rolled back transaction")
 			tx.Rollback()
 		}
 	}()
@@ -660,6 +669,7 @@ func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int
 	for _, objection := range expertObjections {
 		if err := tx.Save(&objection).Error; err != nil {
 			tx.Rollback()
+			logger.WithError(err).Error("Error updating expert objections")
 			return err
 		}
 	}
@@ -667,11 +677,13 @@ func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int
 	// Save the dispute expert
 	if err := tx.Save(&disputeExpert).Error; err != nil {
 		tx.Rollback()
+		logger.WithError(err).Error("Error updating dispute expert")
 		return err
 	}
 
 	// Commit the transaction
 	if err := tx.Commit().Error; err != nil {
+		logger.WithError(err).Error("Error committing transaction")
 		return err
 	}
 	return nil

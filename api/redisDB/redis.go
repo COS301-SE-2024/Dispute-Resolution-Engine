@@ -1,6 +1,7 @@
 package redisDB
 
 import (
+	"api/env"
 	"api/utilities"
 	"context"
 	"strconv"
@@ -18,19 +19,19 @@ var RDB *redis.Client
 
 func InitRedis() (*redis.Client, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	host, err := utilities.GetRequiredEnv("REDIS_URL")
+	host, err := env.Get("REDIS_URL")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get REDIS_URL")
 		return nil, err
 	}
 
-	password, err := utilities.GetRequiredEnv("REDIS_PASSWORD")
+	password, err := env.Get("REDIS_PASSWORD")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get REDIS_PASSWORD")
 		return nil, err
 	}
 
-	db, err := utilities.GetRequiredEnv("REDIS_DB")
+	db, err := env.Get("REDIS_DB")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get REDIS_DB")
 		return nil, err

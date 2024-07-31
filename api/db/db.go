@@ -1,6 +1,7 @@
 package db
 
 import (
+	"api/env"
 	"api/utilities"
 	"fmt"
 	"time"
@@ -16,31 +17,31 @@ const (
 
 func Init() (*gorm.DB, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	host, err := utilities.GetRequiredEnv("DATABASE_URL")
+	host, err := env.Get("DATABASE_URL")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_URL")
 		return nil, err
 	}
 
-	port, err := utilities.GetRequiredEnv("DATABASE_PORT")
+	port, err := env.Get("DATABASE_PORT")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_PORT")
 		return nil, err
 	}
 
-	user, err := utilities.GetRequiredEnv("DATABASE_USER")
+	user, err := env.Get("DATABASE_USER")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_USER")
 		return nil, err
 	}
 
-	password, err := utilities.GetRequiredEnv("DATABASE_PASSWORD")
+	password, err := env.Get("DATABASE_PASSWORD")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_PASSWORD")
 		return nil, err
 	}
 
-	dbname, err := utilities.GetRequiredEnv("DATABASE_NAME")
+	dbname, err := env.Get("DATABASE_NAME")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_NAME")
 		return nil, err

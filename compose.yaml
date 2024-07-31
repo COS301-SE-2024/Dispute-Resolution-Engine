@@ -17,9 +17,6 @@ services:
       - "8080:8080"
     env_file:
       - api.env
-    environment:
-      FILESTORAGE_ROOT: /app/filestorage # Root where dispute files will be stored
-      FILESTORAGE_URL: http://http://capstone-dre.dns.net.za/filestorage # Root where dispute files will be served
     depends_on:
       - "postgres"
       - "redis-cache"

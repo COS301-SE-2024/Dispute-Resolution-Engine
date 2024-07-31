@@ -115,13 +115,30 @@ type Response struct {
 	Error string      `json:"error,omitempty"`
 }
 
+type ExpertVote string
+
+const (
+	Pending  ExpertVote = "Pending"
+	Approved ExpertVote = "Approved"
+	Rejected ExpertVote = "Rejected"
+)
+
+type ExpertStatus string
+
+const (
+	PendingStatus  ExpertStatus = "Pending"
+	ApprovedStatus ExpertStatus = "Approved"
+	RejectedStatus ExpertStatus = "Rejected"
+	ReviewStatus   ExpertStatus = "Review"
+)
+
 type DisputeExpert struct {
-	Dispute         int64  `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
-	User            int64  `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
-	ComplainantVote string `gorm:"column:complainant_vote;type:varchar(255);"`
-	RespondantVote  string `gorm:"column:respondant_vote;type:varchar(255);"`
-	ExpertVote      string `gorm:"column:expert_vote;type:varchar(255);"`
-	Status          string `gorm:"column:status;type:varchar(255);"`
+	Dispute         int64        `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
+	User            int64        `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+	ComplainantVote ExpertVote   `gorm:"column:complainant_vote;type:expert_vote;default:'Pending'"`
+	RespondantVote  ExpertVote   `gorm:"column:respondant_vote;type:expert_vote;default:'Pending'"`
+	ExpertVote      ExpertVote   `gorm:"column:expert_vote;type:expert_vote;default:'Pending'"`
+	Status          ExpertStatus `gorm:"column:status;type:expert_status;default:'Pending'"`
 }
 
 func (DisputeExpert) TableName() string {
@@ -148,4 +165,26 @@ type DisputeEvidence struct {
 
 func (DisputeEvidence) TableName() string {
 	return "dispute_evidence"
+}
+
+type ExpObjStatus string
+
+const (
+	Review     ExpObjStatus = "Review"
+	Sustained  ExpObjStatus = "Sustained"
+	Overruled  ExpObjStatus = "Overruled"
+)
+
+type ExpertObjection struct {
+	ID        int64        `gorm:"primaryKey;autoIncrement" json:"id"`
+	CreatedAt time.Time    `gorm:"autoCreateTime" json:"created_at"`
+	DisputeID int64        `gorm:"not null" json:"dispute_id"`
+	ExpertID  int64        `gorm:"not null" json:"expert_id"`
+	UserID    int64        `gorm:"not null" json:"user_id"`
+	Reason    string       `gorm:"type:text" json:"reason"`
+	Status    ExpObjStatus `gorm:"type:exp_obj_status;default:'Review'" json:"status"`
+}
+
+func (ExpertObjection) TableName() string {
+	return "expert_objections"
 }

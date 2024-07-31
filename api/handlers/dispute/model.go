@@ -46,6 +46,7 @@ func NewHandler(db *gorm.DB) Dispute {
 }
 
 func (m *disputeModelReal) UploadEvidence(userId, disputeId int64, path string, file io.Reader) (uint, error) {
+	env := env.NewEnvLoader()
 	fileStorageRoot, err := env.Get("FILESTORAGE_ROOT")
 	if err != nil {
 		return 0, err

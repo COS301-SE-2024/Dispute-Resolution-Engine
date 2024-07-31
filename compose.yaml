@@ -34,6 +34,14 @@ services:
         mode: non-blocking
         max-buffer-size: 4m
         loki-retries: "3"
+  orchestrator: # ---------------------------------------------------Orchestrator
+    build: ./orchestrator
+    ports:
+      - "8090:8090"
+    env_file:
+      - api.env
+    depends_on:
+      - "postgres"
   postgres: # ----------------------------------------------------------Postgres
     image: postgres
     ports:

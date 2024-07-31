@@ -2,6 +2,7 @@ package dispute
 
 import (
 	"api/env"
+	"api/handlers/notifications"
 	"api/models"
 	"api/utilities"
 	"errors"
@@ -32,7 +33,7 @@ type DisputeModel interface {
 
 type Dispute struct {
 	Model DisputeModel
-	Email EmailSystem
+	Email notifications.EmailSystem
 }
 
 type disputeModelReal struct {
@@ -41,6 +42,7 @@ type disputeModelReal struct {
 
 func NewHandler(db *gorm.DB) Dispute {
 	return Dispute{
+		Email: notifications.NewHandler(db),
 		Model: &disputeModelReal{db: db},
 	}
 }

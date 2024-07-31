@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"api/env"
+	"api/handlers/notifications"
 	"api/middleware"
 	"api/models"
 	"api/redisDB"
@@ -462,7 +463,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		Body:    "Click here to reset your password: " + linkURL,
 	}
 	log.Println(email)
-	if err := SendMail(email); err != nil {
+	if err := notifications.SendMail(email); err != nil {
 		logger.WithError(err).Error("Error sending reset email")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending reset email"})
 		return
@@ -531,35 +532,6 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 	})
 
 	c.JSON(http.StatusOK, models.Response{Data: "Password reset successfully"})
-}
-
-func SendMail(email models.Email) error {
-	envReader := env.NewEnvLoader()
-	companyEmail, err := envReader.Get("COMPANY_EMAIL")
-	if err != nil {
-		return err
-	}
-	companyAuth, err := envReader.Get("COMPANY_AUTH")
-	if err != nil {
-		return err
-	}
-
-	logger := utilities.NewLogger().LogWithCaller()
-	d := gomail.NewDialer("smtp.gmail.com", 587, companyEmail, companyAuth)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-	m := gomail.NewMessage()
-	m.SetHeader("From", email.From)
-	m.SetHeader("To", email.To)
-	m.SetHeader("Subject", email.Subject)
-	m.SetBody("text/html", email.Body)
-	logger.WithField("email", email).Info("Sending email")
-
-	if err := d.DialAndSend(m); err != nil {
-		logger.WithError(err).Error("Error sending email")
-		return err
-	}
-	return nil
 }
 
 func hashPassword(newPassword string, user *models.User) (string, error) {

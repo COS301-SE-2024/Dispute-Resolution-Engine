@@ -14,11 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type EmailSystem interface {
-	SendAdminEmail(c *gin.Context, disputeID int64, resEmail string)
-	NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string)
-}
-
 func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	//dispute routes
 	g.Use(middleware.JWTMiddleware)

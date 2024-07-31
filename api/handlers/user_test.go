@@ -182,3 +182,22 @@ func (suite *UserTestSuite) TestUpdateUser() {
 	var result models.Response
 	assert.Empty(suite.T(), result.Error)
 }
+
+func (suite *UserTestSuite) TestUpdateUserAddress() {
+	env.RegisterDefault("JWT_SECRET", "secret")
+	updatePayload := map[string]interface{}{
+		"country":  "NewCountry",
+		"province": "NewProvince",
+		"city":     "NewCity",
+		"street3":  "NewStreet3",
+		"street2":  "NewStreet2",
+		"street":   "NewStreet",
+	}
+	payloadBytes, _ := json.Marshal(updatePayload)
+	req, _ := http.NewRequest("PUT", "/user/profile/address", bytes.NewBuffer(payloadBytes))
+	req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik5ld0FkZHJlc3MiLCJpYXQiOjE1MTYyMzkwMjJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik5ld0FkZHJlc3MiLCJpYXQiOjE1MTYyMzkwMjJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik5ld0FkZHJlc3MiLCJpYXQiOjE1MTYyMzkwMjJ9")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
+}

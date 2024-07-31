@@ -193,6 +193,12 @@ func (h User) UpdateUserAddress(c *gin.Context) {
 	jwtClaims := middleware.GetClaims(c)
 	insertAddress := false
 
+	if jwtClaims == nil {
+		logger.Error("JWT claims is nil")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
 	//here we get the details of the request
 	var updateUserAddress models.UpdateAddress
 	if err := c.BindJSON(&updateUserAddress); err != nil {

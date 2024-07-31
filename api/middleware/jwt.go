@@ -44,7 +44,7 @@ func createJwtMiddleware() Jwt {
 
 // GenerateJWT generates a JWT token
 // GenerateJWT generates a JWT token for the given user
-func GenerateJWT(user models.User) (string, error) {
+func (j* JwtMiddleware) GenerateJWT(user models.User) (string, error) {
 	envReader := env.NewEnvLoader()
 	logger := utilities.NewLogger().LogWithCaller()
 	jwtSec, err := envReader.Get("JWT_SECRET")

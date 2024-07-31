@@ -16,7 +16,8 @@ import (
 
 func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	//dispute routes
-	g.Use(middleware.JWTMiddleware)
+	jwt := middleware.NewJwtMiddleware()
+	g.Use(jwt.JWTMiddleware)
 
 	g.GET("", h.getSummaryListOfDisputes)
 	g.POST("/create", h.createDispute)
@@ -44,7 +45,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 // @Router /dispute/:id/evidence [post]
 func (h Dispute) uploadEvidence(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	claims := middleware.GetClaims(c)
+	claims := h.JWT.GetClaims(c)
 	if claims == nil {
 		logger.Error("Unauthorized access attempt")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -98,7 +99,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 // @Router /dispute [get]
 func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtClaims := middleware.GetClaims(c)
+	jwtClaims := h.JWT.GetClaims(c)
 	userID := jwtClaims.User.ID
 
 	disputes, err := h.Model.GetDisputesByUser(userID)
@@ -154,7 +155,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 		return
 	}
 
-	jwtClaims := middleware.GetClaims(c)
+	jwtClaims := h.JWT.GetClaims(c)
 	userId := jwtClaims.User.ID
 	role := ""
 	//name and email
@@ -210,7 +211,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 
 func (h Dispute) createDispute(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	claims := middleware.GetClaims(c)
+	claims := h.JWT.GetClaims(c)
 	if claims == nil {
 		logger.Error("Unauthorized access attempt")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -359,7 +360,7 @@ func (h Dispute) expertObjection(c *gin.Context) {
 	}
 
 	//get user properties from token
-	claims := middleware.GetClaims(c)
+	claims := h.JWT.GetClaims(c)
 	if claims == nil {
 		logger.Error("Unauthorized access attempt in function expertObjection")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -389,7 +390,7 @@ func (h Dispute) expertObjectionsReview(c *gin.Context) {
 	}
 
 	// Get info from token
-	claims := middleware.GetClaims(c)
+	claims := h.JWT.GetClaims(c)
 	if claims == nil {
 		logger.WithError(err).Error("Unauthorized access attempt")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})

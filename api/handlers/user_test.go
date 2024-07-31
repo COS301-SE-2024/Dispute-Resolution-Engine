@@ -186,7 +186,8 @@ func (suite *UserTestSuite) TestUpdateUser() {
 }
 
 func (suite *UserTestSuite) TestUpdateUserAddress() {
-	env.RegisterDefault("JWT_SECRET", "secret")
+	envLoader := env.NewEnvLoader()
+	envLoader.RegisterDefault("JWT_SECRET", "secret")
 	updatePayload := map[string]interface{}{
 		"country":  "NewCountry",
 		"province": "NewProvince",

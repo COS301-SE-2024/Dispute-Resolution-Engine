@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"api/middleware"
 	"api/models"
 	"api/utilities"
 	"net/http"
@@ -17,7 +16,7 @@ import (
 func (h Handler) sendAdminNotification(c *gin.Context, disputeID int64, resEmail string) {
 	logger := utilities.NewLogger().LogWithCaller()
 	//get claims
-	jwtClaims := middleware.GetClaims(c)
+	jwtClaims := h.jwt.GetClaims(c)
 	if jwtClaims == nil {
 		logger.Error("Unauthorized")
 		return

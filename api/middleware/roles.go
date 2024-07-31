@@ -55,10 +55,11 @@ func (r *Role) matchKeyToValue(value string) (int, bool) {
 
 func RoleMiddleware(reqAuthlevel int) gin.HandlerFunc {
 	logger := utilities.NewLogger().LogWithCaller()
+	jwt := NewJwtMiddleware()
 	roles := NewRole()
 
 	return func(c *gin.Context) {
-		claims := GetClaims(c)
+		claims := jwt.GetClaims(c)
 		if claims == nil {
 			logger.Error("No claims")
 			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})

@@ -20,8 +20,9 @@ import (
 )
 
 func SetupDisputeRoutes(g *gin.RouterGroup, h Dispute) {
+	jwt := middleware.NewJwtMiddleware()
 	//dispute routes
-	g.Use(middleware.JWTMiddleware)
+	g.Use(jwt.JWTMiddleware)
 
 	g.GET("", h.getSummaryListOfDisputes)
 	g.POST("/create", h.createDispute)
@@ -106,7 +107,7 @@ func uploadFile(db *gorm.DB, path string, header *multipart.FileHeader) (uint, e
 // @Router /dispute/:id/evidence [post]
 func (h Dispute) uploadEvidence(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	claims := middleware.GetClaims(c)
+	claims := h.jwt.GetClaims(c)
 	if claims == nil {
 		logger.Error("Unauthorized access attempt")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -165,7 +166,7 @@ func (h Dispute) uploadEvidence(c *gin.Context) {
 // @Router /dispute [get]
 func (h Dispute) getSummaryListOfDisputes(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtClaims := middleware.GetClaims(c)
+	jwtClaims := h.jwt.GetClaims(c)
 	userID := jwtClaims.User.ID
 
 	var disputes []models.Dispute
@@ -217,7 +218,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 		return
 	}
 
-	jwtClaims := middleware.GetClaims(c)
+	jwtClaims := h.jwt.GetClaims(c)
 	userId := jwtClaims.User.ID
 	role := ""
 	//name and email
@@ -279,7 +280,7 @@ func (h Dispute) getDispute(c *gin.Context) {
 
 func (h Dispute) createDispute(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	claims := middleware.GetClaims(c)
+	claims := h.jwt.GetClaims(c)
 	if claims == nil {
 		logger.Error("Unauthorized access attempt")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})

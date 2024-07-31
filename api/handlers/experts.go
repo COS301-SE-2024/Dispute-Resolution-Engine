@@ -12,7 +12,8 @@ import (
 )
 
 func SetupExpertRoutes(g *gin.RouterGroup, h Expert) {
-	g.Use(middleware.JWTMiddleware)
+	jwt := middleware.NewJwtMiddleware()
+	g.Use(jwt.JWTMiddleware)
 
 	g.POST("/assign", h.recommendExpert)
 	g.POST("/reject", h.rejectExpert)

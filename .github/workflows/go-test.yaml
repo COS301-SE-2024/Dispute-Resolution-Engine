@@ -10,7 +10,7 @@ on:
     types:
       - opened
       - reopened
-      - edit
+      - edited
       - synchronize
 jobs:
   go-test:
@@ -24,8 +24,7 @@ jobs:
         run: |
           cd api/__tests__
           go test
-        continue-on-error: true
-      # - name: Upload coverage reports to Codecov
-      #   uses: codecov/codecov-action@v4.0.1
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

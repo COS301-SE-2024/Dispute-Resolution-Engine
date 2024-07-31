@@ -11,8 +11,8 @@ import (
 )
 
 func SetupUserRoutes(g *gin.RouterGroup, h User) {
-	g.PUT("/profile", h.updateUser)
-	g.GET("/profile", h.getUser)
+	g.PUT("/profile", h.UpdateUser)
+	g.GET("/profile", h.GetUser)
 	g.PUT("/profile/address", h.UpdateUserAddress)
 	g.DELETE("/remove", h.RemoveAccount)
 	g.POST("/analytics", h.UserAnalyticsEndpoint)
@@ -25,7 +25,7 @@ func SetupUserRoutes(g *gin.RouterGroup, h User) {
 // @Produce json
 // @Success 200 {object} models.Response "User profile not available yet..."
 // @Router /user/profile [get]
-func (h User) getUser(c *gin.Context) {
+func (h User) GetUser(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	// Get the user ID from the request
 	jwtClaims := h.jwt.GetClaims(c)
@@ -66,7 +66,6 @@ func (h User) getUser(c *gin.Context) {
 		Theme:             "dark",
 	}
 
-
 	logger.Info("User address retrieved successfully")
 	// Return the response
 	c.JSON(http.StatusOK, models.Response{Data: user})
@@ -81,7 +80,7 @@ func (h User) getUser(c *gin.Context) {
 // @Success 200 {object} models.Response "User updated successfully"
 // @Failure 400 {object} models.Response "Bad Request"
 // @Router /user/profile [put]
-func (h User) updateUser(c *gin.Context) {
+func (h User) UpdateUser(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	jwtClaims := h.jwt.GetClaims(c)
 
@@ -90,6 +89,11 @@ func (h User) updateUser(c *gin.Context) {
 	if err := c.BindJSON(&updateUser); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		return
+	}
+	if jwtClaims == nil {
+		logger.Error("jwtClaims is nil")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
 
@@ -141,7 +145,6 @@ func (h User) updateUser(c *gin.Context) {
 // @Router /user/remove [delete]
 func (h User) RemoveAccount(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
 	var user models.DeleteUser
 	if err := c.BindJSON(&user); err != nil {
@@ -165,14 +168,9 @@ func (h User) RemoveAccount(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
-	checkHash, err := hasher.GenerateHash([]byte(user.Password), realSalt)
-	if err != nil {
-		logger.WithError(err).Error("Failed to generate hash")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
-		return
-	}
 
-	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
+	checkHash := utilities.HashPasswordWithSalt(user.Password, realSalt)
+	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash) {
 		logger.Error("Invalid credentials")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
@@ -193,6 +191,12 @@ func (h User) UpdateUserAddress(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	jwtClaims := h.jwt.GetClaims(c)
 	insertAddress := false
+
+	if jwtClaims == nil {
+		logger.Error("JWT claims is nil")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
 
 	//here we get the details of the request
 	var updateUserAddress models.UpdateAddress
@@ -278,7 +282,7 @@ func (h *Handler) UserAnalyticsEndpoint(c *gin.Context) {
 	// Add WHERE clauses for column-value comparisons
 	if analyticsReq.ColumnvalueComparisons != nil {
 		for _, cvc := range *analyticsReq.ColumnvalueComparisons {
-			query = query.Where(cvc.Column+" LIKE ?", "%" + cvc.Value + "%")
+			query = query.Where(cvc.Column+" LIKE ?", "%"+cvc.Value+"%")
 		}
 	}
 

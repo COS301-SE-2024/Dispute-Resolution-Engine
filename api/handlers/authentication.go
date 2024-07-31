@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"api/env"
+	"api/handlers/notifications"
 	"api/models"
 	"api/redisDB"
 	"api/utilities"
@@ -69,7 +70,6 @@ func (h Auth) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Response "Internal Server Error"
 // @Router /auth/signup [post]
 func (h Auth) CreateUser(c *gin.Context) {
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var reqUser models.CreateUser
@@ -110,9 +110,13 @@ func (h Auth) CreateUser(c *gin.Context) {
 	}
 
 	//Hash the password
-	hashAndSalt := hasher.HashPassword(user.PasswordHash)
-	user.PasswordHash = base64.StdEncoding.EncodeToString(hashAndSalt.Hash)
-	user.Salt = base64.StdEncoding.EncodeToString(hashAndSalt.Salt)
+	hash, salt, err := utilities.HashPassword(user.PasswordHash)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
+		return
+	}
+	user.PasswordHash = base64.StdEncoding.EncodeToString(hash)
+	user.Salt = base64.StdEncoding.EncodeToString(salt)
 
 	//update log metrics
 	user.CreatedAt = utilities.GetCurrentTime()
@@ -175,7 +179,6 @@ func (h Auth) CreateUser(c *gin.Context) {
 // @Failure 401 {object} string "Unauthorized"
 // @Router /auth/login [post]
 func (h Auth) LoginUser(c *gin.Context) {
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var user models.User
@@ -199,16 +202,12 @@ func (h Auth) LoginUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
-	checkHash, err := hasher.GenerateHash([]byte(user.PasswordHash), realSalt)
-	if err != nil {
-		logger.WithError(err).Error("Error hashing password")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
-		return
-	}
 
-	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
+	checkHash := utilities.HashPasswordWithSalt(user.PasswordHash, realSalt)
+
+	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash) {
 		print(dbUser.PasswordHash)
-		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
+		print(base64.StdEncoding.EncodeToString(checkHash))
 		logger.Error("Invalid credentials")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
@@ -360,6 +359,7 @@ func (h Auth) ResendOTP(c *gin.Context) {
 
 func sendOTP(userInfo string, pin string) {
 	logger := utilities.NewLogger().LogWithCaller()
+	env := env.NewEnvLoader()
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587
@@ -441,13 +441,13 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	frontendBase, err := env.Get("FRONTEND_BASE_URL")
+	frontendBase, err := h.EnvReader.Get("FRONTEND_BASE_URL")
 	if err != nil {
 		utilities.InternalError(c)
 		return
 	}
 
-	companyEmail, err := env.Get("COMPANY_EMAIL")
+	companyEmail, err := h.EnvReader.Get("COMPANY_EMAIL")
 	if err != nil {
 		utilities.InternalError(c)
 		return
@@ -462,7 +462,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		Body:    "Click here to reset your password: " + linkURL,
 	}
 	log.Println(email)
-	if err := sendMail(email); err != nil {
+	if err := notifications.SendMail(email); err != nil {
 		logger.WithError(err).Error("Error sending reset email")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending reset email"})
 		return
@@ -533,40 +533,15 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Password reset successfully"})
 }
 
-func sendMail(email models.Email) error {
-	companyEmail, err := env.Get("COMPANY_EMAIL")
-	if err != nil {
-		return err
-	}
-	companyAuth, err := env.Get("COMPANY_AUTH")
-	if err != nil {
-		return err
-	}
-
-	logger := utilities.NewLogger().LogWithCaller()
-	d := gomail.NewDialer("smtp.gmail.com", 587, companyEmail, companyAuth)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-	m := gomail.NewMessage()
-	m.SetHeader("From", email.From)
-	m.SetHeader("To", email.To)
-	m.SetHeader("Subject", email.Subject)
-	m.SetBody("text/html", email.Body)
-	logger.WithField("email", email).Info("Sending email")
-
-	if err := d.DialAndSend(m); err != nil {
-		logger.WithError(err).Error("Error sending email")
-		return err
-	}
-	return nil
-}
-
 func hashPassword(newPassword string, user *models.User) (string, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
-	hashAndSalt := hasher.HashPassword(newPassword)
-	user.Salt = base64.StdEncoding.EncodeToString(hashAndSalt.Salt)
+	hash, salt, err := utilities.HashPassword(newPassword)
+	if err != nil {
+		return "", err
+	}
+
+	user.Salt = base64.StdEncoding.EncodeToString(salt)
 	logger.Info("Password hashed successfully")
-	return base64.StdEncoding.EncodeToString(hashAndSalt.Hash), nil
+	return base64.StdEncoding.EncodeToString(hash), nil
 }

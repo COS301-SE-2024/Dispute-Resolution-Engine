@@ -31,22 +31,6 @@ func (suite *JWTTestSuite) SetupTest() {
 	}
 }
 
-// // TestGenerateJWT tests the GenerateJWT function
-// func (suite *JWTTestSuite) TestGenerateJWTSuccess() {
-// 	// Create a mock user
-
-// 	user := models.User{
-// 		Email: "test@example.com",
-// 	}
-// 	jwtMiddleware := middleware.NewJwtMiddleware()
-// 	// Call the GenerateJWT function
-// 	token, err := jwtMiddleware.GenerateJWT(user)
-
-// 	// Assert that no error is returned
-// 	suite.NoError(err)
-// 	suite.NotEmpty(token)
-// }
-
 // TestGenerateJWTSuccess tests the GenerateJWT function when successful
 func (suite *JWTTestSuite) TestGenerateJWTSuccess() {
 	// Create a mock user
@@ -82,6 +66,27 @@ func (suite *JWTTestSuite) TestGenerateJWTError() {
 	token, err := suite.jwtMiddleware.GenerateJWT(user)
 
 	// Assert that an error is returned
+	suite.Error(err)
+	suite.Empty(token)
+
+	// Assert that the mock was called as expected
+	suite.mockEnvLoader.AssertCalled(suite.T(), "Get", "JWT_SECRET")
+}
+
+// Additional test: TestGenerateJWTInvalidSecret
+func (suite *JWTTestSuite) TestGenerateJWTInvalidSecret() {
+	// Create a mock user
+	user := models.User{
+		Email: "test@example.com",
+	}
+
+	// Set up the mock to return an invalid JWT secret (e.g., empty string)
+	suite.mockEnvLoader.On("Get", "JWT_SECRET").Return("", nil)
+
+	// Call the GenerateJWT function
+	token, err := suite.jwtMiddleware.GenerateJWT(user)
+
+	// Assert that an error is returned because the secret is invalid
 	suite.Error(err)
 	suite.Empty(token)
 

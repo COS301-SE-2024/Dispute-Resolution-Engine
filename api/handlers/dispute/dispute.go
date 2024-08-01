@@ -45,8 +45,8 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 // @Router /dispute/:id/evidence [post]
 func (h Dispute) UploadEvidence(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	claims := h.JWT.GetClaims(c)
-	if claims == nil {
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil {
 		logger.Error("Unauthorized access attempt")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
@@ -77,7 +77,7 @@ func (h Dispute) UploadEvidence(c *gin.Context) {
 			return
 		}
 
-		_, err = h.Model.UploadEvidence(claims.User.ID, int64(disputeId), path, file)
+		_, err = h.Model.UploadEvidence(claims.ID, int64(disputeId), path, file)
 		if err != nil {
 			logger.WithError(err).Error("Error uploading evidence")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
@@ -99,8 +99,14 @@ func (h Dispute) UploadEvidence(c *gin.Context) {
 // @Router /dispute [get]
 func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtClaims := h.JWT.GetClaims(c)
-	userID := jwtClaims.User.ID
+	jwtClaims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		logger.WithError(err).Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
+	userID := jwtClaims.ID
 
 	disputes, err := h.Model.GetDisputesByUser(userID)
 	if err != nil {
@@ -155,8 +161,14 @@ func (h Dispute) GetDispute(c *gin.Context) {
 		return
 	}
 
-	jwtClaims := h.JWT.GetClaims(c)
-	userId := jwtClaims.User.ID
+	jwtClaims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		logger.WithError(err).Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
+	userId := jwtClaims.ID
 	role := ""
 	//name and email
 	// var respondantData models.User
@@ -211,9 +223,9 @@ func (h Dispute) GetDispute(c *gin.Context) {
 
 func (h Dispute) CreateDispute(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	claims := h.JWT.GetClaims(c)
-	if claims == nil {
-		logger.Error("Unauthorized access attempt")
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		logger.WithError(err).Error("Unauthorized access attempt")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
@@ -233,7 +245,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	// telephone := form.Value["respondent[telephone]"][0]
 
 	//get complainants id
-	complainantID := claims.User.ID
+	complainantID := claims.ID
 
 	//check if respondant is in database by email and phone number
 	var respondantID *int64
@@ -360,13 +372,13 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 	}
 
 	//get user properties from token
-	claims := h.JWT.GetClaims(c)
-	if claims == nil {
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil {
 		logger.Error("Unauthorized access attempt in function expertObjection")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
-	err = h.Model.ObjectExpert(claims.User.ID, int64(disputeIdInt), req.ExpertID, req.Reason)
+	err = h.Model.ObjectExpert(claims.ID, int64(disputeIdInt), req.ExpertID, req.Reason)
 	if err != nil {
 		logger.Error("Unauthorized access attempt in function expertObjection")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Unauthorized"})
@@ -390,8 +402,8 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	}
 
 	// Get info from token
-	claims := h.JWT.GetClaims(c)
-	if claims == nil {
+	claims, err := h.JWT.GetClaims(c)
+	if err == nil {
 		logger.WithError(err).Error("Unauthorized access attempt")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
@@ -405,7 +417,7 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 		return
 	}
 
-	err = h.Model.ReviewExpertObjection(claims.User.ID, int64(disputeIdInt), req.ExpertID, req.Accepted)
+	err = h.Model.ReviewExpertObjection(claims.ID, int64(disputeIdInt), req.ExpertID, req.Accepted)
 	if err != nil {
 		logger.WithError(err).Error("failed to review objection")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "failed to review objection"})

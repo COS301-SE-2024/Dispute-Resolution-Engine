@@ -28,9 +28,9 @@ func SetupUserRoutes(g *gin.RouterGroup, h User) {
 func (h User) GetUser(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	// Get the user ID from the request
-	jwtClaims := h.jwt.GetClaims(c)
-	if jwtClaims == nil {
-		logger.Error("Unauthorized")
+	jwtClaims, err := h.jwt.GetClaims(c)
+	if err != nil {
+		logger.WithError(err).Error("Unauthorized")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
@@ -82,7 +82,12 @@ func (h User) GetUser(c *gin.Context) {
 // @Router /user/profile [put]
 func (h User) UpdateUser(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtClaims := h.jwt.GetClaims(c)
+	jwtClaims, err := h.jwt.GetClaims(c)
+	if err != nil {
+		logger.WithError(err).Error("Unauthorized")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
 
 	//get the user id from the request
 	var updateUser models.UpdateUser
@@ -91,15 +96,10 @@ func (h User) UpdateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
 	}
-	if jwtClaims == nil {
-		logger.Error("jwtClaims is nil")
-		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
-		return
-	}
 
 	//retrieve the user from the database
 	var dbUser models.User
-	h.DB.Where("id = ?", jwtClaims.User.ID).First(&dbUser)
+	h.DB.Where("id = ?", jwtClaims.ID).First(&dbUser)
 
 	var dbAddress models.Address
 	h.DB.Where("id = ?", dbUser.AddressID).First(&dbAddress)
@@ -189,14 +189,14 @@ func (h User) RemoveAccount(c *gin.Context) {
 
 func (h User) UpdateUserAddress(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtClaims := h.jwt.GetClaims(c)
-	insertAddress := false
-
-	if jwtClaims == nil {
-		logger.Error("JWT claims is nil")
+	jwtClaims, err := h.jwt.GetClaims(c)
+	if err != nil {
+		logger.WithError(err).Error("JWT claims is nil")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
+
+	insertAddress := false
 
 	//here we get the details of the request
 	var updateUserAddress models.UpdateAddress
@@ -207,7 +207,7 @@ func (h User) UpdateUserAddress(c *gin.Context) {
 	}
 	//retrieve the record from the database
 	var dbUser models.User
-	h.DB.Where("id = ?", jwtClaims.User.ID).First(&dbUser)
+	h.DB.Where("id = ?", jwtClaims.ID).First(&dbUser)
 
 	if dbUser.AddressID == nil {
 		insertAddress = true

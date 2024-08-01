@@ -11,10 +11,12 @@ type Jwt interface {
 	StoreJWT(email string, jwt string) error
 	GetJWT(email string) (string, error)
 	JWTMiddleware(c *gin.Context)
-	GetClaims(c *gin.Context) *Claims
+
+	GetClaims(c *gin.Context) (models.UserInfoJWT, error)
 }
 
 type Role interface {
 	matchKeyToValue(value string) (int, bool)
 	RoleMiddleware(reqAuthlevel int) gin.HandlerFunc
 }
+

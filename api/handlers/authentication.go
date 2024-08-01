@@ -249,13 +249,13 @@ func (h Auth) Verify(c *gin.Context) {
 	}
 	var valid bool
 	valid = false
-	jwtClaims := h.jwt.GetClaims(c)
-	if jwtClaims == nil {
+	jwtUser, err := h.jwt.GetClaims(c)
+	if err != nil {
 		logger.Error("No claims found")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
 		return
 	}
-	userkey := jwtClaims.Email + jwtClaims.User.Surname
+	userkey := jwtUser.Email + jwtUser.Surname
 	// valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
 	userVerifyJSON, err := redisDB.RDB.Get(context.Background(), userkey).Result()
 	if err != nil {
@@ -302,7 +302,7 @@ func (h Auth) Verify(c *gin.Context) {
 
 	//create new jwt from the claims
 	var updatedUser models.User
-	h.DB.Where("email = ?", jwtClaims.Email).First(&updatedUser)
+	h.DB.Where("email = ?", jwtUser.Email).First(&updatedUser)
 	newJWT, err := h.jwt.GenerateJWT(updatedUser)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
@@ -324,12 +324,12 @@ func (h Handler) checkUserExists(email string) bool {
 
 func (h Auth) ResendOTP(c *gin.Context) {
 	pin := utilities.GenerateVerifyEmailToken()
-	jwtClaims := h.jwt.GetClaims(c)
-	if jwtClaims == nil {
-		c.JSON(http.StatusBadRequest, models.Response{Error: "IDIOT"})
+	jwtUser, err := h.jwt.GetClaims(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to read JWT"})
 		return
 	}
-	userkey := jwtClaims.Email + jwtClaims.User.Surname
+	userkey := jwtUser.Email + jwtUser.Surname
 	fmt.Println(userkey)
 	userVerifyJSON, err := redisDB.RDB.Get(context.Background(), userkey).Result()
 	if err != nil {
@@ -491,10 +491,10 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing token"})
 		return
 	}
-	claims := h.jwt.GetClaims(c)
-	if claims == nil {
-		logger.Error("Missing token")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing token"})
+	claims, err := h.jwt.GetClaims(c)
+	if err != nil {
+		logger.WithError(err).Error("Failed to read JWT")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to read JWT"})
 		return
 	}
 

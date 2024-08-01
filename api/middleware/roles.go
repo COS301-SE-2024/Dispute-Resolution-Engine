@@ -69,14 +69,14 @@ func (r *RoleMiddleware) RoleMiddleware(reqAuthlevel int) gin.HandlerFunc {
 	jwt := NewJwtMiddleware()
 
 	return func(c *gin.Context) {
-		claims := jwt.GetClaims(c)
-		if claims == nil {
-			logger.Error("No claims")
-			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		user, err := jwt.GetClaims(c)
+		if err != nil {
+			logger.WithError(err).Error("Failed to read JWT")
+			c.JSON(http.StatusUnauthorized, models.Response{Error: "Failed to read JWT"})
 			return
 		}
 		//string match the role to the map
-		userRole := claims.User.Role
+		userRole := user.Role
 
 		//check if the role is in the map
 		authLevel, ok := r.matchKeyToValue(userRole)
@@ -93,6 +93,6 @@ func (r *RoleMiddleware) RoleMiddleware(reqAuthlevel int) gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 			return
 		}
-        c.Next()
+		c.Next()
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"api/models"
 	"api/redisDB"
 	"api/utilities"
+	"errors"
 	"net/http"
 	"strings"
 	"sync"
@@ -40,11 +41,9 @@ func createJwtMiddleware() Jwt {
 	return &JwtMiddleware{}
 }
 
-
-
 // GenerateJWT generates a JWT token
 // GenerateJWT generates a JWT token for the given user
-func (j* JwtMiddleware) GenerateJWT(user models.User) (string, error) {
+func (j *JwtMiddleware) GenerateJWT(user models.User) (string, error) {
 	envReader := env.NewEnvLoader()
 	logger := utilities.NewLogger().LogWithCaller()
 	jwtSec, err := envReader.Get("JWT_SECRET")
@@ -164,7 +163,7 @@ func (j *JwtMiddleware) JWTMiddleware(c *gin.Context) {
 }
 
 // return claims
-func (j *JwtMiddleware) GetClaims(c *gin.Context) *Claims {
+func (j *JwtMiddleware) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	envLoader := env.NewEnvLoader()
 	var secret []byte
@@ -179,13 +178,14 @@ func (j *JwtMiddleware) GetClaims(c *gin.Context) *Claims {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		logger.Error("No Authorization header")
-		return nil
+		return models.UserInfoJWT{}, errors.New("Missing Authorization header")
 	}
 
-	tokenString := strings.Split(authHeader, " ")[1]
+	tokenString, _ := strings.CutPrefix(authHeader, "Bearer")
+	tokenString = strings.TrimSpace(authHeader)
 	if tokenString == "" {
 		logger.Error("No token")
-		return nil
+		return models.UserInfoJWT{}, errors.New("Missing Authorization header")
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -193,14 +193,14 @@ func (j *JwtMiddleware) GetClaims(c *gin.Context) *Claims {
 	})
 	if err != nil {
 		logger.WithError(err).Error("Error parsing token")
-		return nil
+		return models.UserInfoJWT{}, err
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
 		logger.Error("Error getting claims")
-		return nil
+		return models.UserInfoJWT{}, errors.New("failed to get claims")
 	}
 	logger.Info("Claims retrieved successfully")
-	return claims
+	return claims.User, nil
 }

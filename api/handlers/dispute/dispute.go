@@ -147,10 +147,17 @@ func (h Dispute) GetDispute(c *gin.Context) {
 
 	logger := utilities.NewLogger().LogWithCaller()
 
+	jwtClaims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		logger.WithError(err).Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
 	idParam := c.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: fmt.Sprintf("Invalid dispute id '%s'", idParam)})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.Response{Error: fmt.Sprintf("Invalid dispute id '%s'", idParam)})
 		return
 	}
 
@@ -158,13 +165,6 @@ func (h Dispute) GetDispute(c *gin.Context) {
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
-		return
-	}
-
-	jwtClaims, err := h.JWT.GetClaims(c)
-	if err != nil {
-		logger.WithError(err).Error("Unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
 
@@ -233,7 +233,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	form, err := c.MultipartForm()
 	if err != nil {
 		logger.WithError(err).Error("Error parsing form")
-		c.JSON(http.StatusUnauthorized, models.Response{Error: "Failed to parse form data"})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to parse form data"})
 		return
 	}
 

@@ -25,7 +25,10 @@ type Claims struct {
 	User models.UserInfoJWT `json:"user"`
 }
 
-type JwtMiddleware struct{}
+type JwtMiddleware struct{
+	EnvLoader env.Env
+	Logger *utilities.Logger
+}
 
 var jwtMiddleware Jwt
 var once sync.Once
@@ -38,15 +41,16 @@ func NewJwtMiddleware() Jwt {
 }
 
 func createJwtMiddleware() Jwt {
-	return &JwtMiddleware{}
+	return &JwtMiddleware{
+		EnvLoader: env.NewEnvLoader(),
+		Logger: utilities.NewLogger().LogWithCaller(),
+	}
 }
 
 // GenerateJWT generates a JWT token
 // GenerateJWT generates a JWT token for the given user
 func (j *JwtMiddleware) GenerateJWT(user models.User) (string, error) {
-	envReader := env.NewEnvLoader()
-	logger := utilities.NewLogger().LogWithCaller()
-	jwtSec, err := envReader.Get("JWT_SECRET")
+	jwtSec, err := j.EnvLoader.Get("JWT_SECRET")
 	if err != nil {
 		return "", err
 	}
@@ -62,12 +66,12 @@ func (j *JwtMiddleware) GenerateJWT(user models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(jwtSec))
 	if err != nil {
-		logger.WithError(err).Error("Failed to sign token")
+		j.Logger.WithError(err).Error("Failed to sign token")
 		return "", err
 	}
 
 	j.StoreJWT(user.Email, signedToken)
-	logger.Info("Token signed successfully")
+	j.Logger.Info("Token signed successfully")
 	return signedToken, nil
 }
 

@@ -6,6 +6,7 @@ import { Metadata } from "next";
 
 import DisputeClientPage from "./client-page";
 import StatusDropdown from "@/app/disputes/[id]/dropdown";
+import ExpertRejectForm from "@/components/dispute/expert-reject-form";
 
 type Props = {
   params: { id: string };
@@ -53,10 +54,11 @@ function DisputeHeader({
   status: string;
 }) {
   return (
-    <header className="p-4 py-6 flex">
+    <header className="p-4 py-6 flex items-start">
       <div className="grow">
         <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">{label}</h1>
-        <span>Started: {startDate}</span>
+        <p className="mb-4">Started: {startDate}</p>
+        <ExpertRejectForm expertId="2" disputeId="x" />
       </div>
 
       <dl className="grid grid-cols-2 gap-2">

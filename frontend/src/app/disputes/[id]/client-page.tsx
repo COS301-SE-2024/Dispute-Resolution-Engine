@@ -89,6 +89,20 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
           </form>
         </CardContent>
       </Card>
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Experts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={onFilesSubmit}>
+            <input type="hidden" name="dispute_id" value={data.id} />
+            <FileInput onValueChange={setFiles} />
+            <Button disabled={files.length == 0} type="submit">
+              Upload
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </>
   );
 }

@@ -7,6 +7,9 @@ import { Metadata } from "next";
 import DisputeClientPage from "./client-page";
 import StatusDropdown from "@/app/disputes/[id]/dropdown";
 import ExpertRejectForm from "@/components/dispute/expert-reject-form";
+import { getAuthToken } from "@/lib/util/jwt";
+
+import { jwtDecode } from "jwt-decode";
 
 type Props = {
   params: { id: string };
@@ -53,12 +56,16 @@ function DisputeHeader({
   startDate: string;
   status: string;
 }) {
+  // TODO: Add contracts for this
+  const role = (jwtDecode(getAuthToken()) as any).user;
+
   return (
     <header className="p-4 py-6 flex items-start">
       <div className="grow">
         <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">{label}</h1>
         <p className="mb-4">Started: {startDate}</p>
-        <ExpertRejectForm expertId="2" disputeId="x" />
+        {/*TODO: Figure out the conditions for displaying expert rejection */}
+        {role == "expert" && <ExpertRejectForm expertId="2" disputeId="x" />}
       </div>
 
       <dl className="grid grid-cols-2 gap-2">

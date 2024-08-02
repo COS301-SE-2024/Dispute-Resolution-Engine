@@ -13,7 +13,7 @@ import (
 
 type JWTTestSuite struct {
 	suite.Suite
-	logger *utilities.Logger
+	logger        *utilities.Logger
 	mockEnvLoader *MockEnvLoader
 	jwtMiddleware *middleware.JwtMiddleware
 }
@@ -97,12 +97,12 @@ func (suite *JWTTestSuite) TestGenerateJWTInvalidSecret() {
 // mocks
 
 type MockEnvLoader struct {
-    mock.Mock
+	mock.Mock
 }
 
 func (m *MockEnvLoader) Get(key string) (string, error) {
-    args := m.Called(key)
-    return args.String(0), args.Error(1)
+	args := m.Called(key)
+	return args.String(0), args.Error(1)
 }
 func (m *MockEnvLoader) Register(key string) {
 	m.Called(key)

@@ -238,9 +238,32 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	}
 
 	// Access form values
+	if form.Value["title"] == nil || len(form.Value["title"]) == 0 {
+		logger.WithError(err).Error("missing field in form: title")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: title"})
+		return
+	}
 	title := form.Value["title"][0]
+
+	if form.Value["description"] == nil || len(form.Value["description"]) == 0 {
+		logger.Error("missing field in form: description")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: description"})
+		return
+	}
 	description := form.Value["description"][0]
+
+	if form.Value["respondent[full_name]"] == nil || len(form.Value["respondent[full_name]"]) == 0 {
+		logger.Error("missing field in form: respondent[full_name]")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: respondent[full_name]"})
+		return
+	}
 	fullName := form.Value["respondent[full_name]"][0]
+
+	if form.Value["respondent[email]"] == nil || len(form.Value["respondent[email]"]) == 0 {
+		logger.Error("missing field in form: respondent[email]")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: respondent[email]"})
+		return
+	}
 	email := form.Value["respondent[email]"][0]
 	// telephone := form.Value["respondent[telephone]"][0]
 

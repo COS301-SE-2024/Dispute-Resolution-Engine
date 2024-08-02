@@ -189,7 +189,7 @@ func (h Auth) LoginUser(c *gin.Context) {
 
 	if !h.checkUserExists(user.Email) {
 		logger.Error("User does not exist")
-		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "User does not exist"})
 		return
 	}
 

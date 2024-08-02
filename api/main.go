@@ -5,6 +5,7 @@ import (
 	_ "api/docs" // This is important to import your generated docs package
 	"api/env"
 	"api/handlers"
+	"api/handlers/dispute"
 	"api/middleware"
 	"api/redisDB"
 	"api/utilities"
@@ -59,11 +60,13 @@ var requiredEnvVariables = []string{
 // @host localhost:8080
 // @BasePath /api
 func main() {
+	jwt := middleware.NewJwtMiddleware()
 	logger := utilities.NewLogger().LogWithCaller()
-	env.LoadFromFile(".env", "api.env")
+	envLoader := env.NewEnvLoader()
+	envLoader.LoadFromFile(".env", "api.env")
 
 	for _, key := range requiredEnvVariables {
-		env.Register(key)
+		envLoader.Register(key)
 	}
 
 	DB, err := db.Init()
@@ -80,7 +83,7 @@ func main() {
 
 	authHandler := handlers.NewAuthHandler(DB)
 	userHandler := handlers.NewUserHandler(DB)
-	disputeHandler := handlers.NewDisputeHandler(DB)
+	disputeHandler := dispute.NewHandler(DB)
 	archiveHandler := handlers.NewArchiveHandler(DB)
 	expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
@@ -91,7 +94,7 @@ func main() {
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{"Content-Type", "Authorization"},
 	}))
-	fileStorageRoot, err := env.Get("FILESTORAGE_ROOT")
+	fileStorageRoot, err := envLoader.Get("FILESTORAGE_ROOT")
 	if err != nil {
 		return
 	}
@@ -106,11 +109,11 @@ func main() {
 	handlers.SetupAuthRoutes(authGroup, authHandler)
 
 	userGroup := router.Group("/user")
-	userGroup.Use(middleware.JWTMiddleware)
+	userGroup.Use(jwt.JWTMiddleware)
 	handlers.SetupUserRoutes(userGroup, userHandler)
 
 	disputeGroup := router.Group("/disputes")
-	handlers.SetupDisputeRoutes(disputeGroup, disputeHandler)
+	dispute.SetupRoutes(disputeGroup, disputeHandler)
 
 	archiveGroup := router.Group("/archive")
 	handlers.SetupArchiveRoutes(archiveGroup, archiveHandler)

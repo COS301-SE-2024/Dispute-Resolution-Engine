@@ -33,7 +33,7 @@ export default function Navbar() {
         </Link>
       ) : (
         <Button asChild variant="link">
-          <Link href="/login">Login</Link>
+          <Link href="/signup">Signup</Link>
         </Button>
       )}
     </nav>

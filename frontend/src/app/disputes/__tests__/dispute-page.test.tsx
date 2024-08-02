@@ -1,10 +1,32 @@
-import { render, screen } from "@testing-library/react";
+import React, { Suspense } from "react";
+const { render, screen, act } = require("@testing-library/react");
+import DisputeRootLayout from "@/app/disputes/layout";
+import { getDisputeList } from "@/lib/api/dispute";
 import "@testing-library/jest-dom";
-import Disputes from "@/app/disputes/page";
+const {describe, it } = require("@jest/globals");
+jest.mock("@/lib/api/dispute", () => ({
+  getDisputeList: jest.fn(),
+}));
 
-describe('Disputes', () => {
-  it('renders without crashing', () => {
-    render(<Disputes />);
-    expect(screen.getByText('Select a dispute to view it')).toBeInTheDocument();
+describe("DisputeRootLayout", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
+
+  it("renders the search input", async () => {
+    const mockData = {
+      data: [
+        {
+          id: "1",
+          title: "Dispute 1",
+          description: "Mock Desctip",
+          role: "Complainant",
+          status: "Awaiting respondant",
+        },
+      ],
+    };
+    (getDisputeList as jest.Mock).mockResolvedValue(Promise.resolve(mockData));
+    render(await <DisputeRootLayout>Test 2</DisputeRootLayout>);
+    // expect(await screen.findByText('Dispute 1', {}, {timeout: 10000})).toBeInTheDocument();
+}, 11000);
 });

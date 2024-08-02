@@ -1,5 +1,6 @@
 "use client";
 
+import ExpertItem from "@/components/dispute/negotiator";
 import FileInput from "@/components/form/file-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -92,15 +93,19 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
       <Card className="mb-4">
         <CardHeader>
           <CardTitle>Experts</CardTitle>
+          {data.experts.length == 0 && (
+            <CardDescription>No experts have been assigned yet.</CardDescription>
+          )}
         </CardHeader>
         <CardContent>
-          <form onSubmit={onFilesSubmit}>
-            <input type="hidden" name="dispute_id" value={data.id} />
-            <FileInput onValueChange={setFiles} />
-            <Button disabled={files.length == 0} type="submit">
-              Upload
-            </Button>
-          </form>
+          <ul>
+            {data.experts.length > 0 &&
+              data.experts.map((expert) => (
+                <li>
+                  <ExpertItem {...expert} dispute_id={data.id} />
+                </li>
+              ))}
+          </ul>
         </CardContent>
       </Card>
     </>

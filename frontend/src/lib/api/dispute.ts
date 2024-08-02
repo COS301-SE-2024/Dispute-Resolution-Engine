@@ -50,7 +50,7 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
       role: "Complainant",
 
       evidence: [],
-      experts: [],
+      experts: [{ id: "1", role: "what", full_name: "yes sir", email: "email", phone: "phone" }],
     },
   };
 

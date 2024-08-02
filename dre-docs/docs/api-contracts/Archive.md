@@ -1,30 +1,7 @@
-All endpoints follow the following general type:
-```ts
-type Result<T> =
-  | {
-      data: T;
-      error?: never;
-    }
-  | {
-      data?: never;
-      error: string;
-    };
-```
-
-Which corresponds to either returning:
-```json5
-{
-    "data": /* ... some data */
-}
-```
-or
-```json5
-{
-    "error": "error message"
-}
-```
+# Archive
 
 # Utility Types
+
 ```ts
 interface ArchivedDisputeSummary {
   id: string;
@@ -51,8 +28,8 @@ type SortAttribute = "title" | "date_filed" | "date_resolved" | "date_filed" | "
 ```
 
 # Searching
-- **Endpoint:** `POST /disputes/archive/search`
 
+- **Endpoint:** `POST /disputes/archive/search`
 
 ```ts
 interface ArchiveSearchRequest {
@@ -79,9 +56,9 @@ type ArchiveSearchResponse = ArchivedDisputeSummary[];
 ```
 
 # Archived Dispute Details
+
 - **Endpoint:** `GET /disputes/archive/{id}`
 
 ```ts
 type ArchiveGetResponse = ArchivedDispute;
 ```
-

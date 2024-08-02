@@ -4,11 +4,10 @@ import ExpertItem from "@/components/dispute/negotiator";
 import FileInput from "@/components/form/file-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { uploadEvidence } from "@/lib/actions/dispute";
 import { DisputeResponse } from "@/lib/interfaces/dispute";
 import { File as FileIcon } from "lucide-react";
-import { ChangeEvent, FormEvent, ReactNode, useState } from "react";
+import { FormEvent, useState } from "react";
 
 export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
   const [files, setFiles] = useState<File[]>([]);
@@ -101,7 +100,7 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
           <ul>
             {data.experts.length > 0 &&
               data.experts.map((expert) => (
-                <li>
+                <li key={expert.id}>
                   <ExpertItem {...expert} dispute_id={data.id} />
                 </li>
               ))}

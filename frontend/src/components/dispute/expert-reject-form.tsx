@@ -60,7 +60,7 @@ export default function ExpertRejectForm({
           </RejectField>
           <div className="flex justify-end gap-2 items-center">
             <RejectMessage />
-            <FormSubmit>Reject</FormSubmit>
+            <FormSubmit>Submit</FormSubmit>
           </div>
         </RejectForm>
       </DialogContent>

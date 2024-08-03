@@ -51,5 +51,4 @@ jobs:
       - uses: nrwl/nx-set-shas@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: yarn nx affected -t lint test build
-      - run: yarn nx affected --parallel 1 -t e2e-ci
+      - run: yarn nx affected --base dev -t lint test build

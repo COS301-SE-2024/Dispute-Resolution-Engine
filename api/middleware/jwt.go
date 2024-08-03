@@ -184,9 +184,11 @@ func (j *JwtMiddleware) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 		logger.Error("No Authorization header")
 		return models.UserInfoJWT{}, errors.New("Missing Authorization header")
 	}
-
-	tokenString, _ := strings.CutPrefix(authHeader, "Bearer")
-	tokenString = strings.TrimSpace(authHeader)
+	
+	tokenString, _ := strings.CutPrefix(authHeader, "bearer")
+	tokenString, _ = strings.CutPrefix(tokenString, "Bearer")
+	tokenString = strings.TrimSpace(tokenString)
+	
 	if tokenString == "" {
 		logger.Error("No token")
 		return models.UserInfoJWT{}, errors.New("Missing Authorization header")

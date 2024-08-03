@@ -1,6 +1,7 @@
 package dispute
 
 import (
+	"api/handlers"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func SetupRoutes(g *gin.RouterGroup, h Dispute) {
@@ -278,7 +280,15 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 		//if the user is not found in the database then we create the default user
 		if err.Error() == "record not found" {
 			//now we call to create the default user
-
+			secretPass := make([]byte, 5)
+			pass := string(secretPass)
+			handlers.Auth.CreateDefaultUser(handlers.NewAuthHandler(&gorm.DB{}), email, fullName, pass, c)
+			go h.Email.SendDefaultUserEmail(c, email, pass)
+			logger.Info("Default respondent user created")
+		} else {
+			logger.Error("Error retrieving respondent")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
+			return
 		}
 	} else {
 		respondantID = &respondent.ID

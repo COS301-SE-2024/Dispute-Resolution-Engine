@@ -547,7 +547,7 @@ func hashPassword(newPassword string, user *models.User) (string, error) {
 	return base64.StdEncoding.EncodeToString(hash), nil
 }
 
-func (h Auth) CreateDefaultUser(email string, fullName string, c *gin.Context) {
+func (h Auth) CreateDefaultUser(email string, fullName string, pass string, c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	nameSplit := strings.Split(fullName, " ")
 	//stub timezone
@@ -555,7 +555,6 @@ func (h Auth) CreateDefaultUser(email string, fullName string, c *gin.Context) {
 	timezone := zone
 	actualTimezone := &timezone
 	//Now put stuff in the actual user object
-	secretPass := make([]byte, 5)
 	date, _ := time.Parse("2006-01-02", time.Now().String())
 	user := models.User{
 		FirstName:         nameSplit[0],
@@ -563,7 +562,7 @@ func (h Auth) CreateDefaultUser(email string, fullName string, c *gin.Context) {
 		Birthdate:         date,
 		Nationality:       "",
 		Email:             email,
-		PasswordHash:      string(secretPass),
+		PasswordHash:      pass,
 		PhoneNumber:       nil,
 		AddressID:         nil,
 		Status:            "Unverified",

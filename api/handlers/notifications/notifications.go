@@ -14,6 +14,7 @@ import (
 type EmailSystem interface {
 	SendAdminEmail(c *gin.Context, disputeID int64, resEmail string)
 	NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string)
+	SendDefaultUserEmail(c *gin.Context, email string, pass string)
 }
 
 type emailImpl struct {
@@ -49,6 +50,10 @@ func (e *emailImpl) SendAdminEmail(c *gin.Context, disputeID int64, resEmail str
 
 	go SendMail(email)
 	logger.Info("Admin email notification sent successfully")
+}
+
+func (e *emailImpl) SendDefaultUserEmail(c *gin.Context, email string, pass string) {
+
 }
 
 /*func (h Notification) AcceptanceNotification(c *gin.Context) {

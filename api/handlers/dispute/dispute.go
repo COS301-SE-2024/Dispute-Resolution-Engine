@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -273,22 +272,14 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	//check if respondant is in database by email and phone number
 	var respondantID *int64
 	respondent, err := h.Model.GetUserByEmail(email)
-	if err != nil && err.Error() == "record not found" {
-		//create a default entry for the user
-		nameSplit := strings.Split(fullName, " ")
-		if len(nameSplit) < 2 {
-			logger.Error("Invalid full name")
-			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid full name"})
-			return
-		} else {
-			logger.WithError(err).Error("Error retrieving respondent")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
-			return
+
+	//so if the error is record not found
+	if err != nil {
+		//if the user is not found in the database then we create the default user
+		if err.Error() == "record not found" {
+			//now we call to create the default user
+
 		}
-	} else if err != nil {
-		logger.WithError(err).Error("Error retrieving respondent")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
-		return
 	} else {
 		respondantID = &respondent.ID
 	}

@@ -123,9 +123,17 @@ func (w *Workflow) GetInitialState() State {
 	return w.initial
 }
 
+func (w *Workflow) GetState(name string) State {
+	return w.states[name]
+}
+
 func (w *Workflow) HasState(name string) bool {
 	_, ok := w.states[name]
 	return ok
+}
+
+func (w *Workflow) GetTransition(name string) Transition {
+	return w.transitions[name]
 }
 
 func (w *Workflow) AddTransition(t Transition) {

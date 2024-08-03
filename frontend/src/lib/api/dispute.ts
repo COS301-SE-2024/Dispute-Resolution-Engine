@@ -17,9 +17,6 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
       error: "Unauthorized",
     };
   }
-  return {
-    data: [],
-  };
 
   const res = await fetch(`${API_URL}/disputes`, {
     headers: {
@@ -40,19 +37,6 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
       error: "Unauthorized",
     };
   }
-  return {
-    data: {
-      id: "1",
-      title: "Mock title",
-      description: "Description",
-      status: "In porgress",
-      case_date: "today",
-      role: "Complainant",
-
-      evidence: [],
-      experts: [{ id: "1", role: "what", full_name: "yes sir", email: "email", phone: "phone" }],
-    },
-  };
 
   const res = await fetch(`${API_URL}/disputes/${id}`, {
     headers: {

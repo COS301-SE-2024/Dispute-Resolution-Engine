@@ -57,8 +57,7 @@ function DisputeHeader({
   status: string;
 }) {
   // TODO: Add contracts for this
-  //const role = (jwtDecode(getAuthToken()) as any).user;
-  const role = "expert";
+  const role = (jwtDecode(getAuthToken()) as any).user.role;
 
   return (
     <header className="p-4 py-6 flex items-start">

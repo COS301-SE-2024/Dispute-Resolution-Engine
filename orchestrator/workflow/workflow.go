@@ -1,6 +1,9 @@
 package workflow
 
-import ()
+import (
+	"errors"
+	"time"
+)
 
 const (
 	// Dispute states
@@ -42,10 +45,49 @@ const (
 	triggerAppealFeeNotPaid = "appeal_fee_not_paid"
 )
 
+// ----------------------------Timers--------------------------------
+type Timer struct {
+	name        string
+	duration    time.Duration
+	willTrigger string
+}
+
+func (t *Timer) Name() string {
+	return t.name
+}
+
+func (t *Timer) Duration() time.Duration {
+	return t.duration
+}
+
+func (t *Timer) WillTrigger() string {
+	return t.willTrigger
+}
+
+// ----------------------------States--------------------------------
+type State struct {
+	name   string
+	timers map[string]Timer // timer name -> Timer
+}
+
+func (s *State) Name() string {
+	return s.name
+}
+
+func (s *State) GetTimer(name string) Timer {
+	return s.timers[name]
+}
+
+// ----------------------------Transitions--------------------------------
 type Transition struct {
+	name    string
 	from    string
 	to      string
 	trigger string
+}
+
+func (t *Transition) Name() string {
+	return t.name
 }
 
 func (t *Transition) From() string {
@@ -60,10 +102,13 @@ func (t *Transition) Trigger() string {
 	return t.trigger
 }
 
+// ----------------------------Workflow--------------------------------
 type Workflow struct {
 	id          uint32
 	name        string
-	transitions []Transition
+	initial     State
+	states      map[string]State      // state name -> State
+	transitions map[string]Transition // transition name -> Transition
 }
 
 func (w *Workflow) GetID() uint32 {
@@ -74,37 +119,50 @@ func (w *Workflow) GetName() string {
 	return w.name
 }
 
+func (w *Workflow) GetInitialState() State {
+	return w.initial
+}
+
+func (w *Workflow) HasState(name string) bool {
+	_, ok := w.states[name]
+	return ok
+}
+
 func (w *Workflow) AddTransition(t Transition) {
-	w.transitions = append(w.transitions, t)
+	w.transitions[t.Name()] = t
 }
 
 func (w *Workflow) GetTransitions() []Transition {
-	return w.transitions
+	transitions := make([]Transition, 0, len(w.transitions))
+	for _, t := range w.transitions {
+		transitions = append(transitions, t)
+	}
+	return transitions
 }
 
-func (w *Workflow) GetTransitionByTrigger(triggerstr string) Transition {
+func (w *Workflow) GetTransitionByTrigger(triggerstr string) (Transition, error) {
 	for _, t := range w.transitions {
 		if t.trigger == triggerstr {
-			return t
+			return t, nil
 		}
 	}
-	return Transition{}
+	return Transition{}, errors.New("Transition not found")
 }
 
-func (w *Workflow) GetTransitionByFrom(fromstr string) Transition {
+func (w *Workflow) GetTransitionByFrom(fromstr string) (Transition, error) {
 	for _, t := range w.transitions {
 		if t.from == fromstr {
-			return t
+			return t, nil
 		}
 	}
-	return Transition{}
+	return Transition{}, errors.New("Transition not found")
 }
 
-func (w *Workflow) GetTransitionByTo(tostr string) Transition {
+func (w *Workflow) GetTransitionByTo(tostr string) (Transition, error) {
 	for _, t := range w.transitions {
 		if t.to == tostr {
-			return t
+			return t, nil
 		}
 	}
-	return Transition{}
+	return Transition{}, errors.New("Transition not found")
 }

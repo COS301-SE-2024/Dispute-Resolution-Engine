@@ -2,10 +2,16 @@ name: CI
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
   pull_request:
+    branches:
+      - release
+      - dev
+      - main
+    types:
+      - opened
+      - reopened
+      - edited
+      - synchronize
 
 permissions:
   actions: read

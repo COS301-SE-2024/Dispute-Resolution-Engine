@@ -1,3 +1,3 @@
-import UnderConstruction from "@/app/(construction)/page";
+import UnderConstruction from "@/components/construction";
 
 export default UnderConstruction;

@@ -2,27 +2,16 @@ import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { ChevronRightIcon } from "@radix-ui/react-icons";
 import { getDisputeList } from "../../lib/api/dispute";
 import { Suspense } from "react";
 import Loader from "@/components/Loader";
 import { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { DisputeLink } from "./link";
 
 export const metadata: Metadata = {
   title: "DRE - Disputes",
 };
-
-function DisputeLink({ href, children }: { href: string; children: React.ReactNode }) {
-  const c = cn(buttonVariants({ variant: "ghost" }), "flex");
-  return (
-    <Link href={href} className={c}>
-      <span className="grow truncate">{children}</span>
-      <ChevronRightIcon />
-    </Link>
-  );
-}
 
 async function DisputeList() {
   const data = await getDisputeList();

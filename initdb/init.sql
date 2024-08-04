@@ -47,8 +47,17 @@ CREATE TYPE dispute_status AS ENUM ('Awaiting Respondant', 'Awaiting Complainant
 
 CREATE TYPE dispute_decision AS ENUM ('Resolved', 'Unresolved', 'Settled', 'Refused', 'Withdrawn', 'Transfer', 'Appeal', 'Other');
 
+CREATE TABLE tags (
+	id SERIAL PRIMARY KEY,
+	tag_name VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE workflow (
-	id SERIAL PRIMARY KEY
+	id SERIAL PRIMARY KEY,
+	workflow_definition JSON NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	category BIGINT REFERENCES tags(id),
+	author BIGINT REFERENCES users(id)
 );
 
 CREATE TABLE disputes (
@@ -109,18 +118,13 @@ CREATE TYPE event_types AS ENUM (
 	'USER',
 	'EXPERT',
 	'WORKFLOW'
-	);
+);
 
 CREATE TABLE event_log (
 	id SERIAL PRIMARY KEY,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	event_type event_types,
 	event_data JSON
-);
-
-CREATE TABLE tags (
-	id SERIAL PRIMARY KEY,
-	tag_name VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE labelled_disputes (

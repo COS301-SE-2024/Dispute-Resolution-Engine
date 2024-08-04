@@ -53,7 +53,7 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
 }
 export async function updateDisputeStatus(
   id: string,
-  status: string
+  status: string,
 ): Promise<Result<DisputeResponse>> {
   const jwt = cookies().get(JWT_KEY)?.value;
   if (!jwt) {
@@ -75,13 +75,13 @@ export async function updateDisputeStatus(
     .catch((e: Error) => ({
       error: e.message,
     }));
-  console.log("RESPONSE IN UPDATE DISPUTE\n", res)
-  console.log("BODY WAS\n", JSON.stringify(body))
-  return res
+  console.log("RESPONSE IN UPDATE DISPUTE\n", res);
+  console.log("BODY WAS\n", JSON.stringify(body));
+  return res;
 }
-export async function getStatusEnum() : Promise<string[]>{
+export async function getStatusEnum(): Promise<string[]> {
   const res = await fetch(`${API_URL}/utils/dispute_statuses`, {
-    method: "GET"
+    method: "GET",
   })
     .then((res) => res.json())
     .catch((e: Error) => ({

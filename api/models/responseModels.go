@@ -31,9 +31,9 @@ type DisputeDetailsResponse struct {
 
 type Evidence struct {
 	ID          uint      `json:"id"`
-	FileName    string    `json:"file_name"`
-	Uploaded    time.Time `json:"uploaded"`
-	FilePath    string    `json:"file_path"`
+	FileName    string    `json:"label"`
+	Uploaded    time.Time `json:"date_submitted"`
+	FilePath    string    `json:"url"`
 	UploaderRole string   `json:"uploader_role"`
 }
 

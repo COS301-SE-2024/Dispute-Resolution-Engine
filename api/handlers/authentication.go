@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"api/env"
-	"api/middleware"
+	"api/handlers/notifications"
 	"api/models"
 	"api/redisDB"
 	"api/utilities"
@@ -70,7 +70,6 @@ func (h Auth) ResetPassword(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Response "Internal Server Error"
 // @Router /auth/signup [post]
 func (h Auth) CreateUser(c *gin.Context) {
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var reqUser models.CreateUser
@@ -111,9 +110,13 @@ func (h Auth) CreateUser(c *gin.Context) {
 	}
 
 	//Hash the password
-	hashAndSalt := hasher.HashPassword(user.PasswordHash)
-	user.PasswordHash = base64.StdEncoding.EncodeToString(hashAndSalt.Hash)
-	user.Salt = base64.StdEncoding.EncodeToString(hashAndSalt.Salt)
+	hash, salt, err := utilities.HashPassword(user.PasswordHash)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
+		return
+	}
+	user.PasswordHash = base64.StdEncoding.EncodeToString(hash)
+	user.Salt = base64.StdEncoding.EncodeToString(salt)
 
 	//update log metrics
 	user.CreatedAt = utilities.GetCurrentTime()
@@ -129,7 +132,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 	// 	return
 	// }
 
-	jwt, err := middleware.GenerateJWT(user)
+	jwt, err := h.jwt.GenerateJWT(user)
 	if err != nil {
 		logger.WithError(err).Error("Error getting user jwt.")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -176,7 +179,6 @@ func (h Auth) CreateUser(c *gin.Context) {
 // @Failure 401 {object} string "Unauthorized"
 // @Router /auth/login [post]
 func (h Auth) LoginUser(c *gin.Context) {
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var user models.User
@@ -187,7 +189,7 @@ func (h Auth) LoginUser(c *gin.Context) {
 
 	if !h.checkUserExists(user.Email) {
 		logger.Error("User does not exist")
-		c.JSON(http.StatusNotFound, models.Response{Error: "User does not exist"})
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "User does not exist"})
 		return
 	}
 
@@ -200,16 +202,12 @@ func (h Auth) LoginUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
 		return
 	}
-	checkHash, err := hasher.GenerateHash([]byte(user.PasswordHash), realSalt)
-	if err != nil {
-		logger.WithError(err).Error("Error hashing password")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong processing your request..."})
-		return
-	}
 
-	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash.Hash) {
+	checkHash := utilities.HashPasswordWithSalt(user.PasswordHash, realSalt)
+
+	if dbUser.PasswordHash != base64.StdEncoding.EncodeToString(checkHash) {
 		print(dbUser.PasswordHash)
-		print(base64.StdEncoding.EncodeToString(checkHash.Hash))
+		print(base64.StdEncoding.EncodeToString(checkHash))
 		logger.Error("Invalid credentials")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
@@ -218,7 +216,7 @@ func (h Auth) LoginUser(c *gin.Context) {
 	dbUser.LastLogin = utilities.GetCurrentTimePtr()
 	h.DB.Where("email = ?", user.Email).Update("last_login", utilities.GetCurrentTime())
 
-	token, err := middleware.GenerateJWT(dbUser)
+	token, err := h.jwt.GenerateJWT(dbUser)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -251,13 +249,13 @@ func (h Auth) Verify(c *gin.Context) {
 	}
 	var valid bool
 	valid = false
-	jwtClaims := middleware.GetClaims(c)
-	if jwtClaims == nil {
+	jwtUser, err := h.jwt.GetClaims(c)
+	if err != nil {
 		logger.Error("No claims found")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
 		return
 	}
-	userkey := jwtClaims.Email + jwtClaims.User.Surname
+	userkey := jwtUser.Email + jwtUser.Surname
 	// valid, err := utilities.RemoveFromFile("stubbedStorage/verify.txt", pinReq.Pin)
 	userVerifyJSON, err := redisDB.RDB.Get(context.Background(), userkey).Result()
 	if err != nil {
@@ -304,8 +302,8 @@ func (h Auth) Verify(c *gin.Context) {
 
 	//create new jwt from the claims
 	var updatedUser models.User
-	h.DB.Where("email = ?", jwtClaims.Email).First(&updatedUser)
-	newJWT, err := middleware.GenerateJWT(updatedUser)
+	h.DB.Where("email = ?", jwtUser.Email).First(&updatedUser)
+	newJWT, err := h.jwt.GenerateJWT(updatedUser)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -326,12 +324,12 @@ func (h Handler) checkUserExists(email string) bool {
 
 func (h Auth) ResendOTP(c *gin.Context) {
 	pin := utilities.GenerateVerifyEmailToken()
-	jwtClaims := middleware.GetClaims(c)
-	if jwtClaims == nil {
-		c.JSON(http.StatusBadRequest, models.Response{Error: "IDIOT"})
+	jwtUser, err := h.jwt.GetClaims(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to read JWT"})
 		return
 	}
-	userkey := jwtClaims.Email + jwtClaims.User.Surname
+	userkey := jwtUser.Email + jwtUser.Surname
 	fmt.Println(userkey)
 	userVerifyJSON, err := redisDB.RDB.Get(context.Background(), userkey).Result()
 	if err != nil {
@@ -361,6 +359,7 @@ func (h Auth) ResendOTP(c *gin.Context) {
 
 func sendOTP(userInfo string, pin string) {
 	logger := utilities.NewLogger().LogWithCaller()
+	env := env.NewEnvLoader()
 	// SMTP server configuration for Gmail
 	smtpServer := "smtp.gmail.com"
 	smtpPort := 587
@@ -435,20 +434,20 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		Email: user.Email,
 	}
 
-	jwt, err := middleware.GenerateJWT(tempUser)
+	jwt, err := h.jwt.GenerateJWT(tempUser)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
 		return
 	}
 
-	frontendBase, err := env.Get("FRONTEND_BASE_URL")
+	frontendBase, err := h.EnvReader.Get("FRONTEND_BASE_URL")
 	if err != nil {
 		utilities.InternalError(c)
 		return
 	}
 
-	companyEmail, err := env.Get("COMPANY_EMAIL")
+	companyEmail, err := h.EnvReader.Get("COMPANY_EMAIL")
 	if err != nil {
 		utilities.InternalError(c)
 		return
@@ -463,7 +462,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		Body:    "Click here to reset your password: " + linkURL,
 	}
 	log.Println(email)
-	if err := sendMail(email); err != nil {
+	if err := notifications.SendMail(email); err != nil {
 		logger.WithError(err).Error("Error sending reset email")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error sending reset email"})
 		return
@@ -492,10 +491,10 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing token"})
 		return
 	}
-	claims := middleware.GetClaims(c)
-	if claims == nil {
-		logger.Error("Missing token")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing token"})
+	claims, err := h.jwt.GetClaims(c)
+	if err != nil {
+		logger.WithError(err).Error("Failed to read JWT")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to read JWT"})
 		return
 	}
 
@@ -534,40 +533,15 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Password reset successfully"})
 }
 
-func sendMail(email models.Email) error {
-	companyEmail, err := env.Get("COMPANY_EMAIL")
-	if err != nil {
-		return err
-	}
-	companyAuth, err := env.Get("COMPANY_AUTH")
-	if err != nil {
-		return err
-	}
-
-	logger := utilities.NewLogger().LogWithCaller()
-	d := gomail.NewDialer("smtp.gmail.com", 587, companyEmail, companyAuth)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-	m := gomail.NewMessage()
-	m.SetHeader("From", email.From)
-	m.SetHeader("To", email.To)
-	m.SetHeader("Subject", email.Subject)
-	m.SetBody("text/html", email.Body)
-	logger.WithField("email", email).Info("Sending email")
-
-	if err := d.DialAndSend(m); err != nil {
-		logger.WithError(err).Error("Error sending email")
-		return err
-	}
-	return nil
-}
-
 func hashPassword(newPassword string, user *models.User) (string, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	hasher := utilities.NewArgon2idHash(1, 12288, 4, 32, 16)
 
-	hashAndSalt := hasher.HashPassword(newPassword)
-	user.Salt = base64.StdEncoding.EncodeToString(hashAndSalt.Salt)
+	hash, salt, err := utilities.HashPassword(newPassword)
+	if err != nil {
+		return "", err
+	}
+
+	user.Salt = base64.StdEncoding.EncodeToString(salt)
 	logger.Info("Password hashed successfully")
-	return base64.StdEncoding.EncodeToString(hashAndSalt.Hash), nil
+	return base64.StdEncoding.EncodeToString(hash), nil
 }

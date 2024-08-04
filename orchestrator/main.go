@@ -5,6 +5,7 @@ import (
 	"orchestrator/db"
 	"orchestrator/env"
 	"orchestrator/utilities"
+	"orchestrator/workflow"
 )
 
 var requiredEnvVariables = []string{
@@ -30,4 +31,5 @@ func main() {
 		logger.WithError(err).Fatal("Couldn't initialize database connection")
 	}
 	fmt.Println(DB)
+	fmt.Println(workflow.StateAppealCommunique)
 }

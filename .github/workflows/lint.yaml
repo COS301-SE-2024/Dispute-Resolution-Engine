@@ -2,7 +2,7 @@ name: Linting
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
-  fork:
+  # fork:
   pull_request:
     branches:
       - release
@@ -11,7 +11,7 @@ on:
     types:
       - opened
       - reopened
-      - edit
+      - edited
       - synchronize
 jobs:
   linting:

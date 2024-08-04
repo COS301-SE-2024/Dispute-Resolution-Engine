@@ -120,8 +120,14 @@ type ExpertApproveRequest struct {
 }
 
 type ExpertRejectRequest struct {
-	ExpertID string `json:"expert_id"`
+	ExpertID int64 `json:"expert_id"`
 	Reason   string `json:"reason"`
+}
+
+
+type RejectExpertReview struct {
+	ExpertID int64 `json:"expert_id"`
+	Accepted  bool  `json:"accepted"`
 }
 
 type DisputeStatusChange struct {

@@ -16,74 +16,31 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Make db env file
-        uses: SpicyPizza/create-envfile@v1.3
-        with:
-          envkey_POSTGRES_PASSWORD : ${{ secrets.POSTGRES_PASSWORD }}
-          envkey_POSTGRES_USER : ${{ secrets.POSTGRES_USER }}
-          envkey_POSTGRES_DB : ${{ secrets.POSTGRES_DB }}
-          directory:  .
-          file_name: db.env
-          fail_on_empty: false
-
-      - name: Make api env files
-        uses: SpicyPizza/create-envfile@v1.3
-        with:
-          envkey_DATABASE_URL : ${{ secrets.DATABASE_URL }}
-          envkey_DATABASE_PORT : ${{ secrets.DATABASE_PORT }}
-          envkey_DATABASE_NAME : ${{ secrets.DATABASE_NAME }}
-          envkey_DATABASE_USER : ${{ secrets.DATABASE_USER }}
-          envkey_DATABASE_PASSWORD : ${{ secrets.DATABASE_PASSWORD }}
-          envkey_COMPANY_EMAIL : ${{ secrets.COMPANY_EMAIL }}
-          envkey_COMPANY_AUTH : ${{ secrets.COMPANY_AUTH }}
-          directory:  .
-          file_name: api.env
-          fail_on_empty: false
- 
-      - name: Make fe env files
-        uses: SpicyPizza/create-envfile@v1.3
-        with:
-          envkey_API_URL : ${{ secrets.API_URL }}
-          directory:  .
-          file_name: fe.env
-          fail_on_empty: false    
- 
-      - name: Make red.env file
-        uses: SpicyPizza/create-envfile@v1.3
-        with:
-          envkey_REDIS_PASSWORD : ${{ secrets.REDIS_PASSWORD }}
-          directory:  .
-          file_name: red.env
-          fail_on_empty: false
+      - name: Create api.env file
+        run: echo "${{ secrets.API_ENV }}" > api.env
       
-      - name: Clear Docker Cache
-        run: |
-          docker builder prune -a -f
-
-      - name: Docker compose build
+      - name: Create fe.env file
+        run: echo "${{ secrets.FE_ENV }}" > fe.env
+      
+      - name: Create db.env file
+        run: echo "${{ secrets.DB_ENV }}" > db.env
+      
+      - name: Create red.env file
+        run: echo "${{ secrets.RED_ENV }}" > red.env
+      
+      - name: Tar the repo
         run: |
           cd $GITHUB_WORKSPACE
-          docker compose build --progress=plain
-          docker pull postgres
-          docker pull redis
-          docker pull grafana/loki
-          docker pull prom/prometheus
-          docker pull grafana
-          docker pull cadvisor
-      
-      - name: Make it a tar file
+          mkdir temp
+          rsync -a . ./temp
+          tar -czpvf archive.tar.gz -C ./temp .
+        continue-on-error: true
+      - name: Ensure Tarball exists
         run: |
           cd $GITHUB_WORKSPACE
-          docker images
-          docker save -o frontend.tar dispute-resolution-engine-frontend:latest
-          docker save -o api.tar dispute-resolution-engine-api:latest
-          docker save -o postgres.tar postgres:latest
-          docker save -o redis.tar redis:latest
-          docker save -o loki.tar grafana/loki:latest
-          docker save -o prom.tar prom/prometheus:latest
-          docker save -o grafana.tar grafana:latest
-          docker save -o cadvisor.tar cadvisor:latest
-          
+          ls
+        continue-on-error: true
+
       - name: Set up WireGuard Connection
         uses: niklaskeerl/easy-wireguard-action@v2
         with:
@@ -96,7 +53,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
-          source: "api.tar,frontend.tar,postgres.tar,redis.tar,loki.tar,prom.tar,grafana.tar,cadvisor.tar,db.env,api.env,red.env,fe.env,server_compose.yaml"
+          source: "archive.tar.gz"
           target: ./
           timeout: 3m
           overwrite: true
@@ -108,34 +65,14 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT }}
+          # extract to a temporary folder for extration
           script: |
-            mv server_compose.yaml compose.yaml
-            docker load -i frontend.tar
-            docker load -i api.tar
-            docker load -i postgres.tar
-            docker load -i redis.tar
-            docker load -i loki.tar
-            docker load -i prom.tar
-            docker load -i grafana.tar
-            docker load -i cadvisor.tar
-            docker compose down
-            docker compose up -d
-     
-  # cypress-test:
-  #   container:
-  #     image: cypress/included
-  #   needs: deploy
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Repo
-  #       uses: actions/checkout@v4
+            rm -rf repo
+            mkdir repo
+            tar -xzvf archive.tar.gz -C repo
+            cd repo
 
-  #     - name: Cypress run
-  #       uses: cypress-io/github-action@v2
-  #       with:
-  #         wait-on: 'http://capstone-dre.dns.net.za'
-  #         wait-on-timeout: 300
-  #     - name: Upload coverage reports to Codecov
-  #       uses: codecov/codecov-action@v4.0.1
-  #       with:
-  #         token: ${{ secrets.CODECOV_TOKEN }}
+            docker compose down
+            docker builder prune -a -f
+            docker compose build --progress=plain
+            docker compose up -d

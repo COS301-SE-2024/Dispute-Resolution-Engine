@@ -1,7 +1,8 @@
+import { BackButton } from "@/components/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchArchivedDispute } from "@/lib/api/archive";
-import { BackButton } from "./client";
+import { ArrowLeft } from "lucide-react";
 
 function ErrorPage({ msg }: { msg: string }) {
   return (
@@ -22,7 +23,13 @@ export default async function ArchivedPageDispute({ params }: { params: { id: st
     <Card variant="page" className="md:mt-10">
       <CardHeader>
         <div className="flex items-center flex-wrap mb-3 gap-2 ">
-          <BackButton />
+          <BackButton
+            variant="ghost"
+            className="rounded-full aspect-square p-0 flex justify-center"
+            aria-label="Back"
+          >
+            <ArrowLeft />
+          </BackButton>
           <CardTitle className="grow">{data.title}</CardTitle>
           <div className="space-x-1">
             {data.category.map((cat) => (

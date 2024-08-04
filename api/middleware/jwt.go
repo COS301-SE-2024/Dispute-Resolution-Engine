@@ -2,12 +2,14 @@ package middleware
 
 // Add JWT-related imports
 import (
+	"api/env"
 	"api/models"
 	"api/redisDB"
 	"api/utilities"
+	"errors"
 	"net/http"
-	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"context"
@@ -23,11 +25,35 @@ type Claims struct {
 	User models.UserInfoJWT `json:"user"`
 }
 
+type JwtMiddleware struct{
+	EnvLoader env.Env
+	Logger *utilities.Logger
+}
+
+var jwtMiddleware Jwt
+var once sync.Once
+
+func NewJwtMiddleware() Jwt {
+	once.Do(func() {
+		jwtMiddleware = createJwtMiddleware()
+	})
+	return jwtMiddleware
+}
+
+func createJwtMiddleware() Jwt {
+	return &JwtMiddleware{
+		EnvLoader: env.NewEnvLoader(),
+		Logger: utilities.NewLogger().LogWithCaller(),
+	}
+}
+
 // GenerateJWT generates a JWT token
 // GenerateJWT generates a JWT token for the given user
-func GenerateJWT(user models.User) (string, error) {
-	logger := utilities.NewLogger().LogWithCaller()
-	jwtSec := os.Getenv("JWT_SECRET")
+func (j *JwtMiddleware) GenerateJWT(user models.User) (string, error) {
+	jwtSec, err := j.EnvLoader.Get("JWT_SECRET")
+	if err != nil {
+		return "", err
+	}
 
 	claims := &Claims{
 		Email: user.Email,
@@ -40,16 +66,16 @@ func GenerateJWT(user models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(jwtSec))
 	if err != nil {
-		logger.WithError(err).Error("Failed to sign token")
+		j.Logger.WithError(err).Error("Failed to sign token")
 		return "", err
 	}
 
-	StoreJWT(user.Email, signedToken)
-	logger.Info("Token signed successfully")
+	j.StoreJWT(user.Email, signedToken)
+	j.Logger.Info("Token signed successfully")
 	return signedToken, nil
 }
 
-func StoreJWT(email string, jwt string) error {
+func (j *JwtMiddleware) StoreJWT(email string, jwt string) error {
 	logger := utilities.NewLogger().LogWithCaller()
 	err := redisDB.RDB.Set(context.Background(), email, jwt, 24*time.Hour).Err()
 	if err != nil {
@@ -60,7 +86,7 @@ func StoreJWT(email string, jwt string) error {
 	return nil
 }
 
-func GetJWT(userEmail string) (string, error) {
+func (j *JwtMiddleware) GetJWT(userEmail string) (string, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	jwt, err := redisDB.RDB.Get(context.Background(), userEmail).Result()
 	if err != nil {
@@ -71,8 +97,10 @@ func GetJWT(userEmail string) (string, error) {
 	return jwt, nil
 }
 
-func JWTMiddleware(c *gin.Context) {
+func (j *JwtMiddleware) JWTMiddleware(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
+	envLoader := env.NewEnvLoader()
+
 	authorizationHeader := c.GetHeader("Authorization")
 	if authorizationHeader == "" {
 		logger.Error("No Authorization header")
@@ -96,7 +124,14 @@ func JWTMiddleware(c *gin.Context) {
 	}
 
 	// Get JWT secret key
-	jwtSecretKey := []byte(os.Getenv("JWT_SECRET"))
+	var jwtSecretKey []byte
+	{
+		secret, err := envLoader.Get("JWT_SECRET")
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
+		}
+		jwtSecretKey = []byte(secret)
+	}
 
 	// Parse token
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -112,7 +147,7 @@ func JWTMiddleware(c *gin.Context) {
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		//ctx := context.WithValue(r.Context(), "user", claims)
 		userEmail := claims.Email
-		jwtFromDB, err := GetJWT(userEmail)
+		jwtFromDB, err := j.GetJWT(userEmail)
 		if err != nil {
 			logger.WithError(err).Error("Couldn't retrieve JWT from Redis")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -132,21 +167,31 @@ func JWTMiddleware(c *gin.Context) {
 }
 
 // return claims
-func GetClaims(c *gin.Context) *Claims {
+func (j *JwtMiddleware) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-
-	secret := []byte(os.Getenv("JWT_SECRET"))
+	envLoader := env.NewEnvLoader()
+	var secret []byte
+	{
+		s, err := envLoader.Get("JWT_SECRET")
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
+		}
+		secret = []byte(s)
+	}
 
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		logger.Error("No Authorization header")
-		return nil
+		return models.UserInfoJWT{}, errors.New("Missing Authorization header")
 	}
-
-	tokenString := strings.Split(authHeader, " ")[1]
+	
+	tokenString, _ := strings.CutPrefix(authHeader, "bearer")
+	tokenString, _ = strings.CutPrefix(tokenString, "Bearer")
+	tokenString = strings.TrimSpace(tokenString)
+	
 	if tokenString == "" {
 		logger.Error("No token")
-		return nil
+		return models.UserInfoJWT{}, errors.New("Missing Authorization header")
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -154,14 +199,14 @@ func GetClaims(c *gin.Context) *Claims {
 	})
 	if err != nil {
 		logger.WithError(err).Error("Error parsing token")
-		return nil
+		return models.UserInfoJWT{}, err
 	}
 
 	claims, ok := token.Claims.(*Claims)
 	if !ok {
 		logger.Error("Error getting claims")
-		return nil
+		return models.UserInfoJWT{}, errors.New("failed to get claims")
 	}
 	logger.Info("Claims retrieved successfully")
-	return claims
+	return claims.User, nil
 }

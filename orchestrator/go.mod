@@ -4,6 +4,7 @@ go 1.22.3
 
 require (
 	github.com/joho/godotenv v1.5.1
+	github.com/qmuntal/stateless v1.7.0
 	github.com/sirupsen/logrus v1.9.3
 	gorm.io/gorm v1.25.10
 )

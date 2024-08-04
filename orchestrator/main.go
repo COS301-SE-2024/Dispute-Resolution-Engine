@@ -41,9 +41,9 @@ func main() {
 
 	wf.AddState(state2)
 	wf.AddState(state3)
-	
-	t1to2 := workflow.CreateTransition("t1to2", state1.Name(), state2.Name(), workflow.TriggerFeeNotPaid)
-	t2to3 := workflow.CreateTransition("t2to3", state2.Name(), state3.Name(), workflow.TriggerResponseReceived)
+
+	t1to2 := workflow.CreateTransition("t1to2", state1.GetName(), state2.GetName(), workflow.TriggerResponseReceived)
+	t2to3 := workflow.CreateTransition("t2to3", state2.GetName(), state3.GetName(), workflow.TriggerResponseReceived)
 	wf.AddTransition(t1to2)
 	wf.AddTransition(t2to3)
 

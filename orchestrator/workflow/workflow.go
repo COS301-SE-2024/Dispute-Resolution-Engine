@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"errors"
 	"time"
 )
 
@@ -57,9 +56,9 @@ type IWorkflow interface {
 	GetTransition(name string) transition
 	AddTransition(t transition)
 	GetTransitions() []transition
-	GetTransitionByTrigger(triggerstr string) (transition, error)
-	GetTransitionByFrom(fromstr string) (transition, error)
-	GetTransitionByTo(tostr string) (transition, error)
+	GetTransitionsByTrigger(triggerstr string) []transition
+	GetTransitionsByFrom(fromstr string) []transition
+	GetTransitionsByTo(tostr string) []transition
 }
 
 // ----------------------------Timers--------------------------------
@@ -73,11 +72,11 @@ func CreateTimer(name string, duration time.Duration, willTrigger string) timer 
 	return timer{name: name, duration: duration, willTrigger: willTrigger}
 }
 
-func (t *timer) Name() string {
+func (t *timer) GetName() string {
 	return t.name
 }
 
-func (t *timer) Duration() time.Duration {
+func (t *timer) GetDuration() time.Duration {
 	return t.duration
 }
 
@@ -96,15 +95,24 @@ func CreateState(name string) state {
 }
 
 func (s *state) AddTimer(t timer) {
-	s.timers[t.Name()] = t
+	s.timers[t.GetName()] = t
 }
 
-func (s *state) Name() string {
+func (s *state) GetName() string {
 	return s.name
 }
 
-func (s *state) GetTimer(name string) timer {
-	return s.timers[name]
+func (s *state) GetTimer(name string) (timer, bool) {
+	t, ok := s.timers[name]
+	return t, ok
+}
+
+func (s *state) GetTimers() []timer {
+	timers := make([]timer, 0, len(s.timers))
+	for _, t := range s.timers {
+		timers = append(timers, t)
+	}
+	return timers
 }
 
 // ----------------------------Transitions--------------------------------
@@ -119,26 +127,26 @@ func CreateTransition(name string, from string, to string, trigger string) trans
 	return transition{name: name, from: from, to: to, trigger: trigger}
 }
 
-func (t *transition) Name() string {
+func (t *transition) GetName() string {
 	return t.name
 }
 
-func (t *transition) From() string {
-	return t.from
+func (t *transition) GetFrom() string {
+	return t.from // name of state
 }
 
-func (t *transition) To() string {
-	return t.to
+func (t *transition) GetTo() string {
+	return t.to // name of state
 }
 
-func (t *transition) Trigger() string {
+func (t *transition) GetTrigger() string {
 	return t.trigger
 }
 
 // ----------------------------workflow--------------------------------
 // Concrete product
 type workflow struct {
-	id          uint32
+	id          uint32 // from table primary key, ideally
 	name        string
 	initial     state
 	states      map[string]state      // state name -> State
@@ -183,7 +191,7 @@ func (w *workflow) GetStates() []state {
 }
 
 func (w *workflow) AddState(s state) {
-	w.states[s.Name()] = s
+	w.states[s.GetName()] = s
 }
 
 func (w *workflow) HasState(name string) bool {
@@ -196,7 +204,7 @@ func (w *workflow) GetTransition(name string) transition {
 }
 
 func (w *workflow) AddTransition(t transition) {
-	w.transitions[t.Name()] = t
+	w.transitions[t.GetName()] = t
 }
 
 func (w *workflow) GetTransitions() []transition {
@@ -207,29 +215,32 @@ func (w *workflow) GetTransitions() []transition {
 	return transitions
 }
 
-func (w *workflow) GetTransitionByTrigger(triggerstr string) (transition, error) {
+func (w *workflow) GetTransitionsByTrigger(triggerstr string) []transition {
+	var transitions []transition
 	for _, t := range w.transitions {
 		if t.trigger == triggerstr {
-			return t, nil
+			transitions = append(transitions, t)
 		}
 	}
-	return transition{}, errors.New("transition not found")
+	return transitions
 }
 
-func (w *workflow) GetTransitionByFrom(fromstr string) (transition, error) {
+func (w *workflow) GetTransitionsByFrom(fromstr string) []transition {
+	var transitions []transition
 	for _, t := range w.transitions {
 		if t.from == fromstr {
-			return t, nil
+			transitions = append(transitions, t)
 		}
 	}
-	return transition{}, errors.New("transition not found")
+	return transitions
 }
 
-func (w *workflow) GetTransitionByTo(tostr string) (transition, error) {
+func (w *workflow) GetTransitionsByTo(tostr string) []transition {
+	var transitions []transition
 	for _, t := range w.transitions {
 		if t.to == tostr {
-			return t, nil
+			transitions = append(transitions, t)
 		}
 	}
-	return transition{}, errors.New("transition not found")
+	return transitions
 }

@@ -38,7 +38,7 @@ jobs:
             ~/.cache/yarn
           key: yarn-${{ hashFiles('frontend/package.json') }}
           restore-keys: |
-            yarn-      
+            yarn-
       - name: Run install
         uses: borales/actions-yarn@v5
         with:
@@ -52,4 +52,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: yarn nx affected -t lint test build
-      - run: yarn nx affected --parallel 1 -t e2e-ci

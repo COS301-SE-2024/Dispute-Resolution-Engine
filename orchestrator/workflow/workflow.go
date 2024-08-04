@@ -51,6 +51,7 @@ type IWorkflow interface {
 	GetName() string
 	GetInitialState() state
 	GetState(name string) state
+	GetStates() []state
 	AddState(s state)
 	HasState(name string) bool
 	GetTransition(name string) transition
@@ -146,13 +147,15 @@ type workflow struct {
 
 // Factory method
 func CreateWorkflow(id uint32, name string, initial state) IWorkflow {
-	return &workflow{
+	w := &workflow{
 		id:          id,
 		name:        name,
 		initial:     initial,
 		states:      make(map[string]state),
 		transitions: make(map[string]transition),
 	}
+	w.AddState(initial)
+	return w
 }
 
 func (w *workflow) GetID() uint32 {
@@ -169,6 +172,14 @@ func (w *workflow) GetInitialState() state {
 
 func (w *workflow) GetState(name string) state {
 	return w.states[name]
+}
+
+func (w *workflow) GetStates() []state {
+	states := make([]state, 0, len(w.states))
+	for _, s := range w.states {
+		states = append(states, s)
+	}
+	return states
 }
 
 func (w *workflow) AddState(s state) {

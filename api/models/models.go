@@ -85,6 +85,24 @@ func (User) TableName() string {
 	return "users"
 }
 
+type EventTypes string
+
+const (
+	Notification EventTypes = "NOTIFICATION"
+	Disputes      EventTypes = "DISPUTE"
+	Users         EventTypes = "USER"
+	Experts       EventTypes = "EXPERT"
+	Workflow     EventTypes = "WORKFLOW"
+)
+
+// EventLog represents the event_log table
+type EventLog struct {
+	ID        uint           `gorm:"primaryKey"`
+	CreatedAt time.Time      `gorm:"default:CURRENT_TIMESTAMP"`
+	EventType EventTypes     `gorm:"type:event_types"`
+	EventData map[string]interface{} `gorm:"type:json"`
+}
+
 type Address struct {
 	ID          int64   `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
 	Country     *string `json:"country,omitempty" gorm:"type:varchar(64);column:code"`

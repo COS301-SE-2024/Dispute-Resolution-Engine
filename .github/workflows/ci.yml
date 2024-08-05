@@ -12,6 +12,8 @@ on:
       - reopened
       - edited
       - synchronize
+  schedule:
+    - cron: '38 3 * * *'
 
 permissions:
   actions: read

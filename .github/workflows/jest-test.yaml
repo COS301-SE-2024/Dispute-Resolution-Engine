@@ -51,4 +51,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pwd
-      - run: yarn nx affected -t test || yarn nx reset || yarn nx affected -t test || yarn jest test --coverage
+      - run: yarn nx affected -t test || yarn nx reset | yarn nx affected -t test || yarn jest test --coverage

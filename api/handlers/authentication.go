@@ -161,7 +161,9 @@ func (h Auth) CreateUser(c *gin.Context) {
 		return
 	}
 	logger.Info("OTP generated")
-	h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, jwt)
+
+	loggedProceedings := map[string]interface{}{"user": user, "message": "User stored in redis"}
+	h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, loggedProceedings)
 	//send OTP
 	go sendOTP(user.Email, pin)
 

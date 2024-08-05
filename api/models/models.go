@@ -103,6 +103,10 @@ type EventLog struct {
 	EventData map[string]interface{} `gorm:"type:json"`
 }
 
+func (EventLog) TableName() string {
+	return "event_log"
+}
+
 type Address struct {
 	ID          int64   `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
 	Country     *string `json:"country,omitempty" gorm:"type:varchar(64);column:code"`

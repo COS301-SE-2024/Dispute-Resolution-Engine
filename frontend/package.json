@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nx next:dev",
+    "dev": "next dev",
     "build": "nx next:build",
-    "start": "nx next:start",
+    "start": "next start",
     "lint": "next lint",
     "test": "nx jest:test --coverage",
     "cypress:open": "nx open-cypress"

@@ -1,10 +1,11 @@
 package dispute
 
 import (
-	"api/handlers"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -12,7 +13,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func SetupRoutes(g *gin.RouterGroup, h Dispute) {
@@ -282,8 +282,22 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 			logger.Info("Attempting to create default user")
 			//now we call to create the default user
 			secretPass := make([]byte, 5)
-			pass := string(secretPass)
-			handlers.Auth.CreateDefaultUser(handlers.NewAuthHandler(&gorm.DB{}), email, fullName, pass, c)
+			// Fill the byte slice with random values
+			_, err := rand.Read(secretPass)
+			if err != nil {
+				logger.WithError(err).Error("Error generating default password")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating default password"})
+				return
+			}
+
+			// Convert the byte slice to a base64 encoded string
+			pass := base64.StdEncoding.EncodeToString(secretPass)
+			err1 := h.Model.CreateDefaultUser(email, fullName, pass)
+			if err1 != nil {
+				logger.WithError(err1).Error("Error creating default user.")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating default user."})
+				return
+			}
 			go h.Email.SendDefaultUserEmail(c, email, pass)
 			logger.Info("Default respondent user created")
 		} else {

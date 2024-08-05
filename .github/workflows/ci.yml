@@ -40,6 +40,7 @@ jobs:
             ~/.cache/yarn
           key: yarn-${{ hashFiles('frontend/package.json') }}
           restore-keys: |
+            yarn-${{ hashFiles('frontend/package.json') }}
             yarn-
       - name: Run install
         uses: borales/actions-yarn@v5

@@ -279,6 +279,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	if err != nil {
 		//if the user is not found in the database then we create the default user
 		if err.Error() == "record not found" {
+			logger.Info("Attempting to create default user")
 			//now we call to create the default user
 			secretPass := make([]byte, 5)
 			pass := string(secretPass)

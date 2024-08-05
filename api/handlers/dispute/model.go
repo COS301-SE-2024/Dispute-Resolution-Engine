@@ -6,11 +6,13 @@ import (
 	"api/middleware"
 	"api/models"
 	"api/utilities"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
@@ -30,6 +32,8 @@ type DisputeModel interface {
 
 	ObjectExpert(userId, disputeId, expertId int64, reason string) error
 	ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error
+
+	CreateDefaultUser(email string, fullName string, pass string) error
 }
 
 type Dispute struct {
@@ -282,5 +286,56 @@ func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int
 		logger.WithError(err).Error("Error committing transaction")
 		return err
 	}
+	return nil
+}
+
+func (m *disputeModelReal) CreateDefaultUser(email string, fullName string, pass string) error {
+	logger := utilities.NewLogger().LogWithCaller()
+	nameSplit := strings.Split(fullName, " ")
+	//stub timezone
+	zone, _ := time.Now().Zone()
+	timezone := zone
+	actualTimezone := &timezone
+	//Now put stuff in the actual user object
+	date, _ := time.Parse("2006-01-02", time.Now().String())
+	user := models.User{
+		FirstName:         nameSplit[0],
+		Surname:           nameSplit[1],
+		Birthdate:         date,
+		Nationality:       "",
+		Email:             email,
+		PasswordHash:      pass,
+		PhoneNumber:       nil,
+		AddressID:         nil,
+		Status:            "Unverified",
+		Gender:            "Other",
+		PreferredLanguage: nil,
+		Timezone:          actualTimezone,
+	}
+	//create a default entry for the user
+	//Hash the password
+	hash, salt, err := utilities.HashPassword(user.PasswordHash)
+	if err != nil {
+		logger.WithError(err).Error("Error hashing the default password.")
+		return err
+	}
+
+	user.PasswordHash = base64.StdEncoding.EncodeToString(hash)
+	user.Salt = base64.StdEncoding.EncodeToString(salt)
+
+	//update log metrics
+	user.CreatedAt = utilities.GetCurrentTime()
+	user.UpdatedAt = utilities.GetCurrentTimePtr()
+	user.Status = "Active"
+
+	//Small user preferences
+	user.Role = "user"
+	user.LastLogin = nil
+
+	if result := m.db.Create(&user); result.Error != nil {
+		logger.WithError(result.Error).Error("Error creating default user")
+		return result.Error
+	}
+	logger.Info("User added to the Database")
 	return nil
 }

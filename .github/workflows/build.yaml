@@ -1,5 +1,5 @@
-name: CI
-
+name: Build
+run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
   pull_request:
@@ -13,18 +13,13 @@ on:
       - edited
       - synchronize
   schedule:
-    - cron: '38 3 * * *'
-
-permissions:
-  actions: read
-  contents: read
-
+    - cron: '48 3 * * *'
 jobs:
-  main:
+  frontend-build:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 'frontend'
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,7 +35,6 @@ jobs:
             ~/.cache/yarn
           key: yarn-${{ hashFiles('frontend/package.json') }}
           restore-keys: |
-            yarn-${{ hashFiles('frontend/package.json') }}
             yarn-
       - name: Run install
         uses: borales/actions-yarn@v5
@@ -54,4 +48,15 @@ jobs:
       - uses: nrwl/nx-set-shas@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: yarn nx affected -t lint test build
+      - run: yarn nx affected -t build
+  backend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: go build -o main
+      - run: go env GOCACHE

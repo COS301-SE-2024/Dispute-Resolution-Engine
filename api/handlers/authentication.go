@@ -161,6 +161,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 		return
 	}
 	logger.Info("OTP generated")
+	h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, jwt)
 	//send OTP
 	go sendOTP(user.Email, pin)
 

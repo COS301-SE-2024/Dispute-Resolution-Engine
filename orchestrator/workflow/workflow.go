@@ -84,6 +84,14 @@ func (t *timer) WillTrigger() string {
 	return t.willTrigger
 }
 
+func (t *timer) GetDeadline() time.Time {
+	return time.Now().Add(t.duration)
+}
+
+func (t *timer) HasDeadlinePassed() bool {
+	return time.Now().After(t.GetDeadline())
+}
+
 // ----------------------------States--------------------------------
 type state struct {
 	name   string

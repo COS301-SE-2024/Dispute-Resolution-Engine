@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 	// "orchestrator/db"
 	// "orchestrator/env"
 	// "orchestrator/utilities"
@@ -33,7 +34,9 @@ func main() {
 	// fmt.Println(DB)
 
 	state1 := workflow.CreateState("state1")
-	fee_timer := workflow.CreateTimer("fee_timer", 10, workflow.TriggerFeeNotPaid)
+	period, _ := time.ParseDuration("24h")
+	fee_timer := workflow.CreateTimer("fee_timer", period, workflow.TriggerFeeNotPaid)
+	fmt.Println(fee_timer.GetDeadline().Format("02-01-2006 15:04"))
 	state1.AddTimer(fee_timer)
 	state2 := workflow.CreateState("state2")
 	state3 := workflow.CreateState("state3")

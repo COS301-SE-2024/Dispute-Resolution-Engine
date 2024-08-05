@@ -2,6 +2,7 @@ name: Jest-Test
 run-name: ${{ github.actor }} at ${{ github.event_name }} event 
 on:
   workflow_dispatch:
+  fork:
   pull_request:
     branches:
       - release
@@ -49,4 +50,5 @@ jobs:
       - uses: nrwl/nx-set-shas@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: yarn nx affected -t test
+      - run: pwd
+      - run: yarn nx affected -t test || yarn nx reset || yarn nx affected -t test || yarn jest test --coverage

@@ -52,3 +52,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pwd
       - run: yarn nx affected -t test || yarn nx reset | yarn nx affected -t test || yarn jest test --coverage
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

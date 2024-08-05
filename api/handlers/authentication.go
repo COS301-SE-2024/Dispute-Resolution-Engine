@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -545,55 +544,4 @@ func hashPassword(newPassword string, user *models.User) (string, error) {
 	user.Salt = base64.StdEncoding.EncodeToString(salt)
 	logger.Info("Password hashed successfully")
 	return base64.StdEncoding.EncodeToString(hash), nil
-}
-
-func (h Auth) CreateDefaultUser(email string, fullName string, pass string, c *gin.Context) {
-	logger := utilities.NewLogger().LogWithCaller()
-	nameSplit := strings.Split(fullName, " ")
-	//stub timezone
-	zone, _ := time.Now().Zone()
-	timezone := zone
-	actualTimezone := &timezone
-	//Now put stuff in the actual user object
-	date, _ := time.Parse("2006-01-02", time.Now().String())
-	user := models.User{
-		FirstName:         nameSplit[0],
-		Surname:           nameSplit[1],
-		Birthdate:         date,
-		Nationality:       "",
-		Email:             email,
-		PasswordHash:      pass,
-		PhoneNumber:       nil,
-		AddressID:         nil,
-		Status:            "Unverified",
-		Gender:            "Other",
-		PreferredLanguage: nil,
-		Timezone:          actualTimezone,
-	}
-	//create a default entry for the user
-	//Hash the password
-	hash, salt, err := utilities.HashPassword(user.PasswordHash)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
-		return
-	}
-
-	user.PasswordHash = base64.StdEncoding.EncodeToString(hash)
-	user.Salt = base64.StdEncoding.EncodeToString(salt)
-
-	//update log metrics
-	user.CreatedAt = utilities.GetCurrentTime()
-	user.UpdatedAt = utilities.GetCurrentTimePtr()
-	user.Status = "Active"
-
-	//Small user preferences
-	user.Role = "user"
-	user.LastLogin = nil
-
-	if result := h.DB.Create(&user); result.Error != nil {
-		logger.WithError(result.Error).Error("Error creating user")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})
-		return
-	}
-	logger.Info("User added to the Database")
 }

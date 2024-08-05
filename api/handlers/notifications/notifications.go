@@ -53,7 +53,24 @@ func (e *emailImpl) SendAdminEmail(c *gin.Context, disputeID int64, resEmail str
 }
 
 func (e *emailImpl) SendDefaultUserEmail(c *gin.Context, email string, pass string) {
+	logger := utilities.NewLogger().LogWithCaller()
+	envReader := env.NewEnvLoader()
 
+	companyEmail, err := envReader.Get("COMPANY_EMAIL")
+	if err != nil {
+		utilities.InternalError(c)
+		return
+	}
+
+	emailBody := models.Email{
+		From:    companyEmail,
+		To:      email,
+		Subject: "Default DRE Account",
+		Body:    "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system. Please login to your DRE account and review it, use the your email along with this password: " + pass + " .",
+	}
+
+	go SendMail(emailBody)
+	logger.Info("Admin email notification sent successfully")
 }
 
 /*func (h Notification) AcceptanceNotification(c *gin.Context) {

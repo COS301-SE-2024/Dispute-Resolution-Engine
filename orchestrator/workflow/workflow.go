@@ -231,6 +231,11 @@ func WorkFlowToJSON(w *workflow) (string, error) {
 	return string(jsonWorkflowJSON), nil
 }
 
+// Convert JSON to workflow
+func JSONToWorkFlow(jsonWorkflow string) (*workflow, error) {
+	return nil, nil
+}
+
 func (w *workflow) GetID() uint32 {
 	return w.id
 }

@@ -41,7 +41,7 @@ func TestArchive(t *testing.T) {
 func (suite *ArchiveTestSuite) SetupTest() {
 	mock, db, _ := mockDatabase()
 
-	handler := handlers.Archive{DB: db}
+	handler := new (handlers.Archive)
 	gin.SetMode("release")
 	router := gin.Default()
 	router.POST("/archive/search", handler.SearchArchive)

@@ -301,15 +301,19 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 			go h.Email.SendDefaultUserEmail(c, email, pass)
 			logger.Info("Default respondent user created")
 			respondent, err := h.Model.GetUserByEmail(email)
-			respondantID = &respondent.ID
+			if err != nil {
+				logger.WithError(err).Error("Error fetching the default respondent.")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error fetching the default respondent."})
+				return
+			}
+			logger.Info("Default respondent retreived.")
 		} else {
 			logger.Error("Error retrieving respondent")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
 			return
 		}
-	} else {
-		respondantID = &respondent.ID
 	}
+	respondantID = &respondent.ID
 
 	//create entry into the dispute table
 	disputeId, err := h.Model.CreateDispute(models.Dispute{

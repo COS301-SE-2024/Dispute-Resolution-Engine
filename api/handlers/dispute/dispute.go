@@ -300,7 +300,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 			}
 			go h.Email.SendDefaultUserEmail(c, email, pass)
 			logger.Info("Default respondent user created")
-			respondent, err := h.Model.GetUserByEmail(email)
+			respondent, err = h.Model.GetUserByEmail(email)
 			if err != nil {
 				logger.WithError(err).Error("Error fetching the default respondent.")
 				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error fetching the default respondent."})

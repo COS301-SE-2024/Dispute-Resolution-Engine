@@ -191,6 +191,16 @@ func stateToJSON(s state) map[string]interface{} {
 	}
 }
 
+// Convert transition to JSON-compatible format
+func transitionToJSON(t transition) map[string]interface{} {
+	return map[string]interface{}{
+		"name":    t.GetName(),
+		"from":    t.GetFrom(),
+		"to":      t.GetTo(),
+		"trigger": t.GetTrigger(),
+	}
+}
+
 // json representation of the workflow
 func WorkFlowToJSON(w *workflow) (string, error) {
 
@@ -199,12 +209,17 @@ func WorkFlowToJSON(w *workflow) (string, error) {
 		convertStates = append(convertStates, stateToJSON(s))
 	}
 
+	convertTransitions := make([]map[string]interface{}, 0, len(w.transitions))
+	for _, t := range w.transitions {
+		convertTransitions = append(convertTransitions, transitionToJSON(t))
+	}
+
 	jsonWorkflow := map[string]interface{}{
 		"id":          w.id,
 		"name":        w.name,
 		"initial":     w.initial.GetName(),
 		"states":      convertStates,
-		"transitions": w.transitions,
+		"transitions": convertTransitions,
 	}
 
 	//convert to json string

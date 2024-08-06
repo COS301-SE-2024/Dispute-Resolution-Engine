@@ -175,13 +175,35 @@ func CreateWorkflow(id uint32, name string, initial state) IWorkflow {
 	return w
 }
 
+func stateToJSON(s state) map[string]interface{} {
+	timers := make([]map[string]interface{}, 0, len(s.timers))
+	for _, t := range s.timers {
+		timers = append(timers, map[string]interface{}{
+			"name":        t.GetName(),
+			"duration":    t.GetDuration().String(),
+			"willTrigger": t.WillTrigger(),
+		})
+	}
+
+	return map[string]interface{}{
+		"name":   s.GetName(),
+		"timers": timers,
+	}
+}
+
 // json representation of the workflow
-func WorkFlowToJSON(w *workflow) (string,error) {
+func WorkFlowToJSON(w *workflow) (string, error) {
+
+	convertStates := make([]map[string]interface{}, 0, len(w.states))
+	for _, s := range w.states {
+		convertStates = append(convertStates, stateToJSON(s))
+	}
+
 	jsonWorkflow := map[string]interface{}{
 		"id":          w.id,
 		"name":        w.name,
 		"initial":     w.initial.GetName(),
-		"states":      w.states,
+		"states":      convertStates,
 		"transitions": w.transitions,
 	}
 
@@ -191,7 +213,7 @@ func WorkFlowToJSON(w *workflow) (string,error) {
 		return "", err
 	}
 
-	return string(jsonWorkflowJSON), nil;
+	return string(jsonWorkflowJSON), nil
 }
 
 func (w *workflow) GetID() uint32 {

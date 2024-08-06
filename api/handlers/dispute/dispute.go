@@ -85,6 +85,8 @@ func (h Dispute) UploadEvidence(c *gin.Context) {
 		}
 	}
 	logger.Info("Evidence uploaded successfully")
+	// disputeProceedingsLogger := auditLogger.NewDisputeProceedingsLogger()
+	// disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": user, "message": "Failed login attempt"})
 	c.JSON(http.StatusCreated, models.Response{
 		Data: "Files uploaded",
 	})

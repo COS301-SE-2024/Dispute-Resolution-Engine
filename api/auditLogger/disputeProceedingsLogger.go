@@ -1,6 +1,7 @@
 package auditLogger
 
 import (
+	"api/db"
 	"api/env"
 	"api/models"
 	"api/utilities"
@@ -16,6 +17,14 @@ type DisputeProceedingsLogger struct {
 type LogJson struct {
 	Message string
 	Json    interface{}
+}
+
+func NewDisputeProceedingsLoggerDBInit() (DisputeProceedingsLogger,error) {
+	DB, err := db.Init()
+	if err != nil {
+		return DisputeProceedingsLogger{}, err
+	}
+	return DisputeProceedingsLogger{DB: DB, EnvReader: env.NewEnvLoader()}, nil
 }
 
 func NewDisputeProceedingsLogger(db *gorm.DB) DisputeProceedingsLogger {

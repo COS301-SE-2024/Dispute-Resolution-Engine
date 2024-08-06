@@ -300,6 +300,8 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 			}
 			go h.Email.SendDefaultUserEmail(c, email, pass)
 			logger.Info("Default respondent user created")
+			respondent, err := h.Model.GetUserByEmail(email)
+			respondantID = &respondent.ID
 		} else {
 			logger.Error("Error retrieving respondent")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})

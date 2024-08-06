@@ -10,16 +10,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-type Archive struct {
-	DB *gorm.DB
-}
-
-func NewArchiveHandler(db *gorm.DB) Archive {
-	return Archive{DB: db}
-}
 
 func SetupArchiveRoutes(g *gin.RouterGroup, h Archive) {
 	g.POST("/search", h.SearchArchive)

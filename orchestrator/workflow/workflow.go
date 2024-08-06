@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -172,6 +173,25 @@ func CreateWorkflow(id uint32, name string, initial state) IWorkflow {
 	}
 	w.AddState(initial)
 	return w
+}
+
+// json representation of the workflow
+func WorkFlowToJSON(w *workflow) (string,error) {
+	jsonWorkflow := map[string]interface{}{
+		"id":          w.id,
+		"name":        w.name,
+		"initial":     w.initial.GetName(),
+		"states":      w.states,
+		"transitions": w.transitions,
+	}
+
+	//convert to json string
+	jsonWorkflowJSON, err := json.Marshal(jsonWorkflow)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonWorkflowJSON), nil;
 }
 
 func (w *workflow) GetID() uint32 {

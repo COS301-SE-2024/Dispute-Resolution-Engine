@@ -7,9 +7,10 @@ import (
 	// "orchestrator/env"
 	// "orchestrator/utilities"
 	"orchestrator/workflow"
+	"orchestrator/statemachine"
 )
 
-var requiredEnvVariables = []string{
+var RequiredEnvVariables = []string{
 	// PostGres-related variables
 	"DATABASE_URL",
 	"DATABASE_PORT",
@@ -34,21 +35,26 @@ func main() {
 	// fmt.Println(DB)
 
 	state1 := workflow.CreateState("state1")
-	period, _ := time.ParseDuration("24h")
-	fee_timer := workflow.CreateTimer("fee_timer", period, workflow.TriggerFeeNotPaid)
-	fmt.Println(fee_timer.GetDeadline().Format("02-01-2006 15:04"))
-	state1.AddTimer(fee_timer)
+	period, _ := time.ParseDuration("15s")
+	fee_timer2 := workflow.CreateTimer("fee_timer", period, workflow.TriggerFeeNotPaid)
 	state2 := workflow.CreateState("state2")
+	state2.AddTimer(fee_timer2)
 	state3 := workflow.CreateState("state3")
-	wf := workflow.CreateWorkflow(1, "workflow1", state1)
+	state4 := workflow.CreateState(workflow.StateDisputeFeeDue)
 
+	wf := workflow.CreateWorkflow(1, "workflow1", state1)
 	wf.AddState(state2)
 	wf.AddState(state3)
+	wf.AddState(state4)
 
 	t1to2 := workflow.CreateTransition("t1to2", state1.GetName(), state2.GetName(), workflow.TriggerResponseReceived)
 	t2to3 := workflow.CreateTransition("t2to3", state2.GetName(), state3.GetName(), workflow.TriggerResponseReceived)
+	t1to4 := workflow.CreateTransition("t1to4", state1.GetName(), state4.GetName(), workflow.TriggerFeeNotPaid)
+	t2to4 := workflow.CreateTransition("t2to4", state2.GetName(), state4.GetName(), workflow.TriggerFeeNotPaid)
 	wf.AddTransition(t1to2)
 	wf.AddTransition(t2to3)
+	wf.AddTransition(t1to4)
+	wf.AddTransition(t2to4)
 
 	fmt.Println(wf.GetID())
 	fmt.Println(wf.GetName())
@@ -62,4 +68,7 @@ func main() {
 	for _, t := range transitions {
 		fmt.Println(t)
 	}
+	sm := statemachine.NewStateMachine()
+	sm.Init(wf)
+	sm.Start()
 }

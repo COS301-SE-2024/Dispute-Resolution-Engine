@@ -6,6 +6,8 @@ Head to the "Dipsute" and find the "create" button at the bottom left. Once clic
 
 ## How do I design a "Workflow" for the Dispute?
 
+to me implimented...
+
 ## How do I upload evidence?
 
 You can upload evidence while creating a dispute initially, otherwise you can head to the "dispute" tab and click on the respective dispute in the side-bar. From there you will find a place from which you can upload your evidence.
@@ -39,15 +41,13 @@ The system communicates and notifies relevant parties primerily via email. Hence
 
 The answer is yes, all parties that participate in the dispute will need to have a registered account. This is to aid in ensuring fairness throughout the dispute resolution process, by allowing us to accoractely "record-keep" events and communications petaining to a case.
 
-## After my case/dispute moves to into a state ready for mediation/arbitration/concilation, how will relevant experts be assigned to the case?
-
 ## What happens if I am not happy with the Expert assigned to my case/dispute?
 
 Once Experts are assigned to the case, if you have a valid reason to as to why an Expert is not suited to you case, you can submit your objection and reason through the system. The administrator of your case will then review your objection and either "overrule" or "sustain" your reason.
 
 ## How many Experts will be assigned to my case/dispute?
 
-## Can I file a dispute against DRE?
+A minimum of one expert will always be assigned to a dispute however,depending on the serverity of the case is more than one expert may be assigned. If you feel that your case will need more experts than what we recommnd or assign, you are welcome to request more.
 
 # Found a bug or have an issue?
 Contact us directly:

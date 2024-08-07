@@ -187,7 +187,7 @@ func (m *disputeModelReal) CreateDispute(dispute models.Dispute) (int64, error) 
 }
 func (m *disputeModelReal) UpdateDisputeStatus(disputeId int64, status string) error {
 	logger := utilities.NewLogger().LogWithCaller()
-	if status != "resolved" {
+	if status != "Closed" {
 		err := m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).Update("status", status).Error
 		if err != nil {
 			logger.WithError(err).Errorf("Failed to update dispute (ID = %d) status to '%s'", disputeId, status)

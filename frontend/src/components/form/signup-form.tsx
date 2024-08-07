@@ -54,9 +54,9 @@ export default function SignupForm() {
   const [currentStep, setCurrentStep] = useState(0);
 
   async function onSubmit(form: SignupData) {
-    const { data, error } = await signup(form);
-    if (error) {
-      setError("root", { type: "custom", message: error });
+    const res = await signup(form);
+    if (res.error) {
+      setError("root", { type: "custom", message: res.error });
     }
   }
 

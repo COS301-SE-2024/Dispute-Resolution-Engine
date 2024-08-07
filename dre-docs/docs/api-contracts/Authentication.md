@@ -36,9 +36,7 @@ interface SignupRequest {
 
   timezone: string;
   preferred_language: string; // en-US by default
-
-  // Address information
-  // address: Address;
+  user_type: 'user' | 'expert';
 }
 ```
 

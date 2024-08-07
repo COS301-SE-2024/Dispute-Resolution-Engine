@@ -72,6 +72,18 @@ type Dispute struct {
 	Decision    dispute_decision `json:"decision" gorm:"type:dispute_decision_enum;default:'Unresolved';column:decision"`
 }
 
+type Workflow struct {
+	ID                uint64     `gorm:"primaryKey;autoIncrement"`
+	WorkflowDefinition string    `gorm:"type:jsonb"`
+	CreatedAt         time.Time  `gorm:"autoCreateTime"`
+	Category          *uint64    `gorm:"type:bigint"` 
+	Author            *uint64    `gorm:"type:bigint"` 
+}
+
+func (Workflow) TableName() string {
+	return "workflows"
+}
+
 type SortAttribute string
 
 const (

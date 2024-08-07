@@ -11,6 +11,7 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 }
 
 func (w Workflow) GetWorkflows(c *gin.Context) {
+	
 }
 
 func (w Workflow) GetIndivualWorkflow(c *gin.Context) {

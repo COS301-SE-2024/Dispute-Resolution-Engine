@@ -33,7 +33,7 @@ func NewDisputeProceedingsLogger(db *gorm.DB) DisputeProceedingsLogger {
 
 func (d DisputeProceedingsLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
 	// Initialize the logger
-	logger := utilities.NewLogger()
+	logger := utilities.NewLogger().LogWithCaller()
 
 	// Log the event data for debugging
 	logger.Info(eventData)

@@ -105,5 +105,29 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 }
 
 func (w Workflow) DeleteWorkflow(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+	id := c.Param("id")
+
+	var workflow models.Workflow
+	result := w.DB.First(&workflow, id)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			logger.Warnf("Workflow with ID %s not found", id)
+			c.JSON(http.StatusNotFound, models.Response{Error: "Workflow not found"})
+		} else {
+			logger.Error(result.Error)
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		}
+		return
+	}
+
+	result = w.DB.Delete(&workflow)
+	if result.Error != nil {
+		logger.Error(result.Error)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Response{Data: "Workflow deleted"})
 }
 

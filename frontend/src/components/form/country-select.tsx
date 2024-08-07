@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Select,
   SelectContent,
@@ -6,16 +8,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchCountries } from "@/lib/api";
+import { Country, fetchCountries } from "@/lib/api";
 import { SelectProps } from "@radix-ui/react-select";
+import { useEffect, useState } from "react";
 
-export default async function CountrySelect({
+export default function CountrySelect({
   id,
   ...props
 }: SelectProps & {
   id?: string;
 }) {
-  const data = (await fetchCountries()).data!;
+  const [data, setData] = useState<Country[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const data = (await fetchCountries()).data!;
+      if (!cancelled) {
+        setData(data);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <Select {...props}>

@@ -98,6 +98,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 		Gender:            reqUser.Gender,
 		PreferredLanguage: reqUser.PreferredLanguage,
 		Timezone:          reqUser.Timezone,
+		Role:              reqUser.UserType,
 	}
 
 	//Check if there is an existing email
@@ -124,7 +125,6 @@ func (h Auth) CreateUser(c *gin.Context) {
 	user.Status = "Active"
 
 	//Small user preferences
-	user.Role = "user"
 	user.LastLogin = nil
 
 	// if result := h.DB.Create(&user); result.Error != nil {

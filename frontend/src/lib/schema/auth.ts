@@ -31,6 +31,7 @@ export type ResetPassError = z.ZodFormattedError<ResetPassData>;
 
 export const signupSchema = z
   .object({
+    userType: z.enum(["user", "expert"]),
     firstName: z.string().min(1, "Required"),
     lastName: z.string().min(1, "Required"),
     email: z.string().min(1, "Required").email("Please enter a valid email"),

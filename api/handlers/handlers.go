@@ -34,6 +34,10 @@ type Expert struct {
 	Handler
 }
 
+type Workflow struct {
+	Handler
+}
+
 func new(db *gorm.DB) Handler {
 	return Handler{DB: db, EnvReader: env.NewEnvLoader(), jwt: middleware.NewJwtMiddleware()}
 }
@@ -52,6 +56,10 @@ func NewUtilitiesHandler(db *gorm.DB) Utility {
 
 func NewNotificationHandler(db *gorm.DB) Notification {
 	return Notification{new(db)}
+}
+
+func NewWorkflowHandler(db *gorm.DB) Workflow {
+	return Workflow{new(db)}
 }
 
 func NewExpertHandler(db *gorm.DB) Expert {

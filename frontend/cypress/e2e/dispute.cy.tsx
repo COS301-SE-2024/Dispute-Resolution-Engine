@@ -41,4 +41,10 @@ describe('Navigation', () => {
 		cy.get('h1').contains(title)
 		cy.get('p').contains(description)
 	})
+	it('should be in the archive', () => {
+		cy.setCookie('jwt', cookie ?? '')
+		cy.visit('http://capstone-dre.dns.net.za/archive')
+		cy.get('input[name="q"]').click().type(title)
+		cy.get('button[type="submit"]').click()
+	})
   })

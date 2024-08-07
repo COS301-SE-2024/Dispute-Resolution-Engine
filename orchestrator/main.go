@@ -56,6 +56,15 @@ func main() {
 	wf.AddTransition(t1to4)
 	wf.AddTransition(t2to4)
 
+
+	jsonStr, err := testWorkFlowToJson(wf)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Workflow JSON:\n", jsonStr + "\n------------\n")
+
+
 	fmt.Println(wf.GetID())
 	fmt.Println(wf.GetName())
 	fmt.Println(wf.GetInitialState())
@@ -71,4 +80,13 @@ func main() {
 	sm := statemachine.NewStateMachine()
 	sm.Init(wf)
 	sm.Start()
+}
+
+func testWorkFlowToJson(wf workflow.IWorkflow) (string, error) {
+	// Convert the workflow to JSON string
+	jsonStr, err := workflow.WorkFlowToJSON(wf.(*workflow.Workflow))
+	if err != nil {
+		return "", err
+	}
+	return jsonStr, nil
 }

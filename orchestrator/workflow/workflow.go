@@ -152,9 +152,9 @@ func (t *transition) GetTrigger() string {
 	return t.trigger
 }
 
-// ----------------------------workflow--------------------------------
+// ----------------------------Workflow--------------------------------
 // Concrete product
-type workflow struct {
+type Workflow struct {
 	id          uint32 // from table primary key, ideally
 	name        string
 	initial     state
@@ -164,7 +164,7 @@ type workflow struct {
 
 // Factory method
 func CreateWorkflow(id uint32, name string, initial state) IWorkflow {
-	w := &workflow{
+	w := &Workflow{
 		id:          id,
 		name:        name,
 		initial:     initial,
@@ -202,7 +202,7 @@ func transitionToJSON(t transition) map[string]interface{} {
 }
 
 // json representation of the workflow
-func WorkFlowToJSON(w *workflow) (string, error) {
+func WorkFlowToJSON(w *Workflow) (string, error) {
 
 	convertStates := make([]map[string]interface{}, 0, len(w.states))
 	for _, s := range w.states {
@@ -232,7 +232,7 @@ func WorkFlowToJSON(w *workflow) (string, error) {
 }
 
 // Convert JSON to workflow
-func JSONToWorkFlow(jsonWorkflow string) (*workflow, error) {
+func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 	// Define a temporary structure to unmarshal the JSON data
 	var temp struct {
 		ID          uint32                   `json:"id"`
@@ -252,7 +252,7 @@ func JSONToWorkFlow(jsonWorkflow string) (*workflow, error) {
 	initialState := CreateState(temp.Initial)
 	
 	// Create a new workflow
-	w := &workflow{
+	w := &Workflow{
 		id:          temp.ID,
 		name:        temp.Name,
 		initial:     initialState,
@@ -293,23 +293,23 @@ func JSONToWorkFlow(jsonWorkflow string) (*workflow, error) {
 	return w, nil
 }
 
-func (w *workflow) GetID() uint32 {
+func (w *Workflow) GetID() uint32 {
 	return w.id
 }
 
-func (w *workflow) GetName() string {
+func (w *Workflow) GetName() string {
 	return w.name
 }
 
-func (w *workflow) GetInitialState() state {
+func (w *Workflow) GetInitialState() state {
 	return w.initial
 }
 
-func (w *workflow) GetState(name string) state {
+func (w *Workflow) GetState(name string) state {
 	return w.states[name]
 }
 
-func (w *workflow) GetStates() []state {
+func (w *Workflow) GetStates() []state {
 	states := make([]state, 0, len(w.states))
 	for _, s := range w.states {
 		states = append(states, s)
@@ -317,24 +317,24 @@ func (w *workflow) GetStates() []state {
 	return states
 }
 
-func (w *workflow) AddState(s state) {
+func (w *Workflow) AddState(s state) {
 	w.states[s.GetName()] = s
 }
 
-func (w *workflow) HasState(name string) bool {
+func (w *Workflow) HasState(name string) bool {
 	_, ok := w.states[name]
 	return ok
 }
 
-func (w *workflow) GetTransition(name string) transition {
+func (w *Workflow) GetTransition(name string) transition {
 	return w.transitions[name]
 }
 
-func (w *workflow) AddTransition(t transition) {
+func (w *Workflow) AddTransition(t transition) {
 	w.transitions[t.GetName()] = t
 }
 
-func (w *workflow) GetTransitions() []transition {
+func (w *Workflow) GetTransitions() []transition {
 	transitions := make([]transition, 0, len(w.transitions))
 	for _, t := range w.transitions {
 		transitions = append(transitions, t)
@@ -342,7 +342,7 @@ func (w *workflow) GetTransitions() []transition {
 	return transitions
 }
 
-func (w *workflow) GetTransitionsByTrigger(triggerstr string) []transition {
+func (w *Workflow) GetTransitionsByTrigger(triggerstr string) []transition {
 	var transitions []transition
 	for _, t := range w.transitions {
 		if t.trigger == triggerstr {
@@ -352,7 +352,7 @@ func (w *workflow) GetTransitionsByTrigger(triggerstr string) []transition {
 	return transitions
 }
 
-func (w *workflow) GetTransitionsByFrom(fromstr string) []transition {
+func (w *Workflow) GetTransitionsByFrom(fromstr string) []transition {
 	var transitions []transition
 	for _, t := range w.transitions {
 		if t.from == fromstr {
@@ -362,7 +362,7 @@ func (w *workflow) GetTransitionsByFrom(fromstr string) []transition {
 	return transitions
 }
 
-func (w *workflow) GetTransitionsByTo(tostr string) []transition {
+func (w *Workflow) GetTransitionsByTo(tostr string) []transition {
 	var transitions []transition
 	for _, t := range w.transitions {
 		if t.to == tostr {

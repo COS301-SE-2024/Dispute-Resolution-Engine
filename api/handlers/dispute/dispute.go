@@ -4,11 +4,12 @@ import (
 	"api/middleware"
 	"api/models"
 	"api/utilities"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -273,25 +274,46 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	//check if respondant is in database by email and phone number
 	var respondantID *int64
 	respondent, err := h.Model.GetUserByEmail(email)
-	if err != nil && err.Error() == "record not found" {
-		//create a default entry for the user
-		nameSplit := strings.Split(fullName, " ")
-		if len(nameSplit) < 2 {
-			logger.Error("Invalid full name")
-			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid full name"})
-			return
+
+	//so if the error is record not found
+	if err != nil {
+		//if the user is not found in the database then we create the default user
+		if err.Error() == "record not found" {
+			logger.Info("Attempting to create default user")
+			//now we call to create the default user
+			secretPass := make([]byte, 5)
+			// Fill the byte slice with random values
+			_, err := rand.Read(secretPass)
+			if err != nil {
+				logger.WithError(err).Error("Error generating default password")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating default password"})
+				return
+			}
+
+			// Convert the byte slice to a base64 encoded string
+			pass := base64.StdEncoding.EncodeToString(secretPass)
+			err1 := h.Model.CreateDefaultUser(email, fullName, pass)
+			if err1 != nil {
+				logger.WithError(err1).Error("Error creating default user.")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating default user."})
+				return
+			}
+			go h.Email.SendDefaultUserEmail(c, email, pass)
+			logger.Info("Default respondent user created")
+			respondent, err = h.Model.GetUserByEmail(email)
+			if err != nil {
+				logger.WithError(err).Error("Error fetching the default respondent.")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error fetching the default respondent."})
+				return
+			}
+			logger.Info("Default respondent retreived.")
 		} else {
-			logger.WithError(err).Error("Error retrieving respondent")
+			logger.Error("Error retrieving respondent")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
 			return
 		}
-	} else if err != nil {
-		logger.WithError(err).Error("Error retrieving respondent")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
-		return
-	} else {
-		respondantID = &respondent.ID
 	}
+	respondantID = &respondent.ID
 
 	//create entry into the dispute table
 	disputeId, err := h.Model.CreateDispute(models.Dispute{

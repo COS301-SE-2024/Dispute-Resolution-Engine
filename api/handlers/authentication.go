@@ -161,6 +161,8 @@ func (h Auth) CreateUser(c *gin.Context) {
 		return
 	}
 	logger.Info("OTP generated")
+
+	h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": user, "message": "User stored in redis"})
 	//send OTP
 	go sendOTP(user.Email, pin)
 
@@ -209,6 +211,7 @@ func (h Auth) LoginUser(c *gin.Context) {
 		print(dbUser.PasswordHash)
 		print(base64.StdEncoding.EncodeToString(checkHash))
 		logger.Error("Invalid credentials")
+		h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": user, "message": "Failed login attempt"})
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Invalid credentials"})
 		return
 	}
@@ -224,6 +227,7 @@ func (h Auth) LoginUser(c *gin.Context) {
 	}
 
 	logger.Info("User logged in successfully")
+	h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": user, "message": "User logged in successfully"})
 	c.JSON(http.StatusOK, models.Response{Data: token})
 }
 
@@ -284,6 +288,7 @@ func (h Auth) Verify(c *gin.Context) {
 	}
 	if !valid {
 		logger.Error("Invalid pin")
+		h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": userVerify, "message": "Invalid pin"})
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid pin"})
 		return
 	}
@@ -310,6 +315,7 @@ func (h Auth) Verify(c *gin.Context) {
 		return
 
 	}
+	h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": user, "message": "User verified successfully and added to DB"})
 	c.JSON(http.StatusOK, models.Response{Data: newJWT})
 }
 
@@ -354,6 +360,7 @@ func (h Auth) ResendOTP(c *gin.Context) {
 		return
 	}
 	go sendOTP(userVerify.Email, pin)
+	h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": jwtUser, "message": "OTP resent"})
 	c.JSON(http.StatusOK, models.Response{Data: "Pin resent!"})
 }
 
@@ -468,6 +475,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		return
 	}
 	logger.Info("Reset Email sent successfully")
+	h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": user, "message": "Reset Email sent successfully"})
 	c.JSON(http.StatusOK, models.Response{Data: "Reset Email sent successfully"})
 }
 
@@ -529,7 +537,7 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 		"password_hash": hashedPassword,
 		"salt":          user.Salt,
 	})
-
+	h.disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": user, "message": "Password reset successfully"})
 	c.JSON(http.StatusOK, models.Response{Data: "Password reset successfully"})
 }
 

@@ -69,6 +69,7 @@ func (h Expert) recommendExpert(c *gin.Context) {
 		})
 	}
 	logger.Info("Recommended experts successfully")
+	h.disputeProceedingsLogger.LogDisputeProceedings(models.Experts,map[string]interface{}{"dispute_id": recommendexpert.DisputeId, "experts": selectedUsers})
 	c.JSON(http.StatusOK, models.Response{Data: selectedUsers})
 }
 

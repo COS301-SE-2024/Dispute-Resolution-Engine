@@ -1,6 +1,7 @@
 package dispute
 
 import (
+	"api/auditLogger"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
@@ -86,6 +87,13 @@ func (h Dispute) UploadEvidence(c *gin.Context) {
 		}
 	}
 	logger.Info("Evidence uploaded successfully")
+	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
+	if err != nil {
+		logger.WithError(err).Error("Error initializing dispute proceedings logger")
+	} else {
+		disputeProceedingsLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"dispute_id": disputeId, "user": claims, "message": "Evidence uploaded"})
+	}
+	// disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": user, "message": "Failed login attempt"})
 	c.JSON(http.StatusCreated, models.Response{
 		Data: "Files uploaded",
 	})
@@ -131,6 +139,13 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 			Status:      dispute.Status,
 			Role:        &role,
 		}
+	}
+
+	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
+	if err != nil {
+		logger.WithError(err).Error("Error initializing dispute proceedings logger")
+	} else {
+		disputeProceedingsLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": jwtClaims, "message": "Dispute summaries retrieved"})
 	}
 	logger.Info("Dispute summaries retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: summaries})
@@ -216,7 +231,13 @@ func (h Dispute) GetDispute(c *gin.Context) {
 
 	DisputeDetailsResponse.Evidence = evidence
 	DisputeDetailsResponse.Experts = experts
-
+	
+	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
+	if err != nil {
+		logger.WithError(err).Error("Error initializing dispute proceedings logger")
+	} else {
+		disputeProceedingsLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": jwtClaims, "message": "Dispute details retrieved"})
+	}
 	logger.Info("Dispute details retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: DisputeDetailsResponse})
 	// c.JSON(http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
@@ -357,6 +378,12 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	go h.Email.SendAdminEmail(c, disputeId, email)
 	logger.Info("Admin email sent")
 	c.JSON(http.StatusCreated, models.Response{Data: "Dispute created successfully"})
+	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
+	if err != nil {
+		logger.WithError(err).Error("Error initializing dispute proceedings logger")
+	} else {
+		disputeProceedingsLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Dispute created and admin email sent"})
+	}
 	logger.Info("Dispute created successfully: ", title)
 }
 
@@ -378,6 +405,19 @@ func (h Dispute) UpdateStatus(c *gin.Context) {
 	go h.Email.NotifyDisputeStateChanged(c, disputeStatus.DisputeID, disputeStatus.Status)
 
 	logger.Info("Dispute status updated successfully")
+	
+	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
+	if err != nil {
+		logger.WithError(err).Error("Error initializing dispute proceedings logger")
+	} else {
+		jwtClaims, err := h.JWT.GetClaims(c)
+		if err != nil {
+			logger.Error("Unauthorized access attempt")
+			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			return
+		}
+		disputeProceedingsLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": jwtClaims, "message": "Dispute status update successful"})
+	}
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute status update successful"})
 }
 
@@ -430,6 +470,13 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 		return
 	}
 
+	
+	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
+	if err != nil {
+		logger.WithError(err).Error("Error initializing dispute proceedings logger")
+	} else {
+		disputeProceedingsLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Expert rejected suggestion"})
+	}
 	logger.Info("Expert rejected suggestion")
 	c.JSON(http.StatusOK, models.Response{Data: "objection filed successfully"})
 }
@@ -470,5 +517,12 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	}
 
 	logger.Info("Expert objections reviewed successfully")
+	
+	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
+	if err != nil {
+		logger.WithError(err).Error("Error initializing dispute proceedings logger")
+	} else {
+		disputeProceedingsLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Expert objections reviewed successfully"})
+	}
 	c.JSON(http.StatusOK, models.Response{Data: "Expert objections reviewed successfully"})
 }

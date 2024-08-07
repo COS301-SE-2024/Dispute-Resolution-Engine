@@ -58,6 +58,7 @@ export async function signup(payload: unknown): Promise<Result<string>> {
 
       timezone: ".",
       preferred_language: data.preferredLanguage,
+      user_type: data.userType,
     }),
   });
 

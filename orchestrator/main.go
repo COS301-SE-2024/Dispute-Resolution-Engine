@@ -6,8 +6,8 @@ import (
 	// "orchestrator/db"
 	// "orchestrator/env"
 	// "orchestrator/utilities"
-	"orchestrator/workflow"
 	"orchestrator/statemachine"
+	"orchestrator/workflow"
 )
 
 var RequiredEnvVariables = []string{
@@ -56,14 +56,20 @@ func main() {
 	wf.AddTransition(t1to4)
 	wf.AddTransition(t2to4)
 
-
+	//test the WorkFlowToJSON function
 	jsonStr, err := testWorkFlowToJson(wf)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
-	fmt.Println("Workflow JSON:\n", jsonStr + "\n------------\n")
+	fmt.Println("Workflow JSON:\n", jsonStr+"\n------------\n")
 
+	// test the JSONToWorkFlow function
+	err = testJsonToWorkFlow(jsonStr)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 
 	fmt.Println(wf.GetID())
 	fmt.Println(wf.GetName())
@@ -89,4 +95,42 @@ func testWorkFlowToJson(wf workflow.IWorkflow) (string, error) {
 		return "", err
 	}
 	return jsonStr, nil
+}
+
+func testJsonToWorkFlow(jsonStr string) error {
+	// Convert the JSON string back to a workflow
+	fmt.Println("Converting JSON to Workflow====================")
+	wf, err := workflow.JSONToWorkFlow(jsonStr)
+	if err != nil {
+		return err
+	}
+
+	// Print the workflow details
+	fmt.Println("Workflow ID:", wf.GetID())
+	fmt.Println("Workflow Name:", wf.GetName())
+	fmt.Println("Initial State:", wf.GetInitialState())
+
+	fmt.Println("States:")
+	states := wf.GetStates()
+	for _, s := range states {
+		fmt.Println(" - State Name:", s.GetName())
+		timers := s.GetTimers()
+		for _, t := range timers {
+			fmt.Println("   - Timer Name:", t.GetName())
+			fmt.Println("   - Duration:", t.GetDuration())
+			fmt.Println("   - Will Trigger:", t.WillTrigger())
+		}
+	}
+
+	fmt.Println("Transitions:")
+	transitions := wf.GetTransitions()
+	for _, t := range transitions {
+		fmt.Println(" - Transition Name:", t.GetName())
+		fmt.Println("   - From:", t.GetFrom())
+		fmt.Println("   - To:", t.GetTo())
+		fmt.Println("   - Trigger:", t.GetTrigger())
+	}
+	fmt.Println("Workflow JSON conversion successful====================")
+
+	return nil
 }

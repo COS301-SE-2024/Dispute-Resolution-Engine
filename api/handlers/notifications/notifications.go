@@ -66,7 +66,7 @@ func (e *emailImpl) SendDefaultUserEmail(c *gin.Context, email string, pass stri
 		From:    companyEmail,
 		To:      email,
 		Subject: "Default DRE Account",
-		Body:    "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system. Please login to your DRE account and review it, use the your email along with this password: " + pass + " .",
+		Body:    "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system. Please login to your DRE account and review it, use this inbox's email address along with this password: " + pass + " .",
 	}
 
 	go SendMail(emailBody)

@@ -104,7 +104,7 @@ CREATE TABLE expert_objections (
 );
 
 CREATE TYPE event_types AS ENUM (
-	'NOTIFICATION'
+	'NOTIFICATION',
 	'DISPUTE',
 	'USER',
 	'EXPERT',

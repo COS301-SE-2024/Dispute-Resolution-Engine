@@ -187,11 +187,23 @@ func (m *disputeModelReal) CreateDispute(dispute models.Dispute) (int64, error) 
 }
 func (m *disputeModelReal) UpdateDisputeStatus(disputeId int64, status string) error {
 	logger := utilities.NewLogger().LogWithCaller()
-	err := m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).Update("status", status).Error
-	if err != nil {
-		logger.WithError(err).Errorf("Failed to update dispute (ID = %d) status to '%s'", disputeId, status)
+	if status != "resolved" {
+		err := m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).Update("status", status).Error
+		if err != nil {
+			logger.WithError(err).Errorf("Failed to update dispute (ID = %d) status to '%s'", disputeId, status)
+		}
+		return err
+	} else {
+		additionalFields := map[string]interface{}{
+			"status":   status,
+			"resolved": true,
+		}
+		err := m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).Updates(additionalFields).Error
+		if err != nil {
+			logger.WithError(err).Errorf("Failed to update dispute (ID = %d) status to '%s'", disputeId, status)
+		}
+		return err
 	}
-	return err
 }
 func (m *disputeModelReal) ObjectExpert(userId, disputeId, expertId int64, reason string) error {
 	logger := utilities.NewLogger().LogWithCaller()

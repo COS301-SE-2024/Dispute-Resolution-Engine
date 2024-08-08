@@ -3,6 +3,7 @@ package handlers
 import (
 	"api/models"
 	"api/utilities"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -29,7 +30,6 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: workflows})
 }
 
-
 func (w Workflow) GetIndivualWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	id := c.Param("id")
@@ -52,7 +52,9 @@ func (w Workflow) GetIndivualWorkflow(c *gin.Context) {
 
 func (w Workflow) StoreWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	var workflow models.Workflow
+	var workflow models.CreateWorkflow
+
+	// Bind incoming JSON to the struct
 	err := c.BindJSON(&workflow)
 	if err != nil {
 		logger.Error(err)
@@ -60,7 +62,22 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		return
 	}
 
-	result := w.DB.Create(&workflow)
+	// Convert the map to a JSON string
+	workflowDefinitionBytes, err := json.Marshal(workflow.WorkflowDefinition)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	workflowDefinitionString := string(workflowDefinitionBytes)
+
+	// Store the workflow in the database
+	result := w.DB.Create(&models.Workflow{
+		WorkflowDefinition: workflowDefinitionString,
+		Category:           workflow.Category,
+		Author:             workflow.Author,
+	})
 	if result.Error != nil {
 		logger.Error(result.Error)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
@@ -130,4 +147,3 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.Response{Data: "Workflow deleted"})
 }
-

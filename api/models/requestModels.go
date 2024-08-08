@@ -143,3 +143,9 @@ type RejectExpert struct {
 	DisputeId int64 `json:"dispute_id"`
 	ExpertId  int64 `json:"expert_id"`
 }
+
+type CreateWorkflow struct {
+	WorkflowDefinition map[string]interface{} `json:"workflow_definition"`
+	Category           *uint64                `json:"category"`
+	Author             *uint64                `json:"author"`
+}

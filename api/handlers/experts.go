@@ -12,7 +12,8 @@ import (
 )
 
 func SetupExpertRoutes(g *gin.RouterGroup, h Expert) {
-	g.Use(middleware.JWTMiddleware)
+	jwt := middleware.NewJwtMiddleware()
+	g.Use(jwt.JWTMiddleware)
 
 	g.POST("/assign", h.recommendExpert)
 	g.POST("/reject", h.rejectExpert)
@@ -37,7 +38,7 @@ func (h Expert) recommendExpert(c *gin.Context) {
 	// currently select the first 4
 
 	var users []models.User
-	roles := []string{"mediator", "adjudicator", "arbitrator"}
+	roles := []string{"Mediator", "Adjudicator", "Arbitrator"}
 
 	// Seed the random number generator
 	rand.Seed(time.Now().UnixNano())
@@ -61,10 +62,14 @@ func (h Expert) recommendExpert(c *gin.Context) {
 		h.DB.Create(&models.DisputeExpert{
 			Dispute: int64(recommendexpert.DisputeId),
 			User:    expert.ID,
-			Status:  "approved",
+			ComplainantVote: "Approved",
+			RespondantVote:  "Approved",
+			ExpertVote:      "Approved",
+			Status:  "Approved",
 		})
 	}
 	logger.Info("Recommended experts successfully")
+	h.disputeProceedingsLogger.LogDisputeProceedings(models.Experts,map[string]interface{}{"dispute_id": recommendexpert.DisputeId, "experts": selectedUsers})
 	c.JSON(http.StatusOK, models.Response{Data: selectedUsers})
 }
 

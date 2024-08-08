@@ -10,20 +10,61 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-type Archive struct {
-	DB *gorm.DB
-}
-
-func NewArchiveHandler(db *gorm.DB) Archive {
-	return Archive{DB: db}
-}
 
 func SetupArchiveRoutes(g *gin.RouterGroup, h Archive) {
 	g.POST("/search", h.SearchArchive)
+	g.GET("/highlights", h.Highlights)
 	g.GET("/:id", h.getArchive)
+}
+
+// @Summary Get a list of highlight disputes from the archive
+// @Description Get a list of highlight disputes from the archive
+// @Tags archive
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response "Archive Highlights Endpoint"
+// @Router /archive [post]
+func (h Archive) Highlights(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	limitParam := c.DefaultQuery("limit", "3")
+	limit, err := strconv.Atoi(limitParam)
+	if err != nil {
+		logger.WithError(err).Error("Error parsing query parameter")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: fmt.Sprintf("Invalid query parameter: %s", limitParam)})
+		return
+	}
+
+	// Query the database
+	var disputes []models.Dispute
+	if err := h.DB.Model(&models.Dispute{}).Limit(limit).Scan(&disputes).Error; err != nil {
+		logger.WithError(err).Error("Error retrieving disputes")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving disputes"})
+		return
+	}
+
+	// Transform the results to ArchivedDisputeSummary
+	summaries := make([]models.ArchivedDisputeSummary, len(disputes))
+	for i, dispute := range disputes {
+		summaries[i] = models.ArchivedDisputeSummary{
+			ID:           *dispute.ID,
+			Title:        dispute.Title,
+			Summary:      dispute.Description,
+			Category:     []string{"Dispute"}, // Assuming a default category for now
+			DateFiled:    dispute.CaseDate,
+			DateResolved: dispute.CaseDate.Add(48 * time.Hour), // Placeholder for resolved date
+			Resolution:   string(dispute.Decision),
+		}
+	}
+
+	// Return the response
+	logger.Info("Successfully retrieved disputes")
+	c.JSON(http.StatusOK, models.Response{Data: models.ArchiveSearchResponse{
+		Archives: summaries,
+		Total:    int64(limit),
+	}})
 }
 
 // @Summary Get a summary list of archives
@@ -100,7 +141,10 @@ func (h Archive) SearchArchive(c *gin.Context) {
 
 	if len(disputes) == 0 {
 		logger.Info("No disputes found")
-		c.JSON(http.StatusOK, models.Response{Data: []models.ArchivedDisputeSummary{}})
+		c.JSON(http.StatusOK, models.Response{Data: models.ArchiveSearchResponse{
+			Archives: []models.ArchivedDisputeSummary{},
+			Total:    0,
+		}})
 		return
 	}
 

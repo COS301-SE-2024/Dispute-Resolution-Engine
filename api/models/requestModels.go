@@ -32,7 +32,7 @@ type ColumnValueComparison struct {
 	Value  string `json:"value"`
 }
 type DateRange struct {
-	Column   string `json:"column"`
+	Column    string  `json:"column"`
 	StartDate *string `json:"startDate, omitempty"`
 	EndDate   *string `json:"endDate, omitempty"`
 }
@@ -42,10 +42,10 @@ type OrderBy struct {
 }
 type UserAnalytics struct {
 	ColumnvalueComparisons *[]ColumnValueComparison `json:"columnvalueComparisons,omitempty"`
-	OrderBy				*[]OrderBy `json:"orderBy,omitempty"`
-	DateRanges			*[]DateRange `json:"dateRanges,omitempty"`
-	GroupBy				*[]string `json:"groupBy,omitempty"`
-	Count				bool `json:"count,omitempty"`
+	OrderBy                *[]OrderBy               `json:"orderBy,omitempty"`
+	DateRanges             *[]DateRange             `json:"dateRanges,omitempty"`
+	GroupBy                *[]string                `json:"groupBy,omitempty"`
+	Count                  bool                     `json:"count,omitempty"`
 }
 
 type CreateUser struct {
@@ -60,6 +60,7 @@ type CreateUser struct {
 	Gender            string  `json:"gender"`
 	PreferredLanguage *string `json:"preferred_language"`
 	Timezone          *string `json:"timezone"`
+	UserType          string  `json:"user_type"`
 }
 
 type VerifyUser struct {
@@ -107,11 +108,6 @@ type Respondent struct {
 	Telephone string `json:"telephone"`
 }
 
-type DisputeNotify struct {
-	Type      string `json:"type"`
-	DisputeID int    `json:"dispute_id"`
-}
-
 type SendResetRequest struct {
 	Email string `json:"email"`
 }
@@ -125,12 +121,17 @@ type ExpertApproveRequest struct {
 }
 
 type ExpertRejectRequest struct {
-	ExpertID string `json:"expert_id"`
+	ExpertID int64  `json:"expert_id"`
 	Reason   string `json:"reason"`
 }
 
+type RejectExpertReview struct {
+	ExpertID int64 `json:"expert_id"`
+	Accepted bool  `json:"accepted"`
+}
+
 type DisputeStatusChange struct {
-	DisputeID string `json:"dispute_id"`
+	DisputeID int64  `json:"dispute_id"`
 	Status    string `json:"status"`
 }
 

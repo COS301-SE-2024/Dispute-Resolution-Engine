@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Select,
   SelectContent,
@@ -6,15 +8,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchLanguages } from "@/lib/api";
+import { Language, fetchLanguages } from "@/lib/api";
 import { SelectProps } from "@radix-ui/react-select";
+import { useEffect, useState } from "react";
 
 type LanguageSelectProps = SelectProps & {
   id: string;
 };
 
-export default async function LanguageSelect(props: LanguageSelectProps) {
-  const data = (await fetchLanguages()).data!;
+export default function LanguageSelect(props: LanguageSelectProps) {
+  const [data, setData] = useState<Language[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const data = (await fetchLanguages()).data!;
+      if (!cancelled) {
+        setData(data);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <Select {...props}>

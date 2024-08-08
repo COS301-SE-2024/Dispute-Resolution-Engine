@@ -13,7 +13,7 @@ import {
 import { useFormState, useFormStatus } from "react-dom";
 import { z } from "zod";
 import { Label } from "./label";
-import { Button } from "./button";
+import { Button, ButtonProps } from "./button";
 
 const FormContext = createContext<any | undefined>(undefined);
 
@@ -100,11 +100,8 @@ export function FormField<T>({
   );
 }
 
-export function FormSubmit({ children }: { children: ReactNode }) {
+export type FormSubmitProps = Omit<Omit<ButtonProps, "disabled">, "type">;
+export function FormSubmit(props: FormSubmitProps) {
   const { pending } = useFormStatus();
-  return (
-    <Button disabled={pending} type="submit">
-      {children}
-    </Button>
-  );
+  return <Button disabled={pending} type="submit" {...props} />;
 }

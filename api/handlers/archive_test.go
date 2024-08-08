@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 const (
@@ -38,14 +39,9 @@ func TestArchive(t *testing.T) {
 
 // Runs before every test to set up the DB and routers
 func (suite *ArchiveTestSuite) SetupTest() {
-	conn, mock, _ := sqlmock.New()
-	dialector := postgres.New(postgres.Config{
-		Conn:       conn,
-		DriverName: "postgres",
-	})
-	db, _ := gorm.Open(dialector, &gorm.Config{})
+	mock, db, _ := mockDatabase()
 
-	handler := handlers.Archive{DB: db}
+	handler := new (handlers.Archive)
 	gin.SetMode("release")
 	router := gin.Default()
 	router.POST("/archive/search", handler.SearchArchive)
@@ -55,11 +51,31 @@ func (suite *ArchiveTestSuite) SetupTest() {
 	suite.router = router
 }
 
+func mockDatabase() (sqlmock.Sqlmock, *gorm.DB, error) {
+	conn, mock, err := sqlmock.New()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	dialector := postgres.New(postgres.Config{
+		Conn:       conn,
+		DriverName: "postgres",
+	})
+
+	db, err := gorm.Open(dialector, &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	return mock, db, nil
+}
+
 func initCountRow(count int) *sqlmock.Rows {
 	return sqlmock.NewRows([]string{"count"}).AddRow(count)
 }
 
-func initRows() *sqlmock.Rows {
+func initDisputeRows() *sqlmock.Rows {
 	rows := sqlmock.NewRows([]string{
 		"id",
 		"case_date",
@@ -111,7 +127,7 @@ func (suite *ArchiveTestSuite) TestBadRequestReturnsError() {
 }
 
 func (suite *ArchiveTestSuite) TestReturnsValidJSON() {
-	rows := initRows()
+	rows := initDisputeRows()
 	suite.mock.ExpectQuery("^SELECT count(.+) FROM \"?disputes\"?.*").WillReturnRows(initCountRow(mockDisputeCount))
 	suite.mock.ExpectQuery("^SELECT (.+) FROM \"?disputes\"?.*").WillReturnRows(rows)
 

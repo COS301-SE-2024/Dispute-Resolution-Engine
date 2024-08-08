@@ -85,6 +85,28 @@ func (User) TableName() string {
 	return "users"
 }
 
+type EventTypes string
+
+const (
+	Notification EventTypes = "NOTIFICATION"
+	Disputes      EventTypes = "DISPUTE"
+	Users         EventTypes = "USER"
+	Experts       EventTypes = "EXPERT"
+	Workflow     EventTypes = "WORKFLOW"
+)
+
+// EventLog represents the event_log table
+type EventLog struct {
+	ID        uint           `gorm:"primaryKey"`
+	CreatedAt time.Time      `gorm:"default:CURRENT_TIMESTAMP"`
+	EventType EventTypes     `gorm:"type:event_types"`
+	EventData map[string]interface{} `gorm:"type:json"`
+}
+
+func (EventLog) TableName() string {
+	return "event_log"
+}
+
 type Address struct {
 	ID          int64   `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
 	Country     *string `json:"country,omitempty" gorm:"type:varchar(64);column:code"`
@@ -115,10 +137,30 @@ type Response struct {
 	Error string      `json:"error,omitempty"`
 }
 
+type ExpertVote string
+
+const (
+	Pending  ExpertVote = "Pending"
+	Approved ExpertVote = "Approved"
+	Rejected ExpertVote = "Rejected"
+)
+
+type ExpertStatus string
+
+const (
+	PendingStatus  ExpertStatus = "Pending"
+	ApprovedStatus ExpertStatus = "Approved"
+	RejectedStatus ExpertStatus = "Rejected"
+	ReviewStatus   ExpertStatus = "Review"
+)
+
 type DisputeExpert struct {
-	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
-	User    int64 `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
-	Status  string `gorm:"column:status;type:varchar(255);"`
+	Dispute         int64        `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
+	User            int64        `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+	ComplainantVote ExpertVote   `gorm:"column:complainant_vote;type:expert_vote;default:'Pending'"`
+	RespondantVote  ExpertVote   `gorm:"column:respondant_vote;type:expert_vote;default:'Pending'"`
+	ExpertVote      ExpertVote   `gorm:"column:expert_vote;type:expert_vote;default:'Pending'"`
+	Status          ExpertStatus `gorm:"column:status;type:expert_status;default:'Pending'"`
 }
 
 func (DisputeExpert) TableName() string {
@@ -139,8 +181,32 @@ func (File) TableName() string {
 type DisputeEvidence struct {
 	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
 	FileID  int64 `gorm:"primaryKey;column:file_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:FileID;references:id"`
+	UserID  int64 `gorm:"primaryKey;column:user_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+
 }
 
 func (DisputeEvidence) TableName() string {
 	return "dispute_evidence"
+}
+
+type ExpObjStatus string
+
+const (
+	Review     ExpObjStatus = "Review"
+	Sustained  ExpObjStatus = "Sustained"
+	Overruled  ExpObjStatus = "Overruled"
+)
+
+type ExpertObjection struct {
+	ID        int64        `gorm:"primaryKey;autoIncrement" json:"id"`
+	CreatedAt time.Time    `gorm:"autoCreateTime" json:"created_at"`
+	DisputeID int64        `gorm:"not null" json:"dispute_id"`
+	ExpertID  int64        `gorm:"not null" json:"expert_id"`
+	UserID    int64        `gorm:"not null" json:"user_id"`
+	Reason    string       `gorm:"type:text" json:"reason"`
+	Status    ExpObjStatus `gorm:"type:exp_obj_status;default:'Review'" json:"status"`
+}
+
+func (ExpertObjection) TableName() string {
+	return "expert_objections"
 }

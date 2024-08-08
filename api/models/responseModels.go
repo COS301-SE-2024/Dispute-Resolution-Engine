@@ -15,7 +15,7 @@ type Expert struct {
 	FullName string `json:"full_name"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone"`
-    Role     string `json:"role"`
+	Role     string `json:"role"`
 }
 
 type DisputeDetailsResponse struct {
@@ -24,8 +24,17 @@ type DisputeDetailsResponse struct {
 	Description string    `json:"description"`
 	Status      string    `json:"status"`
 	DateCreated time.Time `json:"case_date"`
-	Evidence    []File  `json:"evidence"`
+	Evidence    []Evidence    `json:"evidence"`
 	Experts     []Expert  `json:"experts"`
+	Role        string   `json:"role"`
+}
+
+type Evidence struct {
+	ID          uint      `json:"id"`
+	FileName    string    `json:"label"`
+	Uploaded    time.Time `json:"date_submitted"`
+	FilePath    string    `json:"url"`
+	UploaderRole string   `json:"uploader_role"`
 }
 
 type ArchiveSearchResponse struct {

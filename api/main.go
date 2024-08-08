@@ -3,31 +3,46 @@ package main
 import (
 	"api/db"
 	_ "api/docs" // This is important to import your generated docs package
+	"api/env"
 	"api/handlers"
+	"api/handlers/dispute"
 	"api/middleware"
-	"api/utilities"
 	"api/redisDB"
+	"api/utilities"
 	"net/http"
-	"os"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// Tries to load env files. If an error occurs, it will ignore the file and log the error
-func loadEnvFile(files ...string) {
-	logger := utilities.NewLogger().LogWithCaller()
-	for _, path := range files {
-		if err := godotenv.Load(path); err != nil {
-			logger.WithError(err).Warning("Env file not found")
-		} else {
-			logger.Info("Loaded env file")
-		}
-	}
+var requiredEnvVariables = []string{
+
+	// PostGres-related variables
+	"DATABASE_URL",
+	"DATABASE_PORT",
+	"DATABASE_USER",
+	"DATABASE_PASSWORD",
+	"DATABASE_NAME",
+
+	// Redis-related variables
+	"REDIS_URL",
+	"REDIS_PASSWORD",
+	"REDIS_DB",
+
+	// Variables for file storage
+	"FILESTORAGE_ROOT",
+	"FILESTORAGE_URL",
+
+	// Variables for sending email using SMTP
+	"COMPANY_EMAIL",
+	"COMPANY_AUTH",
+
+	// Miscellaneous
+	"FRONTEND_BASE_URL",
+	"JWT_SECRET",
 }
 
 // @title Dispute Resolution Engine - v1
@@ -45,8 +60,14 @@ func loadEnvFile(files ...string) {
 // @host localhost:8080
 // @BasePath /api
 func main() {
+	jwt := middleware.NewJwtMiddleware()
 	logger := utilities.NewLogger().LogWithCaller()
-	loadEnvFile(".env", "api.env")
+	envLoader := env.NewEnvLoader()
+	envLoader.LoadFromFile(".env", "api.env")
+
+	for _, key := range requiredEnvVariables {
+		envLoader.Register(key)
+	}
 
 	DB, err := db.Init()
 	if err != nil {
@@ -62,7 +83,7 @@ func main() {
 
 	authHandler := handlers.NewAuthHandler(DB)
 	userHandler := handlers.NewUserHandler(DB)
-	disputeHandler := handlers.NewDisputeHandler(DB)
+	disputeHandler := dispute.NewHandler(DB)
 	archiveHandler := handlers.NewArchiveHandler(DB)
 	expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
@@ -73,21 +94,26 @@ func main() {
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders: []string{"Content-Type", "Authorization"},
 	}))
-	router.Static("/filestorage", os.Getenv("FILESTORAGE_ROOT"))
+	fileStorageRoot, err := envLoader.Get("FILESTORAGE_ROOT")
+	if err != nil {
+		return
+	}
+	router.Static("/filestorage", fileStorageRoot)
 
 	//setup handlers
 	utilGroup := router.Group("/utils")
 	utilGroup.GET("/countries", utilityHandler.GetCountries)
+	utilGroup.GET("/dispute_statuses", utilityHandler.GetDisputeStatuses)
 
 	authGroup := router.Group("/auth")
 	handlers.SetupAuthRoutes(authGroup, authHandler)
 
 	userGroup := router.Group("/user")
-	userGroup.Use(middleware.JWTMiddleware)
+	userGroup.Use(jwt.JWTMiddleware)
 	handlers.SetupUserRoutes(userGroup, userHandler)
 
 	disputeGroup := router.Group("/disputes")
-	handlers.SetupDisputeRoutes(disputeGroup, disputeHandler)
+	dispute.SetupRoutes(disputeGroup, disputeHandler)
 
 	archiveGroup := router.Group("/archive")
 	handlers.SetupArchiveRoutes(archiveGroup, archiveHandler)

@@ -6,7 +6,7 @@ Head to the "Dipsute" and find the "create" button at the bottom left. Once clic
 
 ## How do I design a "Workflow" for the Dispute?
 
-to me implimented...
+to be implimented...
 
 ## How do I upload evidence?
 
@@ -14,7 +14,7 @@ You can upload evidence while creating a dispute initially, otherwise you can he
 
 ## How do I delete my account?
 
-You cant yet... :-\)
+You cant, teehee ... :-\)
 
 ## How do 
 

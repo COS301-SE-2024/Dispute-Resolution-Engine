@@ -88,7 +88,10 @@ type DisputeCreateRequest = {
 The response will return a success message
 
 ```ts
-type DisputeCreateResponse = string;
+type DisputeCreateResponse = {
+  data : string;
+  dispute_id : string;
+};
 ```
 
 # Dispute Evidence upload

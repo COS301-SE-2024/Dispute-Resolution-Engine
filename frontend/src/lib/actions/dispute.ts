@@ -16,14 +16,11 @@ import { JWT_KEY } from "../constants";
 import { DisputeEvidenceUploadResponse } from "../interfaces/dispute";
 import { revalidatePath } from "next/cache";
 
-export async function createDispute(
-  _initial: unknown,
-  data: FormData
-): Promise<Result<string, DisputeCreateError>> {
+export async function createDispute(_initial: unknown, data: FormData): Promise<Result<string>> {
   const { data: parsed, error: parseErr } = disputeCreateSchema.safeParse(Object.fromEntries(data));
   if (parseErr) {
     return {
-      error: parseErr.format(),
+      error: parseErr.issues[0].message,
     };
   }
 
@@ -48,14 +45,20 @@ export async function createDispute(
     },
     body: formData,
   });
-  revalidatePath("disputes/create")
-  revalidatePath("disputes")
+  if (res.error) {
+    return {
+      error: res.error._errors[0],
+    };
+  }
+
+  revalidatePath("disputes/create");
+  revalidatePath("disputes");
   return res;
 }
 
 export async function rejectExpert(
   _initial: unknown,
-  data: FormData
+  data: FormData,
 ): Promise<Result<string, ExpertRejectError>> {
   const { data: parsed, error: parseErr } = expertRejectSchema.safeParse(Object.fromEntries(data));
   if (parseErr) {
@@ -76,7 +79,7 @@ export async function rejectExpert(
         expert_id: parsed.expert_id,
         reason: parsed.reason,
       }),
-    }
+    },
   );
 
   if (!res.error) {
@@ -87,7 +90,7 @@ export async function rejectExpert(
 
 export async function uploadEvidence(
   _initial: unknown,
-  data: FormData
+  data: FormData,
 ): Promise<Result<DisputeEvidenceUploadResponse>> {
   const disputeId = data.get("dispute_id");
   const formData = new FormData();

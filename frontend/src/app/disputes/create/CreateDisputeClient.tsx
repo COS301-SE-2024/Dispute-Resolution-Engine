@@ -4,7 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { DisputeCreateData, disputeCreateSchema } from "@/lib/schema/dispute";
 import { useId, useRef, useState } from "react";
 import { createDispute } from "@/lib/actions/dispute";
@@ -27,10 +34,9 @@ export default function CreateDisputeClient() {
     resolver: zodResolver(disputeCreateSchema),
   });
 
-  const { register } = form;
+  const { register, setError } = form;
 
   const formRef = useRef(null);
-  const filesId = useId();
 
   const [files, setFiles] = useState<File[]>([]);
 
@@ -38,7 +44,10 @@ export default function CreateDisputeClient() {
     const formdata = new FormData(formRef.current!);
     files.forEach((file) => formdata.append("file", file, file.name));
 
-    createDispute(null, formdata);
+    const res = await createDispute(null, formdata);
+    if (res && res.error) {
+      setError("root", { type: "custom", message: res.error });
+    }
   };
 
   const resNameId = useId();
@@ -100,8 +109,11 @@ export default function CreateDisputeClient() {
             <CreateField id={fileId} name="file" label="Evidence">
               <FileInput id={fileId} onValueChange={setFiles} />
             </CreateField>
-            <Button type="submit">Create</Button>
           </CardContent>
+          <CardFooter className="flex justify-end items-center gap-2">
+            <CreateMessage />
+            <Button type="submit">Create</Button>
+          </CardFooter>
         </Card>
       </form>
     </FormProvider>

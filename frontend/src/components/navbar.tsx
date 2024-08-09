@@ -32,9 +32,13 @@ export default function Navbar() {
           <CircleUserRound />
         </Link>
       ) : (
+        <div>
+        <Button asChild variant="link">
+          <Link href="/login">Login</Link>
+        </Button>
         <Button asChild variant="link">
           <Link href="/signup">Signup</Link>
-        </Button>
+        </Button></div>
       )}
     </nav>
   );

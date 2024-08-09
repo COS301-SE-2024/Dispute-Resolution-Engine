@@ -28,7 +28,10 @@ export default function Splash() {
           </div>
         </div>
         <div className="flex justify-center">
-          <Button asChild>
+          <Button asChild className="mx-0.5">
+            <Link href="/login">Login</Link>
+          </Button>
+          <Button asChild className="mx-0.5">
             <Link href="/signup">Signup</Link>
           </Button>
         </div>

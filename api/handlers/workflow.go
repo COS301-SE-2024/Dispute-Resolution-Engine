@@ -61,19 +61,21 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		return
 	}
 
-	// Store the workflow in the database
-	result := w.DB.Create(&models.Workflow{
+	res := &models.Workflow{
 		WorkflowDefinition: workflow.WorkflowDefinition,
 		Category:           workflow.Category,
 		Author:             workflow.Author,
-	})
+	}
+
+	// Store the workflow in the database
+	result := w.DB.Create(res)
 	if result.Error != nil {
 		logger.Error(result.Error)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, models.Response{Data: workflow})
+	c.JSON(http.StatusOK, models.Response{Data: res})
 }
 
 func (w Workflow) UpdateWorkflow(c *gin.Context) {

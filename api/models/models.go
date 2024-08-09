@@ -81,7 +81,7 @@ type Workflow struct {
 }
 
 func (Workflow) TableName() string {
-	return "workflows"
+	return "workflow"
 }
 
 type SortAttribute string

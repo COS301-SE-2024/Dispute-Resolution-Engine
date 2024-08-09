@@ -145,7 +145,7 @@ type RejectExpert struct {
 }
 
 type CreateWorkflow struct {
-	WorkflowDefinition map[string]interface{} `json:"workflow_definition"`
-	Category           *uint64                `json:"category"`
-	Author             *uint64                `json:"author"`
+	WorkflowDefinition map[string]interface{} `json:"workflow_definition,omitempty"`
+	Category           *uint64                `json:"category,omitempty"`
+	Author             *uint64                `json:"author,omitempty"`
 }

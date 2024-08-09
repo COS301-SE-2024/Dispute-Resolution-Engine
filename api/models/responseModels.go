@@ -44,5 +44,5 @@ type ArchiveSearchResponse struct {
 
 type DisputeCreationResponse struct {
 	Data      string `json:"data,omitempty"`
-	DisputeID string `json:"dispute_id"`
+	DisputeID int64  `json:"dispute_id"`
 }

@@ -3,7 +3,14 @@
 import ExpertItem from "@/components/dispute/negotiator";
 import FileInput from "@/components/form/file-input";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+  CardFooter,
+} from "@/components/ui/card";
 import { uploadEvidence } from "@/lib/actions/dispute";
 import { DisputeResponse } from "@/lib/interfaces/dispute";
 import { File as FileIcon } from "lucide-react";
@@ -75,19 +82,21 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
           </ul>
         </CardContent>
       </Card>
-      <Card className="mb-4">
-        <CardHeader>
-          <CardTitle>Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onFilesSubmit}>
+      <Card className="mb-4" asChild>
+        <form onSubmit={onFilesSubmit}>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
             <input type="hidden" name="dispute_id" value={data.id} />
             <FileInput onValueChange={setFiles} />
+          </CardContent>
+          <CardFooter>
             <Button disabled={files.length == 0} type="submit">
               Upload
             </Button>
-          </form>
-        </CardContent>
+          </CardFooter>
+        </form>
       </Card>
       <Card className="mb-4">
         <CardHeader>

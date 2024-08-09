@@ -76,10 +76,8 @@ type Workflow struct {
     ID                 uint64                 `gorm:"primaryKey;autoIncrement"`
     WorkflowDefinition map[string]interface{} `gorm:"type:json"`
     CreatedAt          time.Time              `gorm:"autoCreateTime"`
-    CategoryID         *uint64                `gorm:"column:category"` // Adjusted to match DB column
-    AuthorID           *uint64                `gorm:"column:author"`   // Adjusted to match DB column
+    AuthorID           *uint64                `gorm:"column:author"`   
     Author             User                   `gorm:"foreignKey:AuthorID"`
-    Category           Tags                   `gorm:"foreignKey:CategoryID"`
 }
 
 

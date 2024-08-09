@@ -25,10 +25,10 @@ type WorkflowResult struct {
 
 func (w Workflow) GetWorkflows(c *gin.Context) {
     logger := utilities.NewLogger().LogWithCaller()
-    var workflows []WorkflowResult
+    var workflows []Workflow
 
     // Perform the query with the necessary joins
-	result := w.DB.Preload("Author").Preload("Category").Find(&workflows)
+	result := w.DB.Find(&workflows)
 
 
     if result.Error != nil {

@@ -8,37 +8,13 @@ import Loader from "@/components/Loader";
 import { Metadata } from "next";
 import { Badge } from "@/components/ui/badge";
 import { DisputeLink } from "./link";
+import ClientSearch from "./clientSearch";
 
 export const metadata: Metadata = {
   title: "DRE - Disputes",
 };
 
-async function DisputeList() {
-  const data = await getDisputeList();
 
-  return (
-    <ul>
-      {data.data ? (
-        data.data.map((d) => (
-          <li key={d.id}>
-            <DisputeLink href={`/disputes/${d.id}`}>
-              {d.title}
-              {d.role == "Complainant" ? (
-                <Badge className="ml-2">{d.role.substring(0, 1)}</Badge>
-              ) : d.role == "Respondant" ? (
-                <Badge className="ml-2" variant="secondary">
-                  {d.role.substring(0, 1)}
-                </Badge>
-              ) : null}
-            </DisputeLink>
-          </li>
-        ))
-      ) : (
-        <li>{data.error}</li>
-      )}
-    </ul>
-  );
-}
 
 export default function DisputeRootLayout({
   children,
@@ -47,13 +23,8 @@ export default function DisputeRootLayout({
 }>) {
   return (
     <div className="flex items-stretch h-full lg:w-3/4 mx-auto">
-      <div className="flex shrink-0 flex-col p-2 gap-4">
-        <Input placeholder="Search" />
-        <nav>
-          <Suspense fallback={<Loader />}>
-            <DisputeList />
-          </Suspense>
-        </nav>
+      <div className="flex shrink-0 flex-col -2 gap-4">
+        <ClientSearch></ClientSearch>
 
         <Button className="mt-auto" asChild variant="outline">
           <Link href="/disputes/create" className="w-full">

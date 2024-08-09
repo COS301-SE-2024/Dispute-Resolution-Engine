@@ -74,7 +74,6 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 
 	res := &models.Workflow{
 		WorkflowDefinition: workflow.WorkflowDefinition,
-		CategoryID:           workflow.Category,
 		AuthorID:             workflow.Author,
 	}
 

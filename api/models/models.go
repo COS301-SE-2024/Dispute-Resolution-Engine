@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -74,7 +75,7 @@ type Dispute struct {
 
 type Workflow struct {
 	ID                 uint64                 `gorm:"primaryKey;autoIncrement"`
-	WorkflowDefinition map[string]interface{} `gorm:"type:json"`
+	WorkflowDefinition json.RawMessage `gorm:"type:json"`
 	CreatedAt          time.Time              `gorm:"autoCreateTime"`
 	AuthorID           *int64                 `gorm:"column:author"` // Match type with foreign key
 	Author             User                   `gorm:"foreignKey:AuthorID"`

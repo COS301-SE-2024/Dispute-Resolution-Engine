@@ -3,6 +3,7 @@ package handlers
 import (
 	"api/models"
 	"api/utilities"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,20 +26,42 @@ type WorkflowResult struct {
 
 func (w Workflow) GetWorkflows(c *gin.Context) {
     logger := utilities.NewLogger().LogWithCaller()
-    var workflows []Workflow
+    var workflows []models.Workflow
 
-    // Perform the query with the necessary joins
-	result := w.DB.Find(&workflows)
-
-
-    if result.Error != nil {
+    // Fetch workflows with tags, limiting to 10 results
+    result := w.DB.Limit(10).Find(&workflows)
+    if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
         logger.Error(result.Error)
         c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
         return
     }
 
-    c.JSON(http.StatusOK, models.Response{Data: workflows})
+    // Prepare the response structure
+    var response []struct {
+        models.Workflow
+        Tags []models.Tag `json:"tags"`
+    }
+
+    for _, workflow := range workflows {
+        var taggedWorkflow struct {
+            models.Workflow
+            Tags []models.Tag `json:"tags"`
+        }
+
+        taggedWorkflow.Workflow = workflow
+        // Query for tags related to each workflow
+        w.DB.Table("labelled_workflows").
+            Select("tags.*").
+            Joins("join tags on labelled_workflows.tag_id = tags.id").
+            Where("labelled_workflows.workflow_id = ?", workflow.ID).
+            Scan(&taggedWorkflow.Tags)
+
+        response = append(response, taggedWorkflow)
+    }
+
+    c.JSON(http.StatusOK, models.Response{Data: response})
 }
+
 
 func (w Workflow) GetIndivualWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
@@ -72,8 +95,17 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		return
 	}
 
+	//comvert map[string] to raw json
+	workflowDefinition, err := json.Marshal(workflow.WorkflowDefinition)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to process workflow definition"})
+		return
+	}
+
+	//put into struct
 	res := &models.Workflow{
-		WorkflowDefinition: workflow.WorkflowDefinition,
+		WorkflowDefinition: workflowDefinition,
 		AuthorID:             workflow.Author,
 	}
 
@@ -84,6 +116,20 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}
+
+	for _, tagID := range workflow.Category {
+        labelledWorkflow := models.LabelledWorkflow{
+            WorkflowID: res.ID,
+            TagID:      uint64(tagID),
+        }
+        if err := w.DB.Create(&labelledWorkflow).Error; err != nil {
+            logger.Error(err)
+            c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to link workflow with tags"})
+            return
+        }
+    }
+
+
 
 	c.JSON(http.StatusOK, models.Response{Data: res})
 }

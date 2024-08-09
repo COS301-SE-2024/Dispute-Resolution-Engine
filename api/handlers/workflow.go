@@ -17,16 +17,27 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 	g.DELETE("/:id", h.DeleteWorkflow)
 }
 
+type WorkflowResult struct {
+    Workflow models.Workflow `json:"workflow"`
+    Author   models.User     `json:"author"`
+    Category models.Tags     `json:"category"`
+}
+
 func (w Workflow) GetWorkflows(c *gin.Context) {
-	logger := utilities.NewLogger().LogWithCaller()
-	var workflows []models.Workflow
-	result := w.DB.Find(&workflows)
-	if result.Error != nil {
-		logger.Error(result.Error)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
-	}
-	c.JSON(http.StatusOK, models.Response{Data: workflows})
+    logger := utilities.NewLogger().LogWithCaller()
+    var workflows []WorkflowResult
+
+    // Perform the query with the necessary joins
+	result := w.DB.Preload("Author").Preload("Category").Find(&workflows)
+
+
+    if result.Error != nil {
+        logger.Error(result.Error)
+        c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+        return
+    }
+
+    c.JSON(http.StatusOK, models.Response{Data: workflows})
 }
 
 func (w Workflow) GetIndivualWorkflow(c *gin.Context) {
@@ -63,8 +74,8 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 
 	res := &models.Workflow{
 		WorkflowDefinition: workflow.WorkflowDefinition,
-		Category:           workflow.Category,
-		Author:             workflow.Author,
+		CategoryID:           workflow.Category,
+		AuthorID:             workflow.Author,
 	}
 
 	// Store the workflow in the database

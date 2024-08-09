@@ -23,9 +23,11 @@ export default function DisputeRootLayout({
 }>) {
   return (
     <div className="flex items-stretch h-full lg:w-3/4 mx-auto">
-      <div className="flex shrink-0 flex-col -2 gap-4">
-        <ClientSearch></ClientSearch>
+      <div className="flex shrink-0 flex-col gap-4 h-full">
+        <ClientSearch />
 
+        <div className="flex-grow bg-red"></div>
+        
         <Button className="mt-auto" asChild variant="outline">
           <Link href="/disputes/create" className="w-full">
             + Create

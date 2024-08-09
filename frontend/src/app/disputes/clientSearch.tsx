@@ -10,23 +10,34 @@ import { DisputeListResponse } from "@/lib/interfaces/dispute";
 export default function ClientSearch() {
   const baseDLR = useMemo<DisputeListResponse>(() => [], []);
   const [data, setData] = useState(baseDLR);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       const result = await getDisputeList();
       setData(result.data ?? baseDLR);
     };
-  
     fetchData();
   }, [baseDLR]);
+
+  const filteredData = useMemo(() => {
+    return data.filter(d => 
+      d.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [data, searchTerm]);
+
   return (
     <div>
-      <Input placeholder="Search" />
-      <nav>
+      <Input 
+        placeholder="Search" 
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+      <nav className="h-full">
         <Suspense fallback={<Loader />}>
           <ul>
-            {data ? (
-              data.map((d) => (
+            {filteredData.length > 0 ? (
+              filteredData.map((d) => (
                 <li key={d.id}>
                   <DisputeLink href={`/disputes/${d.id}`}>
                     {d.title}
@@ -41,7 +52,7 @@ export default function ClientSearch() {
                 </li>
               ))
             ) : (
-              <li>Error</li>
+              <div></div>
             )}
           </ul>
         </Suspense>

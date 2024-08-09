@@ -15,6 +15,7 @@ import { JWT_KEY } from "../constants";
 
 import { DisputeEvidenceUploadResponse } from "../interfaces/dispute";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export async function createDispute(_initial: unknown, data: FormData): Promise<Result<string>> {
   const { data: parsed, error: parseErr } = disputeCreateSchema.safeParse(Object.fromEntries(data));
@@ -53,7 +54,7 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
 
   revalidatePath("disputes/create");
   revalidatePath("disputes");
-  return res;
+  redirect("/disputes");
 }
 
 export async function rejectExpert(

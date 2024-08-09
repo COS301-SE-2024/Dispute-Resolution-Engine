@@ -16,10 +16,16 @@ export const metadata: Metadata = {
 async function DisputeList() {
   const data = await getDisputeList();
 
+  const err =
+    data.error ??
+    (data.data.length == 0 ? "You aren't  involved in any disputes. Yay :)" : undefined);
+
   return (
     <ul>
-      {data.data ? (
-        data.data.map((d) => (
+      {err ? (
+        <li className="text-dre-bg-light/50 w-full">{err}</li>
+      ) : (
+        data.data!.map((d) => (
           <li key={d.id}>
             <DisputeLink href={`/disputes/${d.id}`}>
               {d.title}
@@ -33,8 +39,6 @@ async function DisputeList() {
             </DisputeLink>
           </li>
         ))
-      ) : (
-        <li>{data.error}</li>
       )}
     </ul>
   );
@@ -55,7 +59,7 @@ export default function DisputeRootLayout({
           </Suspense>
         </nav>
 
-        <Button className="mt-auto" asChild variant="outline">
+        <Button asChild className="mt-auto">
           <Link href="/disputes/create" className="w-full">
             + Create
           </Link>

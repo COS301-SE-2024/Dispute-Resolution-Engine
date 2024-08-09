@@ -3,7 +3,6 @@ package handlers
 import (
 	"api/models"
 	"api/utilities"
-	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -62,19 +61,9 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		return
 	}
 
-	// Convert the map to a JSON string
-	workflowDefinitionBytes, err := json.Marshal(workflow.WorkflowDefinition)
-	if err != nil {
-		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
-	}
-
-	workflowDefinitionString := string(workflowDefinitionBytes)
-
 	// Store the workflow in the database
 	result := w.DB.Create(&models.Workflow{
-		WorkflowDefinition: workflowDefinitionString,
+		WorkflowDefinition: workflow.WorkflowDefinition,
 		Category:           workflow.Category,
 		Author:             workflow.Author,
 	})

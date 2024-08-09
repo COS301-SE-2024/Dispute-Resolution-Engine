@@ -74,7 +74,7 @@ type Dispute struct {
 
 type Workflow struct {
 	ID                uint64     `gorm:"primaryKey;autoIncrement"`
-	WorkflowDefinition string    `gorm:"type:jsonb"`
+	WorkflowDefinition map[string]interface{} `gorm:"type:json"`
 	CreatedAt         time.Time  `gorm:"autoCreateTime"`
 	Category          *uint64    `gorm:"type:bigint"` 
 	Author            *uint64    `gorm:"type:bigint"` 

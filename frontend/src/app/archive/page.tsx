@@ -50,14 +50,14 @@ export default async function Archive() {
   return (
     <div className="flex flex-col items-center justify-center h-full gap-5 w-2/3 mx-auto">
       <header className="mx-auto w-fit text-center">
-        <h1 className="text-4xl font-bold tracking-wide">Archive</h1>
+        <h1 className="text-6xl font-bold tracking-wide">Archive</h1>
         <p className="dark:text-white/50">Explore our previously handled cases</p>
       </header>
       <main className="w-2/3">
         <form action="/archive/search" className="flex flex-col items-center gap-2">
           <Input
             name="q"
-            className="rounded-full dark:bg-dre-bg-light/5 px-8 py-6 border-none"
+            className="rounded-full dark:bg-dre-bg-light/5 px-6 py-4 border-none"
             placeholder="Search the Archive..."
           />
           <div className="flex gap-2">

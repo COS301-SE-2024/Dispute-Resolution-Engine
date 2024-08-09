@@ -20,7 +20,7 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 type WorkflowResult struct {
     Workflow models.Workflow `json:"workflow"`
     Author   models.User     `json:"author"`
-    Category models.Tags     `json:"category"`
+    Category models.Tag     `json:"category"`
 }
 
 func (w Workflow) GetWorkflows(c *gin.Context) {

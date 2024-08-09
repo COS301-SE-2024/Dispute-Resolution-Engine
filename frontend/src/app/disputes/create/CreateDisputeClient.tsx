@@ -18,8 +18,10 @@ import { useId, useRef, useState } from "react";
 import { createDispute } from "@/lib/actions/dispute";
 import { Textarea } from "@/components/ui/textarea";
 import FileInput from "@/components/form/file-input";
+import { string } from "zod";
 
 export default function CreateDisputeClient() {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const form = useForm<DisputeCreateData>({
     defaultValues: {
       title: "",
@@ -40,7 +42,12 @@ export default function CreateDisputeClient() {
     const formdata = new FormData(formRef.current!);
     files.forEach((file) => formdata.append("file", file, file.name));
 
-    createDispute(null, formdata);
+    const res = createDispute(null, formdata);
+    const comRes = (await res)
+    if (comRes.error) {
+      const data = comRes.error;
+      setErrorMessage(comRes.error._errors[0])
+    }
   };
 
   return (

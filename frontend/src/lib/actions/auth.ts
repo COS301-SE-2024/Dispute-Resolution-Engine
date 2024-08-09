@@ -100,6 +100,10 @@ export async function login(
   setAuth(res.data);
   redirect("/disputes");
 }
+export async function signout(){
+  cookies().delete(JWT_KEY);
+  redirect("/login");
+}
 
 export async function verify(
   _initialState: any,

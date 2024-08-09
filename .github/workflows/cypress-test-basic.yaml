@@ -5,6 +5,14 @@ on:
     types:
       - completed
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Run a basic command
+        run: echo "This is for workflow compliance"
+
   cypress-test:
     container:
       image: cypress/included

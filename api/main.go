@@ -87,6 +87,7 @@ func main() {
 	archiveHandler := handlers.NewArchiveHandler(DB)
 	expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
+	workflowHandler := handlers.NewWorkflowHandler(DB)
 
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -120,6 +121,9 @@ func main() {
 
 	expertGroup := router.Group("/experts")
 	handlers.SetupExpertRoutes(expertGroup, expertHandler)
+
+	workflowGroup := router.Group("/workflows")
+	handlers.SetupWorkflowRoutes(workflowGroup,workflowHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

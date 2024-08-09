@@ -17,18 +17,28 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 	g.DELETE("/:id", h.DeleteWorkflow)
 }
 
-func (w Workflow) GetWorkflows(c *gin.Context) {
-	logger := utilities.NewLogger().LogWithCaller()
-	var workflows []models.Workflow
-	result := w.DB.Find(&workflows)
-	if result.Error != nil {
-		logger.Error(result.Error)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
-	}
-	c.JSON(http.StatusOK, models.Response{Data: workflows})
+type WorkflowResult struct {
+    Workflow models.Workflow `json:"workflow"`
+    Author   models.User     `json:"author"`
+    Category models.Tags     `json:"category"`
 }
 
+func (w Workflow) GetWorkflows(c *gin.Context) {
+    logger := utilities.NewLogger().LogWithCaller()
+    var workflows []WorkflowResult
+
+    // Perform the query with the necessary joins
+	result := w.DB.Preload("Author").Preload("Category").Find(&workflows)
+
+
+    if result.Error != nil {
+        logger.Error(result.Error)
+        c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+        return
+    }
+
+    c.JSON(http.StatusOK, models.Response{Data: workflows})
+}
 
 func (w Workflow) GetIndivualWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
@@ -52,7 +62,9 @@ func (w Workflow) GetIndivualWorkflow(c *gin.Context) {
 
 func (w Workflow) StoreWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	var workflow models.Workflow
+	var workflow models.CreateWorkflow
+
+	// Bind incoming JSON to the struct
 	err := c.BindJSON(&workflow)
 	if err != nil {
 		logger.Error(err)
@@ -60,14 +72,21 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		return
 	}
 
-	result := w.DB.Create(&workflow)
+	res := &models.Workflow{
+		WorkflowDefinition: workflow.WorkflowDefinition,
+		CategoryID:           workflow.Category,
+		AuthorID:             workflow.Author,
+	}
+
+	// Store the workflow in the database
+	result := w.DB.Create(res)
 	if result.Error != nil {
 		logger.Error(result.Error)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, models.Response{Data: workflow})
+	c.JSON(http.StatusOK, models.Response{Data: res})
 }
 
 func (w Workflow) UpdateWorkflow(c *gin.Context) {
@@ -130,4 +149,3 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.Response{Data: "Workflow deleted"})
 }
-

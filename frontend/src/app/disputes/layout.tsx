@@ -28,7 +28,7 @@ export default function DisputeRootLayout({
 
         <div className="flex-grow bg-red"></div>
         
-        <Button className="mt-auto" asChild variant="outline">
+        <Button className="mt-auto" asChild>
           <Link href="/disputes/create" className="w-full">
             + Create
           </Link>

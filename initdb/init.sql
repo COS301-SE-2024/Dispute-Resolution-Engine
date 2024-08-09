@@ -52,11 +52,12 @@ CREATE TABLE tags (
 	tag_name VARCHAR(255) NOT NULL
 );
 
+
+
 CREATE TABLE workflow (
 	id SERIAL PRIMARY KEY,
 	workflow_definition JSON NOT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	category BIGINT REFERENCES tags(id),
 	author BIGINT REFERENCES users(id)
 );
 
@@ -131,6 +132,12 @@ CREATE TABLE labelled_disputes (
 	dispute_id BIGINT REFERENCES disputes(id),
 	tag_id BIGINT REFERENCES tags(id),
 	PRIMARY KEY (dispute_id, tag_id)
+);
+
+CREATE TABLE labelled_workflows (
+	workflow_id BIGINT REFERENCES workflow(id),
+	tag_id BIGINT REFERENCES tags(id),
+	PRIMARY KEY (workflow_id, tag_id)
 );
 
 -- Initialization of tables

@@ -78,8 +78,8 @@ func (h Expert) rejectExpert(c *gin.Context) {
 	//get dispute ID and expert ID from the request
 	var rejectexpert models.RejectExpert
 	if err := c.BindJSON(&rejectexpert); err != nil {
-		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		logger.WithError(err).Error(err.Error())
+		c.JSON(http.StatusBadRequest, models.Response{Data: "Failed to bind JSON"})
 		return
 	}
 

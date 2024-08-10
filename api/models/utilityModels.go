@@ -77,3 +77,9 @@ type Email struct {
 	Subject string
 	Body    string
 }
+
+type DefaultUser struct {
+	Email     string
+	FirstName string
+	Surname   string
+}

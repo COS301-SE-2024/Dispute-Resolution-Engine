@@ -25,9 +25,9 @@ type Claims struct {
 	User models.UserInfoJWT `json:"user"`
 }
 
-type JwtMiddleware struct{
+type JwtMiddleware struct {
 	EnvLoader env.Env
-	Logger *utilities.Logger
+	Logger    *utilities.Logger
 }
 
 var jwtMiddleware Jwt
@@ -43,7 +43,7 @@ func NewJwtMiddleware() Jwt {
 func createJwtMiddleware() Jwt {
 	return &JwtMiddleware{
 		EnvLoader: env.NewEnvLoader(),
-		Logger: utilities.NewLogger().LogWithCaller(),
+		Logger:    utilities.NewLogger().LogWithCaller(),
 	}
 }
 
@@ -184,11 +184,11 @@ func (j *JwtMiddleware) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 		logger.Error("No Authorization header")
 		return models.UserInfoJWT{}, errors.New("Missing Authorization header")
 	}
-	
+
 	tokenString, _ := strings.CutPrefix(authHeader, "bearer")
 	tokenString, _ = strings.CutPrefix(tokenString, "Bearer")
 	tokenString = strings.TrimSpace(tokenString)
-	
+
 	if tokenString == "" {
 		logger.Error("No token")
 		return models.UserInfoJWT{}, errors.New("Missing Authorization header")

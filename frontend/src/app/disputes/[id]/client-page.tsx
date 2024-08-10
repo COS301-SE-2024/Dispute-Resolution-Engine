@@ -70,6 +70,7 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
               </li>
             ))}
           </ul>
+          {(data.role ?? "") == "Complainant" && <UploadForm disputeId={data.id} />}
         </CardContent>
       </Card>
       <Card className="mb-4">
@@ -101,23 +102,8 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
               </li>
             ))}
           </ul>
+          {(data.role ?? "") == "Respondent" && <UploadForm disputeId={data.id} />}
         </CardContent>
-      </Card>
-      <Card className="mb-4" asChild>
-        <form onSubmit={onFilesSubmit}>
-          <CardHeader>
-            <CardTitle>Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <input type="hidden" name="dispute_id" value={data.id} />
-            <FileInput onValueChange={setFiles} />
-          </CardContent>
-          <CardFooter>
-            <Button disabled={files.length == 0} type="submit">
-              Upload
-            </Button>
-          </CardFooter>
-        </form>
       </Card>
       <Card className="mb-4">
         <CardHeader>
@@ -138,5 +124,27 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
         </CardContent>
       </Card>
     </>
+  );
+}
+
+function UploadForm({ disputeId }: { disputeId: string }) {
+  const [files, setFiles] = useState<File[]>([]);
+
+  const onFilesSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    files.forEach((file) => formData.append("files", file, file.name));
+
+    const res = await uploadEvidence(undefined, formData);
+    console.log(res);
+  };
+  return (
+    <form onSubmit={onFilesSubmit} className="space-y-4">
+      <input type="hidden" name="dispute_id" value={disputeId} />
+      <FileInput onValueChange={setFiles} />
+      <Button disabled={files.length == 0} type="submit">
+        Upload
+      </Button>
+    </form>
   );
 }

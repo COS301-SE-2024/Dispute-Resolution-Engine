@@ -28,6 +28,9 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
     console.log(res);
   };
 
+  const resEvidence = data.evidence.filter((e) => e.uploader_role == "Respondent");
+  const compEvidence = data.evidence.filter((e) => e.uploader_role == "Complainant");
+
   return (
     <>
       <Card className="mb-4">
@@ -41,48 +44,62 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
       <Card className="mb-4">
         <CardHeader>
           {(data.role ?? "") == "Complainant" ? (
-            <CardTitle>Your Evidence</CardTitle>
+            <>
+              <CardTitle>Your Evidence</CardTitle>
+              {compEvidence.length == 0 && (
+                <CardDescription>You have not uploaded any evidence</CardDescription>
+              )}
+            </>
           ) : (
-            <CardTitle>Complainant&apos;s Evidence</CardTitle>
+            <>
+              <CardTitle>Complainant&apos;s Evidence</CardTitle>
+              {compEvidence.length == 0 && (
+                <CardDescription>The complainant has not uploaded any evidence</CardDescription>
+              )}
+            </>
           )}
-          <CardDescription></CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="flex gap-2 flex-wrap">
-            {data.evidence
-              .filter((evi) => evi.uploader_role == "Complainant")
-              .map((evi, i) => (
-                <li key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
-                  <a href={evi.url} title={evi.label}>
-                    <FileIcon className="mx-auto" size="2rem" />
-                    <p className="mt-2 text-sm font-medium truncate w-full">{evi.label}</p>
-                  </a>
-                </li>
-              ))}
+            {compEvidence.map((evi, i) => (
+              <li key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
+                <a href={evi.url} title={evi.label}>
+                  <FileIcon className="mx-auto" size="2rem" />
+                  <p className="mt-2 text-sm font-medium truncate w-full">{evi.label}</p>
+                </a>
+              </li>
+            ))}
           </ul>
         </CardContent>
       </Card>
       <Card className="mb-4">
         <CardHeader>
           {(data.role ?? "") == "Respondent" ? (
-            <CardTitle>Your Evidence</CardTitle>
+            <>
+              <CardTitle>Your Evidence</CardTitle>
+              {resEvidence.length == 0 && (
+                <CardDescription>You have not uploaded any evidence</CardDescription>
+              )}
+            </>
           ) : (
-            <CardTitle>Respondant&apos;s Evidence</CardTitle>
+            <>
+              <CardTitle>Respondant&apos;s Evidence</CardTitle>
+              {resEvidence.length == 0 && (
+                <CardDescription>The respondent has not uploaded any evidence</CardDescription>
+              )}
+            </>
           )}
-          <CardDescription></CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="flex gap-2 flex-wrap">
-            {data.evidence
-              .filter((evi) => evi.uploader_role == "Respondent")
-              .map((evi, i) => (
-                <li key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
-                  <a href={evi.url} title={evi.label}>
-                    <FileIcon className="mx-auto" size="2rem" />
-                    <p className="mt-2 text-sm font-medium truncate w-full">{evi.label}</p>
-                  </a>
-                </li>
-              ))}
+            {resEvidence.map((evi, i) => (
+              <li key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
+                <a href={evi.url} title={evi.label}>
+                  <FileIcon className="mx-auto" size="2rem" />
+                  <p className="mt-2 text-sm font-medium truncate w-full">{evi.label}</p>
+                </a>
+              </li>
+            ))}
           </ul>
         </CardContent>
       </Card>

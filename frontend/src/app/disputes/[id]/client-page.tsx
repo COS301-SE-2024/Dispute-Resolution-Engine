@@ -28,6 +28,9 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
     console.log(res);
   };
 
+  const resEvidence = data.evidence.filter((e) => e.uploader_role == "Respondent");
+  const compEvidence = data.evidence.filter((e) => e.uploader_role == "Complainant");
+
   return (
     <>
       <Card className="mb-4">
@@ -41,15 +44,24 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
       <Card className="mb-4">
         <CardHeader>
           {(data.role ?? "") == "Complainant" ? (
-            <CardTitle>Your Evidence</CardTitle>
+            <>
+              <CardTitle>Your Evidence</CardTitle>
+              {compEvidence.length == 0 && (
+                <CardDescription>You have not uploaded any evidence</CardDescription>
+              )}
+            </>
           ) : (
-            <CardTitle>Complainant&apos;s Evidence</CardTitle>
+            <>
+              <CardTitle>Complainant&apos;s Evidence</CardTitle>
+              {compEvidence.length == 0 && (
+                <CardDescription>The complainant has not uploaded any evidence</CardDescription>
+              )}
+            </>
           )}
-          <CardDescription></CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="flex gap-2 flex-wrap">
-            {data.evidence.map((evi, i) => (
+            {compEvidence.map((evi, i) => (
               <li key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
                 <a href={evi.url} title={evi.label}>
                   <FileIcon className="mx-auto" size="2rem" />
@@ -58,20 +70,30 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
               </li>
             ))}
           </ul>
+          {(data.role ?? "") == "Complainant" && <UploadForm disputeId={data.id} />}
         </CardContent>
       </Card>
       <Card className="mb-4">
         <CardHeader>
-          {(data.role ?? "") == "Respondant" ? (
-            <CardTitle>Your Evidence</CardTitle>
+          {(data.role ?? "") == "Respondent" ? (
+            <>
+              <CardTitle>Your Evidence</CardTitle>
+              {resEvidence.length == 0 && (
+                <CardDescription>You have not uploaded any evidence</CardDescription>
+              )}
+            </>
           ) : (
-            <CardTitle>Respondant&apos;s Evidence</CardTitle>
+            <>
+              <CardTitle>Respondant&apos;s Evidence</CardTitle>
+              {resEvidence.length == 0 && (
+                <CardDescription>The respondent has not uploaded any evidence</CardDescription>
+              )}
+            </>
           )}
-          <CardDescription></CardDescription>
         </CardHeader>
         <CardContent>
           <ul className="flex gap-2 flex-wrap">
-            {data.evidence.map((evi, i) => (
+            {resEvidence.map((evi, i) => (
               <li key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
                 <a href={evi.url} title={evi.label}>
                   <FileIcon className="mx-auto" size="2rem" />
@@ -80,23 +102,8 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
               </li>
             ))}
           </ul>
+          {(data.role ?? "") == "Respondent" && <UploadForm disputeId={data.id} />}
         </CardContent>
-      </Card>
-      <Card className="mb-4" asChild>
-        <form onSubmit={onFilesSubmit}>
-          <CardHeader>
-            <CardTitle>Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <input type="hidden" name="dispute_id" value={data.id} />
-            <FileInput onValueChange={setFiles} />
-          </CardContent>
-          <CardFooter>
-            <Button disabled={files.length == 0} type="submit">
-              Upload
-            </Button>
-          </CardFooter>
-        </form>
       </Card>
       <Card className="mb-4">
         <CardHeader>
@@ -117,5 +124,27 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
         </CardContent>
       </Card>
     </>
+  );
+}
+
+function UploadForm({ disputeId }: { disputeId: string }) {
+  const [files, setFiles] = useState<File[]>([]);
+
+  const onFilesSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    files.forEach((file) => formData.append("files", file, file.name));
+
+    const res = await uploadEvidence(undefined, formData);
+    console.log(res);
+  };
+  return (
+    <form onSubmit={onFilesSubmit} className="space-y-4">
+      <input type="hidden" name="dispute_id" value={disputeId} />
+      <FileInput onValueChange={setFiles} />
+      <Button disabled={files.length == 0} type="submit">
+        Upload
+      </Button>
+    </form>
   );
 }

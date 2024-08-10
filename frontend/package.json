@@ -11,6 +11,7 @@
     "cypress:open": "nx open-cypress"
   },
   "dependencies": {
+    "@babel/core": "^7.0.0-0",
     "@hookform/resolvers": "^3.6.0",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-dropdown-menu": "^2.1.1",
@@ -36,6 +37,7 @@
     "react-hook-form": "^7.52.0",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
+    "webpack": "^5.1.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

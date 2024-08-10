@@ -38,7 +38,7 @@ func (h Expert) recommendExpert(c *gin.Context) {
 	// currently select the first 4
 
 	var users []models.User
-	roles := []string{"Mediator", "Adjudicator", "Arbitrator"}
+	roles := []string{"mediator", "adjudicator", "arbitrator", "expert"}
 
 	// Seed the random number generator
 	rand.Seed(time.Now().UnixNano())

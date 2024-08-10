@@ -168,8 +168,9 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	id := c.Param("id")
 
-	var workflow models.Workflow
-	result := w.DB.First(&workflow, id)
+	// Find the existing workflow
+	var existingWorkflow models.Workflow
+	result := w.DB.First(&existingWorkflow, id)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			logger.Warnf("Workflow with ID %s not found", id)
@@ -181,22 +182,67 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 		return
 	}
 
-	err := c.BindJSON(&workflow)
+	// Bind the request payload to the UpdateWorkflow struct
+	var updateData models.UpdateWorkflow
+	err := c.BindJSON(&updateData)
 	if err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request payload"})
 		return
 	}
 
-	result = w.DB.Save(&workflow)
+	// Update the WorkflowDefinition if provided
+	if updateData.WorkflowDefinition != nil {
+		workflowDefinition, err := json.Marshal(*updateData.WorkflowDefinition)
+		if err != nil {
+			logger.Error(err)
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to process workflow definition"})
+			return
+		}
+		existingWorkflow.WorkflowDefinition = workflowDefinition
+	}
+
+	// Update the AuthorID if provided
+	if updateData.Author != nil {
+		existingWorkflow.AuthorID = updateData.Author
+	}
+
+	// Save the updated workflow
+	result = w.DB.Save(&existingWorkflow)
 	if result.Error != nil {
 		logger.Error(result.Error)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.Response{Data: workflow})
+	// Manage categories (tags) in labelled_workflow if provided
+	if updateData.Category != nil {
+		// Remove existing tags
+		err = w.DB.Where("workflow_id = ?", existingWorkflow.ID).Delete(&models.LabelledWorkflow{}).Error
+		if err != nil {
+			logger.Error(err)
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
+			return
+		}
+
+		// Insert new tags
+		for _, categoryID := range *updateData.Category {
+			labelledWorkflow := models.LabelledWorkflow{
+				WorkflowID: existingWorkflow.ID,
+				TagID:      uint64(categoryID),
+			}
+			err = w.DB.Create(&labelledWorkflow).Error
+			if err != nil {
+				logger.Error(err)
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
+				return
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, models.Response{Data: "Workflow updated"})
 }
+
 
 func (w Workflow) DeleteWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()

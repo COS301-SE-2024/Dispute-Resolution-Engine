@@ -26,6 +26,11 @@ export default function Navbar() {
             Disputes
           </Link>
         )}
+        {result && (
+          <Link className={link} href="/workflow">
+            Workflows
+          </Link>
+        )}
       </div>
       {result ? (
         <Link href="/profile">

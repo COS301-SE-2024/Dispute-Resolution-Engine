@@ -1,3 +1,4 @@
+"use client"
 import { useCallback } from 'react';
 import {
   ReactFlow,
@@ -43,6 +44,7 @@ function Flow() {
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       edgeTypes={edgeTypes}
+      colorMode='dark'
       fitView
     />
   );

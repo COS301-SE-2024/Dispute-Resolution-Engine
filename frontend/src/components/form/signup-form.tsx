@@ -1,21 +1,21 @@
 "use client";
 
 import { signupSchema, type SignupData } from "@/lib/schema/auth";
-import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronRight, User } from "lucide-react";
-import { HTMLAttributes, ReactNode, useId, useState } from "react";
-import { Controller, FieldValues, FormProvider, useForm, useFormContext } from "react-hook-form";
+import { ChevronRight } from "lucide-react";
+import { ReactNode, useId, useState } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Input } from "../ui/input";
 import GenderSelect from "./gender-select";
 import LanguageSelect from "./language.select";
 import CountrySelect from "./country-select";
-import { Label } from "../ui/label";
 import { FormField, FormMessage } from "../ui/form-client";
 import { Button } from "../ui/button";
 import { signup } from "@/lib/actions/auth";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 const steps: {
   id: string;
@@ -131,7 +131,7 @@ export default function SignupForm() {
                   );
                 }}
               />
-              <div className="flex justify-end">
+              <Footer>
                 <Button
                   type="button"
                   aria-label="Next"
@@ -142,7 +142,7 @@ export default function SignupForm() {
                 >
                   <ChevronRight />
                 </Button>
-              </div>
+              </Footer>
             </>
           )}
           {currentStep == 1 && (
@@ -189,7 +189,7 @@ export default function SignupForm() {
                   {...register("passwordConfirm")}
                 />
               </SignupField>
-              <div className="flex justify-end">
+              <Footer>
                 <Button
                   type="button"
                   aria-label="Next"
@@ -200,7 +200,7 @@ export default function SignupForm() {
                 >
                   <ChevronRight />
                 </Button>
-              </div>
+              </Footer>
             </>
           )}
           {currentStep == 2 && (
@@ -246,15 +246,31 @@ export default function SignupForm() {
                   className="w-fit"
                 />
               </SignupField>
-              <div className="col-span-2 flex justify-end items-center gap-2">
-                <SignupMessage />
-                <Button type="submit">Sign Up</Button>
-              </div>
+              <Footer>
+                <div>
+                  <SignupMessage />
+                  <Button type="submit">Sign Up</Button>
+                </div>
+              </Footer>
             </>
           )}
         </form>
       </div>
     </FormProvider>
+  );
+}
+
+function Footer({ children }: { children: ReactNode }) {
+  return (
+    <footer className="flex justify-between">
+      <p>
+        Already have an account?{" "}
+        <Link href="/login" className="hover:underline">
+          Login
+        </Link>
+      </p>
+      {children}
+    </footer>
   );
 }
 
@@ -280,26 +296,5 @@ function SignupStep({
       <h3>{name}</h3>
       <p>{desc}</p>
     </button>
-  );
-}
-
-function Navbar({
-  page,
-  maxPages,
-  onNavigate,
-}: {
-  page: number;
-  maxPages: number;
-  onNavigate: (step: number) => void;
-}) {
-  return (
-    <div className="col-span-2 flex justify-between">
-      <Button type="button" disabled={page == 0} aria-label="Back" title="Back">
-        Back
-      </Button>
-      <Button type="button" disabled={page == maxPages - 1} aria-label="Next" title="Next">
-        Next
-      </Button>
-    </div>
   );
 }

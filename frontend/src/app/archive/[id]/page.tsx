@@ -60,6 +60,10 @@ export default async function ArchivedPageDispute({ params }: { params: { id: st
             ))}
           </ol>
         </section>
+        <section className="border-t-2 border-gray-700">
+        <h4 className="text-lg font-semibold">AI Summary</h4>
+        <p>This would be for example an AI summary</p>
+        </section>
       </CardContent>
     </Card>
   );

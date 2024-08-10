@@ -35,6 +35,7 @@ const SignupMessage = FormMessage<SignupData>;
 const SignupField = FormField<SignupData>;
 
 export default function SignupForm() {
+  const typeId = useId();
   const emailId = useId();
   const passId = useId();
   const confirmId = useId();
@@ -97,40 +98,43 @@ export default function SignupForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {currentStep == 0 && (
             <>
-              <Controller
-                name="userType"
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => {
-                  const { onChange, ...field2 } = field;
-                  return (
-                    <RadioGroup.Root
-                      onValueChange={onChange}
-                      {...field2}
-                      className="flex flex-col gap-4"
-                    >
-                      <RadioGroup.Item
-                        value="user"
-                        asChild
-                        className="data-[state='checked']:border-dre-100"
+              <SignupField id={typeId} name="userType" label="User Type">
+                <Controller
+                  name="userType"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => {
+                    const { onChange, ...field2 } = field;
+                    return (
+                      <RadioGroup.Root
+                        onValueChange={onChange}
+                        id={typeId}
+                        {...field2}
+                        className="flex flex-col gap-4"
                       >
-                        <Button variant="outline">
-                          <h2>User</h2>
-                        </Button>
-                      </RadioGroup.Item>
-                      <RadioGroup.Item
-                        value="expert"
-                        asChild
-                        className="data-[state='checked']:border-dre-100"
-                      >
-                        <Button variant="outline">
-                          <h2>Expert</h2>
-                        </Button>
-                      </RadioGroup.Item>
-                    </RadioGroup.Root>
-                  );
-                }}
-              />
+                        <RadioGroup.Item
+                          value="user"
+                          asChild
+                          className="data-[state='checked']:border-dre-100"
+                        >
+                          <Button variant="outline">
+                            <h2>User</h2>
+                          </Button>
+                        </RadioGroup.Item>
+                        <RadioGroup.Item
+                          value="expert"
+                          asChild
+                          className="data-[state='checked']:border-dre-100"
+                        >
+                          <Button variant="outline">
+                            <h2>Expert</h2>
+                          </Button>
+                        </RadioGroup.Item>
+                      </RadioGroup.Root>
+                    );
+                  }}
+                />
+              </SignupField>
               <Footer>
                 <Button
                   type="button"

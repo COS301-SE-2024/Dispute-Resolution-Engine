@@ -16,6 +16,7 @@ import { Button } from "../ui/button";
 import { signup } from "@/lib/actions/auth";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { CardDescription, CardTitle } from "../ui/card";
 
 const steps: {
   id: string;
@@ -80,9 +81,9 @@ export default function SignupForm() {
 
   return (
     <FormProvider {...form}>
-      <div className="mx-auto w-fit">
-        <nav>
-          <ol className="flex gap-3">
+      <div className="mx-auto md:w-[40rem] p-4 flex flex-col h-full">
+        <nav className="mb-6">
+          <ol className="grid grid-cols-3 gap-4">
             {steps.map((step, i) => (
               <li key={step.id}>
                 <SignupStep
@@ -95,7 +96,11 @@ export default function SignupForm() {
             ))}
           </ol>
         </nav>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <header className="mb-6 space-y-2">
+          <CardTitle>{steps[currentStep].id}</CardTitle>
+          <CardDescription>{steps[currentStep].name}</CardDescription>
+        </header>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 grow">
           {currentStep == 0 && (
             <>
               <SignupField id={typeId} name="userType" label="User Type">
@@ -115,7 +120,7 @@ export default function SignupForm() {
                         <RadioGroup.Item
                           value="user"
                           asChild
-                          className="data-[state='checked']:border-dre-100"
+                          className="data-[state='checked']:border-dre-100 "
                         >
                           <Button variant="outline">
                             <h2>User</h2>
@@ -135,18 +140,6 @@ export default function SignupForm() {
                   }}
                 />
               </SignupField>
-              <Footer>
-                <Button
-                  type="button"
-                  aria-label="Next"
-                  title="Next"
-                  variant="outline"
-                  className="ml-auto"
-                  onClick={() => nav(1)}
-                >
-                  <ChevronRight />
-                </Button>
-              </Footer>
             </>
           )}
           {currentStep == 1 && (
@@ -193,18 +186,6 @@ export default function SignupForm() {
                   {...register("passwordConfirm")}
                 />
               </SignupField>
-              <Footer>
-                <Button
-                  type="button"
-                  aria-label="Next"
-                  title="Next"
-                  variant="outline"
-                  className="ml-auto"
-                  onClick={() => nav(2)}
-                >
-                  <ChevronRight />
-                </Button>
-              </Footer>
             </>
           )}
           {currentStep == 2 && (
@@ -250,15 +231,28 @@ export default function SignupForm() {
                   className="w-fit"
                 />
               </SignupField>
-              <Footer>
-                <div>
-                  <SignupMessage />
-                  <Button type="submit">Sign Up</Button>
-                </div>
-              </Footer>
             </>
           )}
         </form>
+        <Footer>
+          {currentStep == steps.length - 1 ? (
+            <div>
+              <SignupMessage />
+              <Button type="submit">Sign Up</Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              aria-label="Next"
+              title="Next"
+              variant="outline"
+              className="ml-auto"
+              onClick={() => nav(1)}
+            >
+              <ChevronRight />
+            </Button>
+          )}
+        </Footer>
       </div>
     </FormProvider>
   );
@@ -266,7 +260,7 @@ export default function SignupForm() {
 
 function Footer({ children }: { children: ReactNode }) {
   return (
-    <footer className="flex justify-between">
+    <footer className="flex justify-between items-center">
       <p>
         Already have an account?{" "}
         <Link href="/login" className="hover:underline">
@@ -293,12 +287,12 @@ function SignupStep({
     <button
       onClick={onClick}
       className={cn(
-        "text-left py-2 border-t-4 w-44",
+        "text-left py-2 border-t-4 w-full",
         active ? " border-dre-200" : "border-dre-bg-light/50",
       )}
     >
-      <h3>{name}</h3>
-      <p>{desc}</p>
+      <h3 className="text-sm">{name}</h3>
+      <p className="text-sm invisible sm:visible">{desc}</p>
     </button>
   );
 }

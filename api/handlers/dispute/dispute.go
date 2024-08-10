@@ -374,6 +374,14 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 		}
 	}
 
+	//asssign experts to dispute
+	_, err = h.Model.AssignExpertsToDispute(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Error assigning experts to dispute")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+		return
+	}
+
 	// Respond with success message
 	go h.Email.SendAdminEmail(c, disputeId, email)
 	logger.Info("Admin email sent")

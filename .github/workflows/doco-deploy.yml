@@ -12,6 +12,7 @@ on:
   push:
     branches:
       - main
+      - feat/deploy-doco
   workflow_dispatch:
 
 jobs:

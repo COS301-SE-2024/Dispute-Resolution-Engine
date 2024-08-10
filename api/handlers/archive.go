@@ -52,8 +52,8 @@ func (h Archive) Highlights(c *gin.Context) {
 			Title:        dispute.Title,
 			Summary:      dispute.Description,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
-			DateFiled:    dispute.CaseDate,
-			DateResolved: dispute.CaseDate.Add(48 * time.Hour), // Placeholder for resolved date
+			DateFiled:    dispute.CaseDate.Format("2006-08-01"),
+			DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
 			Resolution:   string(dispute.Decision),
 		}
 	}
@@ -155,8 +155,8 @@ func (h Archive) SearchArchive(c *gin.Context) {
 			Title:        dispute.Title,
 			Summary:      dispute.Description,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
-			DateFiled:    dispute.CaseDate,
-			DateResolved: dispute.CaseDate.Add(48 * time.Hour), // Placeholder for resolved date
+			DateFiled:    dispute.CaseDate.Format("2006-08-01"),
+			DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
 			Resolution:   string(dispute.Decision),
 		})
 	}
@@ -236,8 +236,8 @@ func (h Archive) getArchive(c *gin.Context) {
 				Title:        dispute.Title,
 				Summary:      dispute.Description,
 				Category:     []string{"Dispute"}, // Assuming a default category for now
-				DateFiled:    dispute.CaseDate,
-				DateResolved: dispute.CaseDate.Add(48 * time.Hour), // Placeholder for resolved date
+				DateFiled:    dispute.CaseDate.Format("2006-08-01"),
+				DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
 				Resolution:   string(dispute.Decision),
 			},
 			Events: []models.Event{},

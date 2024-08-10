@@ -26,13 +26,13 @@ type User struct {
 }
 
 type ArchivedDisputeSummary struct {
-	ID           int64     `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
-	Title        string    `json:"title" gorm:"type:varchar(255);column:title"`
-	Summary      string    `json:"summary" gorm:"type:text;column:summary"`
-	Category     []string  `json:"category" gorm:"type:varchar(255);column:category"`
-	DateFiled    time.Time `json:"date_filled" gorm:"type:timestamp;column:date_filled"`
-	DateResolved time.Time `json:"date_resolved" gorm:"type:timestamp;column:date_resolved"`
-	Resolution   string    `json:"resolution" gorm:"type:text;column:resolution"`
+	ID           int64    `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	Title        string   `json:"title" gorm:"type:varchar(255);column:title"`
+	Summary      string   `json:"summary" gorm:"type:text;column:summary"`
+	Category     []string `json:"category" gorm:"type:varchar(255);column:category"`
+	DateFiled    string   `json:"date_filled" gorm:"type:timestamp;column:date_filled"`
+	DateResolved string   `json:"date_resolved" gorm:"type:timestamp;column:date_resolved"`
+	Resolution   string   `json:"resolution" gorm:"type:text;column:resolution"`
 }
 
 type Event struct {
@@ -89,17 +89,17 @@ type EventTypes string
 
 const (
 	Notification EventTypes = "NOTIFICATION"
-	Disputes      EventTypes = "DISPUTE"
-	Users         EventTypes = "USER"
-	Experts       EventTypes = "EXPERT"
+	Disputes     EventTypes = "DISPUTE"
+	Users        EventTypes = "USER"
+	Experts      EventTypes = "EXPERT"
 	Workflow     EventTypes = "WORKFLOW"
 )
 
 // EventLog represents the event_log table
 type EventLog struct {
-	ID        uint           `gorm:"primaryKey"`
-	CreatedAt time.Time      `gorm:"default:CURRENT_TIMESTAMP"`
-	EventType EventTypes     `gorm:"type:event_types"`
+	ID        uint                   `gorm:"primaryKey"`
+	CreatedAt time.Time              `gorm:"default:CURRENT_TIMESTAMP"`
+	EventType EventTypes             `gorm:"type:event_types"`
 	EventData map[string]interface{} `gorm:"type:json"`
 }
 
@@ -182,7 +182,6 @@ type DisputeEvidence struct {
 	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
 	FileID  int64 `gorm:"primaryKey;column:file_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:FileID;references:id"`
 	UserID  int64 `gorm:"primaryKey;column:user_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
-
 }
 
 func (DisputeEvidence) TableName() string {
@@ -192,9 +191,9 @@ func (DisputeEvidence) TableName() string {
 type ExpObjStatus string
 
 const (
-	Review     ExpObjStatus = "Review"
-	Sustained  ExpObjStatus = "Sustained"
-	Overruled  ExpObjStatus = "Overruled"
+	Review    ExpObjStatus = "Review"
+	Sustained ExpObjStatus = "Sustained"
+	Overruled ExpObjStatus = "Overruled"
 )
 
 type ExpertObjection struct {

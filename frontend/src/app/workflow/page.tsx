@@ -1,26 +1,51 @@
-"use client"
-import { Background, BaseEdge, Controls, getStraightPath, ReactFlow } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
-import RemovableEdge from "./RemovableEdge";
+import { useCallback } from 'react';
+import {
+  ReactFlow,
+  addEdge,
+  useNodesState,
+  useEdgesState,
+} from '@xyflow/react';
+import CustomEdge from './CustomEdge';
+
+import '@xyflow/react/dist/style.css';
+
 const initialNodes = [
-  { id: "1", position: { x: 0, y: 0 }, data: { label: "Dispute Created" } },
-  { id: "2", position: { x: 0, y: 100 }, data: { label: "Response Due" } },
-  { id: "3", position: { x: 0, y: 200 }, data: { label: "Default Judgement" } },
+  { id: 'a', position: { x: 0, y: 0 }, data: { label: 'Node A' } },
+  { id: 'b', position: { x: 0, y: 100 }, data: { label: 'Node B' } },
+  { id: 'c', position: { x: 0, y: 200 }, data: { label: 'Node C' } },
 ];
+
 const initialEdges = [
-  { id: "e1-2", source: "1", target: "2" },
-  { id: "e2-3", source: "2", target: "3", type: "removable-edge" },
+  { id: 'a->b', type: 'custom-edge', source: 'a', target: 'b' },
+  { id: 'b->c', type: 'custom-edge', source: 'b', target: 'c' },
 ];
+
 const edgeTypes = {
-  "removable-edge": RemovableEdge,
+  'custom-edge': CustomEdge,
 };
 
-export default function Workflow() {
+function Flow() {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const onConnect = useCallback(
+    (connection : any) => {
+      const edge = { ...connection, type: 'custom-edge' };
+      setEdges((eds) => addEdge(edge, eds));
+    },
+    [setEdges],
+  );
+
   return (
-    <div className="w-full h-full">
-      <ReactFlow colorMode="system" nodes={initialNodes} edges={initialEdges} edgeTypes={edgeTypes}>
-        <Controls />
-      </ReactFlow>
-    </div>
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={onNodesChange}
+      onEdgesChange={onEdgesChange}
+      onConnect={onConnect}
+      edgeTypes={edgeTypes}
+      fitView
+    />
   );
 }
+
+export default Flow;

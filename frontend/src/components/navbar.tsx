@@ -15,6 +15,9 @@ export default function Navbar() {
       </Link>
 
       <div className="grow">
+        <Link className={link} href="https://cos301-se-2024.github.io/Dispute-Resolution-Engine/">
+          Help
+        </Link>
         <Link className={link} href="/">
           Home
         </Link>
@@ -33,12 +36,13 @@ export default function Navbar() {
         </Link>
       ) : (
         <div>
-        <Button asChild variant="link">
-          <Link href="/login">Login</Link>
-        </Button>
-        <Button asChild variant="link">
-          <Link href="/signup">Signup</Link>
-        </Button></div>
+          <Button asChild variant="link">
+            <Link href="/login">Login</Link>
+          </Button>
+          <Button asChild variant="link">
+            <Link href="/signup">Signup</Link>
+          </Button>
+        </div>
       )}
     </nav>
   );

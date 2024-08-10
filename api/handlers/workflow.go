@@ -248,6 +248,7 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	id := c.Param("id")
 
+	// Find the workflow record
 	var workflow models.Workflow
 	result := w.DB.First(&workflow, id)
 	if result.Error != nil {
@@ -261,12 +262,22 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 		return
 	}
 
-	result = w.DB.Delete(&workflow)
-	if result.Error != nil {
-		logger.Error(result.Error)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+	// Delete the tags associated with the workflow
+	err := w.DB.Where("workflow_id = ?", workflow.ID).Delete(&models.LabelledWorkflow{}).Error
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to delete associated tags"})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.Response{Data: "Workflow deleted"})
+	// Delete the workflow record itself
+	result = w.DB.Delete(&workflow)
+	if result.Error != nil {
+		logger.Error(result.Error)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to delete workflow"})
+		return
+	}
+
+	c.JSON(http.StatusOK, models.Response{Data: "Workflow and associated tags deleted"})
 }
+

@@ -1,0 +1,357 @@
+{
+  "id": 1,
+  "initial": "dispute_created",
+  "name": "domain_dispute",
+  "states": [
+    {
+      "name": "dispute_created",
+      "timers": []
+    },
+	{
+	  "name": "suspended",
+	  "timers": []
+	},
+    {
+      "name": "complaint_rectification",
+      "timers": [
+        {
+          "duration": "120h",
+          "name": "complaint_rectification_timer",
+          "willTrigger": "complaint_not_compliant"
+        }
+      ]
+    },
+    {
+      "name": "dispute_fee_due",
+      "timers": [
+        {
+          "duration": "240h",
+          "name": "dispute_fee_due_timer",
+          "willTrigger": "fee_not_paid"
+        }
+      ]
+    },
+    {
+      "name": "response_due",
+      "timers": [
+        {
+          "duration": "480h",
+          "name": "response_due_timer",
+          "willTrigger": "timed_out"
+        }
+      ]
+    },
+    {
+      "name": "response_communique",
+      "timers": [
+		{
+			"duration": "120h",
+			"name": "response_communique_timer",
+			"willTrigger": "timed_out"
+		  }
+	  ]
+    },
+    {
+      "name": "reply_due",
+      "timers": [
+        {
+          "duration": "48h",
+          "name": "reply_due_timer",
+          "willTrigger": "timed_out"
+        }
+      ]
+    },
+    {
+      "name": "appoint_adjudicator",
+      "timers": [
+        {
+          "duration": "360h",
+          "name": "appoint_adjudicator_timer",
+          "willTrigger": "timed_out"
+        }
+      ]
+    },
+    {
+      "name": "decision_due",
+      "timers": [
+        {
+          "duration": "72h",
+          "name": "decision_due_timer",
+          "willTrigger": "timed_out"
+        }
+      ]
+    },
+    {
+      "name": "decision_communique",
+      "timers": [
+        {
+          "duration": "120h",
+          "name": "decision_communique_timer",
+          "willTrigger": "no_appeal"
+        }
+      ]
+    },
+    {
+      "name": "final_decision_communique",
+      "timers": [
+        {
+          "duration": "120h",
+          "name": "final_decision_communique_timer",
+          "willTrigger": "timed_out"
+        }
+      ]
+    },
+    {
+      "name": "dispute_archived",
+      "timers": []
+    },
+    {
+      "name": "appeal_submitted",
+      "timers": [
+        {
+          "duration": "240h",
+          "name": "appeal_submitted_timer",
+          "willTrigger": "appeal_ommission"
+        }
+      ]
+    },
+    {
+      "name": "appeal_notice_and_fee",
+      "timers": [
+        {
+          "duration": "72h",
+          "name": "appeal_fee_due_timer",
+          "willTrigger": "appeal_fee_not_paid"
+        }
+      ]
+    },
+    {
+      "name": "appeal_communique",
+      "timers": [
+        {
+          "duration": "360h",
+          "name": "appeal_communique_timer",
+          "willTrigger": "timed_out"
+        }
+      ]
+    },
+    {
+      "name": "appeal_reply_due",
+      "timers": [
+        {
+          "duration": "72h",
+          "name": "appeal_reply_due_timer",
+          "willTrigger": "timed_out"
+        }
+      ]
+    },
+    {
+      "name": "appoint_appeal_panel",
+      "timers": [
+        {
+          "duration": "480h",
+          "name": "appoint_appeal_panel_timer",
+          "willTrigger": "timed_out"
+        }
+      ]
+    },
+    {
+      "name": "appeal_decision_due",
+      "timers": [
+        {
+          "duration": "120h",
+          "name": "appeal_decision_due_timer",
+          "willTrigger": "timed_out"
+        }
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "from": "dispute_created",
+      "name": "t1to2",
+      "to": "complaint_rectification",
+      "trigger": "complaint_not_compliant"
+    },
+    {
+      "from": "dispute_created",
+      "name": "t1to3",
+      "to": "dispute_fee_due",
+      "trigger": "complaint_compliant"
+    },
+    {
+      "from": "complaint_rectification",
+      "name": "t2to3",
+      "to": "dispute_fee_due",
+      "trigger": "complaint_compliant"
+    },
+	{
+	  "from": "complaint_rectification",
+	  "name": "t2to17",
+	  "to": "suspended",
+	  "trigger": "complaint_not_compliant"
+	},
+    {
+      "from": "dispute_fee_due",
+      "name": "t3to4",
+      "to": "response_due",
+      "trigger": "fee_paid"
+    },
+	{
+	  "from": "dispute_fee_due",
+	  "name": "t3to17",
+	  "to": "suspended",
+	  "trigger": "fee_not_paid"
+	},
+    {
+      "from": "response_due",
+      "name": "t4to5",
+      "to": "response_communique",
+      "trigger": "response_received"
+    },
+	{
+	  "from": "response_due",
+	  "name": "t4to17",
+	  "to": "suspended",
+	  "trigger": "timed_out"
+	},
+    {
+      "from": "response_communique",
+      "name": "t5to6",
+      "to": "reply_due",
+      "trigger": "response_received"
+    },
+	{
+		"from": "response_communique",
+		"name": "t5to17",
+		"to": "suspended",
+		"trigger": "timed_out"
+	},
+    {
+      "from": "reply_due",
+      "name": "t6to7",
+      "to": "appoint_adjudicator",
+      "trigger": "response_received"
+    },
+	{
+	  "from": "reply_due",
+	  "name": "t6to17",
+	  "to": "suspended",
+	  "trigger": "timed_out"
+	},
+    {
+      "from": "appoint_adjudicator",
+      "name": "t7to8",
+      "to": "decision_due",
+      "trigger": "adjudicator_assigned"
+    },
+	{
+	  "from": "appoint_adjudicator",
+	  "name": "t7to17",
+	  "to": "suspended",
+	  "trigger": "timed_out"
+	},
+    {
+      "from": "decision_due",
+      "name": "t8to9",
+      "to": "decision_communique",
+      "trigger": "decision_made"
+    },
+	{
+	  "from": "decision_due",
+	  "name": "t8to17",
+	  "to": "suspended",
+	  "trigger": "timed_out"
+	},
+    {
+      "from": "decision_communique",
+      "name": "t9to10",
+      "to": "final_decision_communique",
+      "trigger": "no_appeal"
+    },
+	{
+	  "from": "decision_communique",
+	  "name": "t9to11",
+	  "to": "appeal_submitted",
+	  "trigger": "appeal_submitted"
+	},
+    {
+      "from": "final_decision_communique",
+      "name": "t10to17",
+      "to": "dispute_archived",
+      "trigger": "timed_out"
+    },
+    {
+      "from": "appeal_submitted",
+      "name": "t11to12",
+      "to": "appeal_notice_and_fee",
+      "trigger": "appeal_valid"
+    },
+	{
+	  "from": "appeal_submitted",
+	  "name": "t11to17",
+	  "to": "final_decision_communique",
+	  "trigger": "appeal_ommission"
+	},
+    {
+      "from": "appeal_notice_and_fee",
+      "name": "t12to13",
+      "to": "appeal_communique",
+      "trigger": "fee_paid"
+    },
+	{
+	  "from": "appeal_notice_and_fee",
+	  "name": "t12to17",
+	  "to": "final_decision_communique",
+	  "trigger": "appeal_fee_not_paid"
+	},
+    {
+      "from": "appeal_communique",
+      "name": "t13to14",
+      "to": "appeal_reply_due",
+      "trigger": "response_received"
+    },
+	{
+	  "from": "appeal_communique",
+	  "name": "t13to17",
+	  "to": "final_decision_communique",
+	  "trigger": "timed_out"
+	},
+    {
+      "from": "appeal_reply_due",
+      "name": "t14to15",
+      "to": "appoint_appeal_panel",
+      "trigger": "response_received"
+    },
+	{
+	  "from": "appeal_reply_due",
+	  "name": "t14to17",
+	  "to": "final_decision_communique",
+	  "trigger": "timed_out"
+	},
+    {
+      "from": "appoint_appeal_panel",
+      "name": "t15to16",
+      "to": "appeal_decision_due",
+      "trigger": "panel_assigned"
+    },
+	{
+	  "from": "appoint_appeal_panel",
+	  "name": "t15to17",
+	  "to": "final_decision_communique",
+	  "trigger": "timed_out"
+	},
+    {
+      "from": "appeal_decision_due",
+      "name": "t16to17",
+      "to": "final_decision_communique",
+      "trigger": "decision_made"
+    },
+	{
+	  "from": "appeal_decision_due",
+	  "name": "t16to17",
+	  "to": "final_decision_communique",
+	  "trigger": "timed_out"
+	}
+  ]
+}

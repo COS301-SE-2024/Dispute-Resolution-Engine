@@ -65,11 +65,11 @@ func (s *stateMachine) Init(wf workflow.IWorkflow) {
                 err := CountDownTimer(timerCtx, timer.GetDuration()) // this is where the timer is actually started
 				if err == nil {
 					// trigger the timer's trigger
-					logger.Info("Timer expired, triggering transition")
+					logger.Info("Timer expired for state",state.GetName(),", triggering transition:", timer.WillTrigger())
 					transition := wf.GetTransition(timer.WillTrigger())
 					s.stateMachine.Fire(transition.GetTrigger())
 				} else {
-					logger.Info("Timer cancelled")
+					logger.Info("Timer cancelled for state:", state.GetName())
 					// handle t
 				}
                 return nil

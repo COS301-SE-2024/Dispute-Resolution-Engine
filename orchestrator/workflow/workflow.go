@@ -7,19 +7,20 @@ import (
 
 const (
 	// Dispute states
-	StateDisputeCreated         = "dispute_created"
-	StateComplaintRectification = "complaint_rectification" // If complaint is not compliant
-	StateDisputeFeeDue          = "dispute_fee_due"
-	StateDisputeCommenced       = "dispute_commenced" // Notification to be sent to the other party
-	StateResponseDue            = "response_due"
-	StateResponseCommunique     = "response_communique" // Notification to be sent to the other party
-	StateReplyDue               = "reply_due"
-	StateAppointAdjudicator     = "appoint_adjudicator"
-	StateNoReplyDecision        = "no_reply_decision"
-	StateDecisionDue            = "decision_due"
-	StateDecisionCommunique     = "decision_communique" // Communicate DECISION to the Complainant and Registrant
-	StateFinalDecisionDue       = "final_decision_due"
-	StateDisputeArchived        = "dispute_archived"
+	StateDisputeCreated          = "dispute_created"
+	StateComplaintRectification  = "complaint_rectification" // If complaint is not compliant
+	StateDisputeFeeDue           = "dispute_fee_due"
+	StateSuspended               = "suspended"
+	StateDisputeCommenced        = "dispute_commenced" // Notification to be sent to the other party
+	StateResponseDue             = "response_due"
+	StateResponseCommunique      = "response_communique" // Notification to be sent to the other party
+	StateReplyDue                = "reply_due"
+	StateAppointAdjudicator      = "appoint_adjudicator"
+	StateNoReplyDecision         = "no_reply_decision"
+	StateDecisionDue             = "decision_due"
+	StateDecisionCommunique      = "decision_communique" // Communicate DECISION to the Complainant and Registrant
+	StateFinalDecisionCommunique = "final_decision_communique"
+	StateDisputeArchived         = "dispute_archived"
 
 	// Appeal states
 	StateAppealSubmitted    = "appeal_submitted"
@@ -38,6 +39,7 @@ const (
 	TriggerTimedOut              = "timed_out"
 	TriggerResponseReceived      = "response_received"
 	TriggerResponseUndelivered   = "response_undelivered"
+	TriggerNoAppeal              = "no_appeal"
 
 	// Appeal triggers
 	TriggerAppealSubmitted  = "appeal_submitted"
@@ -250,7 +252,7 @@ func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 
 	// Create initial state
 	initialState := CreateState(temp.Initial)
-	
+
 	// Create a new workflow
 	w := &Workflow{
 		id:          temp.ID,
@@ -264,7 +266,7 @@ func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 	for _, s := range temp.States {
 		stateName := s["name"].(string)
 		newState := CreateState(stateName)
-		
+
 		timers := s["timers"].([]interface{})
 		for _, t := range timers {
 			timerMap := t.(map[string]interface{})
@@ -275,7 +277,7 @@ func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 			newTimer := CreateTimer(timerMap["name"].(string), duration, timerMap["willTrigger"].(string))
 			newState.AddTimer(newTimer)
 		}
-		
+
 		w.AddState(newState)
 	}
 

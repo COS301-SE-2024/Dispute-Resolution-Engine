@@ -1,20 +1,12 @@
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { getDisputeList } from "../../lib/api/dispute";
-import { Suspense } from "react";
-import Loader from "@/components/Loader";
 import { Metadata } from "next";
-import { Badge } from "@/components/ui/badge";
-import { DisputeLink } from "./link";
 import ClientSearch from "./clientSearch";
 
 export const metadata: Metadata = {
   title: "DRE - Disputes",
 };
-
-
 
 export default function DisputeRootLayout({
   children,
@@ -26,9 +18,7 @@ export default function DisputeRootLayout({
       <div className="flex shrink-0 flex-col gap-4 h-full">
         <ClientSearch />
 
-        <div className="flex-grow bg-red"></div>
-        
-        <Button className="mt-auto" asChild>
+        <Button asChild className="mt-auto">
           <Link href="/disputes/create" className="w-full">
             + Create
           </Link>

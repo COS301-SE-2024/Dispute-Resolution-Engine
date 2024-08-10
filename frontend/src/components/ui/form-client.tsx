@@ -47,10 +47,15 @@ export function FormField<T extends FieldValues>({
   className?: string;
 }) {
   const Message = FormMessage<T>;
+  const {
+    formState: { errors },
+  } = useFormContext<T>();
 
   return (
     <div className={className}>
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className={cn(errors[name] ? "text-red-500" : undefined)}>
+        {label}
+      </Label>
       {children}
       <Message name={name} />
     </div>

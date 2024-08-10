@@ -10,7 +10,7 @@ import { DisputeListResponse } from "@/lib/interfaces/dispute";
 export default function ClientSearch() {
   const baseDLR = useMemo<DisputeListResponse>(() => [], []);
   const [data, setData] = useState(baseDLR);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,15 +21,13 @@ export default function ClientSearch() {
   }, [baseDLR]);
 
   const filteredData = useMemo(() => {
-    return data.filter(d => 
-      d.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return data.filter((d) => d.title.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [data, searchTerm]);
 
   return (
     <div>
-      <Input 
-        placeholder="Search" 
+      <Input
+        placeholder="Search"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
@@ -43,7 +41,7 @@ export default function ClientSearch() {
                     {d.title}
                     {d.role == "Complainant" ? (
                       <Badge className="ml-2">{d.role.substring(0, 1)}</Badge>
-                    ) : d.role == "Respondant" ? (
+                    ) : d.role == "Respondent" ? (
                       <Badge className="ml-2" variant="secondary">
                         {d.role.substring(0, 1)}
                       </Badge>
@@ -52,7 +50,9 @@ export default function ClientSearch() {
                 </li>
               ))
             ) : (
-              <div></div>
+              <p role="alert" className="text-dre-bg-light/50 w-full">
+                You aren&apos;t involved in any disputes. Yay :)
+              </p>
             )}
           </ul>
         </Suspense>
@@ -60,3 +60,4 @@ export default function ClientSearch() {
     </div>
   );
 }
+

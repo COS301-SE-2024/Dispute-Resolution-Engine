@@ -52,7 +52,7 @@ func (h *Expert) AssignExpertsToDispute(disputeID int64) ([]models.User, error) 
 	rand.Seed(time.Now().UnixNano())
 
 	// Define the roles to select from
-	roles := []string{"Mediator", "Adjudicator", "Arbitrator", "expert"}
+	roles := []string{"mediator", "adjudicator", "arbitrator", "expert"}
 
 	// Query for users with the specified roles
 	var users []models.User

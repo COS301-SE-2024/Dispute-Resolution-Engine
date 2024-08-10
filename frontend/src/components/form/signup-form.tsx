@@ -1,21 +1,22 @@
 "use client";
 
 import { signupSchema, type SignupData } from "@/lib/schema/auth";
-import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronRight, User } from "lucide-react";
-import { HTMLAttributes, ReactNode, useId, useState } from "react";
-import { Controller, FieldValues, FormProvider, useForm, useFormContext } from "react-hook-form";
+import { ChevronRight } from "lucide-react";
+import { ReactNode, useId, useState } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Input } from "../ui/input";
 import GenderSelect from "./gender-select";
 import LanguageSelect from "./language.select";
 import CountrySelect from "./country-select";
-import { Label } from "../ui/label";
 import { FormField, FormMessage } from "../ui/form-client";
 import { Button } from "../ui/button";
 import { signup } from "@/lib/actions/auth";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { CardDescription, CardTitle } from "../ui/card";
 
 const steps: {
   id: string;
@@ -35,6 +36,7 @@ const SignupMessage = FormMessage<SignupData>;
 const SignupField = FormField<SignupData>;
 
 export default function SignupForm() {
+  const typeId = useId();
   const emailId = useId();
   const passId = useId();
   const confirmId = useId();
@@ -79,9 +81,9 @@ export default function SignupForm() {
 
   return (
     <FormProvider {...form}>
-      <div className="mx-auto w-fit">
-        <nav>
-          <ol className="flex gap-3">
+      <div className="mx-auto md:w-[40rem] p-4 flex flex-col h-full">
+        <nav className="mb-6">
+          <ol className="grid grid-cols-3 gap-4">
             {steps.map((step, i) => (
               <li key={step.id}>
                 <SignupStep
@@ -94,55 +96,50 @@ export default function SignupForm() {
             ))}
           </ol>
         </nav>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <header className="mb-6 space-y-2">
+          <CardTitle>{steps[currentStep].id}</CardTitle>
+          <CardDescription>{steps[currentStep].name}</CardDescription>
+        </header>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 grow">
           {currentStep == 0 && (
             <>
-              <Controller
-                name="userType"
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => {
-                  const { onChange, ...field2 } = field;
-                  return (
-                    <RadioGroup.Root
-                      onValueChange={onChange}
-                      {...field2}
-                      className="flex flex-col gap-4"
-                    >
-                      <RadioGroup.Item
-                        value="user"
-                        asChild
-                        className="data-[state='checked']:border-dre-100"
+              <SignupField id={typeId} name="userType" label="User Type">
+                <Controller
+                  name="userType"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => {
+                    const { onChange, ...field2 } = field;
+                    return (
+                      <RadioGroup.Root
+                        onValueChange={onChange}
+                        id={typeId}
+                        {...field2}
+                        className="flex flex-col gap-4"
                       >
-                        <Button variant="outline">
-                          <h2>User</h2>
-                        </Button>
-                      </RadioGroup.Item>
-                      <RadioGroup.Item
-                        value="expert"
-                        asChild
-                        className="data-[state='checked']:border-dre-100"
-                      >
-                        <Button variant="outline">
-                          <h2>Expert</h2>
-                        </Button>
-                      </RadioGroup.Item>
-                    </RadioGroup.Root>
-                  );
-                }}
-              />
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  aria-label="Next"
-                  title="Next"
-                  variant="outline"
-                  className="ml-auto"
-                  onClick={() => nav(1)}
-                >
-                  <ChevronRight />
-                </Button>
-              </div>
+                        <RadioGroup.Item
+                          value="user"
+                          asChild
+                          className="data-[state='checked']:border-dre-100 "
+                        >
+                          <Button variant="outline">
+                            <h2>User</h2>
+                          </Button>
+                        </RadioGroup.Item>
+                        <RadioGroup.Item
+                          value="expert"
+                          asChild
+                          className="data-[state='checked']:border-dre-100"
+                        >
+                          <Button variant="outline">
+                            <h2>Expert</h2>
+                          </Button>
+                        </RadioGroup.Item>
+                      </RadioGroup.Root>
+                    );
+                  }}
+                />
+              </SignupField>
             </>
           )}
           {currentStep == 1 && (
@@ -189,18 +186,6 @@ export default function SignupForm() {
                   {...register("passwordConfirm")}
                 />
               </SignupField>
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  aria-label="Next"
-                  title="Next"
-                  variant="outline"
-                  className="ml-auto"
-                  onClick={() => nav(2)}
-                >
-                  <ChevronRight />
-                </Button>
-              </div>
             </>
           )}
           {currentStep == 2 && (
@@ -246,15 +231,44 @@ export default function SignupForm() {
                   className="w-fit"
                 />
               </SignupField>
-              <div className="col-span-2 flex justify-end items-center gap-2">
-                <SignupMessage />
-                <Button type="submit">Sign Up</Button>
-              </div>
             </>
           )}
         </form>
+        <Footer>
+          {currentStep == steps.length - 1 ? (
+            <div>
+              <SignupMessage />
+              <Button type="submit">Sign Up</Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              aria-label="Next"
+              title="Next"
+              variant="outline"
+              className="ml-auto"
+              onClick={() => nav(1)}
+            >
+              <ChevronRight />
+            </Button>
+          )}
+        </Footer>
       </div>
     </FormProvider>
+  );
+}
+
+function Footer({ children }: { children: ReactNode }) {
+  return (
+    <footer className="flex justify-between items-center">
+      <p>
+        Already have an account?{" "}
+        <Link href="/login" className="hover:underline">
+          Login
+        </Link>
+      </p>
+      {children}
+    </footer>
   );
 }
 
@@ -273,33 +287,12 @@ function SignupStep({
     <button
       onClick={onClick}
       className={cn(
-        "text-left py-2 border-t-4 w-44",
+        "text-left py-2 border-t-4 w-full",
         active ? " border-dre-200" : "border-dre-bg-light/50",
       )}
     >
-      <h3>{name}</h3>
-      <p>{desc}</p>
+      <h3 className="text-sm">{name}</h3>
+      <p className="text-sm invisible sm:visible">{desc}</p>
     </button>
-  );
-}
-
-function Navbar({
-  page,
-  maxPages,
-  onNavigate,
-}: {
-  page: number;
-  maxPages: number;
-  onNavigate: (step: number) => void;
-}) {
-  return (
-    <div className="col-span-2 flex justify-between">
-      <Button type="button" disabled={page == 0} aria-label="Back" title="Back">
-        Back
-      </Button>
-      <Button type="button" disabled={page == maxPages - 1} aria-label="Next" title="Next">
-        Next
-      </Button>
-    </div>
   );
 }

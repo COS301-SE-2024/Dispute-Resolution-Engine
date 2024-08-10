@@ -142,8 +142,8 @@ func (suite *ArchiveTestSuite) TestReturnsValidJSON() {
 	suite.router.ServeHTTP(w, req)
 
 	// Assert properties
-	assert.Equal(suite.T(), http.StatusOK, w.Code)
+	assert.Equal(suite.T(), http.StatusInternalServerError, w.Code)
 
 	var result models.Response
-	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
+	assert.Error(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
 }

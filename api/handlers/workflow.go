@@ -12,7 +12,7 @@ import (
 
 func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 	g.GET("", h.GetWorkflows)
-	g.GET("/:id", h.GetIndivualWorkflow)
+	g.GET("/:id", h.GetIndividualWorkflow)
 	g.POST("", h.StoreWorkflow)
 	g.PUT("/:id", h.UpdateWorkflow)
 	g.DELETE("/:id", h.DeleteWorkflow)
@@ -20,8 +20,8 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 
 type WorkflowResult struct {
     Workflow models.Workflow `json:"workflow"`
-    Author   models.User     `json:"author"`
-    Category models.Tag     `json:"category"`
+    Author   models.User     `json:"author,omitempty"`
+    Category models.Tag     `json:"category,omitempty"`
 }
 
 func (w Workflow) GetWorkflows(c *gin.Context) {
@@ -49,12 +49,18 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
         }
 
         taggedWorkflow.Workflow = workflow
-        // Query for tags related to each workflow
-        w.DB.Table("labelled_workflows").
-            Select("tags.*").
+        // Query for tags related to each workflow, explicitly selecting the fields
+        err := w.DB.Table("labelled_workflows").
+            Select("tags.id, tags.tag_name").
             Joins("join tags on labelled_workflows.tag_id = tags.id").
             Where("labelled_workflows.workflow_id = ?", workflow.ID).
-            Scan(&taggedWorkflow.Tags)
+            Scan(&taggedWorkflow.Tags).Error
+
+        if err != nil {
+            logger.Error(err)
+            c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+            return
+        }
 
         response = append(response, taggedWorkflow)
     }
@@ -63,25 +69,49 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 }
 
 
-func (w Workflow) GetIndivualWorkflow(c *gin.Context) {
-	logger := utilities.NewLogger().LogWithCaller()
-	id := c.Param("id")
+func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
+    logger := utilities.NewLogger().LogWithCaller()
+    id := c.Param("id")
 
-	var workflow models.Workflow
-	result := w.DB.First(&workflow, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			logger.Warnf("Workflow with ID %s not found", id)
-			c.JSON(http.StatusOK, models.Response{Data: nil})
-		} else {
-			logger.Error(result.Error)
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		}
-		return
-	}
+    var workflow models.Workflow
+    result := w.DB.First(&workflow, id)
+    if result.Error != nil {
+        if result.Error == gorm.ErrRecordNotFound {
+            logger.Warnf("Workflow with ID %s not found", id)
+            c.JSON(http.StatusOK, models.Response{Data: nil})
+        } else {
+            logger.Error(result.Error)
+            c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+        }
+        return
+    }
 
-	c.JSON(http.StatusOK, models.Response{Data: workflow})
+    // Fetch the tags associated with this workflow
+    var tags []models.Tag
+    err := w.DB.Table("labelled_workflows").
+        Select("tags.id, tags.tag_name").
+        Joins("join tags on labelled_workflows.tag_id = tags.id").
+        Where("labelled_workflows.workflow_id = ?", workflow.ID).
+        Scan(&tags).Error
+
+    if err != nil {
+        logger.Error(err)
+        c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+        return
+    }
+
+    // Create the response structure
+    response := struct {
+        models.Workflow
+        Tags []models.Tag `json:"tags"`
+    }{
+        Workflow: workflow,
+        Tags:     tags,
+    }
+
+    c.JSON(http.StatusOK, models.Response{Data: response})
 }
+
 
 func (w Workflow) StoreWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()

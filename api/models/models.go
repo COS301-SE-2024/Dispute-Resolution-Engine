@@ -6,24 +6,24 @@ import (
 )
 
 type User struct {
-    ID                int64      `json:"id" gorm:"primaryKey;autoIncrement"`
-    FirstName         string     `json:"first_name" gorm:"type:varchar(50);not null"`
-    Surname           string     `json:"surname" gorm:"type:varchar(50);not null"`
-    Birthdate         time.Time  `json:"birthdate" gorm:"type:date;not null"`
-    Nationality       string     `json:"nationality" gorm:"type:varchar(50);not null"`
-    Role              string     `json:"role" gorm:"type:varchar(50);not null"`
-    Email             string     `json:"email" gorm:"type:varchar(100);unique;not null"`
-    PasswordHash      string     `json:"password,omitempty" gorm:"type:varchar(255);not null"`
-    PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20)"`
-    AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`
-    CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
-    UpdatedAt         *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
-    LastLogin         *time.Time `gorm:"type:timestamp"`
-    Status            string     `json:"status" gorm:"type:varchar(20);default:'active'"`
-    Gender            string     `json:"gender" gorm:"type:gender_enum"`
-    PreferredLanguage *string    `json:"preferred_language,omitempty" gorm:"type:varchar(50)"`
-    Timezone          *string    `json:"timezone,omitempty" gorm:"type:varchar(50)"`
-    Salt              string     `gorm:"type:varchar(255)"`
+	ID                int64      `json:"id" gorm:"primaryKey;autoIncrement"`
+	FirstName         string     `json:"first_name" gorm:"type:varchar(50);not null"`
+	Surname           string     `json:"surname" gorm:"type:varchar(50);not null"`
+	Birthdate         time.Time  `json:"birthdate" gorm:"type:date;not null"`
+	Nationality       string     `json:"nationality" gorm:"type:varchar(50);not null"`
+	Role              string     `json:"role" gorm:"type:varchar(50);not null"`
+	Email             string     `json:"email" gorm:"type:varchar(100);unique;not null"`
+	PasswordHash      string     `json:"password,omitempty" gorm:"type:varchar(255);not null"`
+	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20)"`
+	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`
+	CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
+	UpdatedAt         *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
+	LastLogin         *time.Time `gorm:"type:timestamp"`
+	Status            string     `json:"status" gorm:"type:varchar(20);default:'active'"`
+	Gender            string     `json:"gender" gorm:"type:gender_enum"`
+	PreferredLanguage *string    `json:"preferred_language,omitempty" gorm:"type:varchar(50)"`
+	Timezone          *string    `json:"timezone,omitempty" gorm:"type:varchar(50)"`
+	Salt              string     `gorm:"type:varchar(255)"`
 }
 
 type ArchivedDisputeSummary struct {
@@ -74,21 +74,20 @@ type Dispute struct {
 }
 
 type Workflow struct {
-	ID                 uint64                 `gorm:"primaryKey;autoIncrement"`
+	ID                 uint64          `gorm:"primaryKey;autoIncrement"`
 	WorkflowDefinition json.RawMessage `gorm:"type:json"`
-	CreatedAt          time.Time              `gorm:"autoCreateTime"`
-	AuthorID           *int64                 `gorm:"column:author"` // Match type with foreign key
-	Author             User                   `gorm:"foreignKey:AuthorID"`
+	CreatedAt          time.Time       `gorm:"autoCreateTime"`
+	AuthorID           *int64          `gorm:"column:author" `
+	Author             *User            `gorm:"foreignKey:AuthorID", json:"author,omitempty"`
 }
-
 
 func (Workflow) TableName() string {
 	return "workflow"
 }
 
 type Tag struct {
-	ID   uint64 `gorm:"primaryKey;autoIncrement"`
-	Name string `gorm:"type:varchar(100);not null"`
+	ID      uint64 `gorm:"primaryKey;autoIncrement"`
+	TagName string `gorm:"type:varchar(100);not null"`
 }
 
 func (Tag) TableName() string {
@@ -96,10 +95,10 @@ func (Tag) TableName() string {
 }
 
 type LabelledWorkflow struct {
-	WorkflowID uint64 `gorm:"primaryKey;column:workflow_id"`
-	TagID      uint64 `gorm:"primaryKey;column:tag_id"`
+	WorkflowID uint64   `gorm:"primaryKey;column:workflow_id"`
+	TagID      uint64   `gorm:"primaryKey;column:tag_id"`
 	Workflow   Workflow `gorm:"foreignKey:WorkflowID"`
-	Tag        Tag       `gorm:"foreignKey:TagID"`
+	Tag        Tag      `gorm:"foreignKey:TagID"`
 }
 
 func (LabelledWorkflow) TableName() string {
@@ -194,7 +193,6 @@ type DisputeEvidence struct {
 	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
 	FileID  int64 `gorm:"primaryKey;column:file_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:FileID;references:id"`
 	UserID  int64 `gorm:"primaryKey;column:user_id;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
-
 }
 
 func (DisputeEvidence) TableName() string {
@@ -204,9 +202,9 @@ func (DisputeEvidence) TableName() string {
 type ExpObjStatus string
 
 const (
-	Review     ExpObjStatus = "Review"
-	Sustained  ExpObjStatus = "Sustained"
-	Overruled  ExpObjStatus = "Overruled"
+	Review    ExpObjStatus = "Review"
+	Sustained ExpObjStatus = "Sustained"
+	Overruled ExpObjStatus = "Overruled"
 )
 
 type ExpertObjection struct {

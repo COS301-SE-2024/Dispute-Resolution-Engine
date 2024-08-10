@@ -231,7 +231,7 @@ func (h Dispute) GetDispute(c *gin.Context) {
 
 	DisputeDetailsResponse.Evidence = evidence
 	DisputeDetailsResponse.Experts = experts
-	
+
 	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
 	if err != nil {
 		logger.WithError(err).Error("Error initializing dispute proceedings logger")
@@ -377,7 +377,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	// Respond with success message
 	go h.Email.SendAdminEmail(c, disputeId, email)
 	logger.Info("Admin email sent")
-	c.JSON(http.StatusCreated, models.Response{Data: "Dispute created successfully"})
+	c.JSON(http.StatusCreated, models.DisputeCreationResponse{Data: "Dispute created successfully", DisputeID: disputeId})
 	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
 	if err != nil {
 		logger.WithError(err).Error("Error initializing dispute proceedings logger")
@@ -405,7 +405,7 @@ func (h Dispute) UpdateStatus(c *gin.Context) {
 	go h.Email.NotifyDisputeStateChanged(c, disputeStatus.DisputeID, disputeStatus.Status)
 
 	logger.Info("Dispute status updated successfully")
-	
+
 	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
 	if err != nil {
 		logger.WithError(err).Error("Error initializing dispute proceedings logger")
@@ -470,7 +470,6 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 		return
 	}
 
-	
 	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
 	if err != nil {
 		logger.WithError(err).Error("Error initializing dispute proceedings logger")
@@ -517,7 +516,7 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	}
 
 	logger.Info("Expert objections reviewed successfully")
-	
+
 	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
 	if err != nil {
 		logger.WithError(err).Error("Error initializing dispute proceedings logger")

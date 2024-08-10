@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func SetupArchiveRoutes(g *gin.RouterGroup, h Archive) {
 	g.POST("/search", h.SearchArchive)
 	g.GET("/highlights", h.Highlights)
@@ -39,7 +38,7 @@ func (h Archive) Highlights(c *gin.Context) {
 
 	// Query the database
 	var disputes []models.Dispute
-	if err := h.DB.Model(&models.Dispute{}).Limit(limit).Scan(&disputes).Error; err != nil {
+	if err := h.DB.Model(&models.Dispute{}).Where("resolved = ?", true).Limit(limit).Scan(&disputes).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving disputes"})
 		return

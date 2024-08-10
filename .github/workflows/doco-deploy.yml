@@ -1,6 +1,14 @@
 name: Deploy to GitHub Pages
 
 on:
+  pull_request:
+      branches:
+        - dev
+      types:
+        - opened
+        - reopened
+        - edited
+        - synchronize
   push:
     branches:
       - main

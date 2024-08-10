@@ -49,20 +49,22 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
         </CardHeader>
         <CardContent>
           <ul className="flex gap-2 flex-wrap">
-            {data.evidence.map((evi, i) => (
-              <li key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
-                <a href={evi.url} title={evi.label}>
-                  <FileIcon className="mx-auto" size="2rem" />
-                  <p className="mt-2 text-sm font-medium truncate w-full">{evi.label}</p>
-                </a>
-              </li>
-            ))}
+            {data.evidence
+              .filter((evi) => evi.uploader_role == "Complainant")
+              .map((evi, i) => (
+                <li key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
+                  <a href={evi.url} title={evi.label}>
+                    <FileIcon className="mx-auto" size="2rem" />
+                    <p className="mt-2 text-sm font-medium truncate w-full">{evi.label}</p>
+                  </a>
+                </li>
+              ))}
           </ul>
         </CardContent>
       </Card>
       <Card className="mb-4">
         <CardHeader>
-          {(data.role ?? "") == "Respondant" ? (
+          {(data.role ?? "") == "Respondent" ? (
             <CardTitle>Your Evidence</CardTitle>
           ) : (
             <CardTitle>Respondant&apos;s Evidence</CardTitle>
@@ -71,14 +73,16 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
         </CardHeader>
         <CardContent>
           <ul className="flex gap-2 flex-wrap">
-            {data.evidence.map((evi, i) => (
-              <li key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
-                <a href={evi.url} title={evi.label}>
-                  <FileIcon className="mx-auto" size="2rem" />
-                  <p className="mt-2 text-sm font-medium truncate w-full">{evi.label}</p>
-                </a>
-              </li>
-            ))}
+            {data.evidence
+              .filter((evi) => evi.uploader_role == "Respondent")
+              .map((evi, i) => (
+                <li key={i} className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 w-40">
+                  <a href={evi.url} title={evi.label}>
+                    <FileIcon className="mx-auto" size="2rem" />
+                    <p className="mt-2 text-sm font-medium truncate w-full">{evi.label}</p>
+                  </a>
+                </li>
+              ))}
           </ul>
         </CardContent>
       </Card>

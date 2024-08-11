@@ -8,7 +8,7 @@
   <img src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/actions/workflows/jest-test.yaml/badge.svg">
   <img src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/actions/workflows/lint.yaml/badge.svg">
   <img src="https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/actions/workflows/deployment.yaml/badge.svg">
-  <a href="https://codecov.io/gh/COS301-SE-2024/Dispute-Resolution-Engine" > 
+  <a href="https://codecov.io/gh/COS301-SE-2024/Dispute-Resolution-Engine"> 
   <img src="https://codecov.io/gh/COS301-SE-2024/Dispute-Resolution-Engine/branch/dev/graph/badge.svg?token=7qG24ym2EY"/> 
   </a>
 
@@ -29,6 +29,7 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
 - [Demo 1](https://www.canva.com/design/DAGG_C4gUMc/uzNI3y3cFbQE9oYkyZo3vw/edit?utm_content=DAGG_C4gUMc&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 - [Demo 2](https://www.canva.com/design/DAGI9uq7XF0/qvU7IogSTW3PETHPllxBAA/edit?utm_content=DAGI9uq7XF0&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+- [Demo 3](https://www.canva.com/design/DAGNfNQm-pE/PPbmWY4BbFiZja1LLa--Aw/edit?utm_content=DAGNfNQm-pE&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 # Project Management
 

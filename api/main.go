@@ -43,6 +43,7 @@ var requiredEnvVariables = []string{
 	// Miscellaneous
 	"FRONTEND_BASE_URL",
 	"JWT_SECRET",
+	"OPENAI_KEY",
 }
 
 // @title Dispute Resolution Engine - v1

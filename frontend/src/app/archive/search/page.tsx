@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { searchArchive } from "@/lib/api/archive";
-import { ArchivedDisputeSummary } from "@/lib/interfaces/archive";
+import { ArchivedDisputeSummary, SortAttribute } from "@/lib/interfaces/archive";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,6 +90,8 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
     search: params.q,
     offset: params.offset * PAGE_SIZE,
     limit: PAGE_SIZE,
+    order: params.order as "asc" | "desc" | undefined,
+    sort: params.sort as SortAttribute | undefined,
   });
 
   if (error) {

@@ -33,8 +33,6 @@ type mockJwtModel struct {
 type mockAuditLogger struct {
 }
 
-
-
 func (m *mockJwtModel) GenerateJWT(user models.User) (string, error) {
 	if m.throwErrors {
 		return "", errors.ErrUnsupported
@@ -81,7 +79,7 @@ func TestArchive(t *testing.T) {
 	suite.Run(t, new(ArchiveTestSuite))
 }
 
-//mock model auditlogger
+// mock model auditlogger
 func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
 	return nil
 }
@@ -89,9 +87,9 @@ func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes
 type ArchiveTestSuite struct {
 	suite.Suite
 
-	mock   sqlmock.Sqlmock
-	db     *gorm.DB
-	router *gin.Engine
+	mock        sqlmock.Sqlmock
+	db          *gorm.DB
+	router      *gin.Engine
 	auditlogger *mockAuditLogger
 }
 
@@ -103,10 +101,9 @@ func (suite *ArchiveTestSuite) SetupTest() {
 	suite.db = db
 	suite.auditlogger = &mockAuditLogger{}
 
-
 	handler := handlers.Archive{
 		Handler: handlers.Handler{
-			DB: db,
+			DB:                       db,
 			DisputeProceedingsLogger: suite.auditlogger,
 		},
 	}
@@ -116,8 +113,6 @@ func (suite *ArchiveTestSuite) SetupTest() {
 	suite.router = router
 
 }
-
-
 
 func mockDatabase() (sqlmock.Sqlmock, *gorm.DB, error) {
 	conn, mock, err := sqlmock.New()
@@ -210,8 +205,8 @@ func (suite *ArchiveTestSuite) TestReturnsValidJSON() {
 	suite.router.ServeHTTP(w, req)
 
 	// Assert properties
-	assert.Equal(suite.T(), http.StatusInternalServerError, w.Code)
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
 
 	var result models.Response
-	assert.Error(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
+	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
 }

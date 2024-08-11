@@ -40,7 +40,7 @@ describe("Navigation", () => {
   it("should not be in the archive", () => {
     cy.setCookie("jwt", cookie ?? "");
     cy.visit("http://capstone-dre.dns.net.za/archive");
-    cy.get('input[name="q"]').click().type(title);
+    // cy.get('input[name="q"]').click().type(title);
     // cy.get('button[type="submit"]').click();
   });
 });

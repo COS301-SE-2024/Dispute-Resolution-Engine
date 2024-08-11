@@ -124,8 +124,6 @@ We make use of the Flux pattern to enhance the usability of the DRE by simplifyi
 
 ![classDiagram](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/bf3169c4-df33-4c2a-aa61-f74257ea3d42)
 
-
-
 # Version 2
 
 ## Class Diagram: Ver 2
@@ -161,3 +159,13 @@ Agile development is incremental and iterative, allowing teams to build and refi
 ### Delivering Working Software
 
 One of the key agile principles is delivering working software at a constant pace. Focusing on usability ensures that each iteration results in a product that is not only functional but also user-friendly. High usability encourages user feedback, which is vital for agile's iterative improvement process.
+
+# Version 3
+
+## Architectural Diagram (Color)
+![20240811_v1](https://github.com/user-attachments/assets/1a814d7c-09e5-4175-a02e-c5620471e0f0)
+
+## Architectural Diagram (B&W)
+![archdiagram_20240811vBW](https://github.com/user-attachments/assets/e6ada887-a5c1-41ff-8012-f811be748088)
+
+

@@ -64,6 +64,12 @@ CREATE TABLE disputes (
 	decision dispute_decision DEFAULT 'Unresolved'
 );
 
+CREATE TABLE dispute_summaries (
+	dispute BIGINT REFERENCES disputes(id),
+	summary TEXT,
+	PRIMARY KEY (dispute)
+);
+
 CREATE TYPE expert_vote AS ENUM ('Pending','Approved','Rejected');
 CREATE TYPE expert_status AS ENUM ('Pending','Approved','Rejected','Review');
 
@@ -104,7 +110,7 @@ CREATE TABLE expert_objections (
 );
 
 CREATE TYPE event_types AS ENUM (
-	'NOTIFICATION'
+	'NOTIFICATION',
 	'DISPUTE',
 	'USER',
 	'EXPERT',

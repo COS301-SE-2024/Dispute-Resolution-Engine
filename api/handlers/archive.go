@@ -10,16 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
-
-type Archive struct {
-	DB *gorm.DB
-}
-
-func NewArchiveHandler(db *gorm.DB) Archive {
-	return Archive{DB: db}
-}
 
 func SetupArchiveRoutes(g *gin.RouterGroup, h Archive) {
 	g.POST("/search", h.SearchArchive)
@@ -47,7 +38,7 @@ func (h Archive) Highlights(c *gin.Context) {
 
 	// Query the database
 	var disputes []models.Dispute
-	if err := h.DB.Model(&models.Dispute{}).Limit(limit).Scan(&disputes).Error; err != nil {
+	if err := h.DB.Model(&models.Dispute{}).Where("resolved = ?", true).Limit(limit).Scan(&disputes).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving disputes"})
 		return
@@ -61,8 +52,8 @@ func (h Archive) Highlights(c *gin.Context) {
 			Title:        dispute.Title,
 			Summary:      dispute.Description,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
-			DateFiled:    dispute.CaseDate,
-			DateResolved: dispute.CaseDate.Add(48 * time.Hour), // Placeholder for resolved date
+			DateFiled:    dispute.CaseDate.Format("2006-08-01"),
+			DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
 			Resolution:   string(dispute.Decision),
 		}
 	}
@@ -164,8 +155,8 @@ func (h Archive) SearchArchive(c *gin.Context) {
 			Title:        dispute.Title,
 			Summary:      dispute.Description,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
-			DateFiled:    dispute.CaseDate,
-			DateResolved: dispute.CaseDate.Add(48 * time.Hour), // Placeholder for resolved date
+			DateFiled:    dispute.CaseDate.Format("2006-08-01"),
+			DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
 			Resolution:   string(dispute.Decision),
 		})
 	}
@@ -245,8 +236,8 @@ func (h Archive) getArchive(c *gin.Context) {
 				Title:        dispute.Title,
 				Summary:      dispute.Description,
 				Category:     []string{"Dispute"}, // Assuming a default category for now
-				DateFiled:    dispute.CaseDate,
-				DateResolved: dispute.CaseDate.Add(48 * time.Hour), // Placeholder for resolved date
+				DateFiled:    dispute.CaseDate.Format("2006-08-01"),
+				DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
 				Resolution:   string(dispute.Decision),
 			},
 			Events: []models.Event{},

@@ -1,3 +1,5 @@
+"use server";
+
 import { Result } from "../types";
 import { API_URL } from "../utils";
 

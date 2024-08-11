@@ -57,7 +57,7 @@ func (h User) GetUser(c *gin.Context) {
 		Surname:           dbUser.Surname,
 		Email:             dbUser.Email,
 		PhoneNumber:       dbUser.PhoneNumber,
-		Birthdate:         dbUser.Birthdate.String(),
+		Birthdate:         dbUser.Birthdate.Format("2006-08-01"),
 		Gender:            dbUser.Gender,
 		Nationality:       dbUser.Nationality,
 		Timezone:          dbUser.Timezone,

@@ -100,7 +100,7 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
   const total = Math.ceil(data!.total / PAGE_SIZE) - 1;
 
   return (
-    <>
+    <div className="pt-8 pl-8">
       <form className="p-3 items-start gap-2 flex flex-col">
         <Input
           defaultValue={params.q}
@@ -140,6 +140,6 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
           </PaginationContent>
         </Pagination>
       </footer>
-    </>
+    </div>
   );
 }

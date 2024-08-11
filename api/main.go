@@ -43,6 +43,7 @@ var requiredEnvVariables = []string{
 	// Miscellaneous
 	"FRONTEND_BASE_URL",
 	"JWT_SECRET",
+	"OPENAI_KEY",
 }
 
 // @title Dispute Resolution Engine - v1
@@ -83,7 +84,7 @@ func main() {
 
 	authHandler := handlers.NewAuthHandler(DB)
 	userHandler := handlers.NewUserHandler(DB)
-	disputeHandler := dispute.NewHandler(DB)
+	disputeHandler := dispute.NewHandler(DB, envLoader)
 	archiveHandler := handlers.NewArchiveHandler(DB)
 	expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)

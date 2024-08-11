@@ -13,17 +13,15 @@ import { API_URL, formFetch } from "../utils";
 import { cookies } from "next/headers";
 import { JWT_KEY } from "../constants";
 
-import { DisputeEvidenceUploadResponse } from "../interfaces/dispute";
+import { DisputeCreateResponse, DisputeEvidenceUploadResponse } from "../interfaces/dispute";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
-export async function createDispute(
-  _initial: unknown,
-  data: FormData
-): Promise<Result<string, DisputeCreateError>> {
+export async function createDispute(_initial: unknown, data: FormData): Promise<Result<string>> {
   const { data: parsed, error: parseErr } = disputeCreateSchema.safeParse(Object.fromEntries(data));
   if (parseErr) {
     return {
-      error: parseErr.format(),
+      error: parseErr.issues[0].message,
     };
   }
 
@@ -40,22 +38,32 @@ export async function createDispute(
     .forEach((file) => formData.append("files", file, file.name));
   console.log(formData);
 
-  const res = await formFetch<DisputeCreateData, string>(`${API_URL}/disputes/create`, {
-    method: "POST",
-    headers: {
-      // Sub this for the proper getAuthToken thing
-      Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+  const res = await formFetch<DisputeCreateData, DisputeCreateResponse>(
+    `${API_URL}/disputes/create`,
+    {
+      method: "POST",
+      headers: {
+        // Sub this for the proper getAuthToken thing
+        Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+      },
+      body: formData,
     },
-    body: formData,
-  });
-  revalidatePath("disputes/create")
-  revalidatePath("disputes")
-  return res;
+  );
+  if (res.error) {
+    return {
+      error: res.error._errors[0],
+    };
+  }
+
+  revalidatePath("/disputes");
+  revalidatePath("/disputes/create");
+  revalidatePath(`/disputes/${res.data.id}`);
+  redirect(`/disputes/${res.data.id}`);
 }
 
 export async function rejectExpert(
   _initial: unknown,
-  data: FormData
+  data: FormData,
 ): Promise<Result<string, ExpertRejectError>> {
   const { data: parsed, error: parseErr } = expertRejectSchema.safeParse(Object.fromEntries(data));
   if (parseErr) {
@@ -73,10 +81,10 @@ export async function rejectExpert(
         Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
       },
       body: JSON.stringify({
-        expert_id: parsed.expert_id,
+        expert_id: parseInt(parsed.expert_id),
         reason: parsed.reason,
       }),
-    }
+    },
   );
 
   if (!res.error) {
@@ -87,7 +95,7 @@ export async function rejectExpert(
 
 export async function uploadEvidence(
   _initial: unknown,
-  data: FormData
+  data: FormData,
 ): Promise<Result<DisputeEvidenceUploadResponse>> {
   const disputeId = data.get("dispute_id");
   const formData = new FormData();

@@ -200,14 +200,18 @@ func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 
 }
 
+func (m *mockDisputeModel) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {
+	return nil, nil
+}
+
 func (m *mockDisputeModel) CreateDefaultUser(email string, fullName string, pass string) error {
 	return nil
 }
 
-func (m *mockEmailModel) SendAdminEmail(c *gin.Context, disputeID int64, resEmail string) {
+func (m *mockEmailModel) SendAdminEmail(c *gin.Context, disputeID int64, resEmail string, title string, summary string) {
 }
 
-func (m *mockEmailModel) SendDefaultUserEmail(c *gin.Context, email string, pass string) {
+func (m *mockEmailModel) SendDefaultUserEmail(c *gin.Context, email string, pass string, title string, summary string) {
 
 }
 

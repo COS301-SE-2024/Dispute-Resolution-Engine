@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,6 +35,7 @@ type DisputeModel interface {
 	ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error
 
 	CreateDefaultUser(email string, fullName string, pass string) error
+	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
 }
 
 type Dispute struct {
@@ -147,7 +149,7 @@ func (m *disputeModelReal) GetEvidenceByDispute(disputeId int64) (evidence []mod
 }
 func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.Expert, err error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	err = m.db.Table("dispute_experts").Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").Joins("JOIN users ON dispute_experts.user = users.id").Where("dispute = ?", disputeId).Where("dispute_experts.status = 'Approved'").Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator'").Find(&experts).Error
+	err = m.db.Table("dispute_experts").Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").Joins("JOIN users ON dispute_experts.user = users.id").Where("dispute = ?", disputeId).Where("dispute_experts.status = 'Approved'").Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").Find(&experts).Error
 	if err != nil && err.Error() != "record not found" {
 		logger.WithError(err).Error("Error retrieving dispute experts")
 		return
@@ -350,4 +352,45 @@ func (m *disputeModelReal) CreateDefaultUser(email string, fullName string, pass
 	}
 	logger.Info("User added to the Database")
 	return nil
+}
+
+// bandaid fix, will be removed in future
+
+func (m disputeModelReal) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {
+	// Seed the random number generator
+	rand.Seed(time.Now().UnixNano())
+
+	// Define the roles to select from
+	roles := []string{"Mediator", "Adjudicator", "Arbitrator", "expert"}
+
+	// Query for users with the specified roles
+	var users []models.User
+	if err := m.db.Where("role IN ?", roles).Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	// Shuffle the results and take the first 4
+	rand.Shuffle(len(users), func(i, j int) { users[i], users[j] = users[j], users[i] })
+
+	// Select the first 4 users after shuffle
+	selectedUsers := users
+	if len(users) > 4 {
+		selectedUsers = users[:4]
+	}
+
+	// Insert the selected experts into the dispute_experts table
+	for _, expert := range selectedUsers {
+		if err := m.db.Create(&models.DisputeExpert{
+			Dispute:         disputeID,
+			User:            expert.ID,
+			ComplainantVote: "Approved",
+			RespondantVote:  "Approved",
+			ExpertVote:      "Approved",
+			Status:          "Approved",
+		}).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return selectedUsers, nil
 }

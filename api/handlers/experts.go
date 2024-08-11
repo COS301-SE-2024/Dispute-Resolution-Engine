@@ -43,7 +43,7 @@ func (h Expert) recommendExpert(c *gin.Context) {
 	}
 
 	logger.Info("Recommended experts successfully")
-	h.disputeProceedingsLogger.LogDisputeProceedings(models.Experts, map[string]interface{}{"dispute_id": recommendexpert.DisputeId, "experts": selectedUsers})
+	h.DisputeProceedingsLogger.LogDisputeProceedings(models.Experts, map[string]interface{}{"dispute_id": recommendexpert.DisputeId, "experts": selectedUsers})
 	c.JSON(http.StatusOK, models.Response{Data: selectedUsers})
 }
 
@@ -85,7 +85,6 @@ func (h *Expert) AssignExpertsToDispute(disputeID int64) ([]models.User, error) 
 
 	return selectedUsers, nil
 }
-
 
 func (h Expert) rejectExpert(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()

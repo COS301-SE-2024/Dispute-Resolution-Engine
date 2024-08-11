@@ -81,7 +81,7 @@ export async function rejectExpert(
         Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
       },
       body: JSON.stringify({
-        expert_id: parsed.expert_id,
+        expert_id: parseInt(parsed.expert_id),
         reason: parsed.reason,
       }),
     },

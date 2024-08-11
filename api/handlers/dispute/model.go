@@ -1,6 +1,7 @@
 package dispute
 
 import (
+	"api/auditLogger"
 	"api/env"
 	"api/handlers/notifications"
 	"api/middleware"
@@ -50,18 +51,20 @@ type Dispute struct {
 	Email notifications.EmailSystem
 	JWT   middleware.Jwt
 	Env   env.Env
+	AuditLogger auditLogger.DisputeProceedingsLoggerInterface
 }
 type disputeModelReal struct {
 	db  *gorm.DB
 	env env.Env
 }
 
-func NewHandler(db *gorm.DB) Dispute {
+func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 	return Dispute{
 		Email: notifications.NewHandler(db),
 		JWT:   middleware.NewJwtMiddleware(),
 		Env:   env.NewEnvLoader(),
 		Model: &disputeModelReal{db: db, env: env.NewEnvLoader()},
+		AuditLogger: auditLogger.NewDisputeProceedingsLogger(db,envReader),
 	}
 }
 

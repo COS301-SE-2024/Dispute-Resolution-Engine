@@ -11,13 +11,13 @@ const config: Config = {
   url: "https://capstone-dre.dns.net.za",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: "/",
+  baseUrl: "/Dispute-Resolution-Engine/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "facebook", // Usually your GitHub org/user name.
-  projectName: "docusaurus", // Usually your repo name.
-
+  organizationName: "cos301-se-2024", // Usually your GitHub org/user name.
+  projectName: "Dispute-Resolution-Engine", // Usually your repo name.
+  trailingSlash: undefined,
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
 

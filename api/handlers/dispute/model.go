@@ -47,10 +47,10 @@ type DisputeModel interface {
 }
 
 type Dispute struct {
-	Model DisputeModel
-	Email notifications.EmailSystem
-	JWT   middleware.Jwt
-	Env   env.Env
+	Model       DisputeModel
+	Email       notifications.EmailSystem
+	JWT         middleware.Jwt
+	Env         env.Env
 	AuditLogger auditLogger.DisputeProceedingsLoggerInterface
 }
 type disputeModelReal struct {
@@ -60,11 +60,11 @@ type disputeModelReal struct {
 
 func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 	return Dispute{
-		Email: notifications.NewHandler(db),
-		JWT:   middleware.NewJwtMiddleware(),
-		Env:   env.NewEnvLoader(),
-		Model: &disputeModelReal{db: db, env: env.NewEnvLoader()},
-		AuditLogger: auditLogger.NewDisputeProceedingsLogger(db,envReader),
+		Email:       notifications.NewHandler(db),
+		JWT:         middleware.NewJwtMiddleware(),
+		Env:         env.NewEnvLoader(),
+		Model:       &disputeModelReal{db: db, env: env.NewEnvLoader()},
+		AuditLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader),
 	}
 }
 
@@ -423,7 +423,7 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 	messages := []map[string]string{
 		{
 			"role":    "system",
-			"content": "You are an AI agent specialized in Alternative Dispute Resolution. Your role is to generate concise and informative summaries of resolved dispute cases for archival purposes. These summaries will help future users understand the nature of the disputes, the evidence presented, the domain in which the dispute occurred, and the final outcome. Your summaries should focus on key details, such as: Type of Dispute: Clearly identify the nature of the dispute (e.g., contract disagreement, service complaint, intellectual property issue). Domain: Specify the context or industry relevant to the dispute (e.g., e-commerce, real estate, software development). Your summaries should be clear, neutral, about 200 words in length and useful for guiding future decisions and actions related to similar disputes. Provide all output as plaintext and without any heading like text, just provide it as a summary for a reader in paragraph form.",
+			"content": "You are an AI agent specialized in Alternative Dispute Resolution. Your role is to generate concise and informative summaries of resolved dispute cases for archival purposes. These summaries will help future users understand the nature of the disputes, the evidence presented, the domain in which the dispute occurred, and the final outcome. Your summaries should focus on key details, such as: Type of Dispute: Clearly identify the nature of the dispute (e.g., contract disagreement, service complaint, intellectual property issue). Domain: Specify the context or industry relevant to the dispute (e.g., e-commerce, real estate, software development). Your summaries should be clear, neutral, about 200 words in length and useful for guiding future decisions and actions related to similar disputes. Provide all output as plaintext and in paragraph form such that it looks valid in an archive section.",
 		},
 		{
 			"role":    "user",

@@ -25,28 +25,19 @@ export default function ClientSearch() {
   }, [data, searchTerm]);
 
   return (
-    <div>
+    <>
       <Input
         placeholder="Search"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-      <nav className="h-full">
+      <nav className="h-full w-60">
         <Suspense fallback={<Loader />}>
-          <ul>
+          <ul className="space-y-2">
             {filteredData.length > 0 ? (
               filteredData.map((d) => (
                 <li key={d.id}>
-                  <DisputeLink href={`/disputes/${d.id}`}>
-                    {d.title}
-                    {d.role == "Complainant" ? (
-                      <Badge className="ml-2">{d.role.substring(0, 1)}</Badge>
-                    ) : d.role == "Respondent" ? (
-                      <Badge className="ml-2" variant="secondary">
-                        {d.role.substring(0, 1)}
-                      </Badge>
-                    ) : null}
-                  </DisputeLink>
+                  <DisputeLink href={`/disputes/${d.id}`} role={d.role} title={d.title} />
                 </li>
               ))
             ) : (
@@ -57,7 +48,6 @@ export default function ClientSearch() {
           </ul>
         </Suspense>
       </nav>
-    </div>
+    </>
   );
 }
-

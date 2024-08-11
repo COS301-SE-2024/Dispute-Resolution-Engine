@@ -73,7 +73,7 @@ type Dispute struct {
 }
 
 type DisputeSummaries struct {
-	ID      *int64 `json:"id" gorm:"primaryKey;autoincrement;column:dispute"`
+	ID      int64  `json:"id" gorm:"primaryKey;autoincrement;column:dispute"`
 	Summary string `json:"summary" gorm:"type:text;column:summary"`
 }
 

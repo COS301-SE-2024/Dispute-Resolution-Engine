@@ -50,7 +50,7 @@ func (h Archive) Highlights(c *gin.Context) {
 		disputeSummary := models.DisputeSummaries{}
 		err := h.DB.Model(models.DisputeSummaries{}).Where("dispute = ?", *dispute.ID).First(&disputeSummary).Error
 		if err != nil {
-			logger.WithError(err).Error("Could not get dispute for id:" + string(*dispute.ID))
+			logger.WithError(err).Error("Could not get dispute for id:" + fmt.Sprint(*dispute.ID))
 		}
 		summaries[i] = models.ArchivedDisputeSummary{
 			ID:           *dispute.ID,
@@ -159,7 +159,7 @@ func (h Archive) SearchArchive(c *gin.Context) {
 		disputeSummary := models.DisputeSummaries{}
 		err := h.DB.Model(models.DisputeSummaries{}).Where("dispute = ?", *dispute.ID).First(&disputeSummary).Error
 		if err != nil {
-			logger.WithError(err).Error("Could not get dispute for id:" + string(*dispute.ID))
+			logger.WithError(err).Error("Could not get dispute for id:" + fmt.Sprint(*dispute.ID))
 		}
 		archiveDisputeSummaries = append(archiveDisputeSummaries, models.ArchivedDisputeSummary{
 			ID:           *dispute.ID,
@@ -245,7 +245,7 @@ func (h Archive) getArchive(c *gin.Context) {
 		disputeSummary := models.DisputeSummaries{}
 		err := h.DB.Model(models.DisputeSummaries{}).Where("dispute = ?", *dispute.ID).First(&disputeSummary).Error
 		if err != nil {
-			logger.WithError(err).Error("Could not get dispute for id:" + string(*dispute.ID))
+			logger.WithError(err).Error("Could not get dispute for id:" + fmt.Sprint(*dispute.ID))
 		}
 		archiveDispute = models.ArchivedDispute{
 

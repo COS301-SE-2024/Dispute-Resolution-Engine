@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./docs/banner.svg">
+  <img src="./docs/static/img/dre_banner.svg">
 </div>
 
 <div align="center">

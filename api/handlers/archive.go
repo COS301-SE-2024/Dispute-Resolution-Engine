@@ -250,3 +250,7 @@ func (h Archive) getArchive(c *gin.Context) {
 		c.JSON(http.StatusNotFound, models.Response{Data: ""})
 	}
 }
+
+func GenerateAISummary(h Archive, c *gin.Context) {
+
+}

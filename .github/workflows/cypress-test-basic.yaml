@@ -19,6 +19,8 @@ jobs:
         run: echo "This is for workflow compliance"
 
   cypress-test:
+    container:
+      image: cypress/included
     runs-on: ubuntu-latest
     defaults:
       run:

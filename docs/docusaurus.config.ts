@@ -18,7 +18,6 @@ const config: Config = {
   organizationName: "cos301-se-2024", // Usually your GitHub org/user name.
   projectName: "Dispute-Resolution-Engine", // Usually your repo name.
   trailingSlash: undefined,
-
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
 

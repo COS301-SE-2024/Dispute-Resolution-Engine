@@ -113,3 +113,4 @@ func (suite *UtilityTestSuite) TestDisputeStatusReturnsCorrectStatus() {
 	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
 	assert.Equal(suite.T(), data, result.Data)
 }
+

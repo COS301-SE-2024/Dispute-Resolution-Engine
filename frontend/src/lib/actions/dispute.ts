@@ -56,6 +56,7 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
   }
 
   revalidatePath("/disputes");
+  revalidatePath("/disputes/create");
   redirect(`/disputes/${res.data.id}`);
 }
 

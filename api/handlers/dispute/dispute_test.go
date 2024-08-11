@@ -705,3 +705,48 @@ func (suite *DisputeErrorTestSuite) TestGetSuccess() {
 	suite.NotEmpty(result.Data)
 }
 
+
+func (suite *DisputeErrorTestSuite) TestGetNoEvidence() {
+	req, _ := http.NewRequest("GET", "/1", nil)
+	req.Header.Add("Authorization", "Bearer mock")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+
+	disputeDetails := result.Data.(models.DisputeDetailsResponse)
+	suite.Empty(disputeDetails.Evidence)
+}
+func (suite *DisputeErrorTestSuite) TestGetNoExperts() {
+	req, _ := http.NewRequest("GET", "/1", nil)
+	req.Header.Add("Authorization", "Bearer mock")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+
+	disputeDetails := result.Data.(models.DisputeDetailsResponse)
+	suite.Empty(disputeDetails.Experts)
+}
+
+func (suite *DisputeErrorTestSuite) TestGetLoggerInitializationError() {
+	req, _ := http.NewRequest("GET", "/1", nil)
+	req.Header.Add("Authorization", "Bearer mock")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+}
+

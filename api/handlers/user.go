@@ -28,7 +28,7 @@ func SetupUserRoutes(g *gin.RouterGroup, h User) {
 func (h User) GetUser(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	// Get the user ID from the request
-	jwtClaims, err := h.jwt.GetClaims(c)
+	jwtClaims, err := h.Jwt.GetClaims(c)
 	if err != nil {
 		logger.WithError(err).Error("Unauthorized")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -82,7 +82,7 @@ func (h User) GetUser(c *gin.Context) {
 // @Router /user/profile [put]
 func (h User) UpdateUser(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtClaims, err := h.jwt.GetClaims(c)
+	jwtClaims, err := h.Jwt.GetClaims(c)
 	if err != nil {
 		logger.WithError(err).Error("Unauthorized")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
@@ -189,7 +189,7 @@ func (h User) RemoveAccount(c *gin.Context) {
 
 func (h User) UpdateUserAddress(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	jwtClaims, err := h.jwt.GetClaims(c)
+	jwtClaims, err := h.Jwt.GetClaims(c)
 	if err != nil {
 		logger.WithError(err).Error("JWT claims is nil")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})

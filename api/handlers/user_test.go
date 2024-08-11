@@ -4,6 +4,8 @@ import (
 	"api/env"
 	"api/handlers"
 	"bytes"
+	"errors"
+	"time"
 
 	// "api/middleware"
 	"api/models"
@@ -37,7 +39,72 @@ type UserTestSuite struct {
 	mock   sqlmock.Sqlmock
 	db     *gorm.DB
 	router *gin.Engine
+	envLoader *mockenvLoader
+	jwt *mockJwt
 }
+
+type mockenvLoader struct {
+}
+
+func (m * mockenvLoader) LoadFromFile(files ...string) {
+
+}
+func (m * mockenvLoader) Register(key string) {
+
+}
+func (m * mockenvLoader) RegisterDefault(key, fallback string) {
+
+}
+func (m * mockenvLoader) Get(key string) (string, error) {
+	return "secret", nil
+}
+
+type mockJwt struct {
+	throwErrors bool
+}
+
+func (m *mockJwt) GenerateJWT(user models.User) (string, error) {
+	if m.throwErrors {
+		return "", errors.ErrUnsupported
+	}
+	return "mock", nil
+}
+func (m *mockJwt) StoreJWT(email string, jwt string) error {
+	if m.throwErrors {
+		return errors.ErrUnsupported
+	}
+	return nil
+}
+func (m *mockJwt) GetJWT(email string) (string, error) {
+	if m.throwErrors {
+		return "", errors.ErrUnsupported
+	}
+	return "", nil
+}
+func (m *mockJwt) JWTMiddleware(c *gin.Context) {}
+
+func (m *mockJwt) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
+	if m.throwErrors {
+		return models.UserInfoJWT{}, errors.ErrUnsupported
+	}
+	return models.UserInfoJWT{
+		ID:                0,
+		FirstName:         "",
+		Surname:           "",
+		Birthdate:         time.Now(),
+		Nationality:       "",
+		Role:              "",
+		Email:             "",
+		PhoneNumber:       new(string),
+		AddressID:         new(int64),
+		Status:            "",
+		Gender:            "",
+		PreferredLanguage: new(string),
+		Timezone:          new(string),
+	}, nil
+
+}
+
 
 func TestUser(t *testing.T) {
 	suite.Run(t, new(UserTestSuite))
@@ -51,7 +118,18 @@ func (suite *UserTestSuite) SetupTest() {
 	})
 	db, _ := gorm.Open(dialector, &gorm.Config{})
 
-	handler := handlers.NewUserHandler(db)
+	suite.mock = mock
+	suite.db = db
+	suite.envLoader = &mockenvLoader{}
+	suite.jwt = &mockJwt{}
+	handler := handlers.User{
+		Handler: handlers.Handler{
+			DB: db,
+			EnvReader: suite.envLoader,
+			Jwt: suite.jwt,
+		},
+
+	}
 	gin.SetMode("release")
 	router := gin.Default()
 	router.PUT("/user/profile", handler.UpdateUser)
@@ -59,10 +137,10 @@ func (suite *UserTestSuite) SetupTest() {
 	router.PUT("/user/profile/address", handler.UpdateUserAddress)
 	router.DELETE("/user/remove", handler.RemoveAccount)
 	router.POST("/user/analytics", handler.UserAnalyticsEndpoint)
-
-	suite.mock = mock
-	suite.db = db
 	suite.router = router
+
+
+
 }
 
 func initUserTestRows() *sqlmock.Rows {
@@ -154,7 +232,7 @@ func (suite *UserTestSuite) TestGetUser() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
+	assert.Equal(suite.T(), 404, w.Code)
 
 	var result models.Response
 	assert.NoError(suite.T(),json.Unmarshal(w.Body.Bytes(), &result))
@@ -179,7 +257,7 @@ func (suite *UserTestSuite) TestUpdateUser() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
 
 	var result models.Response
 	assert.Empty(suite.T(), result.Error)
@@ -202,5 +280,150 @@ func (suite *UserTestSuite) TestUpdateUserAddress() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
 }
+
+func (suite *UserTestSuite) TestRemoveAccount() {
+	envLoader := env.NewEnvLoader()
+	envLoader.RegisterDefault("JWT_SECRET", "secret")
+
+	// Case 1: User does not exist
+	removePayload := map[string]interface{}{
+		"email":    "nonexistentuser@example.com",
+		"password": "wrongpassword",
+	}
+	payloadBytes, _ := json.Marshal(removePayload)
+	req, _ := http.NewRequest("DELETE", "/user/remove", bytes.NewBuffer(payloadBytes))
+	req.Header.Set("Authorization", "Bearer valid_jwt_token")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), http.StatusNotFound, w.Code)
+
+	// Case 2: Invalid credentials
+	rows := initUserTestRows()
+	suite.mock.ExpectQuery("SELECT (.+) FROM \"users\"").WillReturnRows(rows)
+
+	removePayload = map[string]interface{}{
+		"email":    "user1@example.com",
+		"password": "wrongpassword",
+	}
+	payloadBytes, _ = json.Marshal(removePayload)
+	req, _ = http.NewRequest("DELETE", "/user/remove", bytes.NewBuffer(payloadBytes))
+	req.Header.Set("Authorization", "Bearer valid_jwt_token")
+	w = httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
+
+	var result models.Response
+	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
+	assert.NotEmpty(suite.T(), result.Error)
+}
+
+// func (suite *UserTestSuite) TestUserAnalyticsEndpoint() {
+// 	envLoader := env.NewEnvLoader()
+// 	envLoader.RegisterDefault("JWT_SECRET", "secret")
+
+// 	// Case 1: Count users
+// 	analyticsPayload := map[string]interface{}{
+// 		"count": true,
+// 	}
+// 	payloadBytes, _ := json.Marshal(analyticsPayload)
+// 	req, _ := http.NewRequest("POST", "/user/analytics", bytes.NewBuffer(payloadBytes))
+// 	req.Header.Set("Authorization", "Bearer valid_jwt_token")
+// 	w := httptest.NewRecorder()
+
+// 	// Mock the SQL query for counting users
+// 	suite.mock.ExpectQuery(`SELECT count\(\*\) FROM "users"`).
+// 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(10))
+
+// 	// Serve the HTTP request
+// 	suite.router.ServeHTTP(w, req)
+
+// 	// Check the status code and response
+// 	assert.Equal(suite.T(), http.StatusOK, w.Code)
+
+// 	var result map[string]interface{}
+// 	err := json.Unmarshal(w.Body.Bytes(), &result)
+// 	assert.NoError(suite.T(), err)
+// 	assert.Equal(suite.T(), float64(10), result["count"])
+
+// 	// Case 2: Filter users by nationality and gender
+// 	analyticsPayload = map[string]interface{}{
+// 		"columnvalue_comparisons": []map[string]interface{}{
+// 			{"column": "nationality", "value": "Nationality"},
+// 			{"column": "gender", "value": "Male"},
+// 		},
+// 	}
+// 	payloadBytes, _ = json.Marshal(analyticsPayload)
+// 	req, _ = http.NewRequest("POST", "/user/analytics", bytes.NewBuffer(payloadBytes))
+// 	req.Header.Set("Authorization", "Bearer valid_jwt_token")
+// 	w = httptest.NewRecorder()
+
+// 	// Adjust the expected query to match the query that will be executed
+// 	suite.mock.ExpectQuery(`SELECT \* FROM "users" WHERE nationality = \$1 AND gender = \$2`).
+// 		WithArgs("Nationality", "Male").
+// 		WillReturnRows(initUserTestRows())
+
+// 	// Serve the HTTP request
+// 	suite.router.ServeHTTP(w, req)
+
+// 	// Check the status code and response
+// 	assert.Equal(suite.T(), http.StatusOK, w.Code)
+
+// 	var responseBody map[string]interface{}
+// 	err = json.Unmarshal(w.Body.Bytes(), &responseBody)
+// 	assert.NoError(suite.T(), err)
+
+// 	// Since the response contains a map with "data" key, extract users
+// 	usersData, ok := responseBody["data"].([]interface{})
+// 	assert.True(suite.T(), ok)
+// 	assert.NotEmpty(suite.T(), usersData)
+// }
+
+func (suite *UserTestSuite) TestGetUserInvalidJWT() {
+	envLoader := env.NewEnvLoader()
+	envLoader.RegisterDefault("JWT_SECRET", "secret")
+
+	req, _ := http.NewRequest("GET", "/user/profile", nil)
+	req.Header.Set("Authorization", "Bearer invalid_jwt_token")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), 404, w.Code)
+
+	var result models.Response
+	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
+	assert.Equal(suite.T(), "User not found", result.Error)
+}
+
+func (suite *UserTestSuite) TestUpdateUserAddressNoAddress() {
+	envLoader := env.NewEnvLoader()
+	envLoader.RegisterDefault("JWT_SECRET", "secret")
+
+	// Assuming user 1 exists but has no address
+	rows := initUserTestRows()
+	suite.mock.ExpectQuery("SELECT (.+) FROM \"users\"").WillReturnRows(rows)
+
+	updatePayload := map[string]interface{}{
+		"country":  "NewCountry",
+		"province": "NewProvince",
+		"city":     "NewCity",
+		"street3":  "NewStreet3",
+		"street2":  "NewStreet2",
+		"street":   "NewStreet",
+	}
+	payloadBytes, _ := json.Marshal(updatePayload)
+	req, _ := http.NewRequest("PUT", "/user/profile/address", bytes.NewBuffer(payloadBytes))
+	req.Header.Set("Authorization", "Bearer valid_jwt_token")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
+
+	var result models.Response
+	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
+	assert.Equal(suite.T(), "User address updated successfully", result.Data)
+}
+

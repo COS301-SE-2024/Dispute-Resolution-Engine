@@ -132,7 +132,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 	// 	return
 	// }
 
-	jwt, err := h.jwt.GenerateJWT(user)
+	jwt, err := h.Jwt.GenerateJWT(user)
 	if err != nil {
 		logger.WithError(err).Error("Error getting user jwt.")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -219,7 +219,7 @@ func (h Auth) LoginUser(c *gin.Context) {
 	dbUser.LastLogin = utilities.GetCurrentTimePtr()
 	h.DB.Where("email = ?", user.Email).Update("last_login", utilities.GetCurrentTime())
 
-	token, err := h.jwt.GenerateJWT(dbUser)
+	token, err := h.Jwt.GenerateJWT(dbUser)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -253,7 +253,7 @@ func (h Auth) Verify(c *gin.Context) {
 	}
 	var valid bool
 	valid = false
-	jwtUser, err := h.jwt.GetClaims(c)
+	jwtUser, err := h.Jwt.GetClaims(c)
 	if err != nil {
 		logger.Error("No claims found")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
@@ -308,7 +308,7 @@ func (h Auth) Verify(c *gin.Context) {
 	//create new jwt from the claims
 	var updatedUser models.User
 	h.DB.Where("email = ?", jwtUser.Email).First(&updatedUser)
-	newJWT, err := h.jwt.GenerateJWT(updatedUser)
+	newJWT, err := h.Jwt.GenerateJWT(updatedUser)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -330,7 +330,7 @@ func (h Handler) checkUserExists(email string) bool {
 
 func (h Auth) ResendOTP(c *gin.Context) {
 	pin := utilities.GenerateVerifyEmailToken()
-	jwtUser, err := h.jwt.GetClaims(c)
+	jwtUser, err := h.Jwt.GetClaims(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to read JWT"})
 		return
@@ -441,7 +441,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 		Email: user.Email,
 	}
 
-	jwt, err := h.jwt.GenerateJWT(tempUser)
+	jwt, err := h.Jwt.GenerateJWT(tempUser)
 	if err != nil {
 		logger.WithError(err).Error("Error generating token")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating token"})
@@ -499,7 +499,7 @@ func (h Auth) ActivateResetPassword(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing token"})
 		return
 	}
-	claims, err := h.jwt.GetClaims(c)
+	claims, err := h.Jwt.GetClaims(c)
 	if err != nil {
 		logger.WithError(err).Error("Failed to read JWT")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to read JWT"})

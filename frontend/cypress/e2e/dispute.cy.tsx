@@ -6,7 +6,7 @@ describe("Navigation", () => {
   let description = "I am creating a cypress test";
   it("should be able to create a dispute", () => {
     cy.visit("https://capstone-dre.dns.net.za/login");
-    cy.contains("Email").type("sediv39443@alientex.com");
+    cy.contains("Email").type("yexiy79682@mvpalace.com");
     cy.contains("Password").type("Password1234#");
     cy.get("button").contains("Login").click();
     cy.wait(2000);
@@ -16,7 +16,7 @@ describe("Navigation", () => {
     cy.visit("http://capstone-dre.dns.net.za/disputes");
     cy.get("a").contains("+ Create").click();
     cy.get('input[name="respondentName"]').click().type("Bob Charlie");
-    cy.get('input[name="respondentEmail"]').click().type("sediv39443@alientex.com");
+    cy.get('input[name="respondentEmail"]').click().type("yexiy79682@mvpalace.com");
     cy.get('input[name="respondentTelephone"]').click().type("0123456789");
     cy.get('input[name="title"]').click().type(title);
     cy.get('textarea[name="summary"').click().type(description);

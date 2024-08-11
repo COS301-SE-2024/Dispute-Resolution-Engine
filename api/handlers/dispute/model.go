@@ -174,10 +174,28 @@ func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.
 
 func (m *disputeModelReal) GetDisputesByUser(userId int64) (disputes []models.Dispute, err error) {
 	logger := utilities.NewLogger().LogWithCaller()
+	isExpert := false
 	err = m.db.Where("complainant = ? OR respondant = ?", userId, userId).Find(&disputes).Error
 	if err != nil {
 		logger.WithError(err).Errorf("Failed to find disputes of user with ID %d", userId)
+		isExpert = true
 	}
+	if isExpert {
+		var disputesExpert []models.DisputeExpert
+		err = m.db.Model(models.DisputeExpert{}).Where("user = ?", userId).Find(&disputesExpert).Error
+		if err != nil {
+			logger.WithError(err).Error("Failed to find expert with disputes")
+		}
+		for i, disputeExpert := range disputesExpert {
+			dispute := models.Dispute{}
+			err1 := m.db.Model(models.Dispute{}).Where("id = ?", disputeExpert.Dispute).First(&dispute).Error
+			if err1 != nil {
+				logger.WithError(err).Errorf("Failed to find dispute with expert and id: %d", disputeExpert.Dispute)
+			}
+			disputes[i] = dispute
+		}
+	}
+
 	return disputes, err
 }
 

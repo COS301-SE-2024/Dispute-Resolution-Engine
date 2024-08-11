@@ -200,6 +200,10 @@ func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 
 }
 
+func (m *mockDisputeModel) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {
+	return nil, nil
+}
+
 func (m *mockDisputeModel) CreateDefaultUser(email string, fullName string, pass string) error {
 	return nil
 }

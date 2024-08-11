@@ -9,7 +9,6 @@ import {
   ResetPassData,
   ResetPassError,
   SignupData,
-  SignupError,
   loginSchema,
   resetLinkSchema,
   resetPassSchema,
@@ -19,18 +18,9 @@ import {
 import { API_URL, formFetch, safeFetch } from "@/lib/utils";
 import { cookies } from "next/headers";
 
-import { JWT_TIMEOUT, JWT_KEY, JWT_VERIFY_TIMEOUT } from "../constants";
+import { JWT_KEY, JWT_VERIFY_TIMEOUT } from "../constants";
 import { redirect } from "next/navigation";
-
-function setAuth(jwt: string, timeout: number = JWT_TIMEOUT) {
-  cookies().set(JWT_KEY, jwt, {
-    maxAge: timeout,
-    httpOnly: true,
-  });
-}
-function getAuth() {
-  return cookies().get(JWT_KEY)?.value;
-}
+import { getAuthToken, setAuthToken } from "../util/jwt";
 
 export async function signup(payload: unknown): Promise<Result<string>> {
   const { data, error } = signupSchema.safeParse(payload);
@@ -66,7 +56,7 @@ export async function signup(payload: unknown): Promise<Result<string>> {
     return { error: res.error._errors[0] };
   }
 
-  setAuth(res.data, JWT_VERIFY_TIMEOUT);
+  setAuthToken(res.data, JWT_VERIFY_TIMEOUT);
   redirect("/signup/verify");
 }
 
@@ -97,24 +87,18 @@ export async function login(
   if (res.error) {
     return res;
   }
-  setAuth(res.data);
+  setAuthToken(res.data);
   redirect("/disputes");
+}
+export async function signout() {
+  cookies().delete(JWT_KEY);
+  redirect("/login");
 }
 
 export async function verify(
   _initialState: any,
   formData: FormData,
 ): Promise<Result<string, LoginError>> {
-  // Retrieve the temporary JWT
-  const jwt = getAuth();
-  if (!jwt) {
-    return {
-      error: {
-        _errors: ["JWT Expired"],
-      },
-    };
-  }
-
   // Parse the form data
   const formObject = Object.fromEntries(formData);
   const { data, error } = verifySchema.safeParse(formObject);
@@ -129,7 +113,7 @@ export async function verify(
   const res = await formFetch<LoginData, string>(`${API_URL}/auth/verify`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${jwt}`,
+      Authorization: `Bearer ${getAuthToken()}`,
     },
     body: JSON.stringify({
       pin: data.pin,
@@ -142,27 +126,18 @@ export async function verify(
   }
 
   // Everything good
-  setAuth(res.data);
+  setAuthToken(res.data);
   redirect("/disputes");
-  return {
-    data: "Email verified and logged in",
-  };
 }
 
-export async function resendOTP(_initialState: any, formData: FormData): Promise<Result<string>> {
+export async function resendOTP(_initialState: any, _: FormData): Promise<Result<string>> {
   // Retrieve the temporary JWT
-  const jwt = getAuth();
-  if (!jwt) {
-    return {
-      error: "JWT Expired",
-    };
-  }
 
   // TODO: uncomment once API works
   const res = await safeFetch<string>(`${API_URL}/auth/resend-otp`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${jwt}`,
+      Authorization: `Bearer ${getAuthToken()}`,
     },
   });
 
@@ -193,7 +168,7 @@ export async function sendResetLink(
   if (res.error) {
     return res;
   }
-  setAuth(res.data);
+  setAuthToken(res.data);
   redirect("/reset/success");
 }
 
@@ -224,6 +199,6 @@ export async function resetPassword(
   if (res.error) {
     return res;
   }
-  setAuth(res.data);
+  setAuthToken(res.data);
   redirect("/login");
 }

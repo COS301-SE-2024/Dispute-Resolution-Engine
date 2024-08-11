@@ -25,8 +25,8 @@ func SetupExpertRoutes(g *gin.RouterGroup, h Expert) {
 
 func (h Expert) recommendExpert(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	
-	//get the dispute id from the request
+
+	// Get the dispute id from the request
 	var recommendexpert models.RecommendExpert
 	if err := c.BindJSON(&recommendexpert); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
@@ -34,17 +34,31 @@ func (h Expert) recommendExpert(c *gin.Context) {
 		return
 	}
 
-	// use algorithm to find recommended expert
-	// currently select the first 4
+	// Assign experts to the dispute using the extracted function
+	selectedUsers, err := h.AssignExpertsToDispute(int64(recommendexpert.DisputeId))
+	if err != nil {
+		logger.WithError(err).Error("Failed to assign experts to dispute")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+		return
+	}
 
-	var users []models.User
-	roles := []string{"Mediator", "Adjudicator", "Arbitrator"}
+	logger.Info("Recommended experts successfully")
+	h.DisputeProceedingsLogger.LogDisputeProceedings(models.Experts, map[string]interface{}{"dispute_id": recommendexpert.DisputeId, "experts": selectedUsers})
+	c.JSON(http.StatusOK, models.Response{Data: selectedUsers})
+}
 
+func (h *Expert) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {
 	// Seed the random number generator
 	rand.Seed(time.Now().UnixNano())
 
+	// Define the roles to select from
+	roles := []string{"mediator", "adjudicator", "arbitrator", "expert"}
+
 	// Query for users with the specified roles
-	h.DB.Where("role IN ?", roles).Find(&users)
+	var users []models.User
+	if err := h.DB.Where("role IN ?", roles).Find(&users).Error; err != nil {
+		return nil, err
+	}
 
 	// Shuffle the results and take the first 4
 	rand.Shuffle(len(users), func(i, j int) { users[i], users[j] = users[j], users[i] })
@@ -55,22 +69,21 @@ func (h Expert) recommendExpert(c *gin.Context) {
 		selectedUsers = users[:4]
 	}
 
-	// insert the selected experts into the dispute_experts table
+	// Insert the selected experts into the dispute_experts table
 	for _, expert := range selectedUsers {
-		// insert the expert into the dispute_experts table
-
-		h.DB.Create(&models.DisputeExpert{
-			Dispute: int64(recommendexpert.DisputeId),
-			User:    expert.ID,
+		if err := h.DB.Create(&models.DisputeExpert{
+			Dispute:         disputeID,
+			User:            expert.ID,
 			ComplainantVote: "Approved",
 			RespondantVote:  "Approved",
 			ExpertVote:      "Approved",
-			Status:  "Approved",
-		})
+			Status:          "Approved",
+		}).Error; err != nil {
+			return nil, err
+		}
 	}
-	logger.Info("Recommended experts successfully")
-	h.disputeProceedingsLogger.LogDisputeProceedings(models.Experts,map[string]interface{}{"dispute_id": recommendexpert.DisputeId, "experts": selectedUsers})
-	c.JSON(http.StatusOK, models.Response{Data: selectedUsers})
+
+	return selectedUsers, nil
 }
 
 func (h Expert) rejectExpert(c *gin.Context) {

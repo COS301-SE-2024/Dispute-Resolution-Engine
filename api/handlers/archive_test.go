@@ -5,6 +5,7 @@ import (
 	"api/models"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -25,30 +26,92 @@ const (
 	mockDisputeCount = 10
 )
 
-type ArchiveTestSuite struct {
-	suite.Suite
+type mockJwtModel struct {
+	throwErrors bool
+}
 
-	mock   sqlmock.Sqlmock
-	db     *gorm.DB
-	router *gin.Engine
+type mockAuditLogger struct {
+}
+
+func (m *mockJwtModel) GenerateJWT(user models.User) (string, error) {
+	if m.throwErrors {
+		return "", errors.ErrUnsupported
+	}
+	return "mock", nil
+}
+func (m *mockJwtModel) StoreJWT(email string, jwt string) error {
+	if m.throwErrors {
+		return errors.ErrUnsupported
+	}
+	return nil
+}
+func (m *mockJwtModel) GetJWT(email string) (string, error) {
+	if m.throwErrors {
+		return "", errors.ErrUnsupported
+	}
+	return "", nil
+}
+func (m *mockJwtModel) JWTMiddleware(c *gin.Context) {}
+
+func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
+	if m.throwErrors {
+		return models.UserInfoJWT{}, errors.ErrUnsupported
+	}
+	return models.UserInfoJWT{
+		ID:                0,
+		FirstName:         "",
+		Surname:           "",
+		Birthdate:         time.Now(),
+		Nationality:       "",
+		Role:              "",
+		Email:             "",
+		PhoneNumber:       new(string),
+		AddressID:         new(int64),
+		Status:            "",
+		Gender:            "",
+		PreferredLanguage: new(string),
+		Timezone:          new(string),
+	}, nil
+
 }
 
 func TestArchive(t *testing.T) {
 	suite.Run(t, new(ArchiveTestSuite))
 }
 
+// mock model auditlogger
+func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
+	return nil
+}
+
+type ArchiveTestSuite struct {
+	suite.Suite
+
+	mock        sqlmock.Sqlmock
+	db          *gorm.DB
+	router      *gin.Engine
+	auditlogger *mockAuditLogger
+}
+
 // Runs before every test to set up the DB and routers
 func (suite *ArchiveTestSuite) SetupTest() {
 	mock, db, _ := mockDatabase()
 
-	handler := new (handlers.Archive)
+	suite.mock = mock
+	suite.db = db
+	suite.auditlogger = &mockAuditLogger{}
+
+	handler := handlers.Archive{
+		Handler: handlers.Handler{
+			DB:                       db,
+			DisputeProceedingsLogger: suite.auditlogger,
+		},
+	}
 	gin.SetMode("release")
 	router := gin.Default()
 	router.POST("/archive/search", handler.SearchArchive)
-
-	suite.mock = mock
-	suite.db = db
 	suite.router = router
+
 }
 
 func mockDatabase() (sqlmock.Sqlmock, *gorm.DB, error) {
@@ -126,6 +189,7 @@ func (suite *ArchiveTestSuite) TestBadRequestReturnsError() {
 	assert.NotEmpty(suite.T(), result.Error)
 }
 
+
 func (suite *ArchiveTestSuite) TestReturnsValidJSON() {
 	rows := initDisputeRows()
 	suite.mock.ExpectQuery("^SELECT count(.+) FROM \"?disputes\"?.*").WillReturnRows(initCountRow(mockDisputeCount))
@@ -142,8 +206,8 @@ func (suite *ArchiveTestSuite) TestReturnsValidJSON() {
 	suite.router.ServeHTTP(w, req)
 
 	// Assert properties
-	assert.Equal(suite.T(), http.StatusInternalServerError, w.Code)
+	assert.Equal(suite.T(), http.StatusOK, w.Code)
 
 	var result models.Response
-	assert.Error(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
+	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
 }

@@ -30,7 +30,9 @@ export async function fetchArchiveHighlights(
   }));
 }
 export async function fetchArchivedDispute(id: string): Promise<Result<ArchiveGetResponse>> {
-  return fetch(`${API_URL}/archive/${id}`)
+  return fetch(`${API_URL}/archive/${id}`, {
+    cache: "no-cache",
+  })
     .then((res) => res.json())
     .catch((e: Error) => ({
       error: e.message,

@@ -1,15 +1,22 @@
 package dispute
 
 import (
+	"api/auditLogger"
 	"api/env"
 	"api/handlers/notifications"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
+	"bytes"
+	"crypto/tls"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"math/rand"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,24 +41,30 @@ type DisputeModel interface {
 	ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error
 
 	CreateDefaultUser(email string, fullName string, pass string) error
+	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
+
+	GenerateAISummary(disputeID int64, disputeDesc string, apiKey string)
 }
 
 type Dispute struct {
-	Model DisputeModel
-	Email notifications.EmailSystem
-	JWT   middleware.Jwt
-	Env   env.Env
+	Model       DisputeModel
+	Email       notifications.EmailSystem
+	JWT         middleware.Jwt
+	Env         env.Env
+	AuditLogger auditLogger.DisputeProceedingsLoggerInterface
 }
 type disputeModelReal struct {
-	db *gorm.DB
+	db  *gorm.DB
+	env env.Env
 }
 
-func NewHandler(db *gorm.DB) Dispute {
+func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 	return Dispute{
-		Email: notifications.NewHandler(db),
-		Model: &disputeModelReal{db: db},
-		JWT:   middleware.NewJwtMiddleware(),
-		Env:   env.NewEnvLoader(),
+		Email:       notifications.NewHandler(db),
+		JWT:         middleware.NewJwtMiddleware(),
+		Env:         env.NewEnvLoader(),
+		Model:       &disputeModelReal{db: db, env: env.NewEnvLoader()},
+		AuditLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader),
 	}
 }
 
@@ -147,7 +160,7 @@ func (m *disputeModelReal) GetEvidenceByDispute(disputeId int64) (evidence []mod
 }
 func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.Expert, err error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	err = m.db.Table("dispute_experts").Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").Joins("JOIN users ON dispute_experts.user = users.id").Where("dispute = ?", disputeId).Where("dispute_experts.status = 'Approved'").Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator'").Find(&experts).Error
+	err = m.db.Table("dispute_experts").Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").Joins("JOIN users ON dispute_experts.user = users.id").Where("dispute = ?", disputeId).Where("dispute_experts.status = 'Approved'").Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").Find(&experts).Error
 	if err != nil && err.Error() != "record not found" {
 		logger.WithError(err).Error("Error retrieving dispute experts")
 		return
@@ -161,10 +174,28 @@ func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.
 
 func (m *disputeModelReal) GetDisputesByUser(userId int64) (disputes []models.Dispute, err error) {
 	logger := utilities.NewLogger().LogWithCaller()
+	isExpert := false
 	err = m.db.Where("complainant = ? OR respondant = ?", userId, userId).Find(&disputes).Error
 	if err != nil {
 		logger.WithError(err).Errorf("Failed to find disputes of user with ID %d", userId)
+		isExpert = true
 	}
+	if isExpert {
+		var disputesExpert []models.DisputeExpert
+		err = m.db.Model(models.DisputeExpert{}).Where("user = ?", userId).Find(&disputesExpert).Error
+		if err != nil {
+			logger.WithError(err).Error("Failed to find expert with disputes")
+		}
+		for i, disputeExpert := range disputesExpert {
+			dispute := models.Dispute{}
+			err1 := m.db.Model(models.Dispute{}).Where("id = ?", disputeExpert.Dispute).First(&dispute).Error
+			if err1 != nil {
+				logger.WithError(err).Errorf("Failed to find dispute with expert and id: %d", disputeExpert.Dispute)
+			}
+			disputes[i] = dispute
+		}
+	}
+
 	return disputes, err
 }
 
@@ -202,6 +233,16 @@ func (m *disputeModelReal) UpdateDisputeStatus(disputeId int64, status string) e
 		if err != nil {
 			logger.WithError(err).Errorf("Failed to update dispute (ID = %d) status to '%s'", disputeId, status)
 		}
+		var dbDispute models.Dispute
+		err2 := m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).First(&dbDispute).Error
+		if err2 != nil {
+			logger.WithError(err2).Error("There was an error trying to retrieve the dispute related to the summary")
+		}
+		apiKey, err4 := m.env.Get("OPENAI_KEY")
+		if err4 != nil {
+			logger.WithError(err4).Error("Something went wrong getting the API key.")
+		}
+		go m.GenerateAISummary(disputeId, dbDispute.Description, apiKey)
 		return err
 	}
 }
@@ -211,7 +252,7 @@ func (m *disputeModelReal) ObjectExpert(userId, disputeId, expertId int64, reaso
 	//update dispute experts table
 	var disputeExpert models.DisputeExpert
 	if err := m.db.Where("dispute = ? AND dispute_experts.user = ?", disputeId, expertId).First(&disputeExpert).Error; err != nil {
-		logger.WithError(err).Error("Error retrieving dispute expert")
+		logger.WithError(err).Errorf("Error retrieving dispute expert (%d-%d)", disputeId, expertId)
 		return err
 	}
 
@@ -350,4 +391,151 @@ func (m *disputeModelReal) CreateDefaultUser(email string, fullName string, pass
 	}
 	logger.Info("User added to the Database")
 	return nil
+}
+
+// bandaid fix, will be removed in future
+
+func (m disputeModelReal) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {
+	// Seed the random number generator
+	rand.Seed(time.Now().UnixNano())
+
+	// Define the roles to select from
+	roles := []string{"Mediator", "Adjudicator", "Arbitrator", "expert"}
+
+	// Query for users with the specified roles
+	var users []models.User
+	if err := m.db.Where("role IN ?", roles).Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	// Shuffle the results and take the first 4
+	rand.Shuffle(len(users), func(i, j int) { users[i], users[j] = users[j], users[i] })
+
+	// Select the first 4 users after shuffle
+	selectedUsers := users
+	if len(users) > 4 {
+		selectedUsers = users[:4]
+	}
+
+	// Insert the selected experts into the dispute_experts table
+	for _, expert := range selectedUsers {
+		if err := m.db.Create(&models.DisputeExpert{
+			Dispute:         disputeID,
+			User:            expert.ID,
+			ComplainantVote: "Approved",
+			RespondantVote:  "Approved",
+			ExpertVote:      "Approved",
+			Status:          "Approved",
+		}).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return selectedUsers, nil
+}
+
+func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string, apiKey string) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Define the messages
+	messages := []map[string]string{
+		{
+			"role":    "system",
+			"content": "You are an AI agent specialized in Alternative Dispute Resolution. Your role is to generate concise and informative summaries of resolved dispute cases for archival purposes. These summaries will help future users understand the nature of the disputes, the evidence presented, the domain in which the dispute occurred, and the final outcome. Your summaries should focus on key details, such as: Type of Dispute: Clearly identify the nature of the dispute (e.g., contract disagreement, service complaint, intellectual property issue). Domain: Specify the context or industry relevant to the dispute (e.g., e-commerce, real estate, software development). Your summaries should be clear, neutral, about 200 words in length and useful for guiding future decisions and actions related to similar disputes. Provide all output as plaintext and in paragraph form such that it looks valid in an archive section.",
+		},
+		{
+			"role":    "user",
+			"content": disputeDesc,
+		},
+	}
+
+	// Create the request payload
+	payload := map[string]interface{}{
+		"model":    "gpt-4-turbo",
+		"user":     "dre1",
+		"messages": messages,
+	}
+
+	// Convert payload to JSON
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		logger.WithError(err).Error("There was an error converting payload to JSON.")
+		return
+	}
+
+	// Create a new HTTP request
+	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(payloadJSON))
+	if err != nil {
+		logger.WithError(err).Error("Something went wrong creating the request.")
+		return
+	}
+
+	// Set the appropriate headers
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	// Create a custom Transport with TLSClientConfig to skip verification
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	// Send the request using an http.Client with the custom Transport
+	client := &http.Client{Transport: tr}
+	response, err := client.Do(req)
+	if err != nil {
+		logger.WithError(err).Error("Something went wrong sending the request.")
+		return
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		logger.WithError(err).Error("Something went wrong reading the response body.")
+		return
+	}
+
+	var jsonResponse map[string]interface{}
+	err = json.Unmarshal(body, &jsonResponse)
+	if err != nil {
+		logger.WithError(err).Error("There was an error parsing the response.")
+		return
+	}
+	prettyJSON, err := json.MarshalIndent(jsonResponse, "", "  ")
+	if err != nil {
+		logger.WithError(err).Error("Failed to marshal JSON response.")
+	}
+
+	choices, ok := jsonResponse["choices"].([]interface{})
+	if !ok || len(choices) == 0 {
+		logger.Info("JSON response: " + string(prettyJSON))
+		logger.Error("Unexpected response format or empty choices.")
+		return
+	}
+
+	firstChoice, ok := choices[0].(map[string]interface{})
+	if !ok {
+		logger.Error("Unexpected response format for first choice.")
+		return
+	}
+
+	message, ok := firstChoice["message"].(map[string]interface{})
+	if !ok {
+		logger.Error("Unexpected response format for message.")
+		return
+	}
+
+	content, ok := message["content"].(string)
+	if !ok {
+		logger.Error("Unexpected response format for content.")
+		return
+	}
+
+	archiveSummary := models.DisputeSummaries{
+		ID:      disputeID,
+		Summary: content,
+	}
+	if err = m.db.Create(&archiveSummary).Error; err != nil {
+		logger.WithError(err).Error("Error inserting the summary.")
+		return
+	}
 }

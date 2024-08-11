@@ -1,5 +1,8 @@
 name: End-to-end tests
 on:
+  push:
+    branches:
+      - hotfix/cypress-test
   workflow_run:
     workflows: ["Deployment"]
     types:

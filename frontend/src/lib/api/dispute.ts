@@ -10,6 +10,7 @@ import { cookies } from "next/headers";
 import { JWT_KEY } from "../constants";
 import { API_URL } from "@/lib/utils";
 import { getAuthToken } from "../util/jwt";
+import { revalidatePath } from "next/cache";
 
 export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
   const res = await fetch(`${API_URL}/disputes`, {
@@ -58,6 +59,7 @@ export async function updateDisputeStatus(
     }));
   console.log("RESPONSE IN UPDATE DISPUTE\n", res);
   console.log("BODY WAS\n", JSON.stringify(body));
+  revalidatePath(`/disputes/${id}`);
   return res;
 }
 export async function getStatusEnum(): Promise<string[]> {

@@ -51,7 +51,7 @@ describe('archive API functions', () => {
     const id = '123';
     const result = await fetchArchivedDispute(id);
 
-    expect(fetch).toHaveBeenCalledWith(`${API_URL}/archive/${id}`);
+    expect(fetch).toHaveBeenCalledWith(`${API_URL}/archive/${id}`, { cache: 'no-cache' })
     expect(result).toEqual(mockResponse);
   });
 

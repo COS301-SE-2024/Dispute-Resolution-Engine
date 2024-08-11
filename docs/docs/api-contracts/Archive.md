@@ -7,6 +7,7 @@ interface ArchivedDisputeSummary {
   id: string;
 
   title: string;
+  description: string;
   summary: string;
 
   category: string[];

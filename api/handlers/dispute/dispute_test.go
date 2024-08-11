@@ -293,10 +293,10 @@ func (suite *DisputeErrorTestSuite) TestGetSummaryListErrorRetrievingDisputes() 
 	suite.router.ServeHTTP(w, req)
 
 	var result models.Response
-	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
-	suite.Equal("Error while retrieving disputes", result.Error)
+	suite.Equal("Invalid dispute id 'summary'", result.Error)
 }
 
 // ---------------------------------------------------------------- EVIDENCE UPLOAD
@@ -604,7 +604,7 @@ func (suite *DisputeErrorTestSuite) TestCreateSuccess() {
 	suite.router.ServeHTTP(w, req)
 
 	var result struct {
-		Data string `json:"data"`
+		Data map[string]interface{} `json:"data"`
 	}
 	suite.Equal(http.StatusCreated, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
@@ -633,7 +633,7 @@ func (suite *DisputeErrorTestSuite) TestCreateFileUploads() {
 	suite.router.ServeHTTP(w, req)
 
 	var result struct {
-		Data string `json:"data"`
+		Data map[string]interface{} `json:"data"`
 	}
 	suite.Equal(http.StatusCreated, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))

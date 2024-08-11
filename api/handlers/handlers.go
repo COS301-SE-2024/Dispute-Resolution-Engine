@@ -10,10 +10,10 @@ import (
 )
 
 type Handler struct {
-	DB *gorm.DB
-	EnvReader env.Env
-	jwt middleware.Jwt
-	disputeProceedingsLogger auditLogger.DisputeProceedingsLoggerInterface
+	DB                       *gorm.DB
+	EnvReader                env.Env
+	jwt                      middleware.Jwt
+	DisputeProceedingsLogger auditLogger.DisputeProceedingsLoggerInterface
 }
 
 type Auth struct {
@@ -41,7 +41,7 @@ type Archive struct {
 
 func new(db *gorm.DB) Handler {
 	envReader := env.NewEnvLoader()
-	return Handler{DB: db, EnvReader: envReader, jwt: middleware.NewJwtMiddleware(), disputeProceedingsLogger: auditLogger.NewDisputeProceedingsLogger(db,envReader)}
+	return Handler{DB: db, EnvReader: envReader, jwt: middleware.NewJwtMiddleware(), DisputeProceedingsLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader)}
 }
 
 func NewAuthHandler(db *gorm.DB) Auth {
@@ -63,7 +63,6 @@ func NewNotificationHandler(db *gorm.DB) Notification {
 func NewExpertHandler(db *gorm.DB) Expert {
 	return Expert{new(db)}
 }
-
 
 func NewArchiveHandler(db *gorm.DB) Archive {
 	return Archive{new(db)}

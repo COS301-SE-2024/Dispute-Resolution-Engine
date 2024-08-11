@@ -246,7 +246,7 @@ export default function SignupForm() {
               aria-label="Next"
               title="Next"
               variant="outline"
-              className="ml-auto"
+              className="ml-auto dark:bg-dre-200/20"
               onClick={() => nav(1)}
             >
               <ChevronRight />

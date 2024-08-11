@@ -1,13 +1,17 @@
 package auditLogger
 
 import (
-	"api/db"
 	"api/env"
 	"api/models"
 	"api/utilities"
 
 	"gorm.io/gorm"
 )
+
+type DisputeProceedingsLoggerInterface interface {
+	LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error
+}
+
 
 type DisputeProceedingsLogger struct {
 	DB        *gorm.DB
@@ -19,16 +23,16 @@ type LogJson struct {
 	Json    interface{}
 }
 
-func NewDisputeProceedingsLoggerDBInit() (DisputeProceedingsLogger,error) {
-	DB, err := db.Init()
-	if err != nil {
-		return DisputeProceedingsLogger{}, err
-	}
-	return DisputeProceedingsLogger{DB: DB, EnvReader: env.NewEnvLoader()}, nil
-}
+// func NewDisputeProceedingsLoggerDBInit() (DisputeProceedingsLoggerInterface,error) {
+// 	DB, err := db.Init()
+// 	if err != nil {
+// 		return DisputeProceedingsLogger{}, err
+// 	}
+// 	return DisputeProceedingsLogger{DB: DB, EnvReader: env.NewEnvLoader()}, nil
+// }
 
-func NewDisputeProceedingsLogger(db *gorm.DB) DisputeProceedingsLogger {
-	return DisputeProceedingsLogger{DB: db, EnvReader: env.NewEnvLoader()}
+func NewDisputeProceedingsLogger(db *gorm.DB, envLoader env.Env) DisputeProceedingsLoggerInterface {
+	return DisputeProceedingsLogger{DB: db, EnvReader: envLoader}
 }
 
 func (d DisputeProceedingsLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {

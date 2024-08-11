@@ -72,6 +72,11 @@ type Dispute struct {
 	Decision    dispute_decision `json:"decision" gorm:"type:dispute_decision_enum;default:'Unresolved';column:decision"`
 }
 
+type DisputeSummaries struct {
+	ID      int64  `json:"id" gorm:"primaryKey;autoincrement;column:dispute"`
+	Summary string `json:"summary" gorm:"type:text;column:summary"`
+}
+
 type SortAttribute string
 
 const (

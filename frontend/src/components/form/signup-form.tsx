@@ -250,7 +250,7 @@ export default function SignupForm() {
               aria-label="Next"
               title="Next"
               variant="outline"
-              className="ml-auto
+              className="ml-auto"
               onClick={() => nav(currentStep + 1)}
             >
               <ChevronRight />

@@ -9,7 +9,6 @@ import {
   ResetPassData,
   ResetPassError,
   SignupData,
-  SignupError,
   loginSchema,
   resetLinkSchema,
   resetPassSchema,
@@ -127,27 +126,18 @@ export async function verify(
   }
 
   // Everything good
-  setAuth(res.data);
+  setAuthToken(res.data);
   redirect("/disputes");
-  return {
-    data: "Email verified and logged in",
-  };
 }
 
-export async function resendOTP(_initialState: any, formData: FormData): Promise<Result<string>> {
+export async function resendOTP(_initialState: any, _: FormData): Promise<Result<string>> {
   // Retrieve the temporary JWT
-  const jwt = getAuth();
-  if (!jwt) {
-    return {
-      error: "JWT Expired",
-    };
-  }
 
   // TODO: uncomment once API works
   const res = await safeFetch<string>(`${API_URL}/auth/resend-otp`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${jwt}`,
+      Authorization: `Bearer ${getAuthToken()}`,
     },
   });
 
@@ -178,7 +168,7 @@ export async function sendResetLink(
   if (res.error) {
     return res;
   }
-  setAuth(res.data);
+  setAuthToken(res.data);
   redirect("/reset/success");
 }
 
@@ -209,6 +199,6 @@ export async function resetPassword(
   if (res.error) {
     return res;
   }
-  setAuth(res.data);
+  setAuthToken(res.data);
   redirect("/login");
 }

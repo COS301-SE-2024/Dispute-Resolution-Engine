@@ -385,7 +385,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	// Respond with success message
 	go h.Email.SendAdminEmail(c, disputeId, email)
 	logger.Info("Admin email sent")
-	c.JSON(http.StatusCreated, models.DisputeCreationResponse{Data: "Dispute created successfully", DisputeID: disputeId})
+	c.JSON(http.StatusCreated, models.Response{Data: models.DisputeCreationResponse{DisputeID: disputeId}})
 	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()
 	if err != nil {
 		logger.WithError(err).Error("Error initializing dispute proceedings logger")

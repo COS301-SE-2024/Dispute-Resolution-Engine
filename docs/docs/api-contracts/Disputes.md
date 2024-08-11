@@ -85,12 +85,10 @@ type DisputeCreateRequest = {
 };
 ```
 
-The response will return the ID of the newly-created dispute:
+The response will return a success message
 
 ```ts
-type DisputeCreateResponse  = {
-  id: number;
-}
+type DisputeCreateResponse = string;
 ```
 
 # Dispute Evidence upload

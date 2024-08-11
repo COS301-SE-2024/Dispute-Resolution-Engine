@@ -12,9 +12,9 @@ import (
 )
 
 type EmailSystem interface {
-	SendAdminEmail(c *gin.Context, disputeID int64, resEmail string)
+	SendAdminEmail(c *gin.Context, disputeID int64, resEmail string, title string, summary string)
 	NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string)
-	SendDefaultUserEmail(c *gin.Context, email string, pass string)
+	SendDefaultUserEmail(c *gin.Context, email string, pass string, title string, summary string)
 }
 
 type emailImpl struct {
@@ -25,7 +25,7 @@ func NewHandler(db *gorm.DB) EmailSystem {
 	return &emailImpl{db: db}
 }
 
-func (e *emailImpl) SendAdminEmail(c *gin.Context, disputeID int64, resEmail string) {
+func (e *emailImpl) SendAdminEmail(c *gin.Context, disputeID int64, resEmail string, title string, summary string) {
 	logger := utilities.NewLogger().LogWithCaller()
 	envReader := env.NewEnvLoader()
 
@@ -45,14 +45,17 @@ func (e *emailImpl) SendAdminEmail(c *gin.Context, disputeID int64, resEmail str
 		From:    companyEmail,
 		To:      respondentEmail,
 		Subject: "Notification of formal dispute",
-		Body:    "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system. Please login to your DRE account and review it, if you do not have an account you may create one.",
+		Body: "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system.\n The dispute details are as follwed:\n" +
+			"Title: " + title + "\n" +
+			"Summary of dispute: " + summary + "\n" +
+			"Please login to your DRE account and review it .",
 	}
 
 	go SendMail(email)
 	logger.Info("Admin email notification sent successfully")
 }
 
-func (e *emailImpl) SendDefaultUserEmail(c *gin.Context, email string, pass string) {
+func (e *emailImpl) SendDefaultUserEmail(c *gin.Context, email string, pass string, title string, summary string) {
 	logger := utilities.NewLogger().LogWithCaller()
 	envReader := env.NewEnvLoader()
 
@@ -66,7 +69,10 @@ func (e *emailImpl) SendDefaultUserEmail(c *gin.Context, email string, pass stri
 		From:    companyEmail,
 		To:      email,
 		Subject: "Default DRE Account",
-		Body:    "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system. Please login to your DRE account and review it, use this inbox's email address along with this password: " + pass + " .",
+		Body: "Dear valued respondent,\n We hope this email finds you well. A dispute has arisen between you and a user of our system.\n The dispute details are as follwed:\n" +
+			"Title: " + title + "\n" +
+			"Summary of dispute: " + summary + "\n" +
+			"Please login to your DRE account and review it, use this inbox's email address along with this password: " + pass + " .",
 	}
 
 	go SendMail(emailBody)

@@ -22,17 +22,42 @@ jobs:
     container:
       image: cypress/included
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Cypress run
-        uses: cypress-io/github-action@v2
+      - uses: actions/setup-node@v4
         with:
-          wait-on: 'http://capstone-dre.dns.net.za'
-          wait-on-timeout: 300
-          working-directory: frontend 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.0.1
+          node-version: 20 
+      - name: Cache Node modules
+        uses: actions/cache@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          path: |
+            frontend/node_modules
+            ~/.cache/yarn
+          key: yarn-${{ hashFiles('frontend/package.json') }}
+          restore-keys: |
+            yarn-${{ hashFiles('frontend/package.json') }}
+            yarn-
+      - name: Run install
+        uses: borales/actions-yarn@v5
+        with:
+          cmd: install
+          dir: 'frontend'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # if needed
+
+      - run: yarn install --frozen-lockfile
+
+      # - name: Cypress run
+      #   uses: cypress-io/github-action@v2
+      #   with:
+      #     working-directory: frontend 
+      - run: yarn cypress run
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v4.0.1
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}

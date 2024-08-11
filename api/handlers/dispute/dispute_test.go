@@ -218,6 +218,10 @@ func (m *mockEmailModel) SendDefaultUserEmail(c *gin.Context, email string, pass
 func (m *mockEmailModel) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string) {
 }
 
+func (m *mockDisputeModel) GenerateAISummary(disputeID int64, disputeDesc string, apiKey string) {
+
+}
+
 // ---------------------------------------------------------------- EVIDENCE UPLOAD
 
 func (suite *DisputeErrorTestSuite) TestEvidenceUnauthorized() {

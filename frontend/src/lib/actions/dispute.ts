@@ -13,7 +13,7 @@ import { API_URL, formFetch } from "../utils";
 import { cookies } from "next/headers";
 import { JWT_KEY } from "../constants";
 
-import { DisputeEvidenceUploadResponse } from "../interfaces/dispute";
+import { DisputeCreateResponse, DisputeEvidenceUploadResponse } from "../interfaces/dispute";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -38,23 +38,27 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
     .forEach((file) => formData.append("files", file, file.name));
   console.log(formData);
 
-  const res = await formFetch<DisputeCreateData, string>(`${API_URL}/disputes/create`, {
-    method: "POST",
-    headers: {
-      // Sub this for the proper getAuthToken thing
-      Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+  const res = await formFetch<DisputeCreateData, DisputeCreateResponse>(
+    `${API_URL}/disputes/create`,
+    {
+      method: "POST",
+      headers: {
+        // Sub this for the proper getAuthToken thing
+        Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+      },
+      body: formData,
     },
-    body: formData,
-  });
+  );
   if (res.error) {
     return {
       error: res.error._errors[0],
     };
   }
 
-  revalidatePath("disputes/create");
-  revalidatePath("disputes");
-  redirect("/disputes");
+  revalidatePath("/disputes");
+  revalidatePath("/disputes/create");
+  revalidatePath(`/disputes/${res.data.id}`);
+  redirect(`/disputes/${res.data.id}`);
 }
 
 export async function rejectExpert(

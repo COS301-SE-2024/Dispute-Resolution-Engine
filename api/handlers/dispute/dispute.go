@@ -244,6 +244,7 @@ func (h Dispute) GetDispute(c *gin.Context) {
 }
 
 func (h Dispute) CreateDispute(c *gin.Context) {
+
 	logger := utilities.NewLogger().LogWithCaller()
 	claims, err := h.JWT.GetClaims(c)
 	if err != nil {
@@ -295,7 +296,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	//check if respondant is in database by email and phone number
 	var respondantID *int64
 	respondent, err := h.Model.GetUserByEmail(email)
-
+	defaultAccount := false
 	//so if the error is record not found
 	if err != nil {
 		//if the user is not found in the database then we create the default user
@@ -319,7 +320,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating default user."})
 				return
 			}
-			go h.Email.SendDefaultUserEmail(c, email, pass)
+			go h.Email.SendDefaultUserEmail(c, email, pass, title, description)
 			logger.Info("Default respondent user created")
 			respondent, err = h.Model.GetUserByEmail(email)
 			if err != nil {
@@ -328,6 +329,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 				return
 			}
 			logger.Info("Default respondent retreived.")
+			defaultAccount = true
 		} else {
 			logger.Error("Error retrieving respondent")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
@@ -383,7 +385,9 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	}
 
 	// Respond with success message
-	go h.Email.SendAdminEmail(c, disputeId, email)
+	if !defaultAccount {
+		go h.Email.SendAdminEmail(c, disputeId, email, title, description)
+	}
 	logger.Info("Admin email sent")
 	c.JSON(http.StatusCreated, models.Response{Data: models.DisputeCreationResponse{DisputeID: disputeId}})
 	disputeProceedingsLogger, err := auditLogger.NewDisputeProceedingsLoggerDBInit()

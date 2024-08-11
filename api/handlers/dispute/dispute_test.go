@@ -217,8 +217,80 @@ func (m *mockEmailModel) SendDefaultUserEmail(c *gin.Context, email string, pass
 
 func (m *mockEmailModel) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string) {
 }
+// ---------------------------------------------------------------- Get Summary List Tests
+
+
+func (suite *DisputeErrorTestSuite) TestGetSummaryListUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("GET", "/summary", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestGetSummaryListNoDisputes() {
+	req, _ := http.NewRequest("GET", "/summary", nil)
+	req.Header.Add("Authorization", "Bearer mock")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Empty(result.Error)
+	suite.Empty(result.Data)
+}
+
+func (suite *DisputeErrorTestSuite) TestGetSummaryListWithDisputes() {
+	// Mock disputes
+	suite.disputeMock.evidence = []mockEvidence{
+		{
+			user:    1,
+			dispute: 1,
+			path:    "path/to/file",
+			data:    "evidence data",
+		},
+	}
+
+	req, _ := http.NewRequest("GET", "/summary", nil)
+	req.Header.Add("Authorization", "Bearer mock")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Empty(result.Error)
+
+	// Check if the response has the correct number of disputes
+	suite.NotEmpty(result.Data)
+	suite.Equal(len(suite.disputeMock.evidence), len(result.Data.([]models.DisputeSummaryResponse)))
+}
+
+func (suite *DisputeErrorTestSuite) TestGetSummaryListErrorRetrievingDisputes() {
+	suite.disputeMock.throwErrors = true
+	req, _ := http.NewRequest("GET", "/summary", nil)
+	req.Header.Add("Authorization", "Bearer mock")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Error while retrieving disputes", result.Error)
+}
 
 // ---------------------------------------------------------------- EVIDENCE UPLOAD
+
 
 func (suite *DisputeErrorTestSuite) TestEvidenceUnauthorized() {
 	suite.jwtMock.throwErrors = true

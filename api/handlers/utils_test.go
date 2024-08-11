@@ -16,12 +16,15 @@ import (
 	"gorm.io/gorm"
 )
 
+
 type UtilityTestSuite struct {
 	suite.Suite
 
 	mock   sqlmock.Sqlmock
 	db     *gorm.DB
 	router *gin.Engine
+	mockenvLoader *mockenvLoader
+	mockJwt *mockJwt
 }
 
 func TestCountries(t *testing.T) {
@@ -32,15 +35,25 @@ func TestCountries(t *testing.T) {
 func (suite *UtilityTestSuite) SetupTest() {
 	mock, db, _ := mockDatabase()
 
-	handler := handlers.NewUtilitiesHandler(db)
+	suite.mock = mock
+	suite.db = db
+	suite.mockenvLoader = &mockenvLoader{}
+	suite.mockJwt = &mockJwt{}
+
+	handler := handlers.Utility{
+		Handler: handlers.Handler{
+			DB: suite.db,
+			EnvReader: suite.mockenvLoader,
+			Jwt: suite.mockJwt,
+		},
+	}
+	
 	gin.SetMode("release")
 	router := gin.Default()
 	router.GET("/countries", handler.GetCountries)
 	router.GET("/statuses", handler.GetDisputeStatuses)
-
-	suite.mock = mock
-	suite.db = db
 	suite.router = router
+
 }
 
 func createCountryRows(count int) (*sqlmock.Rows, []models.Country) {

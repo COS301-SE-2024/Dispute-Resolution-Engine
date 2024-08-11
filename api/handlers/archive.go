@@ -3,10 +3,8 @@ package handlers
 import (
 	"api/models"
 	"api/utilities"
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -251,37 +249,4 @@ func (h Archive) getArchive(c *gin.Context) {
 		logger.Info("Dispute not found")
 		c.JSON(http.StatusNotFound, models.Response{Data: ""})
 	}
-}
-
-func GenerateAISummary(h Archive, c *gin.Context, disputeDesc string) {
-	// Define the messages
-	messages := []map[string]string{
-		{
-			"role":    "system",
-			"content": "You are an AI agent specialized in Alternative Dispute Resolution. Your role is to generate concise and informative summaries of resolved dispute cases for archival purposes. These summaries will help future users understand the nature of the disputes, the evidence presented, the domain in which the dispute occurred, and the final outcome. Your summaries should focus on key details, such as: Type of Dispute: Clearly identify the nature of the dispute (e.g., contract disagreement, service complaint, intellectual property issue). Domain: Specify the context or industry relevant to the dispute (e.g., e-commerce, real estate, software development). Your summaries should be clear, neutral, about 200 words in length and useful for guiding future decisions and actions related to similar disputes.",
-		},
-		{
-			"role":    "user",
-			"content": "",
-		},
-	}
-
-	// Convert messages to JSON
-	messagesJSON, err := json.Marshal(messages)
-	if err != nil {
-		panic(err)
-	}
-
-	// Create the form data
-	data := url.Values{}
-	data.Set("model", "gpt-4-turbo")
-	data.Set("user", "dre1")
-	data.Set("messages", string(messagesJSON))
-
-	// Send the POST request
-	response, err := http.PostForm("https://api.openai.com/v1/chat/completions", data)
-	if err != nil {
-		panic(err)
-	}
-	defer response.Body.Close()
 }

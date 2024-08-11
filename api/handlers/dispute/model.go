@@ -6,11 +6,17 @@ import (
 	"api/middleware"
 	"api/models"
 	"api/utilities"
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"math/rand"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -36,6 +42,8 @@ type DisputeModel interface {
 
 	CreateDefaultUser(email string, fullName string, pass string) error
 	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
+
+	GenerateAISummary(disputeID int64, disputeDesc string, apiKey string)
 }
 
 type Dispute struct {
@@ -45,7 +53,8 @@ type Dispute struct {
 	Env   env.Env
 }
 type disputeModelReal struct {
-	db *gorm.DB
+	db  *gorm.DB
+	env env.Env
 }
 
 func NewHandler(db *gorm.DB) Dispute {
@@ -204,6 +213,16 @@ func (m *disputeModelReal) UpdateDisputeStatus(disputeId int64, status string) e
 		if err != nil {
 			logger.WithError(err).Errorf("Failed to update dispute (ID = %d) status to '%s'", disputeId, status)
 		}
+		var dbDispute models.Dispute
+		err2 := m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).First(&dbDispute).Error
+		if err2 != nil {
+			logger.WithError(err2).Error("There was an error trying to retrieve the dispute related to the summary")
+		}
+		apiKey, err4 := m.env.Get("OPENAI_KEY")
+		if err4 != nil {
+			logger.WithError(err4).Error("Something went wrong getting the API key.")
+		}
+		go m.GenerateAISummary(disputeId, dbDispute.Description, apiKey)
 		return err
 	}
 }
@@ -393,4 +412,86 @@ func (m disputeModelReal) AssignExpertsToDispute(disputeID int64) ([]models.User
 	}
 
 	return selectedUsers, nil
+}
+
+func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string, apiKey string) {
+	logger := utilities.NewLogger().LogWithCaller()
+	// Define the messages
+	// Define the messages
+	messages := []map[string]string{
+		{
+			"role":    "system",
+			"content": "You are an AI agent specialized in Alternative Dispute Resolution. Your role is to generate concise and informative summaries of resolved dispute cases for archival purposes. These summaries will help future users understand the nature of the disputes, the evidence presented, the domain in which the dispute occurred, and the final outcome. Your summaries should focus on key details, such as: Type of Dispute: Clearly identify the nature of the dispute (e.g., contract disagreement, service complaint, intellectual property issue). Domain: Specify the context or industry relevant to the dispute (e.g., e-commerce, real estate, software development). Your summaries should be clear, neutral, about 200 words in length and useful for guiding future decisions and actions related to similar disputes.",
+		},
+		{
+			"role":    "user",
+			"content": "",
+		},
+	}
+
+	// Convert messages to JSON
+	messagesJSON, err := json.Marshal(messages)
+	if err != nil {
+		log.Fatalf("There was an error converting message to JSON: %v", err)
+	}
+
+	// Create the form data
+	data := url.Values{}
+	data.Set("model", "gpt-4-turbo")
+	data.Set("user", "dre1")
+	data.Set("messages", string(messagesJSON))
+
+	if err != nil {
+		logger.WithError(err).Error("There was an error getting the API key.")
+		return
+	}
+
+	// Create a new HTTP request
+	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBufferString(data.Encode()))
+	if err != nil {
+		logger.WithError(err).Error("Something went wrong creating the request.")
+		return
+	}
+
+	// Set the appropriate headers
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	// Send the request using an http.Client
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		logger.WithError(err).Error("Something went wrong sending the request.")
+		return
+	}
+	defer response.Body.Close()
+
+	body, err2 := ioutil.ReadAll(response.Body)
+	if err2 != nil {
+		logger.WithError(err).Error("Something went wrong reading the response body.")
+		return
+	}
+
+	var jsonResponse map[string]interface{}
+	err = json.Unmarshal(body, &jsonResponse)
+
+	if err != nil {
+		logger.WithError(err).Error("There was an error parsing the response...")
+		return
+	}
+
+	choices := jsonResponse["choices"].([]interface{})
+	firstChoice := choices[0].(map[string]interface{})
+	message := firstChoice["message"].(map[string]interface{})
+	content := message["content"].(string)
+
+	archiveSummary := models.DisputeSummaries{
+		ID:      disputeID,
+		Summary: content,
+	}
+	if err = m.db.Create(&archiveSummary).Error; err != nil {
+		logger.WithError(err).Error("Error inserting the summary")
+		return
+	}
+
 }

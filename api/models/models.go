@@ -28,6 +28,7 @@ type User struct {
 type ArchivedDisputeSummary struct {
 	ID           int64    `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
 	Title        string   `json:"title" gorm:"type:varchar(255);column:title"`
+	Description  string   `json:"description" gorm:"type:text;column:summary"`
 	Summary      string   `json:"summary" gorm:"type:text;column:summary"`
 	Category     []string `json:"category" gorm:"type:varchar(255);column:category"`
 	DateFiled    string   `json:"date_filled" gorm:"type:timestamp;column:date_filled"`

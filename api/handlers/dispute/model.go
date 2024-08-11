@@ -174,26 +174,33 @@ func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.
 
 func (m *disputeModelReal) GetDisputesByUser(userId int64) (disputes []models.Dispute, err error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	isExpert := false
+	logger.Infof("Starting GetDisputesByUser with userId: %d", userId)
+
 	err = m.db.Where("complainant = ? OR respondant = ?", userId, userId).Find(&disputes).Error
 	if err != nil {
 		logger.WithError(err).Errorf("Failed to find disputes of user with ID %d", userId)
-		isExpert = true
+		return nil, err
 	}
-	if isExpert {
+
+	if len(disputes) == 0 {
+		logger.Infof("No disputes found for user with ID %d, checking expert disputes", userId)
 		var disputesExpert []models.DisputeExpert
-		err = m.db.Model(models.DisputeExpert{}).Where("user = ?", userId).Find(&disputesExpert).Error
+		err = m.db.Raw("SELECT * FROM public.dispute_experts WHERE public.dispute_experts.user = ?", userId).Scan(&disputesExpert).Error
 		if err != nil {
 			logger.WithError(err).Error("Failed to find expert with disputes")
+			return nil, err
 		}
-		for i, disputeExpert := range disputesExpert {
+
+		for _, disputeExpert := range disputesExpert {
 			dispute := models.Dispute{}
-			err1 := m.db.Model(models.Dispute{}).Where("id = ?", disputeExpert.Dispute).First(&dispute).Error
+			err1 := m.db.Where("id = ?", disputeExpert.Dispute).First(&dispute).Error
 			if err1 != nil {
-				logger.WithError(err).Errorf("Failed to find dispute with expert and id: %d", disputeExpert.Dispute)
+				logger.WithError(err1).Errorf("Failed to find dispute with expert and id: %d", disputeExpert.Dispute)
+				continue
 			}
-			disputes[i] = dispute
+			disputes = append(disputes, dispute)
 		}
+		logger.Infof("Disputes after processing experts: %+v", disputes)
 	}
 
 	return disputes, err

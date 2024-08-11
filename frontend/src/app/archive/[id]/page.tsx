@@ -60,7 +60,7 @@ export default async function ArchivedPageDispute({ params }: { params: { id: st
             ))}
           </ol>
         </section>
-        <AISummary />
+        <AISummary summary={data.summary} />
       </CardContent>
     </Card>
   );

@@ -57,6 +57,7 @@ function DisputeHeader({
   status: string;
 }) {
   // TODO: Add contracts for this
+  const user = (jwtDecode(getAuthToken()) as any).user.id;
   const role = (jwtDecode(getAuthToken()) as any).user.role;
 
   return (
@@ -65,7 +66,7 @@ function DisputeHeader({
         <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">{label}</h1>
         <p className="mb-4">Started: {startDate}</p>
         {/*TODO: Figure out the conditions for displaying expert rejection */}
-        {role == "expert" && <ExpertRejectForm expertId="2" disputeId="x" />}
+        {role == "expert" && <ExpertRejectForm expertId={user} disputeId={id} />}
       </div>
 
       <dl className="grid grid-cols-2 gap-2">

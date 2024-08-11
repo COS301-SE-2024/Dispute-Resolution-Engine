@@ -60,7 +60,9 @@ export interface DisputeCreateRequest {
   };
 }
 
-export type DisputeCreateResponse = string;
+export interface DisputeCreateResponse {
+  id: number;
+}
 
 export interface DisputeStatusUpdateRequest {
   dispute_id: string;

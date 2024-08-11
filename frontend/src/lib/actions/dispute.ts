@@ -2,7 +2,6 @@
 
 import {
   DisputeCreateData,
-  DisputeCreateError,
   ExpertRejectData,
   ExpertRejectError,
   disputeCreateSchema,
@@ -10,12 +9,11 @@ import {
 } from "../schema/dispute";
 import { Result } from "../types";
 import { API_URL, formFetch } from "../utils";
-import { cookies } from "next/headers";
-import { JWT_KEY } from "../constants";
 
-import { DisputeEvidenceUploadResponse } from "../interfaces/dispute";
+import { DisputeCreateResponse, DisputeEvidenceUploadResponse } from "../interfaces/dispute";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getAuthToken } from "../util/jwt";
 
 export async function createDispute(_initial: unknown, data: FormData): Promise<Result<string>> {
   const { data: parsed, error: parseErr } = disputeCreateSchema.safeParse(Object.fromEntries(data));
@@ -38,23 +36,27 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
     .forEach((file) => formData.append("files", file, file.name));
   console.log(formData);
 
-  const res = await formFetch<DisputeCreateData, string>(`${API_URL}/disputes/create`, {
-    method: "POST",
-    headers: {
-      // Sub this for the proper getAuthToken thing
-      Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+  const res = await formFetch<DisputeCreateData, DisputeCreateResponse>(
+    `${API_URL}/disputes/create`,
+    {
+      method: "POST",
+      headers: {
+        // Sub this for the proper getAuthToken thing
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: formData,
     },
-    body: formData,
-  });
+  );
   if (res.error) {
     return {
       error: res.error._errors[0],
     };
   }
 
-  revalidatePath("disputes/create");
-  revalidatePath("disputes");
-  redirect("/disputes");
+  revalidatePath("/disputes");
+  revalidatePath("/disputes/create");
+  revalidatePath(`/disputes/${res.data.id}`);
+  redirect(`/disputes/${res.data.id}`);
 }
 
 export async function rejectExpert(
@@ -74,10 +76,10 @@ export async function rejectExpert(
       method: "POST",
       headers: {
         // Sub this for the proper getAuthToken thing
-        Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+        Authorization: `Bearer ${getAuthToken()}`,
       },
       body: JSON.stringify({
-        expert_id: parsed.expert_id,
+        expert_id: parseInt(parsed.expert_id),
         reason: parsed.reason,
       }),
     },
@@ -104,7 +106,7 @@ export async function uploadEvidence(
     method: "POST",
     headers: {
       // Sub this for the proper getAuthToken thing
-      Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+      Authorization: `Bearer ${getAuthToken()}`,
     },
     body: formData,
   })

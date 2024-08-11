@@ -3,7 +3,8 @@ export interface ArchivedDisputeSummary {
 
   title: string;
   summary: string;
-
+  description: string;
+  
   category: string[];
 
   date_filed: string;

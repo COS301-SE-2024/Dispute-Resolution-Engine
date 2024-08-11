@@ -48,6 +48,8 @@ export default function SignupForm() {
   const countryId = useId();
   const langId = useId();
 
+  const formId = useId();
+
   const form = useForm<SignupData>({
     resolver: zodResolver(signupSchema),
   });
@@ -100,7 +102,7 @@ export default function SignupForm() {
           <CardTitle>{steps[currentStep].id}</CardTitle>
           <CardDescription>{steps[currentStep].name}</CardDescription>
         </header>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 grow">
+        <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-4 grow">
           {currentStep == 0 && (
             <>
               <SignupField id={typeId} name="userType" label="User Type">
@@ -238,7 +240,9 @@ export default function SignupForm() {
           {currentStep == steps.length - 1 ? (
             <div>
               <SignupMessage />
-              <Button type="submit">Sign Up</Button>
+              <Button form={formId} type="submit">
+                Sign Up
+              </Button>
             </div>
           ) : (
             <Button
@@ -247,7 +251,7 @@ export default function SignupForm() {
               title="Next"
               variant="outline"
               className="ml-auto"
-              onClick={() => nav(1)}
+              onClick={() => nav(currentStep + 1)}
             >
               <ChevronRight />
             </Button>

@@ -28,6 +28,7 @@ type User struct {
 type ArchivedDisputeSummary struct {
 	ID           int64    `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
 	Title        string   `json:"title" gorm:"type:varchar(255);column:title"`
+	Description  string   `json:"description" gorm:"type:text;column:summary"`
 	Summary      string   `json:"summary" gorm:"type:text;column:summary"`
 	Category     []string `json:"category" gorm:"type:varchar(255);column:category"`
 	DateFiled    string   `json:"date_filled" gorm:"type:timestamp;column:date_filled"`
@@ -70,6 +71,11 @@ type Dispute struct {
 	Respondant  *int64           `json:"respondant" gorm:"column:respondant"`
 	Resolved    bool             `json:"resolved" gorm:"default:false;column:resolved"`
 	Decision    dispute_decision `json:"decision" gorm:"type:dispute_decision_enum;default:'Unresolved';column:decision"`
+}
+
+type DisputeSummaries struct {
+	ID      int64  `json:"id" gorm:"primaryKey;autoincrement;column:dispute"`
+	Summary string `json:"summary" gorm:"type:text;column:summary"`
 }
 
 type SortAttribute string

@@ -16,6 +16,7 @@ import { JWT_KEY } from "../constants";
 import { DisputeEvidenceUploadResponse } from "../interfaces/dispute";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getAuthToken } from "../util/jwt";
 
 export async function createDispute(_initial: unknown, data: FormData): Promise<Result<string>> {
   const { data: parsed, error: parseErr } = disputeCreateSchema.safeParse(Object.fromEntries(data));
@@ -42,7 +43,7 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
     method: "POST",
     headers: {
       // Sub this for the proper getAuthToken thing
-      Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+      Authorization: `Bearer ${getAuthToken()}`,
     },
     body: formData,
   });
@@ -74,7 +75,7 @@ export async function rejectExpert(
       method: "POST",
       headers: {
         // Sub this for the proper getAuthToken thing
-        Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+        Authorization: `Bearer ${getAuthToken()}`,
       },
       body: JSON.stringify({
         expert_id: parsed.expert_id,
@@ -104,7 +105,7 @@ export async function uploadEvidence(
     method: "POST",
     headers: {
       // Sub this for the proper getAuthToken thing
-      Authorization: `Bearer ${cookies().get(JWT_KEY)!.value}`,
+      Authorization: `Bearer ${getAuthToken()}`,
     },
     body: formData,
   })

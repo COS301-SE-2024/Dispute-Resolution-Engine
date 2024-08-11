@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { JWT_KEY } from "../constants";
+import { JWT_KEY, JWT_TIMEOUT } from "../constants";
 import { redirect } from "next/navigation";
 
 export function getAuthToken(): string {
@@ -8,4 +8,11 @@ export function getAuthToken(): string {
     redirect("/login");
   }
   return jwt;
+}
+
+export function setAuthToken(jwt: string, timeout: number = JWT_TIMEOUT) {
+  cookies().set(JWT_KEY, jwt, {
+    maxAge: timeout,
+    httpOnly: true,
+  });
 }

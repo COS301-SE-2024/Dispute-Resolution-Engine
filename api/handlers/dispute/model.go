@@ -234,7 +234,7 @@ func (m *disputeModelReal) ObjectExpert(userId, disputeId, expertId int64, reaso
 	//update dispute experts table
 	var disputeExpert models.DisputeExpert
 	if err := m.db.Where("dispute = ? AND dispute_experts.user = ?", disputeId, expertId).First(&disputeExpert).Error; err != nil {
-		logger.WithError(err).Error("Error retrieving dispute expert")
+		logger.WithError(err).Errorf("Error retrieving dispute expert (%d-%d)", disputeId, expertId)
 		return err
 	}
 

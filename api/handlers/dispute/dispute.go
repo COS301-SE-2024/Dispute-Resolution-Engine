@@ -453,10 +453,11 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
+
 	err = h.Model.ObjectExpert(claims.ID, int64(disputeIdInt), req.ExpertID, req.Reason)
 	if err != nil {
-		logger.Error("Unauthorized access attempt in function expertObjection")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Unauthorized"})
+		logger.WithError(err).Error("Failed to object to expert")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
 		return
 	}
 

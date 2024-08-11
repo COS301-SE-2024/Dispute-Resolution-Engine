@@ -162,6 +162,47 @@ One of the key agile principles is delivering working software at a constant pac
 
 # Version 3
 
+## Architectural Patterns
+
+### Event-Driven Pattern
+
+Scalability
+- Components to react to events asynchronously
+- Enables the system to scale horizontally by adding more event processors
+
+Performance
+- Separating the responsibilities of the production and consumption of events
+- Processing events in real-time
+- Handle high-throughput scenarios
+
+Reliability
+- Events can be stored in a persistent event log
+- Replayable after system failures, ensuring data integrity and system reliability.
+
+### Service-Oriented Pattern
+
+Scalability
+- Services in an SOA can be deployed and scaled independently
+- The system can grow and manage increased loads effectively
+
+Maintainability
+- Encapsulating business logic within discrete services
+- Easier to update, replace, or extend functionalities in isolation
+
+### Gatekeeper Pattern
+
+Security
+- Acts as a security layer that enforces access control policies
+- Only authorized requests are allowed to reach the internal services
+
+Reliability
+- Routes requests through a single entry point
+- Provide load balancing, caching, and failover mechanisms
+
+Maintainability
+- Easily update policies
+- Ensures that current data privacy and security regulations are met
+
 ## Architectural Diagram (Color)
 ![20240811_v1](https://github.com/user-attachments/assets/1a814d7c-09e5-4175-a02e-c5620471e0f0)
 

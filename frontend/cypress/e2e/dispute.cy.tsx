@@ -1,16 +1,6 @@
 import "cypress-file-upload";
 describe("Navigation", () => {
   let cookie: string | undefined;
-  // it('should login', () => {
-  // 	cy.visit('https://capstone-dre.dns.net.za/login')
-  // 	cy.contains('Email').type('sediv39443@alientex.com')
-  // 	cy.contains('Password').type('Password1234#')
-  // 	cy.get('button').contains('Login').click()
-  // 	cy.visit('http://capstone-dre.dns.net.za/disputes')
-  // 	cy.getCookie('jwt').then(tempCookie => {
-  // 		cookie = tempCookie?.value
-  // 	})
-  // })
   let time = Date.now();
   let title = "Cypress Test Title" + time;
   let description = "I am creating a cypress test";
@@ -47,7 +37,7 @@ describe("Navigation", () => {
     cy.get("h1").contains(title);
     cy.get("p").contains(description);
   });
-  it("should be in the archive", () => {
+  it("should not be in the archive", () => {
     cy.setCookie("jwt", cookie ?? "");
     cy.visit("http://capstone-dre.dns.net.za/archive");
     cy.get('input[name="q"]').click().type(title);

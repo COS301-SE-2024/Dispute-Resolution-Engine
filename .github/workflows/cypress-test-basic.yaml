@@ -27,6 +27,7 @@ jobs:
         with:
           wait-on: 'http://capstone-dre.dns.net.za'
           wait-on-timeout: 300
+          working-directory: frontend 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:

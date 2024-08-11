@@ -4,7 +4,7 @@ describe('Navigation', () => {
 	let cookie : string | undefined
 	it('should login', () => {
 		cy.visit('https://capstone-dre.dns.net.za/login')
-		cy.contains('Email').type('relanit981@digdy.com')
+		cy.contains('Email').type('sediv39443@alientex.com')
 		cy.contains('Password').type('Password1234#')
 		cy.get('button').contains('Login').click()
 		cy.visit('http://capstone-dre.dns.net.za/disputes')
@@ -12,7 +12,7 @@ describe('Navigation', () => {
 			cookie = tempCookie?.value
 		})
 	})
-	let time = Date.prototype.toUTCString()
+	let time = Date.now()
 	let title = 'Cypress Test Title' + time
 	let description = 'I am creating a cypress test'
 	it('should be able to create a dispute', () => {
@@ -20,7 +20,7 @@ describe('Navigation', () => {
 		cy.visit('http://capstone-dre.dns.net.za/disputes')
 		cy.get('a').contains('+ Create').click()
 		cy.get('input[name="respondentName"]').click().type('Bob Charlie')
-		cy.get('input[name="respondentEmail"]').click().type('bob@charlie.com')
+		cy.get('input[name="respondentEmail"]').click().type('sediv39443@alientex.com')
 		cy.get('input[name="respondentTelephone"]').click().type('0123456789')
 		cy.get('input[name="title"]').click().type(title)
 		cy.get('textarea[name="summary"').click().type(description)

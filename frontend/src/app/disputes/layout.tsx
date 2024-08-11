@@ -15,7 +15,7 @@ export default function DisputeRootLayout({
 }>) {
   return (
     <div className="flex items-stretch h-full lg:w-3/4 mx-auto">
-      <div className="flex shrink-0 flex-col gap-4 h-full">
+      <div className="flex shrink-0 flex-col gap-4 h-full p-4">
         <ClientSearch />
 
         <Button asChild className="mt-auto">

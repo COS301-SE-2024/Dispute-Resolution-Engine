@@ -299,6 +299,10 @@ func (suite *DisputeErrorTestSuite) TestGetSummaryListErrorRetrievingDisputes() 
 	suite.Equal("Invalid dispute id 'summary'", result.Error)
 }
 
+func (m *mockDisputeModel) GenerateAISummary(disputeID int64, disputeDesc string, apiKey string) {
+
+}
+
 // ---------------------------------------------------------------- EVIDENCE UPLOAD
 
 

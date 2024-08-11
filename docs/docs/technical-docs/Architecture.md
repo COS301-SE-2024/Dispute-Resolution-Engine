@@ -199,6 +199,12 @@ Reliability
 - Routes requests through a single entry point
 - Provide load balancing, caching, and failover mechanisms
 
+### Client-Server Pattern
+Usability
+- Separates the user interface (client) from the data storage and business logic (server)
+- More intuitive and responsive user interface
+   - Not bogged down by backend concerns
+
 Maintainability
 - Easily update policies
 - Ensures that current data privacy and security regulations are met

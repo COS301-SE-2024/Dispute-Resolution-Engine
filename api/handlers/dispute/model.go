@@ -7,16 +7,15 @@ import (
 	"api/models"
 	"api/utilities"
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -60,9 +59,9 @@ type disputeModelReal struct {
 func NewHandler(db *gorm.DB) Dispute {
 	return Dispute{
 		Email: notifications.NewHandler(db),
-		Model: &disputeModelReal{db: db},
 		JWT:   middleware.NewJwtMiddleware(),
 		Env:   env.NewEnvLoader(),
+		Model: &disputeModelReal{db: db, env: env.NewEnvLoader()},
 	}
 }
 
@@ -416,49 +415,51 @@ func (m disputeModelReal) AssignExpertsToDispute(disputeID int64) ([]models.User
 
 func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string, apiKey string) {
 	logger := utilities.NewLogger().LogWithCaller()
-	// Define the messages
+
 	// Define the messages
 	messages := []map[string]string{
 		{
 			"role":    "system",
-			"content": "You are an AI agent specialized in Alternative Dispute Resolution. Your role is to generate concise and informative summaries of resolved dispute cases for archival purposes. These summaries will help future users understand the nature of the disputes, the evidence presented, the domain in which the dispute occurred, and the final outcome. Your summaries should focus on key details, such as: Type of Dispute: Clearly identify the nature of the dispute (e.g., contract disagreement, service complaint, intellectual property issue). Domain: Specify the context or industry relevant to the dispute (e.g., e-commerce, real estate, software development). Your summaries should be clear, neutral, about 200 words in length and useful for guiding future decisions and actions related to similar disputes.",
+			"content": "You are an AI agent specialized in Alternative Dispute Resolution. Your role is to generate concise and informative summaries of resolved dispute cases for archival purposes. These summaries will help future users understand the nature of the disputes, the evidence presented, the domain in which the dispute occurred, and the final outcome. Your summaries should focus on key details, such as: Type of Dispute: Clearly identify the nature of the dispute (e.g., contract disagreement, service complaint, intellectual property issue). Domain: Specify the context or industry relevant to the dispute (e.g., e-commerce, real estate, software development). Your summaries should be clear, neutral, about 200 words in length and useful for guiding future decisions and actions related to similar disputes. Provide all output as plaintext and without any heading like text, just provide it as a summary for a reader in paragraph form.",
 		},
 		{
 			"role":    "user",
-			"content": "",
+			"content": disputeDesc,
 		},
 	}
 
-	// Convert messages to JSON
-	messagesJSON, err := json.Marshal(messages)
-	if err != nil {
-		log.Fatalf("There was an error converting message to JSON: %v", err)
+	// Create the request payload
+	payload := map[string]interface{}{
+		"model":    "gpt-4-turbo",
+		"user":     "dre1",
+		"messages": messages,
 	}
 
-	// Create the form data
-	data := url.Values{}
-	data.Set("model", "gpt-4-turbo")
-	data.Set("user", "dre1")
-	data.Set("messages", string(messagesJSON))
-
+	// Convert payload to JSON
+	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
-		logger.WithError(err).Error("There was an error getting the API key.")
+		logger.WithError(err).Error("There was an error converting payload to JSON.")
 		return
 	}
 
 	// Create a new HTTP request
-	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBufferString(data.Encode()))
+	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(payloadJSON))
 	if err != nil {
 		logger.WithError(err).Error("Something went wrong creating the request.")
 		return
 	}
 
 	// Set the appropriate headers
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 
-	// Send the request using an http.Client
-	client := &http.Client{}
+	// Create a custom Transport with TLSClientConfig to skip verification
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	// Send the request using an http.Client with the custom Transport
+	client := &http.Client{Transport: tr}
 	response, err := client.Do(req)
 	if err != nil {
 		logger.WithError(err).Error("Something went wrong sending the request.")
@@ -466,32 +467,54 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 	}
 	defer response.Body.Close()
 
-	body, err2 := ioutil.ReadAll(response.Body)
-	if err2 != nil {
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
 		logger.WithError(err).Error("Something went wrong reading the response body.")
 		return
 	}
 
 	var jsonResponse map[string]interface{}
 	err = json.Unmarshal(body, &jsonResponse)
-
 	if err != nil {
-		logger.WithError(err).Error("There was an error parsing the response...")
+		logger.WithError(err).Error("There was an error parsing the response.")
+		return
+	}
+	prettyJSON, err := json.MarshalIndent(jsonResponse, "", "  ")
+	if err != nil {
+		logger.WithError(err).Error("Failed to marshal JSON response.")
+	}
+
+	choices, ok := jsonResponse["choices"].([]interface{})
+	if !ok || len(choices) == 0 {
+		logger.Info("JSON response: " + string(prettyJSON))
+		logger.Error("Unexpected response format or empty choices.")
 		return
 	}
 
-	choices := jsonResponse["choices"].([]interface{})
-	firstChoice := choices[0].(map[string]interface{})
-	message := firstChoice["message"].(map[string]interface{})
-	content := message["content"].(string)
+	firstChoice, ok := choices[0].(map[string]interface{})
+	if !ok {
+		logger.Error("Unexpected response format for first choice.")
+		return
+	}
+
+	message, ok := firstChoice["message"].(map[string]interface{})
+	if !ok {
+		logger.Error("Unexpected response format for message.")
+		return
+	}
+
+	content, ok := message["content"].(string)
+	if !ok {
+		logger.Error("Unexpected response format for content.")
+		return
+	}
 
 	archiveSummary := models.DisputeSummaries{
 		ID:      disputeID,
 		Summary: content,
 	}
 	if err = m.db.Create(&archiveSummary).Error; err != nil {
-		logger.WithError(err).Error("Error inserting the summary")
+		logger.WithError(err).Error("Error inserting the summary.")
 		return
 	}
-
 }

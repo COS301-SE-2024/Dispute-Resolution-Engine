@@ -49,7 +49,7 @@ export default async function ArchivedPageDispute({ params }: { params: { id: st
         </dl>
       </CardHeader>
       <CardContent>
-        <p className="mb-5">{data.summary}</p>
+        <p className="mb-5">{data.description}</p>
         <section>
           <h4 className="text-lg font-semibold">Timeline</h4>
           <ol className="ml-3">

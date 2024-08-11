@@ -245,6 +245,116 @@ func (suite *DisputeErrorTestSuite) TestEvidenceBadID() {
 	suite.NotEmpty(result.Error)
 }
 
+func (suite *DisputeErrorTestSuite) TestEvidenceEmptyMultipartForm() {
+	req, _ := http.NewRequest("POST", "/1/evidence", bytes.NewBuffer([]byte{}))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "multipart/form-data")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestEvidenceErrorOpeningMultipartFile() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormFile("files", "file1.txt")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/evidence", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	// Override the mock to simulate an error when opening the file
+	mockFile := &mockDisputeModel{}
+	mockFile.throwErrors = true
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusInternalServerError, w.Code)
+}
+
+func (suite *DisputeErrorTestSuite) TestEvidenceErrorDuringUpload() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "files", "file1.txt", "file contents")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/evidence", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	suite.disputeMock.throwErrors = true
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusInternalServerError, w.Code)
+}
+
+func (suite *DisputeErrorTestSuite) TestEvidenceMultipleFilesUpload() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "files", "file1.txt", "file contents 1")
+	createFileField(form, "files", "file2.txt", "file contents 2")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/evidence", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusCreated, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("Files uploaded", result.Data)
+}
+func (suite *DisputeErrorTestSuite) TestEvidenceInvalidAuthorizationHeader() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "files", "file1.txt", "file contents")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/evidence", data)
+	req.Header.Add("Authorization", "Bearer invalid-token")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+func (suite *DisputeErrorTestSuite) TestEvidenceValidUpload() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "files", "file1.txt", "file contents")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/evidence", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusCreated, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("Files uploaded", result.Data)
+}
+
+
+
 func (suite *DisputeErrorTestSuite) TestEvidenceBadBody() {
 	req, _ := http.NewRequest("POST", "/1/evidence", nil)
 	req.Header.Add("Authorization", "Bearer mock")
@@ -522,3 +632,4 @@ func (suite *DisputeErrorTestSuite) TestGetSuccess() {
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Data)
 }
+

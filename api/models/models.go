@@ -161,8 +161,8 @@ const (
 )
 
 type DisputeExpert struct {
-	Dispute         int64        `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
-	User            int64        `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+	Dispute         int64        `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	User            int64        `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
 	ComplainantVote ExpertVote   `gorm:"column:complainant_vote;type:expert_vote;default:'Pending'"`
 	RespondantVote  ExpertVote   `gorm:"column:respondant_vote;type:expert_vote;default:'Pending'"`
 	ExpertVote      ExpertVote   `gorm:"column:expert_vote;type:expert_vote;default:'Pending'"`

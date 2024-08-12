@@ -28,6 +28,9 @@ jobs:
       - name: Create red.env file
         run: echo "${{ secrets.RED_ENV }}" > red.env
       
+      - name: Create graf.env file
+        run: echo "${{ secrets.GRAF_ENV }}" > graf.env
+      
       - name: Tar the repo
         run: |
           cd $GITHUB_WORKSPACE

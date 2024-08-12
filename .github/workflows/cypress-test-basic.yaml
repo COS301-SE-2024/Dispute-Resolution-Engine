@@ -32,16 +32,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20 
-      - name: Cache Node modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            frontend/node_modules
-            ~/.cache/yarn
-          key: yarn-${{ hashFiles('frontend/package.json') }}
-          restore-keys: |
-            yarn-${{ hashFiles('frontend/package.json') }}
-            yarn-
+      # - name: Cache Node modules
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       frontend/node_modules
+      #       ~/.cache/yarn
+      #     key: yarn-${{ hashFiles('frontend/package.json') }}
+      #     restore-keys: |
+      #       yarn-${{ hashFiles('frontend/package.json') }}
+      #       yarn-
       - name: Run install
         uses: borales/actions-yarn@v5
         with:

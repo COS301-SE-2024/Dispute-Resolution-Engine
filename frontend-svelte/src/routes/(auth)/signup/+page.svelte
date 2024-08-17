@@ -1,5 +1,9 @@
 <script lang="ts">
+	import FormField from '$lib/components/FormField.svelte';
+	import { signupSchema } from '$lib/schema/auth.js';
 	import { RadioGroup, RadioItem } from '@skeletonlabs/skeleton';
+	import { superForm } from 'sveltekit-superforms';
+	import { zod } from 'sveltekit-superforms/adapters';
 
 	const steps: {
 		id: string;
@@ -15,8 +19,13 @@
 		}
 	];
 
+	export let data;
+	const { form, errors, enhance } = superForm(data.form, {
+		validators: zod(signupSchema),
+		validationMethod: 'onblur'
+	});
+
 	let currentStep = 0;
-	let type = '';
 
 	$: lastStep = currentStep == steps.length - 1;
 </script>
@@ -42,69 +51,86 @@
 		<p>{steps[currentStep].name}</p>
 	</header>
 
-	<form class="flex flex-col gap-4 grow" id="form">
+	<form class="flex flex-col gap-4 grow" id="form" method="post" use:enhance>
 		{#if currentStep == 0}
 			<RadioGroup flexDirection="flex-col" active="variant-outline-primary">
-				<RadioItem bind:group={type} name="user_type" value="user">User</RadioItem>
-				<RadioItem bind:group={type} name="user_type" value="expert">Expert</RadioItem>
+				<RadioItem bind:group={$form.userType} name="user_type" value="user">User</RadioItem>
+				<RadioItem bind:group={$form.userType} name="user_type" value="expert">Expert</RadioItem>
 			</RadioGroup>
 		{:else if currentStep == 1}
-			<div>
-				<label for="first_name" class="label">First Name</label>
-				<input id="first_name" type="text" class="input" placeholder="First Name" />
-			</div>
+			<FormField target="first_name" label="First Name" error={$errors.firstName}>
+				<input
+					id="first_name"
+					type="text"
+					class="input {$errors.firstName ? 'input-error' : ''}"
+					placeholder="First Name"
+					bind:value={$form.firstName}
+					aria-invalid={$errors.firstName ? 'true' : undefined}
+				/>
+			</FormField>
 
-			<div>
-				<label for="last_name" class="label">Last Name</label>
-				<input id="last_name" type="text" class="input" placeholder="Last Nmae" />
-			</div>
-			<div>
-				<label for="email" class="label">Email</label>
-				<input id="email" type="email" class="input" placeholder="Email" />
-			</div>
-			<div>
-				<label for="password" class="label">Password</label>
-				<input id="password" type="password" class="input" placeholder="Password" />
-			</div>
-			<div>
-				<label for="password_confirm" class="label">Confirm Password</label>
-				<input id="password_confirm" type="password" class="input" placeholder="Confirm Password" />
-			</div>
+			<FormField target="last_name" label="Last Name" error={$errors.lastName}>
+				<input
+					id="last_name"
+					type="text"
+					class="input"
+					placeholder="Last Name"
+					bind:value={$form.lastName}
+					aria-invalid={$errors.lastName ? 'true' : undefined}
+				/>
+			</FormField>
+			<FormField target="email" label="Email" error={$errors.email}>
+				<input id="email" type="email" class="input" placeholder="Email" bind:value={$form.email} />
+			</FormField>
+			<FormField target="password" label="Password" error={$errors.password}>
+				<input
+					id="password"
+					type="password"
+					class="input"
+					placeholder="Password"
+					bind:value={$form.password}
+				/>
+			</FormField>
+			<FormField target="password_confirm" label="Confirm Password" error={$errors.passwordConfirm}>
+				<input
+					id="password_confirm"
+					type="password"
+					class="input"
+					placeholder="Confirm Password"
+					bind:value={$form.passwordConfirm}
+				/>
+			</FormField>
 		{:else if currentStep == 2}
-			<div>
-				<label for="gender" class="label">Gender</label>
-				<select name="gender" id="gender" class="select">
+			<FormField target="gender" label="Gender" error={$errors.gender}>
+				<select name="gender" id="gender" class="select" bind:value={$form.gender}>
 					<option value="Male">Male</option>
 					<option value="Female">Female</option>
 					<option value="Non-binary">Non-binary</option>
 					<option value="Prefer not to say">Prefer not to say</option>
 					<option value="Other">Other</option>
 				</select>
-			</div>
-			<div>
-				<label for="lang" class="label">Preferred Language</label>
-				<select name="lang" id="lang" class="select">
+			</FormField>
+			<FormField target="lang" label="Preferred Language" error={$errors.preferredLanguage}>
+				<select name="lang" id="lang" class="select" bind:value={$form.preferredLanguage}>
 					<option value="Male">Male</option>
 					<option value="Female">Female</option>
 					<option value="Non-binary">Non-binary</option>
 					<option value="Prefer not to say">Prefer not to say</option>
 					<option value="Other">Other</option>
 				</select>
-			</div>
-			<div>
-				<label for="nationality" class="label">Nationality</label>
-				<select name="nationality" id="nationality" class="select">
+			</FormField>
+			<FormField target="nationality" label="Nationality" error={$errors.nationality}>
+				<select name="nationality" id="nationality" class="select" bind:value={$form.nationality}>
 					<option value="Male">Male</option>
 					<option value="Female">Female</option>
 					<option value="Non-binary">Non-binary</option>
 					<option value="Prefer not to say">Prefer not to say</option>
 					<option value="Other">Other</option>
 				</select>
-			</div>
-			<div>
-				<label for="date_of_birth" class="label">Date of Birth</label>
-				<input id="date_of_birth" type="date" class="input" />
-			</div>
+			</FormField>
+			<FormField target="date_of_birth" label="Date of Birth" error={$errors.passwordConfirm}>
+				<input id="date_of_birth" type="date" class="input" bind:value={$form.dateOfBirth} />
+			</FormField>
 		{/if}
 	</form>
 

@@ -100,11 +100,6 @@ ProjectSettings/
 
 # Images and generated assets #
 ###############################
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.bmp
 *.psd
 *.ai
 *.eps

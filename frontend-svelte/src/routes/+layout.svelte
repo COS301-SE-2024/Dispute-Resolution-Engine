@@ -1,11 +1,14 @@
 <script lang="ts">
 	import '../app.postcss';
-	import { AppBar } from '@skeletonlabs/skeleton';
+	import { LightSwitch } from '@skeletonlabs/skeleton';
 </script>
 
 <!-- App Shell -->
-<AppBar gap="gap-4">
-	<svelte:fragment slot="lead">
+
+<header
+	class="grid grid-cols-[1fr_auto] md:grid-cols-[auto_1fr_auto] gap-6 sticky top-0 z-10 bg-surface-100 dark:bg-surface-800 p-4"
+>
+	<div>
 		<a href="/" class="flex items-center gap-2">
 			<figure class="h-16">
 				<section class="img-bg" />
@@ -13,8 +16,8 @@
 			</figure>
 			<strong title="Dispute Resolution Engine" class="text-xl uppercase">DRE</strong>
 		</a>
-	</svelte:fragment>
-	<nav>
+	</div>
+	<nav class="row-start-2 md:row-start-auto flex items-center gap-2">
 		<a class="btn variant-soft-surface" href="/archive"> Archive </a>
 		<a
 			class="btn variant-soft-surface"
@@ -23,12 +26,14 @@
 			Help
 		</a>
 	</nav>
-	<svelte:fragment slot="trail">
+	<div class="flex items-center gap-2">
+		<LightSwitch />
 		<a class="btn btn-sm variant-ghost-surface" href="/profile" target="_blank" rel="noreferrer">
 			Profile
 		</a>
-	</svelte:fragment>
-</AppBar>
+	</div>
+</header>
+
 <slot />
 
 <style lang="postcss">

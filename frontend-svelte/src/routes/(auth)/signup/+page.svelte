@@ -103,29 +103,23 @@
 		{:else if currentStep == 2}
 			<FormField target="gender" label="Gender" error={$errors.gender}>
 				<select name="gender" id="gender" class="select" bind:value={$form.gender}>
-					<option value="Male">Male</option>
-					<option value="Female">Female</option>
-					<option value="Non-binary">Non-binary</option>
-					<option value="Prefer not to say">Prefer not to say</option>
-					<option value="Other">Other</option>
+					{#each data.genders as gender}
+						<option value={gender.id}>{gender.label}</option>
+					{/each}
 				</select>
 			</FormField>
 			<FormField target="lang" label="Preferred Language" error={$errors.preferredLanguage}>
 				<select name="lang" id="lang" class="select" bind:value={$form.preferredLanguage}>
-					<option value="Male">Male</option>
-					<option value="Female">Female</option>
-					<option value="Non-binary">Non-binary</option>
-					<option value="Prefer not to say">Prefer not to say</option>
-					<option value="Other">Other</option>
+					{#each data.languages as lang}
+						<option value={lang.id}>{lang.label}</option>
+					{/each}
 				</select>
 			</FormField>
 			<FormField target="nationality" label="Nationality" error={$errors.nationality}>
 				<select name="nationality" id="nationality" class="select" bind:value={$form.nationality}>
-					<option value="Male">Male</option>
-					<option value="Female">Female</option>
-					<option value="Non-binary">Non-binary</option>
-					<option value="Prefer not to say">Prefer not to say</option>
-					<option value="Other">Other</option>
+					{#each data.countries as country}
+						<option value={country.country_code}>{country.country_name}</option>
+					{/each}
 				</select>
 			</FormField>
 			<FormField target="date_of_birth" label="Date of Birth" error={$errors.passwordConfirm}>

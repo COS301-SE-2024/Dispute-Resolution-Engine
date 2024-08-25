@@ -9,6 +9,7 @@ import {
 import CustomEdge from './CustomEdge';
 
 import '@xyflow/react/dist/style.css';
+import { Button } from '@/components/ui/button';
 
 const initialNodes = [
   { id: 'a', position: { x: 0, y: 0 }, data: { label: 'Node A' } },
@@ -35,9 +36,14 @@ function Flow() {
     },
     [setEdges],
   );
-
+  const addNode  = useCallback(() => {
+    const newNode  = { id: 'd', position: { x: 0, y: 200 }, data: { label: 'NEW NODE YIPPEE' } }
+    setNodes((nds) => nds.concat(newNode));  
+  
+  }, []);
   return (
-    <ReactFlow
+    <div className="h-96">
+    <ReactFlow className="h-24"
       nodes={nodes}
       edges={edges}
       onNodesChange={onNodesChange}
@@ -46,7 +52,11 @@ function Flow() {
       edgeTypes={edgeTypes}
       colorMode='dark'
       fitView
-    />
+    >
+
+    </ReactFlow>
+    <Button onClick={addNode}>ADD NODE</Button>
+    </div>
   );
 }
 

@@ -36,7 +36,7 @@ export default function CustomEdge({
             setEdges((es) => es.filter((e) => e.id !== id));
           }}
         >
-          delete
+          X
         </button>
       </EdgeLabelRenderer>
     </>

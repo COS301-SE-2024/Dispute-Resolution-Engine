@@ -1,5 +1,5 @@
 "use client"
-import { useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   ReactFlow,
   addEdge,
@@ -25,8 +25,9 @@ const initialEdges = [
 const edgeTypes = {
   'custom-edge': CustomEdge,
 };
-
+// http://localhost:3000/workflow 
 function Flow() {
+  let currId = useRef(1)
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const onConnect = useCallback(
@@ -37,10 +38,11 @@ function Flow() {
     [setEdges],
   );
   const addNode  = useCallback(() => {
-    const newNode  = { id: 'd', position: { x: 0, y: 200 }, data: { label: 'NEW NODE YIPPEE' } }
+    const newNode  = { id: currId.current.toString(), position: { x: 0, y: 200 }, data: { label: 'NEW NODE YIPPEE ' + currId.current.toString() } }
+    currId.current = currId.current + 1
     setNodes((nds) => nds.concat(newNode));  
   
-  }, []);
+  }, [setNodes]);
   return (
     <div className="h-96">
     <ReactFlow className="h-24"

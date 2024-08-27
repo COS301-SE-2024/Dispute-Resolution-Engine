@@ -27,39 +27,46 @@ const initialEdges = [
 const edgeTypes = {
   "custom-edge": CustomEdge,
 };
+
+const newNodeSchema = z.object({
+  label: z.string().min(1).max(50),
+});
+type NewNodeData = z.infer<typeof newNodeSchema>;
+
 // http://localhost:3000/workflow
 function Flow() {
   let currId = useRef(1);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
   const onConnect = useCallback(
     (connection: any) => {
       const edge = { ...connection, type: "custom-edge" };
       setEdges((eds) => addEdge(edge, eds));
     },
-    [setEdges]
+    [setEdges],
   );
-  const addNode = useCallback((params : any) => {
-    const newNode = {
-      id: currId.current.toString(),
-      position: { x: 0, y: 200 },
-      data: { label: params.label},
-    };
-    currId.current = currId.current + 1;
-    setNodes((nds) => nds.concat(newNode));
-  }, [setNodes]);
-  const newNodeSchema = z.object({
-    label: z.string().min(1).max(50),
-  });
-  type NewNodeData = z.infer<typeof newNodeSchema>;
+
+  const addNode = useCallback(
+    (params: any) => {
+      const newNode = {
+        id: currId.current.toString(),
+        position: { x: 0, y: 200 },
+        data: { label: params.label },
+      };
+      currId.current = currId.current + 1;
+      setNodes((nds) => nds.concat(newNode));
+    },
+    [setNodes],
+  );
+
   const form = useForm<NewNodeData>({
     defaultValues: {
       label: "New Node",
     },
     resolver: zodResolver(newNodeSchema),
   });
-  const onSubmit = () => {};
-  const formRef = useRef(null);
+
   return (
     <div className="h-96">
       <ReactFlow
@@ -73,12 +80,10 @@ function Flow() {
         colorMode="dark"
         fitView
       ></ReactFlow>
-      <FormProvider {...form}>
-        <form ref={formRef} onSubmit={form.handleSubmit(addNode)}>
-          <Textarea id={"placeholderID"} {...form.register("label")}></Textarea>
-          <Button type="submit">ADD NODE</Button>
-        </form>
-      </FormProvider>
+      <form onSubmit={form.handleSubmit(addNode)}>
+        <Textarea {...form.register("label")}></Textarea>
+        <Button type="submit">ADD NODE</Button>
+      </form>
     </div>
   );
 }

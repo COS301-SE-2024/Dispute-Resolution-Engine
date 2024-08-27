@@ -22,7 +22,7 @@ function SectionTitle({ label, show }: { label: string; show: boolean }) {
   return (
     <p
       className={cn(
-        "text-white/75 tracking-wide mb-1 transition-opacity",
+        "text-black/75 dark:text-white/75 tracking-wide mb-1 transition-opacity",
         "overflow-x-visible w-0 text-nowrap",
         !show && "opacity-0 select-none ",
       )}
@@ -37,8 +37,8 @@ export default function Navbar({ className }: { className?: string }) {
 
   const fullClass = useMemo(() => {
     return cn(
-      "overflow-x-hidden  border-b md:h-full p-2 grid grid-rows-[auto_1fr_auto] md:border-r-2 border-primary-500/30",
-      expanded ? "md:w-56 shadow-lg" : "md:w-fit",
+      "overflow-x-hidden  border-b md:h-full p-2 grid grid-rows-[auto_1fr_auto] md:border-r dark:border-primary-500/30 border-primary-500/20",
+      expanded ? "md:w-56 shadow-lg md:shadow-none" : "md:w-fit",
       className,
     );
   }, [expanded]);

@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-
 import { cn } from "@/lib/utils";
 
 export default function NavLink({
@@ -9,18 +9,18 @@ export default function NavLink({
   href,
   icon,
   expanded = false,
-  active = false,
 }: {
   label: string;
   href: string;
   expanded?: boolean;
-  active?: boolean;
   icon: ReactNode;
 }) {
+  const pathname = usePathname();
   const className = cn(
-    "w-auto p-3 h-auto rounded-xl",
+    "p-3 h-auto rounded-xl transition-all",
+    href == pathname &&
+      "hover:shadow-lg hover:shadow-primary-600/35 text-primary-500 dark:text-secondary-500 border border-primary-500/35 bg-primary-500/20",
     expanded && "w-full",
-    active && "text-secondary-500 border border-primary-500/35 bg-primary-500/20",
   );
   return (
     <Button asChild className={className} variant="ghost">

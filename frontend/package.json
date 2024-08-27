@@ -29,6 +29,7 @@
     "@swc/core": "^1.7.6",
     "@swc/types": "^0.1.12",
     "@tanstack/react-query": "^5.40.1",
+    "@xyflow/react": "^12.0.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cypress-file-upload": "^5.0.8",

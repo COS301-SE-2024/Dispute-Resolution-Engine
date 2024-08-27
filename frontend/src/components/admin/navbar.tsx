@@ -5,8 +5,7 @@ import {
   TicketCheck,
   Network,
   FileText,
-  PanelLeftOpen,
-  PanelLeftClose,
+  Menu,
   Settings,
   HelpCircle,
   Users,
@@ -25,7 +24,7 @@ function SectionTitle({ label, show }: { label: string; show: boolean }) {
       className={cn(
         "text-white/75 tracking-wide mb-1 transition-opacity",
         "overflow-x-visible w-0 text-nowrap",
-        !show && "opacity-0",
+        !show && "opacity-0 select-none ",
       )}
     >
       {label}
@@ -33,34 +32,33 @@ function SectionTitle({ label, show }: { label: string; show: boolean }) {
   );
 }
 
-export default function Navbar() {
+export default function Navbar({ className }: { className?: string }) {
   const [expanded, setExpanded] = useState();
 
-  const className = useMemo(() => {
+  const fullClass = useMemo(() => {
     return cn(
-      "transition-[width] overflow-x-hidden h-full p-2 grid grid-rows-[auto_1fr_auto] border-r-2 border-r-primary-500/30",
-      expanded ? "md:w-56" : "w-fit",
+      "overflow-x-hidden  border-b md:h-full p-2 grid grid-rows-[auto_1fr_auto] md:border-r-2 border-primary-500/30",
+      expanded ? "md:w-56 shadow-lg" : "md:w-fit",
+      className,
     );
   }, [expanded]);
 
   return (
-    <aside className={className}>
-      <header className="flex items-center gap-4 min-h-16 mb-5">
-        {expanded && (
-          <>
-            <Ralph />
-            <strong className="grow">DRE</strong>
-          </>
-        )}
+    <aside className={fullClass}>
+      <header className="flex items-center gap-4 min-h-16 md:mb-5">
+        <div className={cn("flex items-center gap-4 grow", !expanded && "md:hidden")}>
+          <Ralph className="ml-2" />
+          <h1 className="text-base tracking-widest font-bold">DRE</h1>
+        </div>
         <Button
           className="p-3 h-auto rounded-full"
           variant="ghost"
           onClick={() => setExpanded(!expanded)}
         >
-          {expanded ? <PanelLeftClose /> : <PanelLeftOpen />}
+          <Menu />
         </Button>
       </header>
-      <nav>
+      <nav className={cn(!expanded && "hidden", "md:block")}>
         <SectionTitle label="Main Menu" show={expanded} />
         <ul className="flex flex-col gap-2">
           <li>
@@ -100,7 +98,7 @@ export default function Navbar() {
           </li>
         </ul>
       </nav>
-      <footer>
+      <footer className={cn(!expanded && "hidden", "md:block")}>
         <SectionTitle label="Other" show={expanded} />
         <ul>
           <li>

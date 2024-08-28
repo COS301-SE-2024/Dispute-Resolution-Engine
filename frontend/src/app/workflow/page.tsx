@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { ReactFlow, addEdge, useNodesState, useEdgesState } from "@xyflow/react";
+import { ReactFlow, addEdge, useNodesState, useEdgesState, Background } from "@xyflow/react";
 import CustomEdge from "./CustomEdge";
 
 import "@xyflow/react/dist/style.css";
@@ -69,7 +69,7 @@ function Flow() {
   return (
     <div className="h-96">
       <ReactFlow
-        className="h-24"
+        className="h-24 "
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
@@ -79,7 +79,9 @@ function Flow() {
         nodeTypes={nodeTypes}
         colorMode="dark"
         fitView
-      ></ReactFlow>
+      >
+        <Background  bgColor="#111827"/>
+      </ReactFlow>
       <form onSubmit={form.handleSubmit(addNode)}>
         <Textarea {...form.register("label")}></Textarea>
         <Button type="submit">ADD NODE</Button>

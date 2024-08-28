@@ -1,7 +1,9 @@
+import PageHeader from "@/components/admin/page-header";
+
 export default function Workflows() {
   return (
-    <>
-      <strong>Workflows</strong>
-    </>
+    <div className="flex flex-col">
+      <PageHeader label="Workflows" />
+    </div>
   );
 }

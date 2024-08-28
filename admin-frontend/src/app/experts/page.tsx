@@ -1,7 +1,9 @@
+import PageHeader from "@/components/admin/page-header";
+
 export default function Experts() {
   return (
-    <>
-      <strong>Experts</strong>
-    </>
+    <div className="flex flex-col">
+      <PageHeader label="Experts" />
+    </div>
   );
 }

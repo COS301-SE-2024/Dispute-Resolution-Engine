@@ -8,10 +8,44 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      colors: {
+        primary: {
+          50: "#DEE9FF",
+          100: "#C9DCFF",
+          200: "#A0C2FF",
+          300: "#78A8FF",
+          400: "#4F8DFF",
+          500: "#2673FF",
+          600: "#0054ED",
+          700: "#0040B5",
+          800: "#002C7D",
+          900: "#001845",
+          950: "#000E29",
+        },
+        secondary: {
+          50: "#FFFFFF",
+          100: "#FFFFFF",
+          200: "#FFFFFF",
+          300: "#FFFFFF",
+          400: "#DEFCFF",
+          500: "#B5F8FF",
+          600: "#7DF3FF",
+          700: "#45EDFF",
+          800: "#0DE8FF",
+          900: "#00C0D4",
+          950: "#00A6B8",
+        },
+        dre: {
+          bg: {
+            light: "#f0f5f6",
+            dark: "#111827",
+          },
+          "100": "#9beaf2",
+          "200": "#336cd4",
+          "300": "#24479d",
+          "400": "#080965",
+          "500": "#040653",
+        },
       },
     },
   },

@@ -24,7 +24,7 @@ function SectionTitle({ label, show }: { label: string; show: boolean }) {
       className={cn(
         "text-black/75 dark:text-white/75 tracking-wide mb-1 transition-opacity",
         "overflow-x-visible w-0 text-nowrap",
-        !show && "opacity-0 select-none ",
+        !show && "opacity-0 select-none "
       )}
     >
       {label}
@@ -33,16 +33,16 @@ function SectionTitle({ label, show }: { label: string; show: boolean }) {
 }
 
 export default function Navbar({ className }: { className?: string }) {
-  const [expanded, setExpanded] = useState();
+  const [expanded, setExpanded] = useState(false);
 
   const fullClass = useMemo(() => {
     return cn(
-      "overflow-x-hidden border-b md:h-full p-2 grid grid-rows-[auto_1fr_auto] md:border-r dark:border-primary-500/30 border-primary-500/20",
+      "overflow-x-hidden  border-b md:border-b-0 md:h-full p-2 grid grid-rows-[auto_1fr_auto] md:border-r dark:border-primary-500/30 border-primary-500/20",
       "md:w-16 transition-all",
       expanded && "md:w-56 shadow-lg md:shadow-none",
-      className,
+      className
     );
-  }, [expanded]);
+  }, [expanded, className]);
 
   return (
     <aside className={fullClass}>
@@ -63,39 +63,19 @@ export default function Navbar({ className }: { className?: string }) {
         <SectionTitle label="Main Menu" show={expanded} />
         <ul className="flex flex-col gap-2">
           <li>
-            <NavLink
-              label="Dashboard"
-              href="/admin"
-              icon={<LayoutDashboard />}
-              expanded={expanded}
-            />
+            <NavLink label="Dashboard" href="/" icon={<LayoutDashboard />} expanded={expanded} />
           </li>
           <li>
-            <NavLink
-              label="Tickets"
-              href="/admin/tickets"
-              icon={<TicketCheck />}
-              expanded={expanded}
-            />
+            <NavLink label="Tickets" href="/tickets" icon={<TicketCheck />} expanded={expanded} />
           </li>
           <li>
-            <NavLink
-              label="Workflows"
-              href="/admin/workflows"
-              icon={<Network />}
-              expanded={expanded}
-            />
+            <NavLink label="Workflows" href="/workflows" icon={<Network />} expanded={expanded} />
           </li>
           <li>
-            <NavLink
-              label="Disputes"
-              href="/admin/disputes"
-              icon={<FileText />}
-              expanded={expanded}
-            />
+            <NavLink label="Disputes" href="/disputes" icon={<FileText />} expanded={expanded} />
           </li>
           <li>
-            <NavLink label="Experts" href="/admin/experts" icon={<Users />} expanded={expanded} />
+            <NavLink label="Experts" href="/experts" icon={<Users />} expanded={expanded} />
           </li>
         </ul>
       </nav>
@@ -103,15 +83,10 @@ export default function Navbar({ className }: { className?: string }) {
         <SectionTitle label="Other" show={expanded} />
         <ul>
           <li>
-            <NavLink
-              label="Settings"
-              href="/admin/settings"
-              icon={<Settings />}
-              expanded={expanded}
-            />
+            <NavLink label="Settings" href="/settings" icon={<Settings />} expanded={expanded} />
           </li>
           <li>
-            <NavLink label="Help" href="/admin/help" icon={<HelpCircle />} expanded={expanded} />
+            <NavLink label="Help" href="/help" icon={<HelpCircle />} expanded={expanded} />
           </li>
         </ul>
       </footer>

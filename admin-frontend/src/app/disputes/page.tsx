@@ -21,13 +21,24 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 export default function Disputes() {
   return (
     <div className="flex flex-col">
       <PageHeader label="Disputes" />
-      <div class="flex items-center px-5 gap-2 pr-2 border-b dark:border-primary-500/30 border-primary-500/20">
+      <div className="flex items-center px-5 gap-2 pr-2 border-b dark:border-primary-500/30 border-primary-500/20">
         <div className="grid grid-cols-[auto_1fr] items-center grow">
           <input
             type="search"
@@ -38,10 +49,25 @@ export default function Disputes() {
             <Search size={20} />
           </div>
         </div>
-        <Button variant="ghost" className="gap-2">
-          <Filter />
-          <span>Filter by</span>
-        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" className="gap-2">
+              <Filter />
+              <span>Filter by</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="grid gap-x-2 gap-y-3 grid-cols-[auto_1fr] items-center">
+            <strong className="col-span-2">Filter</strong>
+
+            <label>Status</label>
+            <StatusSelect />
+            <label>Workflow</label>
+            <StatusSelect />
+            <div className="col-span-2 flex flex-end">
+              <Button className="ml-auto">Apply</Button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
       <main className="overflow-auto p-5 grow">
         <Card>
@@ -104,5 +130,25 @@ export default function Disputes() {
         </Card>
       </main>
     </div>
+  );
+}
+
+function StatusSelect() {
+  return (
+    <Select>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select a fruit" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          <SelectLabel>Fruits</SelectLabel>
+          <SelectItem value="apple">Apple</SelectItem>
+          <SelectItem value="banana">Banana</SelectItem>
+          <SelectItem value="blueberry">Blueberry</SelectItem>
+          <SelectItem value="grapes">Grapes</SelectItem>
+          <SelectItem value="pineapple">Pineapple</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 }

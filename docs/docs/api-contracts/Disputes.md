@@ -25,6 +25,7 @@ type Expert = {
   role: string;
 };
 ```
+
 # Utility Functions
 - **Endpoint:** `GET /utils/dispute_statuses`
 - **Headers:**
@@ -46,6 +47,7 @@ Will return a list of dispute summaries the user is involved in:
 ```ts
 type DisputeListResponse = DisputeSummary[];
 ```
+
 
 # Dispute Details
 

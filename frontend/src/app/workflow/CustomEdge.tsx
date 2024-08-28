@@ -1,4 +1,5 @@
-import { BaseEdge, EdgeLabelRenderer, getStraightPath, useReactFlow } from "@xyflow/react";
+import { BaseEdge, EdgeLabelRenderer, getBezierPath, getStraightPath, useReactFlow } from "@xyflow/react";
+import { CircleX } from "lucide-react";
 
 export default function CustomEdge({
   id,
@@ -14,7 +15,7 @@ export default function CustomEdge({
   targetY: number;
 }) {
   const { setEdges } = useReactFlow();
-  const [edgePath, labelX, labelY] = getStraightPath({
+  const [edgePath, labelX, labelY] = getBezierPath({
     sourceX,
     sourceY,
     targetX,
@@ -36,7 +37,7 @@ export default function CustomEdge({
             setEdges((es) => es.filter((e) => e.id !== id));
           }}
         >
-          X
+          <CircleX/>
         </button>
       </EdgeLabelRenderer>
     </>

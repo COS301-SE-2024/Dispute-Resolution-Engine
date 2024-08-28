@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -403,4 +404,36 @@ func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
 	}
 
 	return workflow, nil
+}
+
+func StoreWorkflowToAPI(apiURL string, workflow *Workflow) error {
+	// Convert the workflow to JSON string
+	workflowJSON, err := WorkFlowToJSON(workflow)
+	if err != nil {
+		return err
+	}
+
+	// Create a new POST request with the workflow JSON as the body
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer([]byte(workflowJSON)))
+	if err != nil {
+		return err
+	}
+
+	// Set the appropriate content-type header
+	req.Header.Set("Content-Type", "application/json")
+
+	// Perform the request
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check for non-200 status code
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		return errors.New("failed to store workflow: " + resp.Status)
+	}
+
+	return nil
 }

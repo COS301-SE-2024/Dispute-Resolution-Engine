@@ -1,20 +1,18 @@
 "use client";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { ReactFlow, addEdge, useNodesState, useEdgesState } from "@xyflow/react";
 import CustomEdge from "./CustomEdge";
 
 import "@xyflow/react/dist/style.css";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Form } from "@/components/ui/form";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { register } from "module";
 import { Textarea } from "@/components/ui/textarea";
+import CustomNode from "./CustomNode";
 
 const initialNodes = [
-  { id: "a", position: { x: 0, y: 0 }, data: { label: "Node A" } },
+  { id: "a", type:"customNode", position: { x: 0, y: 0 }, data: { label: "Node A" } },
   { id: "b", position: { x: 0, y: 100 }, data: { label: "Node B" } },
   { id: "c", position: { x: 0, y: 200 }, data: { label: "Node C" } },
 ];
@@ -28,6 +26,7 @@ const edgeTypes = {
   "custom-edge": CustomEdge,
 };
 
+
 const newNodeSchema = z.object({
   label: z.string().min(1).max(50),
 });
@@ -38,7 +37,7 @@ function Flow() {
   let currId = useRef(1);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
+  const nodeTypes = useMemo(() => ({ customNode: CustomNode }), []);
   const onConnect = useCallback(
     (connection: any) => {
       const edge = { ...connection, type: "custom-edge" };
@@ -77,6 +76,7 @@ function Flow() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         edgeTypes={edgeTypes}
+        nodeTypes={nodeTypes}
         colorMode="dark"
         fitView
       ></ReactFlow>

@@ -28,7 +28,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="grid grid-cols-1 grid-rows-[auto_1fr] md:grid-rows-1 md:grid-cols-[auto_1fr] h-full overflow-hidden">
           <Navbar />
-          <main className="overflow-auto">{children}</main>
+          {children}
         </div>
       </body>
     </html>

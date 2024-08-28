@@ -2,6 +2,9 @@ package workflow
 
 import (
 	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"net/http"
 	"time"
 )
 
@@ -372,4 +375,32 @@ func (w *Workflow) GetTransitionsByTo(tostr string) []transition {
 		}
 	}
 	return transitions
+}
+
+func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
+	// Make the GET request
+	resp, err := http.Get(apiURL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Check for non-200 status code
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("failed to fetch workflow: " + resp.Status)
+	}
+
+	// Read the response body
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the JSON response to a Workflow object
+	workflow, err := JSONToWorkFlow(string(body))
+	if err != nil {
+		return nil, err
+	}
+
+	return workflow, nil
 }

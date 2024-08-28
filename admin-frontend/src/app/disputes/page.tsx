@@ -1,6 +1,6 @@
-import { Search, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,6 +10,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 export default function Disputes() {
   return (
@@ -36,25 +46,64 @@ export default function Disputes() {
         </div>
       </header>
       <main className="overflow-auto p-5 grow">
-        <Table>
-          <TableCaption>A list of your recent invoices.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Invoice</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell className="font-medium">INV001</TableCell>
-              <TableCell>Paid</TableCell>
-              <TableCell>Credit Card</TableCell>
-              <TableCell className="text-right">$250.00</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <Card>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="">Title</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Workflow</TableHead>
+                  <TableHead className="w-[150px] text-center">Date Filed</TableHead>
+                  <TableHead className="w-[150px] text-center">Date Resolved</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium">INV001</TableCell>
+                  <TableCell>Paid</TableCell>
+                  <TableCell>Credit Card</TableCell>
+                  <TableCell className="text-center">$250.00</TableCell>
+                  <TableCell className="text-center">$250.00</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">INV001</TableCell>
+                  <TableCell>Paid</TableCell>
+                  <TableCell>Credit Card</TableCell>
+                  <TableCell className="text-center">$250.00</TableCell>
+                  <TableCell className="text-center">$250.00</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">INV001</TableCell>
+                  <TableCell>Paid</TableCell>
+                  <TableCell>Credit Card</TableCell>
+                  <TableCell className="text-center">$250.00</TableCell>
+                  <TableCell className="text-center">$250.00</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium">INV001</TableCell>
+                  <TableCell>Paid</TableCell>
+                  <TableCell>Credit Card</TableCell>
+                  <TableCell className="text-center">$250.00</TableCell>
+                  <TableCell className="text-center">$250.00</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter>
+            <Pagination className="w-full">
+              <PaginationContent className="w-full">
+                <PaginationItem>
+                  <PaginationPrevious href="#" />
+                </PaginationItem>
+                <div className="grow" />
+                <PaginationItem>
+                  <PaginationNext href="#" />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </CardFooter>
+        </Card>
       </main>
     </div>
   );

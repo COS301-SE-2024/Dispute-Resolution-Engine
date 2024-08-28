@@ -8,6 +8,15 @@ import (
 type Timer struct {
     Deadline time.Time
     Name     string
+	Event   func()
+}
+
+type IScheduler interface {
+    AddTimer(name string, deadline time.Time)
+    AddEvent(name string, event func())
+    CancelTimer(name string)
+    Start()
+    Stop()
 }
 
 type Scheduler struct {
@@ -28,7 +37,16 @@ func NewScheduler(interval time.Duration) *Scheduler {
 func (s *Scheduler) AddTimer(name string, deadline time.Time) {
     s.mu.Lock()
     defer s.mu.Unlock()
-    s.Timers[name] = Timer{Deadline: deadline, Name: name}
+    s.Timers[name] = Timer{Deadline: deadline, Name: name, Event: nil}
+}
+
+func (s *Scheduler) AddEvent(name string, event func()) {
+    s.mu.Lock()
+    defer s.mu.Unlock()
+    if timer, exists := s.Timers[name]; exists {
+        timer.Event = event
+        s.Timers[name] = timer
+    }
 }
 
 func (s *Scheduler) CancelTimer(name string) {
@@ -62,9 +80,9 @@ func (s *Scheduler) checkTimers() {
     now := time.Now()
     for name, timer := range s.Timers {
         if now.After(timer.Deadline) {
-            // Fire the event (this is just a placeholder, implement actual event firing)
-            println("Event fired for timer:", name)
-            // Remove the expired timer
+            if timer.Event != nil {
+                timer.Event()
+            }
             delete(s.Timers, name)
         }
     }

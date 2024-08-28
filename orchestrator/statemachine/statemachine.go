@@ -1,8 +1,8 @@
 package statemachine
 
 import (
-	"context"
 	"fmt"
+	"orchestrator/scheduler"
 	"orchestrator/utilities"
 	"orchestrator/workflow"
 	"time"
@@ -19,24 +19,15 @@ type IStateMachine interface {
 }
 
 type stateMachine struct {
+	id 		     uint32
+	name  	     string
 	stateMachine *stateless.StateMachine
 	workflow	 workflow.IWorkflow
+	scheduler    *scheduler.Scheduler
 }
 
 func NewStateMachine() IStateMachine {
 	return &stateMachine{}
-}
-
-func CountDownTimer(ctx context.Context, duration time.Duration) error {
-    timer := time.NewTimer(duration)
-    defer timer.Stop()
-	fmt.Println("Timer started")
-    select {
-    case <-timer.C:
-        return nil // timer expired
-    case <-ctx.Done():
-        return ctx.Err() // context cancelled or timed out
-    }
 }
 
 func (s *stateMachine) Init(wf workflow.IWorkflow) {
@@ -44,8 +35,11 @@ func (s *stateMachine) Init(wf workflow.IWorkflow) {
 	logger.Info("Initialising state machine")
 	initState := wf.GetInitialState() // this whole sequence is a bit weird, but idk how else to do it
 	initStatePtr := &initState              // without changing the workflow interface
+	s.id = wf.GetID()
+	s.name = wf.GetName()
 	s.stateMachine = stateless.NewStateMachine(initStatePtr.GetName())
 	s.workflow = wf
+	s.scheduler = scheduler.NewScheduler(1 * time.Second) // 1 second interval
 
 	// for every state in the workflow, add it to the state machine
 	for _, state := range wf.GetStates() {
@@ -56,32 +50,32 @@ func (s *stateMachine) Init(wf workflow.IWorkflow) {
 			Permit(transition.GetTrigger(), transition.GetTo())
 		}
 		
-		// for every timer in the state, add it to the state machine
+		// for every timer in the state, add it to the scheduler
 		for _, timer := range state.GetTimers() {
-			s.stateMachine.Configure(state.GetName()).OnEntry(func(ctx context.Context, args ...any) error {
-				timerCtx, cancel := context.WithTimeout(ctx, timer.GetDuration())
-                defer cancel()
-
-                err := CountDownTimer(timerCtx, timer.GetDuration()) // this is where the timer is actually started
-				if err == nil {
-					// trigger the timer's trigger
-					logger.Info("Timer expired for state",state.GetName(),", triggering transition:", timer.WillTrigger())
+			timerName := fmt.Sprintf("%s_%s", state.GetName(), timer.WillTrigger())
+			s.scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()))
+		
+			// Store the expected state when the timer is set
+			expectedState := state.GetName()
+		
+			// Define the event function to trigger the state transition
+			s.scheduler.AddEvent(timerName, func() {
+				// Check if the current state is still the expected state
+				is_expected_state, err := s.stateMachine.IsInState(expectedState)
+				if err != nil {
+					logger.Error("Error checking if state machine is in state", expectedState, err)
+					return
+				}
+				if is_expected_state {
+					logger.Info("Timer expired for state", state.GetName(), ", triggering transition:", timer.WillTrigger())
 					transition := wf.GetTransition(timer.WillTrigger())
 					s.stateMachine.Fire(transition.GetTrigger())
 				} else {
-					logger.Info("Timer cancelled for state:", state.GetName())
-					// handle t
+					logger.Info("Timer expired but state has already transitioned from", expectedState)
 				}
-                return nil
-			})	
+			})
 		}
 	}
-	// s.stateMachine.Configure(workflow).
-    //     OnEntry(func(ctx context.Context, args ...any) error {
-    //         logger.Warn("Entered timeout state")
-    //         // Handle timeout scenario
-    //         return nil
-    //     })
 }
 
 func (s *stateMachine) Start() {

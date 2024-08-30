@@ -2,7 +2,7 @@ import { BackButton } from "@/components/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchArchivedDispute } from "@/lib/api/archive";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 function ErrorPage({ msg }: { msg: string }) {
   return (
@@ -49,7 +49,7 @@ export default async function ArchivedPageDispute({ params }: { params: { id: st
         </dl>
       </CardHeader>
       <CardContent>
-        <p className="mb-5">{data.summary}</p>
+        <p className="mb-5">{data.description}</p>
         <section>
           <h4 className="text-lg font-semibold">Timeline</h4>
           <ol className="ml-3">
@@ -60,7 +60,20 @@ export default async function ArchivedPageDispute({ params }: { params: { id: st
             ))}
           </ol>
         </section>
+        <AISummary summary={data.summary} />
       </CardContent>
     </Card>
+  );
+}
+
+function AISummary({ summary }: { summary?: string }) {
+  return (
+    <section className="border-t-2 border-gray-700">
+      <h4 className="text-lg font-semibold flex items-center">
+        <Sparkles size="1.2rem" className="mr-2" />
+        <span>AI Summary</span>
+      </h4>
+      <p className="dark:text-dre-bg-light/50">{summary ?? "No summary available"}</p>
+    </section>
   );
 }

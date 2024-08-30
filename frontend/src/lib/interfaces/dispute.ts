@@ -1,4 +1,4 @@
-export type Role = "Complainant" | "Respondant";
+export type Role = "Complainant" | "Respondent";
 
 export type DisputeSummary = {
   id: string;
@@ -12,6 +12,7 @@ export type Evidence = {
   label: string;
   url: string;
   date_submitted: string;
+  uploader_role: Role;
 };
 
 export type Expert = {
@@ -59,7 +60,9 @@ export interface DisputeCreateRequest {
   };
 }
 
-export type DisputeCreateResponse = string;
+export interface DisputeCreateResponse {
+  id: number;
+}
 
 export interface DisputeStatusUpdateRequest {
   dispute_id: string;

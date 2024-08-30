@@ -7,10 +7,15 @@ import { updateProfile } from "@/lib/actions/profile";
 import { getProfile } from "@/lib/api/profile";
 import { ProfileData } from "@/lib/schema/profile";
 import { Metadata } from "next";
+import { Button } from "@/components/ui/button";
+import { signout } from "@/lib/actions/auth";
+import SignOut from "@/app/profile/signout";
 
 const ProfileUpdateForm = Form<ProfileData>;
 const ProfileUpdateMessage = FormMessage<ProfileData>;
-
+function doSignOut() {
+  signout();
+}
 export const metadata: Metadata = {
   title: "DRE - Profile",
 };
@@ -61,6 +66,7 @@ export default async function Profile() {
             {/* <Button variant="destructive">Delete Account</Button> */}
             <ProfileUpdateMessage />
             <FormSubmit>Save</FormSubmit>
+            <SignOut></SignOut>
           </CardFooter>
         </ProfileUpdateForm>
       </Card>

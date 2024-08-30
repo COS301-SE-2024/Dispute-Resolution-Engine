@@ -1,6 +1,9 @@
-describe('Navigation', () => {
-	it('should login to the server', () => {
-		cy.visit('http://localhost:3000/archive')
-        cy.get('form > .flex').type('1')
+describe('Archive', () => {
+	it('should be accessible', () => {
+		cy.visit('https://capstone-dre.dns.net.za/archive')
+        cy.get('a').contains('Read More').click()
+		cy.contains('Date Filed')
+		cy.contains('Decision')
+		cy.get('dd').contains('2024')
 	})	
   })

@@ -1,17 +1,19 @@
 package handlers
 
 import (
+	"api/auditLogger"
 	"api/middleware"
 
-	"gorm.io/gorm"
 	"api/env"
 
+	"gorm.io/gorm"
 )
 
 type Handler struct {
-	DB *gorm.DB
-	EnvReader env.Env
-	jwt middleware.Jwt
+	DB                       *gorm.DB
+	EnvReader                env.Env
+	Jwt                      middleware.Jwt
+	DisputeProceedingsLogger auditLogger.DisputeProceedingsLoggerInterface
 }
 
 type Auth struct {
@@ -33,13 +35,17 @@ type Notification struct {
 type Expert struct {
 	Handler
 }
+type Archive struct {
+	Handler
+}
 
 type Workflow struct {
 	Handler
 }
 
 func new(db *gorm.DB) Handler {
-	return Handler{DB: db, EnvReader: env.NewEnvLoader(), jwt: middleware.NewJwtMiddleware()}
+	envReader := env.NewEnvLoader()
+	return Handler{DB: db, EnvReader: envReader, Jwt: middleware.NewJwtMiddleware(), DisputeProceedingsLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader)}
 }
 
 func NewAuthHandler(db *gorm.DB) Auth {
@@ -64,4 +70,8 @@ func NewWorkflowHandler(db *gorm.DB) Workflow {
 
 func NewExpertHandler(db *gorm.DB) Expert {
 	return Expert{new(db)}
+}
+
+func NewArchiveHandler(db *gorm.DB) Archive {
+	return Archive{new(db)}
 }

@@ -7,9 +7,10 @@ import { Result } from "@/lib/types";
 import { API_URL } from "../utils";
 
 export async function searchArchive(
-  params: ArchiveSearchRequest
+  params: ArchiveSearchRequest,
 ): Promise<Result<ArchiveSearchResponse>> {
   const res = await fetch(`${API_URL}/archive/search`, {
+    cache: "no-store",
     method: "POST",
     body: JSON.stringify(params),
   });
@@ -19,15 +20,19 @@ export async function searchArchive(
 }
 
 export async function fetchArchiveHighlights(
-  limit: number
+  limit: number,
 ): Promise<Result<ArchiveSearchResponse>> {
-  const res = await fetch(`${API_URL}/archive/highlights?limit=${limit}`);
+  const res = await fetch(`${API_URL}/archive/highlights?limit=${limit}`, {
+    cache: "no-store",
+  });
   return res.json().catch(async (e: Error) => ({
     error: e.message,
   }));
 }
 export async function fetchArchivedDispute(id: string): Promise<Result<ArchiveGetResponse>> {
-  return fetch(`${API_URL}/archive/${id}`)
+  return fetch(`${API_URL}/archive/${id}`, {
+    cache: "no-cache",
+  })
     .then((res) => res.json())
     .catch((e: Error) => ({
       error: e.message,

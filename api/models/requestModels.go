@@ -60,6 +60,7 @@ type CreateUser struct {
 	Gender            string  `json:"gender"`
 	PreferredLanguage *string `json:"preferred_language"`
 	Timezone          *string `json:"timezone"`
+	UserType          string  `json:"user_type"`
 }
 
 type VerifyUser struct {
@@ -120,14 +121,13 @@ type ExpertApproveRequest struct {
 }
 
 type ExpertRejectRequest struct {
-	ExpertID int64 `json:"expert_id"`
+	ExpertID int64  `json:"expert_id"`
 	Reason   string `json:"reason"`
 }
 
-
 type RejectExpertReview struct {
 	ExpertID int64 `json:"expert_id"`
-	Accepted  bool  `json:"accepted"`
+	Accepted bool  `json:"accepted"`
 }
 
 type DisputeStatusChange struct {

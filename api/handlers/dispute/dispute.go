@@ -4,11 +4,12 @@ import (
 	"api/middleware"
 	"api/models"
 	"api/utilities"
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -85,6 +86,9 @@ func (h Dispute) UploadEvidence(c *gin.Context) {
 		}
 	}
 	logger.Info("Evidence uploaded successfully")
+
+	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"dispute_id": disputeId, "user": claims, "message": "Evidence uploaded"})
+	// disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": user, "message": "Failed login attempt"})
 	c.JSON(http.StatusCreated, models.Response{
 		Data: "Files uploaded",
 	})
@@ -131,6 +135,7 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 			Role:        &role,
 		}
 	}
+	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": jwtClaims, "message": "Dispute summaries retrieved"})
 	logger.Info("Dispute summaries retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: summaries})
 }
@@ -216,12 +221,14 @@ func (h Dispute) GetDispute(c *gin.Context) {
 	DisputeDetailsResponse.Evidence = evidence
 	DisputeDetailsResponse.Experts = experts
 
+	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": jwtClaims, "message": "Dispute details retrieved"})
 	logger.Info("Dispute details retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: DisputeDetailsResponse})
 	// c.JSON(http.StatusOK, models.Response{Data: "Dispute Detail Endpoint for ID: " + id})
 }
 
 func (h Dispute) CreateDispute(c *gin.Context) {
+
 	logger := utilities.NewLogger().LogWithCaller()
 	claims, err := h.JWT.GetClaims(c)
 	if err != nil {
@@ -273,25 +280,47 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	//check if respondant is in database by email and phone number
 	var respondantID *int64
 	respondent, err := h.Model.GetUserByEmail(email)
-	if err != nil && err.Error() == "record not found" {
-		//create a default entry for the user
-		nameSplit := strings.Split(fullName, " ")
-		if len(nameSplit) < 2 {
-			logger.Error("Invalid full name")
-			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid full name"})
-			return
+	defaultAccount := false
+	//so if the error is record not found
+	if err != nil {
+		//if the user is not found in the database then we create the default user
+		if err.Error() == "record not found" {
+			logger.Info("Attempting to create default user")
+			//now we call to create the default user
+			secretPass := make([]byte, 5)
+			// Fill the byte slice with random values
+			_, err := rand.Read(secretPass)
+			if err != nil {
+				logger.WithError(err).Error("Error generating default password")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error generating default password"})
+				return
+			}
+
+			// Convert the byte slice to a base64 encoded string
+			pass := base64.StdEncoding.EncodeToString(secretPass)
+			err1 := h.Model.CreateDefaultUser(email, fullName, pass)
+			if err1 != nil {
+				logger.WithError(err1).Error("Error creating default user.")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating default user."})
+				return
+			}
+			go h.Email.SendDefaultUserEmail(c, email, pass, title, description)
+			logger.Info("Default respondent user created")
+			respondent, err = h.Model.GetUserByEmail(email)
+			if err != nil {
+				logger.WithError(err).Error("Error fetching the default respondent.")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error fetching the default respondent."})
+				return
+			}
+			logger.Info("Default respondent retreived.")
+			defaultAccount = true
 		} else {
-			logger.WithError(err).Error("Error retrieving respondent")
+			logger.Error("Error retrieving respondent")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
 			return
 		}
-	} else if err != nil {
-		logger.WithError(err).Error("Error retrieving respondent")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving respondent"})
-		return
-	} else {
-		respondantID = &respondent.ID
 	}
+	respondantID = &respondent.ID
 
 	//create entry into the dispute table
 	disputeId, err := h.Model.CreateDispute(models.Dispute{
@@ -331,10 +360,21 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 		}
 	}
 
+	//asssign experts to dispute
+	_, err = h.Model.AssignExpertsToDispute(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Error assigning experts to dispute")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+		return
+	}
+
 	// Respond with success message
-	go h.Email.SendAdminEmail(c, disputeId, email)
+	if !defaultAccount {
+		go h.Email.SendAdminEmail(c, disputeId, email, title, description)
+	}
 	logger.Info("Admin email sent")
-	c.JSON(http.StatusCreated, models.Response{Data: "Dispute created successfully"})
+	c.JSON(http.StatusCreated, models.Response{Data: models.DisputeCreationResponse{DisputeID: disputeId}})
+	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Dispute created and admin email sent"})
 	logger.Info("Dispute created successfully: ", title)
 }
 
@@ -356,6 +396,18 @@ func (h Dispute) UpdateStatus(c *gin.Context) {
 	go h.Email.NotifyDisputeStateChanged(c, disputeStatus.DisputeID, disputeStatus.Status)
 
 	logger.Info("Dispute status updated successfully")
+
+	if err != nil {
+		logger.WithError(err).Error("Error initializing dispute proceedings logger")
+	} else {
+		jwtClaims, err := h.JWT.GetClaims(c)
+		if err != nil {
+			logger.Error("Unauthorized access attempt")
+			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			return
+		}
+		h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": jwtClaims, "message": "Dispute status update successful"})
+	}
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute status update successful"})
 }
 
@@ -401,13 +453,15 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
+
 	err = h.Model.ObjectExpert(claims.ID, int64(disputeIdInt), req.ExpertID, req.Reason)
 	if err != nil {
-		logger.Error("Unauthorized access attempt in function expertObjection")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Unauthorized"})
+		logger.WithError(err).Error("Failed to object to expert")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
 		return
 	}
 
+	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Expert rejected suggestion"})
 	logger.Info("Expert rejected suggestion")
 	c.JSON(http.StatusOK, models.Response{Data: "objection filed successfully"})
 }
@@ -448,5 +502,7 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	}
 
 	logger.Info("Expert objections reviewed successfully")
+	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Expert objections reviewed successfully"})
+
 	c.JSON(http.StatusOK, models.Response{Data: "Expert objections reviewed successfully"})
 }

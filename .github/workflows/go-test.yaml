@@ -23,7 +23,7 @@ jobs:
       - name: Run go test
         run: |
           cd api
-          go test ./... -v
+          go test ./...
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:

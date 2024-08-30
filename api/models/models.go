@@ -27,13 +27,14 @@ type User struct {
 }
 
 type ArchivedDisputeSummary struct {
-	ID           int64     `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
-	Title        string    `json:"title" gorm:"type:varchar(255);column:title"`
-	Summary      string    `json:"summary" gorm:"type:text;column:summary"`
-	Category     []string  `json:"category" gorm:"type:varchar(255);column:category"`
-	DateFiled    time.Time `json:"date_filled" gorm:"type:timestamp;column:date_filled"`
-	DateResolved time.Time `json:"date_resolved" gorm:"type:timestamp;column:date_resolved"`
-	Resolution   string    `json:"resolution" gorm:"type:text;column:resolution"`
+	ID           int64    `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	Title        string   `json:"title" gorm:"type:varchar(255);column:title"`
+	Description  string   `json:"description" gorm:"type:text;column:summary"`
+	Summary      string   `json:"summary" gorm:"type:text;column:summary"`
+	Category     []string `json:"category" gorm:"type:varchar(255);column:category"`
+	DateFiled    string   `json:"date_filled" gorm:"type:timestamp;column:date_filled"`
+	DateResolved string   `json:"date_resolved" gorm:"type:timestamp;column:date_resolved"`
+	Resolution   string   `json:"resolution" gorm:"type:text;column:resolution"`
 }
 
 type Event struct {
@@ -105,6 +106,11 @@ func (LabelledWorkflow) TableName() string {
 	return "labelled_workflows"
 }
 
+type DisputeSummaries struct {
+	ID      int64  `json:"id" gorm:"primaryKey;autoincrement;column:dispute"`
+	Summary string `json:"summary" gorm:"type:text;column:summary"`
+}
+
 type SortAttribute string
 
 const (
@@ -116,6 +122,28 @@ const (
 
 func (User) TableName() string {
 	return "users"
+}
+
+type EventTypes string
+
+const (
+	Notification EventTypes = "NOTIFICATION"
+	Disputes     EventTypes = "DISPUTE"
+	Users        EventTypes = "USER"
+	Experts      EventTypes = "EXPERT"
+	Workflow     EventTypes = "WORKFLOW"
+)
+
+// EventLog represents the event_log table
+type EventLog struct {
+	ID        uint                   `gorm:"primaryKey"`
+	CreatedAt time.Time              `gorm:"default:CURRENT_TIMESTAMP"`
+	EventType EventTypes             `gorm:"type:event_types"`
+	EventData map[string]interface{} `gorm:"type:json"`
+}
+
+func (EventLog) TableName() string {
+	return "event_log"
 }
 
 type Address struct {
@@ -166,8 +194,8 @@ const (
 )
 
 type DisputeExpert struct {
-	Dispute         int64        `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:DisputeID;references:id"`
-	User            int64        `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;foreignKey:UserID;references:id"`
+	Dispute         int64        `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	User            int64        `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
 	ComplainantVote ExpertVote   `gorm:"column:complainant_vote;type:expert_vote;default:'Pending'"`
 	RespondantVote  ExpertVote   `gorm:"column:respondant_vote;type:expert_vote;default:'Pending'"`
 	ExpertVote      ExpertVote   `gorm:"column:expert_vote;type:expert_vote;default:'Pending'"`

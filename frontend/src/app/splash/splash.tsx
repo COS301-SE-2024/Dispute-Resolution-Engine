@@ -14,21 +14,24 @@ export default function Splash() {
 
       <div className="mx-auto w-full max-w-sm space-y-8 mt-8">
         <div className="grid grid-cols-3 gap-4">
-          <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50">
+          <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 border-2 border-white-300">
             <WorkflowIcon className="mx-auto h-8 w-8" />
             <p className="mt-2 text-sm font-medium">Efficient Workflows</p>
           </div>
-          <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50">
+          <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 border-2 border-white-300">
             <SaveIcon className="mx-auto h-8 w-8" />
             <p className="mt-2 text-sm font-medium">Cost Savings</p>
           </div>
-          <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50">
+          <div className="rounded-lg bg-gray-950 p-4 text-center text-gray-50 border-2 border-white-300">
             <InfoIcon className="mx-auto h-8 w-8" />
             <p className="mt-2 text-sm font-medium">Inclusive Summaries</p>
           </div>
         </div>
         <div className="flex justify-center">
-          <Button asChild>
+          <Button asChild className="mx-0.5">
+            <Link href="/login">Login</Link>
+          </Button>
+          <Button asChild className="mx-0.5">
             <Link href="/signup">Signup</Link>
           </Button>
         </div>

@@ -9,18 +9,13 @@ import {
 import { cookies } from "next/headers";
 import { JWT_KEY } from "../constants";
 import { API_URL } from "@/lib/utils";
+import { getAuthToken } from "../util/jwt";
+import { revalidatePath } from "next/cache";
 
 export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
-  const jwt = cookies().get(JWT_KEY)?.value;
-  if (!jwt) {
-    return {
-      error: "Unauthorized",
-    };
-  }
-
   const res = await fetch(`${API_URL}/disputes`, {
     headers: {
-      Authorization: `Bearer ${jwt}`,
+      Authorization: `Bearer ${getAuthToken()}`,
     },
   })
     .then((res) => res.json())
@@ -31,16 +26,9 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
 }
 
 export async function getDisputeDetails(id: string): Promise<Result<DisputeResponse>> {
-  const jwt = cookies().get(JWT_KEY)?.value;
-  if (!jwt) {
-    return {
-      error: "Unauthorized",
-    };
-  }
-
   const res = await fetch(`${API_URL}/disputes/${id}`, {
     headers: {
-      Authorization: `Bearer ${jwt}`,
+      Authorization: `Bearer ${getAuthToken()}`,
     },
   })
     .then(function (res) {
@@ -53,19 +41,13 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
 }
 export async function updateDisputeStatus(
   id: string,
-  status: string
+  status: string,
 ): Promise<Result<DisputeResponse>> {
-  const jwt = cookies().get(JWT_KEY)?.value;
-  if (!jwt) {
-    return {
-      error: "Unauthorized",
-    };
-  }
   const body: DisputeStatusUpdateRequest = { dispute_id: id, status };
   const res = await fetch(`${API_URL}/disputes/dispute/status`, {
     method: "PUT",
     headers: {
-      Authorization: `Bearer ${jwt}`,
+      Authorization: `Bearer ${getAuthToken()}`,
     },
     body: JSON.stringify(body),
   })
@@ -75,13 +57,14 @@ export async function updateDisputeStatus(
     .catch((e: Error) => ({
       error: e.message,
     }));
-  console.log("RESPONSE IN UPDATE DISPUTE\n", res)
-  console.log("BODY WAS\n", JSON.stringify(body))
-  return res
+  console.log("RESPONSE IN UPDATE DISPUTE\n", res);
+  console.log("BODY WAS\n", JSON.stringify(body));
+  revalidatePath(`/disputes/${id}`);
+  return res;
 }
-export async function getStatusEnum() : Promise<string[]>{
+export async function getStatusEnum(): Promise<string[]> {
   const res = await fetch(`${API_URL}/utils/dispute_statuses`, {
-    method: "GET"
+    method: "GET",
   })
     .then((res) => res.json())
     .catch((e: Error) => ({

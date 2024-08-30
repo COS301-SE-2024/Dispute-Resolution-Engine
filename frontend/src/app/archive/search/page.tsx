@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { searchArchive } from "@/lib/api/archive";
-import { ArchivedDisputeSummary } from "@/lib/interfaces/archive";
+import { ArchivedDisputeSummary, SortAttribute } from "@/lib/interfaces/archive";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,6 +90,8 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
     search: params.q,
     offset: params.offset * PAGE_SIZE,
     limit: PAGE_SIZE,
+    order: params.order as "asc" | "desc" | undefined,
+    sort: params.sort as SortAttribute | undefined,
   });
 
   if (error) {
@@ -100,7 +102,7 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
   const total = Math.ceil(data!.total / PAGE_SIZE) - 1;
 
   return (
-    <>
+    <div className="pt-8 pl-8">
       <form className="p-3 items-start gap-2 flex flex-col">
         <Input
           defaultValue={params.q}
@@ -140,6 +142,6 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
           </PaginationContent>
         </Pagination>
       </footer>
-    </>
+    </div>
   );
 }

@@ -33,8 +33,17 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { AdminDispute } from "@/lib/types/dispute";
+import Link from "next/link";
+import { getDisputeList } from "@/lib/api/dispute";
 
-export default function Disputes() {
+export default async function Disputes() {
+  // TODO: Replace this with a Tanstack/react-query result
+  const { data, error } = await getDisputeList({});
+  if (error) {
+    throw new Error(error);
+  }
+
   return (
     <div className="flex flex-col">
       <PageHeader label="Disputes" />
@@ -83,34 +92,9 @@ export default function Disputes() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">INV001</TableCell>
-                  <TableCell>Paid</TableCell>
-                  <TableCell>Credit Card</TableCell>
-                  <TableCell className="text-center">$250.00</TableCell>
-                  <TableCell className="text-center">$250.00</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">INV001</TableCell>
-                  <TableCell>Paid</TableCell>
-                  <TableCell>Credit Card</TableCell>
-                  <TableCell className="text-center">$250.00</TableCell>
-                  <TableCell className="text-center">$250.00</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">INV001</TableCell>
-                  <TableCell>Paid</TableCell>
-                  <TableCell>Credit Card</TableCell>
-                  <TableCell className="text-center">$250.00</TableCell>
-                  <TableCell className="text-center">$250.00</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">INV001</TableCell>
-                  <TableCell>Paid</TableCell>
-                  <TableCell>Credit Card</TableCell>
-                  <TableCell className="text-center">$250.00</TableCell>
-                  <TableCell className="text-center">$250.00</TableCell>
-                </TableRow>
+                {data!.map((dispute) => (
+                  <DisputeRow key={dispute.id} {...dispute} />
+                ))}
               </TableBody>
             </Table>
           </CardContent>
@@ -150,5 +134,22 @@ function StatusSelect() {
         </SelectGroup>
       </SelectContent>
     </Select>
+  );
+}
+
+function DisputeRow(props: AdminDispute) {
+  return (
+    <TableRow>
+      <TableCell className="font-medium">
+        <Link href={`/disputes/${props.id}`}>{props.title}</Link>
+      </TableCell>
+      {/* TODO: Convert this to a badge dropdown */}
+      <TableCell>{props.status}</TableCell>
+      <TableCell>
+        <Link href={`/workflows/${props.workflow.id}`}>{props.workflow.title}</Link>
+      </TableCell>
+      <TableCell className="text-center">{props.date_filed}</TableCell>
+      <TableCell className="text-center">{props.date_resolved ?? "-"}</TableCell>
+    </TableRow>
   );
 }

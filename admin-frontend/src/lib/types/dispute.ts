@@ -13,7 +13,7 @@ export interface Filter {
 
 export interface AdminDisputesRequest {
   // Search term for the title of disputes
-  search: string;
+  search?: string;
 
   // Pagination parameters
   limit?: number;
@@ -28,7 +28,7 @@ export interface AdminDisputesRequest {
   };
 
   // The filters to apply to data
-  filter: Filter[];
+  filter?: Filter[];
 
   dateFilter?: {
     filed?: {
@@ -49,7 +49,8 @@ export interface AdminDisputesRequest {
     };
   };
 }
-export type AdminDisputesResponse = Array<{
+
+export interface AdminDispute {
   id: string;
   title: string;
   status: string;
@@ -64,4 +65,6 @@ export type AdminDisputesResponse = Array<{
 
   // Optional because dispute may still be active (i.e. no resolved date)
   date_resolved?: string;
-}>;
+}
+
+export type AdminDisputesResponse = Array<AdminDispute>;

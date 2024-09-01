@@ -7,7 +7,7 @@ export async function getDisputeList(
   return {
     data: [
       {
-        id: "1",
+        id: "bruh",
         title: "Sales hire vs. Hire City",
         status: "Awaiting Respondent",
 

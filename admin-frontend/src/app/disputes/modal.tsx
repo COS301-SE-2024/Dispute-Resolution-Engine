@@ -16,6 +16,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 function Evidence() {
   return (
@@ -48,8 +51,8 @@ function Evidence() {
 
 export default function DisputeDetails({ open = false }: { open?: boolean }) {
   return (
-    <Sidebar open={open} className="p-6 md:pl-8 rounded-l-2xl space-y-6">
-      <DialogHeader className="grid grid-cols-[1fr_auto] gap-2 border-b pb-6 border-primary-500/50 space-y-0 items-center">
+    <Sidebar open={open} className="p-6 md:pl-8 rounded-l-2xl flex flex-col">
+      <DialogHeader className="grid grid-cols-[1fr_auto] gap-2 border-b pb-6 mb-6 border-primary-500/50 space-y-0 items-center">
         <DialogTitle className="p-2">
           Mr. Plastic CC vs. Mr. Plastic & Mining Promotional Goods
         </DialogTitle>
@@ -67,23 +70,67 @@ export default function DisputeDetails({ open = false }: { open?: boolean }) {
 
         <p>Case Number: ZA2007-0001</p>
       </DialogHeader>
-      <Card>
-        <CardHeader>
-          <CardTitle>Overview</CardTitle>
-          <CardDescription>Description here</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <strong>Evidence</strong>
-          <ul className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-2">
-            <Evidence />
-            <Evidence />
-            <Evidence />
-            <Evidence />
-            <Evidence />
-            <Evidence />
-          </ul>
-        </CardContent>
-      </Card>
+      <div className="overflow-y-auto grow space-y-6 ">
+        <Card>
+          <CardHeader>
+            <CardTitle>Overview</CardTitle>
+            <CardDescription>Description here</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <strong>Evidence</strong>
+            <ul className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-2">
+              <Evidence />
+              <Evidence />
+              <Evidence />
+              <Evidence />
+              <Evidence />
+              <Evidence />
+            </ul>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <section className="space-y-3">
+              <CardTitle>Complainant</CardTitle>
+              <div>
+                <Label>Name</Label>
+                <Input disabled value="John doe" />
+              </div>
+
+              <div>
+                <Label>Email</Label>
+                <Input disabled value="email" />
+              </div>
+
+              <div>
+                <Label>Address</Label>
+                <Textarea disabled className="resize-none">
+                  Hey
+                </Textarea>
+              </div>
+            </section>
+            <section className="space-y-3">
+              <CardTitle>Respondent</CardTitle>
+              <div>
+                <Label>Name</Label>
+                <Input disabled value="John doe" />
+              </div>
+
+              <div>
+                <Label>Email</Label>
+                <Input disabled value="email" />
+              </div>
+
+              <div>
+                <Label>Address</Label>
+                <Textarea disabled className="resize-none">
+                  Hey
+                </Textarea>
+              </div>
+            </section>
+          </CardContent>
+        </Card>
+      </div>
     </Sidebar>
   );
 }

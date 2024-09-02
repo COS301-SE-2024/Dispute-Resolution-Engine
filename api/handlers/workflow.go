@@ -11,6 +11,7 @@ import (
 )
 
 func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
+	
 	g.GET("", h.GetWorkflows)
 	g.GET("/:id", h.GetIndividualWorkflow)
 	g.POST("", h.StoreWorkflow)

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -378,9 +379,31 @@ func (w *Workflow) GetTransitionsByTo(tostr string) []transition {
 	return transitions
 }
 
+type StoreWorkflowRequest struct {
+	WorkflowDefinition map[string]interface{} `json:"workflow_definition,omitempty"`
+	Category           []int64                `json:"category,omitempty"`
+	Author             *int64                `json:"author,omitempty"`
+}
+
+type UpdateWorkflowRequest struct {
+	WorkflowDefinition *map[string]interface{} `json:"workflow_definition,omitempty"`
+	Category           *[]int64                `json:"category,omitempty"`
+	Author             *int64                `json:"author,omitempty"`
+}
+
 func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
-	// Make the GET request
-	resp, err := http.Get(apiURL)
+	// Create a new GET request
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the X-Orchestrator-Key header
+	req.Header.Set("X-Orchestrator-Key", os.Getenv("ORCHESTRATOR_KEY"))
+
+	// Perform the request
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -406,21 +429,36 @@ func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
 	return workflow, nil
 }
 
-func StoreWorkflowToAPI(apiURL string, workflow *Workflow) error {
+
+func StoreWorkflowToAPI(apiURL string, workflow *Workflow, categories []int64, Author *int64) error {
 	// Convert the workflow to JSON string
-	workflowJSON, err := WorkFlowToJSON(workflow)
+	var workflowMap map[string]interface{}
+	workflowBytes, err := json.Marshal(workflow)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(workflowBytes, &workflowMap); err != nil {
+		return err
+	}
+	store := StoreWorkflowRequest{
+		WorkflowDefinition: workflowMap,
+		Category:           categories,
+		Author:             Author,
+	}
+	storeJSON, err := json.Marshal(store)
 	if err != nil {
 		return err
 	}
 
 	// Create a new POST request with the workflow JSON as the body
-	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer([]byte(workflowJSON)))
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(storeJSON))
 	if err != nil {
 		return err
 	}
 
 	// Set the appropriate content-type header
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Orchestrator-Key", os.Getenv("ORCHESTRATOR_KEY"))
 
 	// Perform the request
 	client := &http.Client{Timeout: 10 * time.Second}
@@ -437,3 +475,4 @@ func StoreWorkflowToAPI(apiURL string, workflow *Workflow) error {
 
 	return nil
 }
+

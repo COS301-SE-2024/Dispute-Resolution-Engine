@@ -44,6 +44,7 @@ var requiredEnvVariables = []string{
 	"FRONTEND_BASE_URL",
 	"JWT_SECRET",
 	"OPENAI_KEY",
+	"ORCHESTRATOR_KEY",
 }
 
 // @title Dispute Resolution Engine - v1
@@ -124,6 +125,7 @@ func main() {
 	handlers.SetupExpertRoutes(expertGroup, expertHandler)
 
 	workflowGroup := router.Group("/workflows")
+	workflowGroup.Use(jwt.JWTMiddleware)
 	handlers.SetupWorkflowRoutes(workflowGroup,workflowHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

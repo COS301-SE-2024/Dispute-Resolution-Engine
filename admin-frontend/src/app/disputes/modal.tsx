@@ -1,53 +1,13 @@
 import { Button } from "@/components/ui/button";
 
-import {
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Download, EllipsisVertical, FileText, Trash, X } from "lucide-react";
+import { DialogClose, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 import Sidebar from "@/components/admin/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-function Evidence() {
-  return (
-    <li className="grid grid-cols-[auto_1fr_auto] gap-2 items-center px-3 py-2 border border-primary-500/30 rounded-md">
-      <FileText className="stroke-primary-500" size="1.7rem" />
-      <div>
-        <span className="truncate">Evidence name</span> <br />
-        <span className="truncate opacity-50">Submission date</span>
-      </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="rounded-full p-2">
-            <EllipsisVertical />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem>
-            <Download className="mr-2" />
-            <span>Download file</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="text-red-500">
-            <Trash className="mr-2" />
-            <span>Delete evidence</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </li>
-  );
-}
+import Evidence from "./evidence";
+import { Label } from "@/components/ui/label";
 
 export default function DisputeDetails({ open = false }: { open?: boolean }) {
   return (
@@ -79,12 +39,12 @@ export default function DisputeDetails({ open = false }: { open?: boolean }) {
           <CardContent>
             <h4 className="mb-1">Evidence</h4>
             <ul className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-2">
-              <Evidence />
-              <Evidence />
-              <Evidence />
-              <Evidence />
-              <Evidence />
-              <Evidence />
+              <Evidence id="0" label="evidence.pdf" url="https://google.com" date="today" />
+              <Evidence id="1" label="evidence.pdf" url="https://google.com" date="today" />
+              <Evidence id="2" label="evidence.pdf" url="https://google.com" date="today" />
+              <Evidence id="3" label="evidence.pdf" url="https://google.com" date="today" />
+              <Evidence id="4" label="evidence.pdf" url="https://google.com" date="today" />
+              <Evidence id="5" label="evidence.pdf" url="https://google.com" date="today" />
             </ul>
           </CardContent>
         </Card>

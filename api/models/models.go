@@ -131,7 +131,7 @@ const (
 	Disputes     EventTypes = "DISPUTE"
 	Users        EventTypes = "USER"
 	Experts      EventTypes = "EXPERT"
-	Workflow     EventTypes = "WORKFLOW"
+	Workflows     EventTypes = "WORKFLOW"
 )
 
 // EventLog represents the event_log table

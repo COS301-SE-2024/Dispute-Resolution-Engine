@@ -12,9 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import CustomNode from "./CustomNode";
 
 const initialNodes = [
-  { id: "0", type:"customNode", position: { x: 0, y: 0 }, data: { label: "Node A" } },
-  { id: "1", type:"customNode", position: { x: 0, y: 100 }, data: { label: "Node B" } },
-  { id: "2", type:"customNode", position: { x: 0, y: 200 }, data: { label: "Node C" } },
+  { id: "0", type: "customNode", position: { x: 0, y: 0 }, data: { label: "Node A" } },
+  { id: "1", type: "customNode", position: { x: 0, y: 100 }, data: { label: "Node B" } },
+  { id: "2", type: "customNode", position: { x: 0, y: 200 }, data: { label: "Node C" } },
 ];
 
 const initialEdges = [
@@ -25,7 +25,6 @@ const initialEdges = [
 const edgeTypes = {
   "custom-edge": CustomEdge,
 };
-
 
 const newNodeSchema = z.object({
   label: z.string().min(1).max(50),
@@ -43,22 +42,22 @@ function Flow() {
       const edge = { ...connection, type: "custom-edge" };
       setEdges((eds) => addEdge(edge, eds));
     },
-    [setEdges],
+    [setEdges]
   );
 
   const addNode = useCallback(
     (params: any) => {
       const newNode = {
         id: currId.current.toString(),
-        type:"customNode",
+        type: "customNode",
         position: { x: 0, y: 200 },
-        data: { label: params.label},
+        data: { label: params.label },
         // data: { label: params.label , time: {hours: 10, minutes: 20, seconds: 30}},
       };
       currId.current = currId.current + 1;
       setNodes((nds) => nds.concat(newNode));
     },
-    [setNodes],
+    [setNodes]
   );
 
   const form = useForm<NewNodeData>({
@@ -82,7 +81,7 @@ function Flow() {
         colorMode="dark"
         fitView
       >
-        <Background  bgColor="#111827"/>
+        <Background bgColor="#111827" />
       </ReactFlow>
       <form onSubmit={form.handleSubmit(addNode)}>
         <Textarea {...form.register("label")}></Textarea>

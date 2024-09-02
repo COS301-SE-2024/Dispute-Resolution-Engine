@@ -26,7 +26,7 @@ function Evidence() {
       <FileText className="stroke-primary-500" size="1.7rem" />
       <div>
         <span className="truncate">Evidence name</span> <br />
-        <span className="truncate text-white/50">Submission date</span>
+        <span className="truncate opacity-50">Submission date</span>
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -70,14 +70,14 @@ export default function DisputeDetails({ open = false }: { open?: boolean }) {
 
         <p>Case Number: ZA2007-0001</p>
       </DialogHeader>
-      <div className="overflow-y-auto grow space-y-6 ">
+      <div className="overflow-y-auto grow space-y-6 pr-3">
         <Card>
           <CardHeader>
             <CardTitle>Overview</CardTitle>
             <CardDescription>Description here</CardDescription>
           </CardHeader>
           <CardContent>
-            <strong>Evidence</strong>
+            <h4 className="mb-1">Evidence</h4>
             <ul className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-2">
               <Evidence />
               <Evidence />
@@ -118,14 +118,12 @@ export default function DisputeDetails({ open = false }: { open?: boolean }) {
 
               <div>
                 <Label>Email</Label>
-                <Input disabled value="email" />
+                <Input value="email" />
               </div>
 
               <div>
                 <Label>Address</Label>
-                <Textarea disabled className="resize-none">
-                  Hey
-                </Textarea>
+                <Textarea className="resize-none" defaultValue="Hey" />
               </div>
             </section>
           </CardContent>

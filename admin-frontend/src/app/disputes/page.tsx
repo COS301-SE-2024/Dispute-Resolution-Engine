@@ -45,7 +45,6 @@ export default async function Disputes({ searchParams }: { searchParams: unknown
   if (!params) {
     throw new Error(JSON.stringify(searchError));
   }
-
   // TODO: Replace this with a Tanstack/react-query result
   const { data, error } = await getDisputeList({});
   if (error) {

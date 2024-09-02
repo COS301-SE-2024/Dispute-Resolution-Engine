@@ -16,7 +16,7 @@ export default function Error({
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <main>
+      <main className="max-w-3xl px-8">
         <h2 className="font-bold text-3xl mb-2">500 Oops, something went wrong :(</h2>
         <p className="mb-4">Error message: {error.message}</p>
         <Button onClick={reset} variant="outline">

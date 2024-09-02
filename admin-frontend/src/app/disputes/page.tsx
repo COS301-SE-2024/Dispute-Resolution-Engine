@@ -35,6 +35,8 @@ import Link from "next/link";
 import { getDisputeList } from "@/lib/api/dispute";
 import { z } from "zod";
 import DisputeDetails from "./modal";
+import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown";
+import DisputeRow from "./row";
 
 const searchSchema = z.object({
   id: z.string().optional(),
@@ -144,22 +146,5 @@ function StatusSelect() {
         </SelectGroup>
       </SelectContent>
     </Select>
-  );
-}
-
-function DisputeRow(props: AdminDispute) {
-  return (
-    <TableRow>
-      <TableCell className="font-medium">
-        <Link href={{ pathname: "/disputes", query: { id: props.id } }}>{props.title}</Link>
-      </TableCell>
-      {/* TODO: Convert this to a badge dropdown */}
-      <TableCell>{props.status}</TableCell>
-      <TableCell>
-        <Link href={`/workflows/${props.workflow.id}`}>{props.workflow.title}</Link>
-      </TableCell>
-      <TableCell className="text-center">{props.date_filed}</TableCell>
-      <TableCell className="text-center">{props.date_resolved ?? "-"}</TableCell>
-    </TableRow>
   );
 }

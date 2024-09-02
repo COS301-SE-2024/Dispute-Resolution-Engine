@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Evidence from "./evidence";
 import { Label } from "@/components/ui/label";
+import { StatusBadge } from "@/components/admin/status-dropdown";
 
 export default function DisputeDetails({ open = false }: { open?: boolean }) {
   return (
@@ -24,7 +25,9 @@ export default function DisputeDetails({ open = false }: { open?: boolean }) {
           </DialogClose>
         </div>
         <div className="flex gap-2 items-center">
-          <Button>Brother what</Button>
+          <StatusBadge variant="waiting" dropdown>
+            Awaiting respondent
+          </StatusBadge>
           <span>Filed 2 days ago</span>
         </div>
 
@@ -64,9 +67,7 @@ export default function DisputeDetails({ open = false }: { open?: boolean }) {
 
               <div>
                 <Label>Address</Label>
-                <Textarea disabled className="resize-none">
-                  Hey
-                </Textarea>
+                <Textarea disabled className="resize-none" value="Hey" />
               </div>
             </section>
             <section className="space-y-3">
@@ -83,7 +84,7 @@ export default function DisputeDetails({ open = false }: { open?: boolean }) {
 
               <div>
                 <Label>Address</Label>
-                <Textarea className="resize-none" defaultValue="Hey" />
+                <Textarea disabled className="resize-none" value="Hey" />
               </div>
             </section>
           </CardContent>

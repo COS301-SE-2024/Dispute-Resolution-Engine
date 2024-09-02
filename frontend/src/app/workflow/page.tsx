@@ -12,14 +12,14 @@ import { Textarea } from "@/components/ui/textarea";
 import CustomNode from "./CustomNode";
 
 const initialNodes = [
-  { id: "a", type:"customNode", position: { x: 0, y: 0 }, data: { label: "Node A" } },
-  { id: "b", position: { x: 0, y: 100 }, data: { label: "Node B" } },
-  { id: "c", position: { x: 0, y: 200 }, data: { label: "Node C" } },
+  { id: "0", type:"customNode", position: { x: 0, y: 0 }, data: { label: "Node A" } },
+  { id: "1", type:"customNode", position: { x: 0, y: 100 }, data: { label: "Node B" } },
+  { id: "2", type:"customNode", position: { x: 0, y: 200 }, data: { label: "Node C" } },
 ];
 
 const initialEdges = [
-  { id: "a->b", type: "custom-edge", source: "a", target: "b" },
-  { id: "b->c", type: "custom-edge", source: "b", target: "c" },
+  { id: "0->1", type: "custom-edge", source: "0", target: "1" },
+  { id: "1->2", type: "custom-edge", source: "1", target: "2" },
 ];
 
 const edgeTypes = {
@@ -34,7 +34,7 @@ type NewNodeData = z.infer<typeof newNodeSchema>;
 
 // http://localhost:3000/workflow
 function Flow() {
-  let currId = useRef(1);
+  let currId = useRef(3);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const nodeTypes = useMemo(() => ({ customNode: CustomNode }), []);
@@ -50,8 +50,10 @@ function Flow() {
     (params: any) => {
       const newNode = {
         id: currId.current.toString(),
+        type:"customNode",
         position: { x: 0, y: 200 },
-        data: { label: params.label },
+        data: { label: params.label},
+        // data: { label: params.label , time: {hours: 10, minutes: 20, seconds: 30}},
       };
       currId.current = currId.current + 1;
       setNodes((nds) => nds.concat(newNode));

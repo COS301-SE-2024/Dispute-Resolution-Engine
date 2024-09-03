@@ -144,6 +144,13 @@ func main() {
 	}
 	fmt.Println("====================================")
 
+	//test update workflow in database
+	err = workflow.UpdateWorkflowToAPI("http://localhost:8080/workflows/6", wf2, nil, nil)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
 }
 
 func testWorkFlowToJson(wf workflow.IWorkflow) (string, error) {

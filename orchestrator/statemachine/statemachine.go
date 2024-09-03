@@ -19,10 +19,10 @@ type IStateMachine interface {
 }
 
 type stateMachine struct {
-	id 		     uint32
-	name  	     string
+	id           uint32
+	name         string
 	stateMachine *stateless.StateMachine
-	workflow	 workflow.IWorkflow
+	workflow     workflow.IWorkflow
 	scheduler    *scheduler.Scheduler
 }
 
@@ -34,12 +34,12 @@ func (s *stateMachine) Init(wf workflow.IWorkflow) {
 	logger := utilities.NewLogger().LogWithCaller()
 	logger.Info("Initialising state machine")
 	initState := wf.GetInitialState() // this whole sequence is a bit weird, but idk how else to do it
-	initStatePtr := &initState              // without changing the workflow interface
+	initStatePtr := &initState        // without changing the workflow interface
 	s.id = wf.GetID()
 	s.name = wf.GetName()
 	s.stateMachine = stateless.NewStateMachine(initStatePtr.GetName())
 	s.workflow = wf
-	s.scheduler = scheduler.NewScheduler(1 * time.Second) // 1 second interval
+	s.scheduler = scheduler.New(1 * time.Second) // 1 second interval
 
 	// for every state in the workflow, add it to the state machine
 	for _, state := range wf.GetStates() {
@@ -47,19 +47,18 @@ func (s *stateMachine) Init(wf workflow.IWorkflow) {
 		toTransitions := wf.GetTransitionsByFrom(state.GetName())
 		for _, transition := range toTransitions {
 			s.stateMachine.Configure(state.GetName()).
-			Permit(transition.GetTrigger(), transition.GetTo())
+				Permit(transition.GetTrigger(), transition.GetTo())
 		}
-		
+
 		// for every timer in the state, add it to the scheduler
 		for _, timer := range state.GetTimers() {
+
 			timerName := fmt.Sprintf("%s_%s", state.GetName(), timer.WillTrigger())
-			s.scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()))
-		
+
 			// Store the expected state when the timer is set
 			expectedState := state.GetName()
-		
-			// Define the event function to trigger the state transition
-			s.scheduler.AddEvent(timerName, func() {
+
+			s.scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()), func() {
 				// Check if the current state is still the expected state
 				is_expected_state, err := s.stateMachine.IsInState(expectedState)
 				if err != nil {
@@ -74,6 +73,26 @@ func (s *stateMachine) Init(wf workflow.IWorkflow) {
 					logger.Info("Timer expired but state has already transitioned from", expectedState)
 				}
 			})
+
+			// // Store the expected state when the timer is set
+			// expectedState := state.GetName()
+
+			// // Define the event function to trigger the state transition
+			// s.scheduler.AddEvent(timerName, func() {
+			// 	// Check if the current state is still the expected state
+			// 	is_expected_state, err := s.stateMachine.IsInState(expectedState)
+			// 	if err != nil {
+			// 		logger.Error("Error checking if state machine is in state", expectedState, err)
+			// 		return
+			// 	}
+			// 	if is_expected_state {
+			// 		logger.Info("Timer expired for state", state.GetName(), ", triggering transition:", timer.WillTrigger())
+			// 		transition := wf.GetTransition(timer.WillTrigger())
+			// 		s.stateMachine.Fire(transition.GetTrigger())
+			// 	} else {
+			// 		logger.Info("Timer expired but state has already transitioned from", expectedState)
+			// 	}
+			// })
 		}
 	}
 }

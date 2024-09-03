@@ -37,4 +37,5 @@ func TestStart(t *testing.T) {
 	s.Start(stop)
 	nextTime := <-result
 	assert.True(t, nextTime.After(currentTime))
+	stop <- struct{}{}
 }

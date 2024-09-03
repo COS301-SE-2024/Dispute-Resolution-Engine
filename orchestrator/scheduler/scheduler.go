@@ -1,7 +1,7 @@
 package scheduler
 
 import (
-	"fmt"
+	"orchestrator/utilities"
 	"sync"
 	"time"
 )
@@ -16,10 +16,20 @@ type Scheduler struct {
 	timers       map[string]Timer
 	lock         *sync.RWMutex
 	pollInterval time.Duration
+	logger       *utilities.Logger
 }
 
-func New(pollInterval time.Duration) Scheduler {
-	return Scheduler{
+func New(pollInterval time.Duration) *Scheduler {
+	return &Scheduler{
+		timers:       make(map[string]Timer),
+		lock:         &sync.RWMutex{},
+		pollInterval: pollInterval,
+		logger:       utilities.NewLogger(),
+	}
+}
+
+func NewWithLogger(pollInterval time.Duration, logger *utilities.Logger) *Scheduler {
+	return &Scheduler{
 		timers:       make(map[string]Timer),
 		lock:         &sync.RWMutex{},
 		pollInterval: pollInterval,
@@ -37,6 +47,7 @@ func (s *Scheduler) AddTimer(name string, deadline time.Time, event func()) {
 		Deadline: deadline,
 		Event:    event,
 	}
+	s.logger.Debug("Timer added: ", name, ". Expires at ", deadline)
 }
 
 // Removes the timer with the passed-in name, returning whether that timer was
@@ -47,6 +58,13 @@ func (s *Scheduler) RemoveTimer(name string) bool {
 
 	_, found := s.timers[name]
 	delete(s.timers, name)
+
+	if found {
+		s.logger.Debug("Timer removed: ", name)
+	} else {
+		s.logger.Warning("Timer not found: ", name)
+	}
+
 	return found
 }
 
@@ -59,7 +77,7 @@ func (s *Scheduler) Start(stop chan struct{}) {
 			case currentTime := <-ticker.C:
 				s.checkTimers(currentTime)
 			case <-stop:
-				fmt.Println("Stop scheduler")
+				s.logger.Info("Scheduler stopped")
 				return
 			}
 		}
@@ -71,8 +89,10 @@ func (s *Scheduler) checkTimers(currentTime time.Time) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
+	s.logger.Debug("Checking all timers")
 	for _, timer := range s.timers {
 		if currentTime.After(timer.Deadline) {
+			s.logger.Info("Timer expired:", timer.Name)
 			timer.Event()
 
 			// There is no way to upgrade an existing lock, so this is the way (unfortunately)
@@ -80,6 +100,7 @@ func (s *Scheduler) checkTimers(currentTime time.Time) {
 			s.lock.Lock()
 
 			delete(s.timers, timer.Name)
+			s.logger.Debug("Timer removed: ", timer.Name)
 
 			s.lock.Unlock()
 			s.lock.RLock()

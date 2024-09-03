@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/accordion";
 import { disputeDuration } from "@/lib/types";
 import TimerCheckbox from "./TimerCheckbox";
+import EventSection from "./EventSection";
 
 const handleStyle = { left: 10 };
 
@@ -22,12 +23,13 @@ export default function CustomNode(data: any) {
       <Card className="dark:bg-black min-w-48">
         <CardHeader className="p-3 text-center">
           {/* TODO: USE state to actually change the label */}
-          <CardTitle contentEditable="true" suppressContentEditableWarning={true}>
+          <CardTitle contentEditable="true" className="text-3xl" suppressContentEditableWarning={true}>
             {data.data.label}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <TimerCheckbox data={data} />
+          <EventSection></EventSection>
         </CardContent>
       </Card>
       <Handle type="source" position={Position.Bottom} id="a" />

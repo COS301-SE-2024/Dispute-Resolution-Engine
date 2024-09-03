@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,7 +24,7 @@ export default function TimerCheckbox(data: any) {
     minutes: 20,
     seconds: 30,
   });
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecked, setIsChecked] = useState(true);
 
   const handleInputChange = (
     evt: React.ChangeEvent<HTMLInputElement>,
@@ -36,9 +37,8 @@ export default function TimerCheckbox(data: any) {
     }));
   };
 
-  const handleCheckboxChange: React.FormEventHandler<HTMLButtonElement> = (evt) => {
-    const target = evt.currentTarget as HTMLInputElement;
-    setIsChecked(target.checked);
+  const handleCheckboxChange = (checked: boolean) => {
+    setIsChecked(checked);
   };
 
   const arr = ["days", "hours", "minutes", "seconds"];
@@ -56,32 +56,41 @@ export default function TimerCheckbox(data: any) {
       />
     </div>
   ));
+
   const timerText = () => {
     return (
       <div>
-        Timer: {duration.days == 0 ? "" : duration.days.toString() + "d"}{" "}
-        {duration.hours == 0 ? "" : duration.hours.toString() + "h"}{" "}
-        {duration.minutes == 0 ? "" : duration.minutes.toString() + "m"}{" "}
-        {duration.seconds == 0 ? "" : duration.seconds.toString() + "s"}
+        Timer: {duration.days === 0 ? "" : duration.days + "d"}{" "}
+        {duration.hours === 0 ? "" : duration.hours + "h"}{" "}
+        {duration.minutes === 0 ? "" : duration.minutes + "m"}{" "}
+        {duration.seconds === 0 ? "" : duration.seconds + "s"}
       </div>
     );
   };
 
   return (
     <div className="grid grid-cols-[auto_1fr] gap-3">
-      <Checkbox id="timerCheckbox" checked={isChecked} onChange={handleCheckboxChange} />
-      <Label htmlFor="timerCheckbox">
+      <Checkbox
+        id="timerCheckbox"
+        checked={isChecked}
+        onCheckedChange={handleCheckboxChange}
+      />
+      <Label htmlFor="timerCheckbox" className={!isChecked ? "pointer-events-none" : ""}>
         {isChecked ? (
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
-              <AccordionTrigger className="pt-0">{timerText()}</AccordionTrigger>
+              <AccordionTrigger className="pt-0 text-2xl">
+                {timerText()}
+              </AccordionTrigger>
               <AccordionContent className="grid grid-cols-2 items-center gap-3 pt-3">
                 {inputs}
               </AccordionContent>
             </AccordionItem>
           </Accordion>
         ) : (
-          timerText()
+          <div className="text-gray-600">
+            {timerText()}
+          </div>
         )}
       </Label>
     </div>

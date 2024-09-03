@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"orchestrator/env"
 
@@ -436,19 +436,42 @@ func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
 	}
 
 	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert the JSON response to a Workflow object
-	workflow, err := JSONToWorkFlow(string(body))
+	// Define a temporary structure to extract the data field and ID
+	var responseData struct {
+		Data struct {
+			ID               int             `json:"ID"`
+			WorkflowDefinition json.RawMessage `json:"WorkflowDefinition"`
+		} `json:"data"`
+	}
+
+	// Unmarshal the JSON response to extract the "data" field
+	err = json.Unmarshal(body, &responseData)
 	if err != nil {
 		return nil, err
 	}
+
+	// Extract the ID field into a variable
+	id := responseData.Data.ID
+
+	// Convert the JSON response to a Workflow object using your existing function
+	workflow, err := JSONToWorkFlow(string(responseData.Data.WorkflowDefinition))
+	if err != nil {
+		return nil, err
+	}
+
+	workflow.id = uint32(id)
+	// Optionally, you can set the ID on the Workflow object
+	// workflow.ID = id
 
 	return workflow, nil
 }
+
+
 
 func StoreWorkflowToAPI(apiURL string, workflow IWorkflow, categories []int64, Author *int64) error {
 	// Convert the workflow to JSON string

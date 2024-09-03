@@ -93,12 +93,12 @@ func main() {
 	fmt.Println("Workflow JSON:\n", jsonStr+"\n------------\n")
 
 	//test storing workflow in database
-	var category []int64
-	err = workflow.StoreWorkflowToAPI("http://localhost:8080/workflows", wf, category, nil)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+	// var category []int64
+	// err = workflow.StoreWorkflowToAPI("http://localhost:8080/workflows", wf, category, nil)
+	// if err != nil {
+	// 	fmt.Println("Error:", err)
+	// 	return
+	// }
 
 	// test the JSONToWorkFlow function
 	err = testJsonToWorkFlow(jsonStr)
@@ -124,6 +124,26 @@ func main() {
 	sm.Start()
 
 	//test fetch workflow from database
+	wf2, err := workflow.FetchWorkflowFromAPI("http://localhost:8080/workflows/1")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("====================================")
+	fmt.Println(wf2.GetID())
+	fmt.Println(wf2.GetName())
+	fmt.Println(wf2.GetInitialState())
+	states = wf2.GetStates()
+	for _, s := range states {
+		fmt.Println(s)
+	}
+
+	transitions = wf2.GetTransitions()
+	for _, t := range transitions {
+		fmt.Println(t)
+	}
+	fmt.Println("====================================")
+
 }
 
 func testWorkFlowToJson(wf workflow.IWorkflow) (string, error) {

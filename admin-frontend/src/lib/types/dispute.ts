@@ -67,4 +67,24 @@ export interface AdminDispute {
   date_resolved?: string;
 }
 
+export interface Evidence {
+  id: string;
+  label: string;
+  submitted_at: string;
+}
+
+export interface UserDetails {
+  name: string;
+  email: string;
+  address: string;
+}
+
+export interface DisputeDetails extends AdminDispute {
+  description: string;
+  evidence: Evidence[];
+  complainant: UserDetails;
+  respondent: UserDetails;
+}
+
 export type AdminDisputesResponse = Array<AdminDispute>;
+export type DisputeDetailsResponse = DisputeDetails;

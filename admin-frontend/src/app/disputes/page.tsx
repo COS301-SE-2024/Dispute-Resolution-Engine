@@ -30,13 +30,13 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { AdminDispute } from "@/lib/types/dispute";
 import Link from "next/link";
-import { getDisputeList } from "@/lib/api/dispute";
+import { getDisputeDetails, getDisputeList } from "@/lib/api/dispute";
 import { z } from "zod";
-import DisputeDetails from "./modal";
+import Details from "./modal";
 import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown";
 import DisputeRow from "./row";
+import { type AdminDispute, type DisputeDetails } from "@/lib/types/dispute";
 
 const searchSchema = z.object({
   id: z.string().optional(),
@@ -47,15 +47,24 @@ export default async function Disputes({ searchParams }: { searchParams: unknown
   if (!params) {
     throw new Error(JSON.stringify(searchError));
   }
-  // TODO: Replace this with a Tanstack/react-query result
+
   const { data, error } = await getDisputeList({});
   if (error) {
     throw new Error(error);
   }
 
+  let details: DisputeDetails | undefined = undefined;
+  if (params.id) {
+    const { data, error } = await getDisputeDetails(params.id);
+    if (error) {
+      throw new Error(error);
+    }
+    details = data;
+  }
+
   return (
     <>
-      <DisputeDetails open={params.id !== undefined} />
+      <Details details={details} />
       <div className="flex flex-col">
         <PageHeader label="Disputes" />
         <div className="flex items-center px-5 gap-2 pr-2 border-b dark:border-primary-500/30 border-primary-500/20">

@@ -1,50 +1,82 @@
 import { Result } from "@/lib/types";
-import { AdminDisputesRequest, AdminDisputesResponse } from "../types/dispute";
+import {
+  AdminDisputesRequest,
+  AdminDisputesResponse,
+  DisputeDetails,
+  DisputeDetailsResponse,
+} from "../types/dispute";
 
 export async function getDisputeList(
   req: AdminDisputesRequest
 ): Promise<Result<AdminDisputesResponse>> {
   return {
-    data: [
-      {
-        id: "bruh",
-        title: "Sales hire vs. Hire City",
-        status: "Awaiting Respondent",
-
-        workflow: {
-          id: "1",
-          title: "Domain Dispute",
-        },
-
-        date_filed: "2 days ago",
-      },
-      {
-        id: "2",
-        title: "Telkom SA vs. Cool-aid",
-        status: "Active",
-
-        // The workflow that the dispute follows
-        workflow: {
-          id: "2",
-          title: "Marital Dispute",
-        },
-
-        date_filed: "yesterday",
-      },
-      {
-        id: "3",
-        title: "Standard Bank vs. Bank of Standards",
-        status: "Settled",
-
-        // The workflow that the dispute follows
-        workflow: {
-          id: "1",
-          title: "Domain Dispute",
-        },
-
-        date_filed: "2 days ago",
-        date_resolved: "today",
-      },
-    ],
+    data: MOCK_DATA,
   };
 }
+
+export async function getDisputeDetails(id: string): Promise<Result<DisputeDetailsResponse>> {
+  const result = MOCK_DATA.find((d) => d.id === id);
+  if (!result) {
+    return {
+      error: "Dispute not found",
+    };
+  } else {
+    return {
+      data: result,
+    };
+  }
+}
+
+const MOCK_DATA: DisputeDetails[] = [
+  {
+    id: "ZA2007-0001",
+    title: "Sales hire vs. Hire City",
+    status: "Awaiting Respondent",
+
+    workflow: {
+      id: "1",
+      title: "Domain Dispute",
+    },
+
+    date_filed: "2 days ago",
+    description:
+      "The Complainant contends that it has rights in respect of the name or  mark MR PLASTIC and that the domain name in dispute is identical or  similar to this name or mark and it is therefore an abusive registration.",
+    evidence: [],
+    complainant: {
+      name: "Mr. Plastic CC",
+      email: "mrplastic@gmail.com",
+      address: "13 Geldenhuys Road\nMalvern East\nBedfordview, Gauteng",
+    },
+    respondent: {
+      name: "Mr.  Plastic  &  Mining  Promotional Goods",
+      email: "mrplastic@outlook.com",
+      address: "26 Boom Street\nJeppestown, Gauteng",
+    },
+  },
+  {
+    id: "ZA2007-0003",
+    title: "Telkom SA LTD vs. Cool Ideas 1290 CC",
+    status: "Awaiting Respondent",
+
+    workflow: {
+      id: "1",
+      title: "Domain Dispute",
+    },
+
+    date_filed: "2 days ago",
+    description:
+      "It has registered trade mark rights. It has listed 10 (ten) trade mark  registrations in South Africa dating from 1991 for the trade mark TELKOM and  TELKOM & KEYPAD logo in various classes including class 38 that relates to  telecommunication services.",
+
+    evidence: [],
+    respondent: {
+      name: "Cool Ideas 1290 CC",
+      email: "telkom@gmail.com",
+      address: "25 Sidonia Avenue\nNorwood, Johannesburg\nGAUTENG",
+    },
+    complainant: {
+      name: "Telkom SA Limited",
+      email: "telkom@outlook.com",
+      address: "Telkom Towers North\n152 Proes Street\nPretoria\nGauteng",
+    },
+  },
+];

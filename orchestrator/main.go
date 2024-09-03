@@ -7,52 +7,54 @@ import (
 	// "orchestrator/db"
 	// "orchestrator/env"
 	// "orchestrator/utilities"
-	"orchestrator/scheduler"
+	"orchestrator/env"
+	// "orchestrator/scheduler"
 	"orchestrator/statemachine"
 	"orchestrator/workflow"
 )
 
 var RequiredEnvVariables = []string{
 	// PostGres-related variables
-	"DATABASE_URL",
-	"DATABASE_PORT",
-	"DATABASE_USER",
-	"DATABASE_PASSWORD",
-	"DATABASE_NAME",
+	// "DATABASE_URL",
+	// "DATABASE_PORT",
+	// "DATABASE_USER",
+	// "DATABASE_PASSWORD",
+	// "DATABASE_NAME",
+	"ORCHESTRATOR_KEY",
 }
 
 func main() {
-	stop := make(chan struct{})
-	s := scheduler.New(time.Second)
-	s.Start(stop)
+	// stop := make(chan struct{})
+	// s := scheduler.New(time.Second)
+	// s.Start(stop)
 
-	for {
-		var seconds int64
-		var name string
+	// for {
+	// 	var seconds int64
+	// 	var name string
 
-		fmt.Print("Timer name: ")
-		fmt.Scan(&name)
+	// 	fmt.Print("Timer name: ")
+	// 	fmt.Scan(&name)
 
-		if name == "quit" {
-			break
-		}
+	// 	if name == "quit" {
+	// 		break
+	// 	}
 
-		fmt.Print("Timer duration (in seconds): ")
-		fmt.Scan(&seconds)
+	// 	fmt.Print("Timer duration (in seconds): ")
+	// 	fmt.Scan(&seconds)
 
-		s.AddTimer(name, time.Now().Add(time.Second*time.Duration(seconds)), func() {
-			fmt.Printf("Callback called: %s\n", name)
-		})
-	}
-	stop <- struct{}{}
+	// 	s.AddTimer(name, time.Now().Add(time.Second*time.Duration(seconds)), func() {
+	// 		fmt.Printf("Callback called: %s\n", name)
+	// 	})
+	// }
+	// stop <- struct{}{}
 
 	// fmt.Println("Hello, World!")
 	// logger := utilities.NewLogger().LogWithCaller()
-	// env.LoadFromFile(".env", "api.env")
+	env.LoadFromFile(".env", "api.env")
 
-	// for _, key := range requiredEnvVariables {
-	// 	env.Register(key)
-	// }
+	for _, key := range RequiredEnvVariables {
+		env.Register(key)
+	}
 
 	// DB, err := db.Init()
 	// if err != nil {
@@ -90,6 +92,14 @@ func main() {
 	}
 	fmt.Println("Workflow JSON:\n", jsonStr+"\n------------\n")
 
+	//test storing workflow in database
+	var category []int64
+	err = workflow.StoreWorkflowToAPI("http://localhost:8080/workflows", wf, category, nil)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
 	// test the JSONToWorkFlow function
 	err = testJsonToWorkFlow(jsonStr)
 	if err != nil {
@@ -112,6 +122,8 @@ func main() {
 	sm := statemachine.NewStateMachine()
 	sm.Init(wf)
 	sm.Start()
+
+	//test fetch workflow from database
 }
 
 func testWorkFlowToJson(wf workflow.IWorkflow) (string, error) {

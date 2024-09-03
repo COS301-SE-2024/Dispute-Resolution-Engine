@@ -6,7 +6,9 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
-	"os"
+	"orchestrator/env"
+
+	// "orchestrator/env"
 	"time"
 )
 
@@ -300,6 +302,20 @@ func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 	return w, nil
 }
 
+func JSONToMap(jsonStr string) (map[string]interface{}, error) {
+	// Initialize an empty map to hold the JSON structure
+	result := make(map[string]interface{})
+
+	// Unmarshal the JSON string into the map
+	err := json.Unmarshal([]byte(jsonStr), &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+
 func (w *Workflow) GetID() uint32 {
 	return w.id
 }
@@ -382,13 +398,13 @@ func (w *Workflow) GetTransitionsByTo(tostr string) []transition {
 type StoreWorkflowRequest struct {
 	WorkflowDefinition map[string]interface{} `json:"workflow_definition,omitempty"`
 	Category           []int64                `json:"category,omitempty"`
-	Author             *int64                `json:"author,omitempty"`
+	Author             *int64                 `json:"author,omitempty"`
 }
 
 type UpdateWorkflowRequest struct {
 	WorkflowDefinition *map[string]interface{} `json:"workflow_definition,omitempty"`
 	Category           *[]int64                `json:"category,omitempty"`
-	Author             *int64                `json:"author,omitempty"`
+	Author             *int64                  `json:"author,omitempty"`
 }
 
 func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
@@ -398,8 +414,13 @@ func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
 		return nil, err
 	}
 
+	key, err := env.Get("ORCHESTRATOR_KEY")
+	if err != nil {
+		return nil, err
+	}
+
 	// Set the X-Orchestrator-Key header
-	req.Header.Set("X-Orchestrator-Key", os.Getenv("ORCHESTRATOR_KEY"))
+	req.Header.Set("X-Orchestrator-Key", key)
 
 	// Perform the request
 	client := &http.Client{Timeout: 10 * time.Second}
@@ -429,17 +450,18 @@ func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
 	return workflow, nil
 }
 
-
-func StoreWorkflowToAPI(apiURL string, workflow *Workflow, categories []int64, Author *int64) error {
+func StoreWorkflowToAPI(apiURL string, workflow IWorkflow, categories []int64, Author *int64) error {
 	// Convert the workflow to JSON string
-	var workflowMap map[string]interface{}
-	workflowBytes, err := json.Marshal(workflow)
+	workflowJSON, err := WorkFlowToJSON(workflow.(*Workflow))
 	if err != nil {
 		return err
 	}
-	if err := json.Unmarshal(workflowBytes, &workflowMap); err != nil {
+
+	workflowMap, err := JSONToMap(workflowJSON)
+	if err != nil {
 		return err
 	}
+
 	store := StoreWorkflowRequest{
 		WorkflowDefinition: workflowMap,
 		Category:           categories,
@@ -457,8 +479,13 @@ func StoreWorkflowToAPI(apiURL string, workflow *Workflow, categories []int64, A
 	}
 
 	// Set the appropriate content-type header
+	key, err := env.Get("ORCHESTRATOR_KEY")
+	if err != nil {
+		return err
+	}
+
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Orchestrator-Key", os.Getenv("ORCHESTRATOR_KEY"))
+	req.Header.Set("X-Orchestrator-Key", key)
 
 	// Perform the request
 	client := &http.Client{Timeout: 10 * time.Second}
@@ -475,4 +502,3 @@ func StoreWorkflowToAPI(apiURL string, workflow *Workflow, categories []int64, A
 
 	return nil
 }
-

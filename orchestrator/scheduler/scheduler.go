@@ -2,10 +2,9 @@ package scheduler
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
-
-var timers = map[string]Timer{}
 
 type Timer struct {
 	Name     string
@@ -13,49 +12,73 @@ type Timer struct {
 	Event    func()
 }
 
-func AddTimer(name string, deadline time.Time, event func()) {
-	timers[name] = Timer{
+type Scheduler struct {
+	timers       map[string]Timer
+	lock         *sync.RWMutex
+	pollInterval time.Duration
+}
+
+func New(pollInterval time.Duration) Scheduler {
+	return Scheduler{
+		timers:       make(map[string]Timer),
+		lock:         &sync.RWMutex{},
+		pollInterval: pollInterval,
+	}
+}
+
+// Adds a new timer that will execute the callback after the deadline
+func (s *Scheduler) AddTimer(name string, deadline time.Time, event func()) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.timers[name] = Timer{
 		Name:     name,
 		Deadline: deadline,
 		Event:    event,
 	}
 }
 
-func RemoveTimer(name string) {
-	delete(timers, name)
+// Removes the timer with the passed-in name
+func (s *Scheduler) RemoveTimer(name string) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	delete(s.timers, name)
 }
 
-func Start(stop chan struct{}) {
-
-	// The scheduler
-	// timers := map[string]Timer{}
-	ticker := time.NewTicker(time.Second)
+// Spawns a new goroutine that polls the timer registry for expired timers
+func (s *Scheduler) Start(stop chan struct{}) {
+	ticker := time.NewTicker(s.pollInterval)
 	go func() {
 		for {
 			select {
 			case currentTime := <-ticker.C:
-				checkTimers(timers, currentTime)
+				s.checkTimers(currentTime)
 			case <-stop:
 				fmt.Println("Stop scheduler")
 				return
 			}
 		}
 	}()
-
-	for {
-		var value string
-		fmt.Print("Action: ")
-		fmt.Scan(&value)
-		if value == "quit" {
-			stop <- struct{}{}
-		}
-	}
 }
 
-func checkTimers(timers map[string]Timer, currentTime time.Time) {
-	for _, timer := range timers {
+// Triggers the callbacks of all expired timers
+func (s *Scheduler) checkTimers(currentTime time.Time) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	for _, timer := range s.timers {
 		if currentTime.After(timer.Deadline) {
 			timer.Event()
+
+			// There is no way to upgrade an existing lock, so this is the way (unfortunately)
+			s.lock.RUnlock()
+			s.lock.Lock()
+
+			delete(s.timers, timer.Name)
+
+			s.lock.Unlock()
+			s.lock.RLock()
 		}
 	}
 }

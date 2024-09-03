@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"time"
+
 	// "orchestrator/db"
 	// "orchestrator/env"
 	// "orchestrator/utilities"
+	"orchestrator/scheduler"
 	"orchestrator/statemachine"
 	"orchestrator/workflow"
 )
@@ -20,6 +22,30 @@ var RequiredEnvVariables = []string{
 }
 
 func main() {
+	stop := make(chan struct{})
+	s := scheduler.New(time.Second)
+	s.Start(stop)
+
+	for {
+		var seconds int64
+		var name string
+
+		fmt.Print("Timer name: ")
+		fmt.Scan(&name)
+
+		if name == "quit" {
+			break
+		}
+
+		fmt.Print("Timer duration (in seconds): ")
+		fmt.Scan(&seconds)
+
+		s.AddTimer(name, time.Now().Add(time.Second*time.Duration(seconds)), func() {
+			fmt.Printf("Callback called: %s\n", name)
+		})
+	}
+	stop <- struct{}{}
+
 	// fmt.Println("Hello, World!")
 	// logger := utilities.NewLogger().LogWithCaller()
 	// env.LoadFromFile(".env", "api.env")
@@ -132,6 +158,5 @@ func testJsonToWorkFlow(jsonStr string) error {
 	}
 	fmt.Println("Workflow JSON conversion successful====================")
 
-	
 	return nil
 }

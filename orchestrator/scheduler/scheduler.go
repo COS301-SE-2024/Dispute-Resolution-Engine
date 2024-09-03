@@ -26,7 +26,8 @@ func New(pollInterval time.Duration) Scheduler {
 	}
 }
 
-// Adds a new timer that will execute the callback after the deadline
+// Adds a new timer that will execute the callback after the deadline, overwriting
+// any existing timer with the same name.
 func (s *Scheduler) AddTimer(name string, deadline time.Time, event func()) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -38,12 +39,15 @@ func (s *Scheduler) AddTimer(name string, deadline time.Time, event func()) {
 	}
 }
 
-// Removes the timer with the passed-in name
-func (s *Scheduler) RemoveTimer(name string) {
+// Removes the timer with the passed-in name, returning whether that timer was
+// found and successfully removed.
+func (s *Scheduler) RemoveTimer(name string) bool {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
+	_, found := s.timers[name]
 	delete(s.timers, name)
+	return found
 }
 
 // Spawns a new goroutine that polls the timer registry for expired timers

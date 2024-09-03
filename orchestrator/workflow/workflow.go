@@ -525,3 +525,70 @@ func StoreWorkflowToAPI(apiURL string, workflow IWorkflow, categories []int64, A
 
 	return nil
 }
+
+func UpdateWorkflowToAPI(apiURL string, workflow *Workflow, categories *[]int64, author *int64) error {
+	// Prepare the update request structure
+	var update UpdateWorkflowRequest
+
+	// Convert the workflow to a JSON map only if it's provided
+	if workflow != nil {
+		workflowJSON, err := WorkFlowToJSON(workflow)
+		if err != nil {
+			return err
+		}
+
+		workflowMap, err := JSONToMap(workflowJSON)
+		if err != nil {
+			return err
+		}
+
+		update.WorkflowDefinition = &workflowMap
+	}
+
+	// Add categories if provided
+	if categories != nil {
+		update.Category = categories
+	}
+
+	// Add author if provided
+	if author != nil {
+		update.Author = author
+	}
+
+	// Marshal the update request object to JSON
+	updateJSON, err := json.Marshal(update)
+	if err != nil {
+		return err
+	}
+
+	// Create a new PUT request with the update JSON as the body
+	req, err := http.NewRequest("PUT", apiURL, bytes.NewBuffer(updateJSON))
+	if err != nil {
+		return err
+	}
+
+	// Set the appropriate headers
+	key, err := env.Get("ORCHESTRATOR_KEY")
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Orchestrator-Key", key)
+
+	// Perform the request
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check for non-200 status code
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		return errors.New("failed to update workflow: " + resp.Status)
+	}
+
+	return nil
+}
+

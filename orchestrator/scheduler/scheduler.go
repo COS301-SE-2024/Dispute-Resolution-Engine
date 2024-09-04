@@ -47,7 +47,7 @@ func (s *Scheduler) AddTimer(name string, deadline time.Time, event func()) {
 		Deadline: deadline,
 		Event:    event,
 	}
-	s.logger.Debug("Timer added: ", name, ". Expires at ", deadline)
+	s.logger.Info("Timer added: ", name, ". Expires at ", deadline)
 }
 
 // Removes the timer with the passed-in name, returning whether that timer was
@@ -89,11 +89,11 @@ func (s *Scheduler) checkTimers(currentTime time.Time) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	s.logger.Debug("Checking all timers")
+	s.logger.Info("Checking all timers")
 	for _, timer := range s.timers {
 		if currentTime.After(timer.Deadline) {
 			s.logger.Info("Timer expired:", timer.Name)
-			timer.Event()
+			go timer.Event()
 
 			// There is no way to upgrade an existing lock, so this is the way (unfortunately)
 			s.lock.RUnlock()

@@ -8,6 +8,7 @@ import (
 	"orchestrator/utilities"
 	"orchestrator/workflow"
 	"orchestrator/statemachine"
+	"time"
 )
 
 type Controller struct {
@@ -21,8 +22,14 @@ func NewController() *Controller {
 	return &Controller{
 		StateMachineRegistry: make(map[uint32]statemachine.IStateMachine),
 		logger: *utilities.NewLogger().LogWithCaller(),
-		Scheduler: scheduler.NewWithLogger(1, utilities.NewLogger().LogWithCaller()),
+		Scheduler: scheduler.NewWithLogger(time.Second, utilities.NewLogger()),
 	}
+}
+
+func (c *Controller) Start() {
+	c.logger.Info("Starting controller...")
+	c.logger.Info("Starting scheduler...")
+	c.Scheduler.Start(make(chan struct{}))// idk why we need this struct chan...
 }
 
 // RegisterStateMachine registers a state machine with the controller AND starts it.

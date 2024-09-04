@@ -39,10 +39,12 @@ func main() {
 	// 	logger.WithError(err).Fatal("Couldn't initialize database connection")
 	// }
 	// fmt.Println(DB)
-	period, _ := time.ParseDuration("15s")
-	fee_timer1 := workflow.CreateTimer("fee_timer_1", period, workflow.TriggerFeeNotPaid)
-	fee_timer2 := workflow.CreateTimer("fee_timer_2", period, workflow.TriggerFeeNotPaid)
-	fee_timer3 := workflow.CreateTimer("fee_timer_3", period, workflow.TriggerFeeNotPaid)
+	period1, _ := time.ParseDuration("10s")
+	period2, _ := time.ParseDuration("20s")
+	period3, _ := time.ParseDuration("25s")
+	fee_timer1 := workflow.CreateTimer("fee_timer_1", period1, workflow.TriggerFeeNotPaid)
+	fee_timer2 := workflow.CreateTimer("fee_timer_2", period2, workflow.TriggerFeeNotPaid)
+	fee_timer3 := workflow.CreateTimer("fee_timer_3", period3, workflow.TriggerFeeNotPaid)
 
 	state1 := workflow.CreateState("state1")
 	state1.AddTimer(fee_timer1)

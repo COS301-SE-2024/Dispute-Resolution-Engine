@@ -1,6 +1,9 @@
 package controller
 
 import (
+	"os"
+	"os/signal"
+	"syscall"
 	"orchestrator/scheduler"
 	"orchestrator/utilities"
 	"orchestrator/workflow"
@@ -29,4 +32,19 @@ func (c *Controller) RegisterStateMachine(wf workflow.IWorkflow) {
 	sm.Init(wf, c.Scheduler)
 	c.StateMachineRegistry[wf.GetID()] = sm
 	go c.StateMachineRegistry[wf.GetID()].Start()
+}
+
+// WaitForSignal blocks until an appropriate signal is received
+func (c *Controller) WaitForSignal() {
+    sigs := make(chan os.Signal, 1)
+    signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+    sig := <-sigs
+    c.logger.Info("Received signal: ", sig)
+    c.Shutdown()
+}
+
+// Shutdown gracefully shuts down the controller
+func (c *Controller) Shutdown() {
+    c.logger.Info("Shutting down controller")
+	// Functions for ceasing all statemachines and the scheduler
 }

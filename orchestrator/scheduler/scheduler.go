@@ -47,7 +47,7 @@ func (s *Scheduler) AddTimer(name string, deadline time.Time, event func()) {
 		Deadline: deadline,
 		Event:    event,
 	}
-	s.logger.Debug("Timer added: ", name, ". Expires at ", deadline) //! This cause a segfault idk why
+	s.logger.Debug("Timer added: ", name, ". Expires at ", deadline)
 }
 
 // Removes the timer with the passed-in name, returning whether that timer was

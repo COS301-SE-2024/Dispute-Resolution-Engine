@@ -315,7 +315,6 @@ func JSONToMap(jsonStr string) (map[string]interface{}, error) {
 	return result, nil
 }
 
-
 func (w *Workflow) GetID() uint32 {
 	return w.id
 }
@@ -444,7 +443,7 @@ func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
 	// Define a temporary structure to extract the data field and ID
 	var responseData struct {
 		Data struct {
-			ID               int             `json:"ID"`
+			ID                 int             `json:"ID"`
 			WorkflowDefinition json.RawMessage `json:"WorkflowDefinition"`
 		} `json:"data"`
 	}
@@ -470,8 +469,6 @@ func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
 
 	return workflow, nil
 }
-
-
 
 func StoreWorkflowToAPI(apiURL string, workflow IWorkflow, categories []int64, Author *int64) error {
 	// Convert the workflow to JSON string
@@ -591,4 +588,3 @@ func UpdateWorkflowToAPI(apiURL string, workflow *Workflow, categories *[]int64,
 
 	return nil
 }
-

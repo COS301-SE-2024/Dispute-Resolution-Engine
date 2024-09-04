@@ -24,7 +24,6 @@ func New(pollInterval time.Duration) *Scheduler {
 		timers:       make(map[string]Timer),
 		lock:         &sync.RWMutex{},
 		pollInterval: pollInterval,
-		logger:       utilities.NewLogger(),
 	}
 }
 
@@ -33,6 +32,7 @@ func NewWithLogger(pollInterval time.Duration, logger *utilities.Logger) *Schedu
 		timers:       make(map[string]Timer),
 		lock:         &sync.RWMutex{},
 		pollInterval: pollInterval,
+		logger:       logger,
 	}
 }
 

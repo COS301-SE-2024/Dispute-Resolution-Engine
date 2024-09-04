@@ -7,10 +7,11 @@ import (
 	// "orchestrator/db"
 	// "orchestrator/env"
 	// "orchestrator/utilities"
-	"orchestrator/env"
+	// "orchestrator/env"
 	// "orchestrator/scheduler"
-	"orchestrator/statemachine"
+	// "orchestrator/statemachine"
 	"orchestrator/workflow"
+	"orchestrator/controller"
 )
 
 var RequiredEnvVariables = []string{
@@ -24,50 +25,31 @@ var RequiredEnvVariables = []string{
 }
 
 func main() {
-	// stop := make(chan struct{})
-	// s := scheduler.New(time.Second)
-	// s.Start(stop)
-
-	// for {
-	// 	var seconds int64
-	// 	var name string
-
-	// 	fmt.Print("Timer name: ")
-	// 	fmt.Scan(&name)
-
-	// 	if name == "quit" {
-	// 		break
-	// 	}
-
-	// 	fmt.Print("Timer duration (in seconds): ")
-	// 	fmt.Scan(&seconds)
-
-	// 	s.AddTimer(name, time.Now().Add(time.Second*time.Duration(seconds)), func() {
-	// 		fmt.Printf("Callback called: %s\n", name)
-	// 	})
-	// }
-	// stop <- struct{}{}
 
 	// fmt.Println("Hello, World!")
 	// logger := utilities.NewLogger().LogWithCaller()
-	env.LoadFromFile(".env", "api.env")
+	// env.LoadFromFile(".env", "api.env")
 
-	for _, key := range RequiredEnvVariables {
-		env.Register(key)
-	}
+	// for _, key := range RequiredEnvVariables {
+	// 	env.Register(key)
+	// }
 
 	// DB, err := db.Init()
 	// if err != nil {
 	// 	logger.WithError(err).Fatal("Couldn't initialize database connection")
 	// }
 	// fmt.Println(DB)
+	period, _ := time.ParseDuration("15s")
+	fee_timer1 := workflow.CreateTimer("fee_timer_1", period, workflow.TriggerFeeNotPaid)
+	fee_timer2 := workflow.CreateTimer("fee_timer_2", period, workflow.TriggerFeeNotPaid)
+	fee_timer3 := workflow.CreateTimer("fee_timer_3", period, workflow.TriggerFeeNotPaid)
 
 	state1 := workflow.CreateState("state1")
-	period, _ := time.ParseDuration("15s")
-	fee_timer2 := workflow.CreateTimer("fee_timer", period, workflow.TriggerFeeNotPaid)
+	state1.AddTimer(fee_timer1)
 	state2 := workflow.CreateState("state2")
 	state2.AddTimer(fee_timer2)
 	state3 := workflow.CreateState("state3")
+	state3.AddTimer(fee_timer3)
 	state4 := workflow.CreateState(workflow.StateDisputeFeeDue)
 
 	wf := workflow.CreateWorkflow(1, "workflow1", state1)
@@ -77,20 +59,22 @@ func main() {
 
 	t1to2 := workflow.CreateTransition("t1to2", state1.GetName(), state2.GetName(), workflow.TriggerResponseReceived)
 	t2to3 := workflow.CreateTransition("t2to3", state2.GetName(), state3.GetName(), workflow.TriggerResponseReceived)
+	t3to4 := workflow.CreateTransition("t3to4", state3.GetName(), state4.GetName(), workflow.TriggerResponseReceived)
 	t1to4 := workflow.CreateTransition("t1to4", state1.GetName(), state4.GetName(), workflow.TriggerFeeNotPaid)
 	t2to4 := workflow.CreateTransition("t2to4", state2.GetName(), state4.GetName(), workflow.TriggerFeeNotPaid)
 	wf.AddTransition(t1to2)
 	wf.AddTransition(t2to3)
+	wf.AddTransition(t3to4)
 	wf.AddTransition(t1to4)
 	wf.AddTransition(t2to4)
 
 	//test the WorkFlowToJSON function
-	jsonStr, err := testWorkFlowToJson(wf)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	fmt.Println("Workflow JSON:\n", jsonStr+"\n------------\n")
+	// jsonStr, err := testWorkFlowToJson(wf)
+	// if err != nil {
+	// 	fmt.Println("Error:", err)
+	// 	return
+	// }
+	// fmt.Println("Workflow JSON:\n", jsonStr+"\n------------\n")
 
 	//test storing workflow in database
 	// var category []int64
@@ -101,11 +85,11 @@ func main() {
 	// }
 
 	// test the JSONToWorkFlow function
-	err = testJsonToWorkFlow(jsonStr)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+	// err = testJsonToWorkFlow(jsonStr)
+	// if err != nil {
+	// 	fmt.Println("Error:", err)
+	// 	return
+	// }
 
 	fmt.Println(wf.GetID())
 	fmt.Println(wf.GetName())
@@ -119,37 +103,39 @@ func main() {
 	for _, t := range transitions {
 		fmt.Println(t)
 	}
-	sm := statemachine.NewStateMachine()
-	sm.Init(wf)
-	sm.Start()
-
+	ctrl := controller.NewController()
+	ctrl.Start()
+	ctrl.RegisterStateMachine(wf)
+	ctrl.WaitForSignal() 
+	
 	//test fetch workflow from database
-	wf2, err := workflow.FetchWorkflowFromAPI("http://localhost:8080/workflows/1")
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	fmt.Println("====================================")
-	fmt.Println(wf2.GetID())
-	fmt.Println(wf2.GetName())
-	fmt.Println(wf2.GetInitialState())
-	states = wf2.GetStates()
-	for _, s := range states {
-		fmt.Println(s)
-	}
+	// wf2, err := workflow.FetchWorkflowFromAPI("http://localhost:8080/workflows/1")
+	// if err != nil {
+	// 	fmt.Println("Error:", err)
+	// 	return
+	// }
+	// fmt.Println("====================================")
+	// fmt.Println(wf2.GetID())
+	// fmt.Println(wf2.GetName())
+	// fmt.Println(wf2.GetInitialState())
+	// states = wf2.GetStates()
+	// for _, s := range states {
+	// 	fmt.Println(s)
+	// }
 
-	transitions = wf2.GetTransitions()
-	for _, t := range transitions {
-		fmt.Println(t)
-	}
-	fmt.Println("====================================")
+	// transitions = wf2.GetTransitions()
+	// for _, t := range transitions {
+	// 	fmt.Println(t)
+	// }
+	// fmt.Println("====================================")
 
-	//test update workflow in database
-	err = workflow.UpdateWorkflowToAPI("http://localhost:8080/workflows/6", wf2, nil, nil)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
+	// //test update workflow in database
+	// err = workflow.UpdateWorkflowToAPI("http://localhost:8080/workflows/6", wf2, nil, nil)
+	// if err != nil {
+	// 	fmt.Println("Error:", err)
+	// 	return
+	// }
+	
 
 }
 

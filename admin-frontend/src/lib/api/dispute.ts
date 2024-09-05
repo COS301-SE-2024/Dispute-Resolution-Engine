@@ -1,10 +1,13 @@
+"use server";
+
 import { Result } from "@/lib/types";
 import {
   AdminDisputesRequest,
   AdminDisputesResponse,
   DisputeDetails,
   DisputeDetailsResponse,
-} from "../types/dispute";
+  DisputeStatus,
+} from "@/lib/types";
 
 export async function getDisputeList(
   req: AdminDisputesRequest
@@ -25,6 +28,23 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeDetai
       data: result,
     };
   }
+}
+
+export async function changeDisputeStatus(
+  id: string,
+  status: DisputeStatus
+): Promise<Result<string>> {
+  return {
+    data: "Status changed",
+  };
+}
+export async function deleteEvidence(
+  disputeId: string,
+  evidenceId: string
+): Promise<Result<string>> {
+  return {
+    data: "Evidence deleted",
+  };
 }
 
 const MOCK_DATA: DisputeDetails[] = [

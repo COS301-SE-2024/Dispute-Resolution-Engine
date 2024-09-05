@@ -10,3 +10,5 @@ export type Result<T, E = string> =
       data?: never;
       error: E;
     };
+
+export * from "./dispute";

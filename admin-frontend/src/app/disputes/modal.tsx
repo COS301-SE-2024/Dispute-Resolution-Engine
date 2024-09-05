@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 
 import { DialogClose, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,10 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Evidence from "./evidence";
 import { Label } from "@/components/ui/label";
-import { StatusBadge } from "@/components/admin/status-dropdown";
-import { type UserDetails, type DisputeDetails } from "@/lib/types/dispute";
+import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown";
+import { type UserDetails, type DisputeDetails, DisputeStatus } from "@/lib/types/dispute";
+import { changeDisputeStatus } from "@/lib/api/dispute";
 
 export default function DisputeDetails({ details }: { details?: DisputeDetails }) {
+  async function changeStatus(status: DisputeStatus) {
+    console.log(await changeDisputeStatus(details!.id, status));
+  }
+
   return (
     details && (
       <Sidebar open className="p-6 md:pl-8 rounded-l-2xl flex flex-col">
@@ -25,9 +32,11 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
             </DialogClose>
           </div>
           <div className="flex gap-2 items-center">
-            <StatusBadge variant="waiting" dropdown>
-              {details.status}
-            </StatusBadge>
+            <StatusDropdown onSelect={changeStatus}>
+              <StatusBadge variant="waiting" dropdown>
+                {details.status}
+              </StatusBadge>
+            </StatusDropdown>
             <span>{details.date_filed}</span>
           </div>
 

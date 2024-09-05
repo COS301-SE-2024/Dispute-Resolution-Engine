@@ -125,7 +125,8 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 		var offset int
 		var sortAtt models.SortAttributeAdmin
 		var sortOrder models.SortOrder
-
+		var filters []models.Filter
+		var dateFilter models.DateFilter
 		if reqAdminDisputes.Search != nil {
 			searchTerm = *reqAdminDisputes.Search
 		}
@@ -139,6 +140,17 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 			sortAtt = reqAdminDisputes.Sort.Attr
 			if reqAdminDisputes.Sort.Order != nil {
 				sortOrder = *reqAdminDisputes.Sort.Order
+			}
+		}
+		if reqAdminDisputes.Filter != nil {
+			filters = reqAdminDisputes.Filter
+		}
+		if reqAdminDisputes.DateFilter != nil {
+			if reqAdminDisputes.DateFilter.Filed != nil {
+				dateFilter.Filed = *&reqAdminDisputes.DateFilter.Filed
+			}
+			if reqAdminDisputes.DateFilter.Resolved != nil {
+				dateFilter.Resolved = *&reqAdminDisputes.DateFilter.Resolved
 			}
 		}
 

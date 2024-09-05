@@ -13,10 +13,24 @@ import { Label } from "@/components/ui/label";
 import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown";
 import { type UserDetails, type DisputeDetails, DisputeStatus } from "@/lib/types/dispute";
 import { changeDisputeStatus } from "@/lib/api/dispute";
+import { useToast } from "@/lib/hooks/use-toast";
 
 export default function DisputeDetails({ details }: { details?: DisputeDetails }) {
+  const { toast } = useToast();
+
   async function changeStatus(status: DisputeStatus) {
-    console.log(await changeDisputeStatus(details!.id, status));
+    const { data, error } = await changeDisputeStatus(details!.id, status);
+    if (data) {
+      toast({
+        title: "Status updated successfully",
+      });
+    } else if (error) {
+      toast({
+        variant: "error",
+        title: "Something went wrong",
+        description: error,
+      });
+    }
   }
 
   return (
@@ -62,7 +76,7 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
                     />
                   ))
                 ) : (
-                  <li className="text-sm text-dark/50 dark:text-white/50">
+                  <li className="text-sm text-black/50 dark:text-white/50">
                     No evidence has been submitted
                   </li>
                 )}

@@ -36,6 +36,7 @@ export async function changeDisputeStatus(
 ): Promise<Result<string>> {
   return {
     data: "Status changed",
+    // error: "Big bad error things",
   };
 }
 export async function deleteEvidence(

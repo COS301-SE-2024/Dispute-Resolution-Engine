@@ -171,8 +171,18 @@ type Filter struct {
 }
 
 type DateFilter struct {
-	Before string `json:"before,omitempty"`
-	After  string `json:"after,omitempty"`
+	Filed    *FiledDate    `json:"filed,omitempty"`
+	Resolved *ResolvedDate `json:"resolved,omitempty"`
+}
+
+type FiledDate struct {
+	Before *string `json:"before,omitempty"`
+	After  *string `json:"after,omitempty"`
+}
+
+type ResolvedDate struct {
+	Before *string `json:"before,omitempty"`
+	After  *string `json:"after,omitempty"`
 }
 
 type AdminDisputesRequest struct {
@@ -193,20 +203,5 @@ type AdminDisputesRequest struct {
 	// The filters to apply to data
 	Filter []Filter `json:"filter"`
 
-	DateFilter struct {
-		Filed struct {
-			// Filter all disputes filed before the passed-in value (inclusive)
-			Before *string `json:"before,omitempty"`
-			// Filter all disputes filed after the passed-in value (inclusive)
-			After *string `json:"after,omitempty"`
-		} `json:"filed,omitempty"`
-
-		// Specifying this filter would eliminate all unresolved disputes
-		Resolved struct {
-			// Filter all disputes resolved before the passed-in value (inclusive)
-			Before *string `json:"before,omitempty"`
-			// Filter all disputes resolved after the passed-in value (inclusive)
-			After *string `json:"after,omitempty"`
-		} `json:"resolved,omitempty"`
-	} `json:"dateFilter,omitempty"`
+	DateFilter *DateFilter `json:"dateFilter,omitempty"`
 }

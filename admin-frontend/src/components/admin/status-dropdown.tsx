@@ -59,13 +59,17 @@ export function StatusBadge({ children, variant, dropdown = false }: StatusProps
 export function StatusDropdown({
   onSelect = () => {},
   children,
+  disabled,
 }: {
   onSelect?: (status: DisputeStatus) => void;
   children: ReactNode;
+  disabled?: boolean;
 }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>{children}</DropdownMenuTrigger>
+      <DropdownMenuTrigger disabled={disabled} className="disabled:opacity-50">
+        {children}
+      </DropdownMenuTrigger>
       <DropdownMenuContent className="rounded-md">
         <DropdownMenuItem onSelect={() => onSelect("Awaiting respondent")}>
           <StatusBadge variant="waiting">Awaiting respondent</StatusBadge>

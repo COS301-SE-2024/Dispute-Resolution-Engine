@@ -14,12 +14,17 @@ import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown"
 import { type UserDetails, type DisputeDetails, DisputeStatus } from "@/lib/types/dispute";
 import { changeDisputeStatus, deleteEvidence } from "@/lib/api/dispute";
 import { useToast } from "@/lib/hooks/use-toast";
+import { useState } from "react";
 
 export default function DisputeDetails({ details }: { details?: DisputeDetails }) {
   const { toast } = useToast();
 
+  const [statusDisabled, setStatusDisabled] = useState(false);
+
   async function changeStatus(status: DisputeStatus) {
+    setStatusDisabled(true);
     const { data, error } = await changeDisputeStatus(details!.id, status);
+    setStatusDisabled(false);
     if (data) {
       toast({
         title: "Status updated successfully",
@@ -61,7 +66,7 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
             </DialogClose>
           </div>
           <div className="flex gap-2 items-center">
-            <StatusDropdown onSelect={changeStatus}>
+            <StatusDropdown onSelect={changeStatus} disabled={statusDisabled}>
               <StatusBadge variant="waiting" dropdown>
                 {details.status}
               </StatusBadge>

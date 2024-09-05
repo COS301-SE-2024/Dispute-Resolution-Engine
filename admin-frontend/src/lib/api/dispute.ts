@@ -34,18 +34,30 @@ export async function changeDisputeStatus(
   id: string,
   status: DisputeStatus
 ): Promise<Result<string>> {
-  return {
-    data: "Status changed",
-    // error: "Big bad error things",
-  };
+  return delayResolve(
+    {
+      data: "Status changed",
+      // error: "Big bad error things",
+    },
+    1000
+  );
 }
 export async function deleteEvidence(
   disputeId: string,
   evidenceId: string
 ): Promise<Result<string>> {
-  return {
-    data: "Evidence deleted",
-  };
+  return delayResolve(
+    {
+      data: "Evidence deleted",
+    },
+    1000
+  );
+}
+
+function delayResolve<T>(data: T, millis: number): Promise<T> {
+  return new Promise((res) => {
+    setTimeout(() => res(data), millis);
+  });
 }
 
 const MOCK_DATA: DisputeDetails[] = [

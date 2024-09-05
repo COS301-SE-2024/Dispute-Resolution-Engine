@@ -10,6 +10,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { ReactNode } from "react";
+import { DisputeStatus } from "@/lib/types/dispute";
 
 const statusVariants = cva("", {
   variants: {
@@ -59,7 +60,7 @@ export function StatusDropdown({
   onSelect = () => {},
   children,
 }: {
-  onSelect?: (status: string) => void;
+  onSelect?: (status: DisputeStatus) => void;
   children: ReactNode;
 }) {
   return (

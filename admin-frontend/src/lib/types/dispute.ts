@@ -1,6 +1,8 @@
 export type SortOrder = "asc" | "desc";
 export type SortAttribute = "title" | "status" | "workflow" | "date_filed" | "date_resolved";
 
+export type DisputeStatus = "Awaiting respondent" | "Active" | "Review" | "Settled" | "Refused";
+
 export type FilterAttribute = "status" | "workflow";
 
 export interface Filter {
@@ -66,9 +68,11 @@ export interface AdminDispute {
   // Optional because dispute may still be active (i.e. no resolved date)
   date_resolved?: string;
 }
+export type AdminDisputesResponse = Array<AdminDispute>;
 
 export interface Evidence {
   id: string;
+  url: string;
   label: string;
   submitted_at: string;
 }
@@ -86,5 +90,4 @@ export interface DisputeDetails extends AdminDispute {
   respondent: UserDetails;
 }
 
-export type AdminDisputesResponse = Array<AdminDispute>;
 export type DisputeDetailsResponse = DisputeDetails;

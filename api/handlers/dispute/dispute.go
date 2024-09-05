@@ -111,6 +111,38 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 	}
 
 	userID := jwtClaims.ID
+	userRole := jwtClaims.Role
+
+	if userRole == "admin" {
+		var reqAdminDisputes models.AdminDisputesRequest
+		if err := c.BindJSON(&reqAdminDisputes); err != nil {
+			logger.WithError(err).Error("Invalid request")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+			return
+		}
+		var searchTerm string
+		var limit int
+		var offset int
+		var sortAtt models.SortAttributeAdmin
+		var sortOrder models.SortOrder
+
+		if reqAdminDisputes.Search != nil {
+			searchTerm = *reqAdminDisputes.Search
+		}
+		if reqAdminDisputes.Limit != nil {
+			limit = *reqAdminDisputes.Limit
+		}
+		if reqAdminDisputes.Offset != nil {
+			offset = *reqAdminDisputes.Offset
+		}
+		if reqAdminDisputes.Sort != nil {
+			sortAtt = reqAdminDisputes.Sort.Attr
+			if reqAdminDisputes.Sort.Order != nil {
+				sortOrder = *reqAdminDisputes.Sort.Order
+			}
+		}
+
+	}
 
 	disputes, err := h.Model.GetDisputesByUser(userID)
 	if err != nil {

@@ -104,33 +104,24 @@ func (t *timer) HasDeadlinePassed() bool {
 
 // ----------------------------States--------------------------------
 type state struct {
-	name   string
-	timers map[string]timer // timer name -> Timer
+	name  string
+	timer *timer // timer name -> Timer
 }
 
 func CreateState(name string) state {
-	return state{name: name, timers: make(map[string]timer)}
+	return state{name: name, timer: nil}
 }
 
-func (s *state) AddTimer(t timer) {
-	s.timers[t.GetName()] = t
+func (s *state) SetTimer(t *timer) {
+	s.timer = t
 }
 
 func (s *state) GetName() string {
 	return s.name
 }
 
-func (s *state) GetTimer(name string) (timer, bool) {
-	t, ok := s.timers[name]
-	return t, ok
-}
-
-func (s *state) GetTimers() []timer {
-	timers := make([]timer, 0, len(s.timers))
-	for _, t := range s.timers {
-		timers = append(timers, t)
-	}
-	return timers
+func (s *state) GetTimer() *timer {
+	return s.timer
 }
 
 // ----------------------------Transitions--------------------------------
@@ -184,9 +175,6 @@ func CreateWorkflow(id uint32, name string, initial state) IWorkflow {
 	return w
 }
 
-
-
-// json representation of the workflow
 // json representation of the workflow
 func WorkFlowToJSON(w *Workflow) (string, error) {
 	// Convert states to JSON
@@ -227,7 +215,6 @@ func WorkFlowToJSON(w *Workflow) (string, error) {
 	return string(jsonWorkflowJSON), nil
 }
 
-
 type TimerJSON struct {
 	Name        string `json:"name"`
 	Duration    string `json:"duration"`
@@ -254,7 +241,6 @@ type WorkflowJSON struct {
 	Transitions []TransitionJSON `json:"transitions"`
 }
 
-
 func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 	// Unmarshal the JSON into the WorkflowJSON struct
 	var temp WorkflowJSON
@@ -279,16 +265,17 @@ func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 	for _, s := range temp.States {
 		newState := CreateState(s.Name)
 
-		for _, t := range s.Timers {
-			duration, err := time.ParseDuration(t.Duration)
+		if timer, found := s["timer"]; found {
+			timerMap := timer.(map[string]interface{})
+			duration, err := time.ParseDuration(timerMap["duration"].(string))
 			if err != nil {
 				return nil, err
 			}
-			newTimer := CreateTimer(t.Name, duration, t.WillTrigger)
-			newState.AddTimer(newTimer)
+			newTimer := CreateTimer(timerMap["name"].(string), duration, timerMap["willTrigger"].(string))
+			newState.SetTimer(&newTimer)
+			w.AddState(newState)
 		}
 
-		w.AddState(newState)
 	}
 
 	// Add transitions to the workflow
@@ -321,9 +308,6 @@ func stateToJSON(s state) ([]byte, error) {
 	return json.Marshal(stateJSON)
 }
 
-
-
-
 // Convert transition to JSON-compatible format
 func transitionToJSON(t transition) ([]byte, error) {
 	// Create the TransitionJSON object
@@ -335,8 +319,6 @@ func transitionToJSON(t transition) ([]byte, error) {
 	}
 	return json.Marshal(transitionJSON)
 }
-
-
 
 func JSONToMap(jsonStr string) (map[string]interface{}, error) {
 	// Initialize an empty map to hold the JSON structure

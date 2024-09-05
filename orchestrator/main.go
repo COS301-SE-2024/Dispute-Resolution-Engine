@@ -10,8 +10,8 @@ import (
 	// "orchestrator/env"
 	// "orchestrator/scheduler"
 	// "orchestrator/statemachine"
-	"orchestrator/workflow"
 	"orchestrator/controller"
+	"orchestrator/workflow"
 )
 
 var RequiredEnvVariables = []string{
@@ -47,11 +47,11 @@ func main() {
 	fee_timer3 := workflow.CreateTimer("fee_timer_3", period3, workflow.TriggerFeeNotPaid)
 
 	state1 := workflow.CreateState("state1")
-	state1.AddTimer(fee_timer1)
+	state1.SetTimer(&fee_timer1)
 	state2 := workflow.CreateState("state2")
-	state2.AddTimer(fee_timer2)
+	state2.SetTimer(&fee_timer2)
 	state3 := workflow.CreateState("state3")
-	state3.AddTimer(fee_timer3)
+	state3.SetTimer(&fee_timer3)
 	state4 := workflow.CreateState(workflow.StateDisputeFeeDue)
 
 	wf := workflow.CreateWorkflow(1, "workflow1", state1)
@@ -108,8 +108,8 @@ func main() {
 	ctrl := controller.NewController()
 	ctrl.Start()
 	ctrl.RegisterStateMachine(wf)
-	ctrl.WaitForSignal() 
-	
+	ctrl.WaitForSignal()
+
 	//test fetch workflow from database
 	// wf2, err := workflow.FetchWorkflowFromAPI("http://localhost:8080/workflows/1")
 	// if err != nil {
@@ -137,7 +137,6 @@ func main() {
 	// 	fmt.Println("Error:", err)
 	// 	return
 	// }
-	
 
 }
 
@@ -167,8 +166,7 @@ func testJsonToWorkFlow(jsonStr string) error {
 	states := wf.GetStates()
 	for _, s := range states {
 		fmt.Println(" - State Name:", s.GetName())
-		timers := s.GetTimers()
-		for _, t := range timers {
+		if t := s.GetTimer(); t != nil {
 			fmt.Println("   - Timer Name:", t.GetName())
 			fmt.Println("   - Duration:", t.GetDuration())
 			fmt.Println("   - Will Trigger:", t.WillTrigger())

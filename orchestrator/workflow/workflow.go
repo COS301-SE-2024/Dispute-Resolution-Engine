@@ -184,45 +184,32 @@ func CreateWorkflow(id uint32, name string, initial state) IWorkflow {
 	return w
 }
 
-func stateToJSON(s state) map[string]interface{} {
-	timers := make([]map[string]interface{}, 0, len(s.timers))
-	for _, t := range s.timers {
-		timers = append(timers, map[string]interface{}{
-			"name":        t.GetName(),
-			"duration":    t.GetDuration().String(),
-			"willTrigger": t.WillTrigger(),
-		})
-	}
 
-	return map[string]interface{}{
-		"name":   s.GetName(),
-		"timers": timers,
-	}
-}
-
-// Convert transition to JSON-compatible format
-func transitionToJSON(t transition) map[string]interface{} {
-	return map[string]interface{}{
-		"name":    t.GetName(),
-		"from":    t.GetFrom(),
-		"to":      t.GetTo(),
-		"trigger": t.GetTrigger(),
-	}
-}
 
 // json representation of the workflow
+// json representation of the workflow
 func WorkFlowToJSON(w *Workflow) (string, error) {
-
-	convertStates := make([]map[string]interface{}, 0, len(w.states))
+	// Convert states to JSON
+	convertStates := make([]json.RawMessage, 0, len(w.states))
 	for _, s := range w.states {
-		convertStates = append(convertStates, stateToJSON(s))
+		stateJSON, err := stateToJSON(s)
+		if err != nil {
+			return "", err
+		}
+		convertStates = append(convertStates, stateJSON)
 	}
 
-	convertTransitions := make([]map[string]interface{}, 0, len(w.transitions))
+	// Convert transitions to JSON
+	convertTransitions := make([]json.RawMessage, 0, len(w.transitions))
 	for _, t := range w.transitions {
-		convertTransitions = append(convertTransitions, transitionToJSON(t))
+		transitionJSON, err := transitionToJSON(t)
+		if err != nil {
+			return "", err
+		}
+		convertTransitions = append(convertTransitions, transitionJSON)
 	}
 
+	// Create the final JSON representation of the workflow
 	jsonWorkflow := map[string]interface{}{
 		"id":          w.id,
 		"name":        w.name,
@@ -231,7 +218,7 @@ func WorkFlowToJSON(w *Workflow) (string, error) {
 		"transitions": convertTransitions,
 	}
 
-	//convert to json string
+	// Convert to JSON string
 	jsonWorkflowJSON, err := json.Marshal(jsonWorkflow)
 	if err != nil {
 		return "", err
@@ -239,6 +226,7 @@ func WorkFlowToJSON(w *Workflow) (string, error) {
 
 	return string(jsonWorkflowJSON), nil
 }
+
 
 type TimerJSON struct {
 	Name        string `json:"name"`
@@ -267,24 +255,15 @@ type WorkflowJSON struct {
 }
 
 
-// Convert JSON to workflow
 func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
-	// Define a temporary structure to unmarshal the JSON data
-	var temp struct {
-		ID          uint32                   `json:"id"`
-		Name        string                   `json:"name"`
-		Initial     string                   `json:"initial"`
-		States      []map[string]interface{} `json:"states"`
-		Transitions []map[string]interface{} `json:"transitions"`
-	}
-
-	// Unmarshal JSON into the temporary structure
+	// Unmarshal the JSON into the WorkflowJSON struct
+	var temp WorkflowJSON
 	err := json.Unmarshal([]byte(jsonWorkflow), &temp)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create initial state
+	// Create the initial state
 	initialState := CreateState(temp.Initial)
 
 	// Create a new workflow
@@ -298,17 +277,14 @@ func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 
 	// Add states to the workflow
 	for _, s := range temp.States {
-		stateName := s["name"].(string)
-		newState := CreateState(stateName)
+		newState := CreateState(s.Name)
 
-		timers := s["timers"].([]interface{})
-		for _, t := range timers {
-			timerMap := t.(map[string]interface{})
-			duration, err := time.ParseDuration(timerMap["duration"].(string))
+		for _, t := range s.Timers {
+			duration, err := time.ParseDuration(t.Duration)
 			if err != nil {
 				return nil, err
 			}
-			newTimer := CreateTimer(timerMap["name"].(string), duration, timerMap["willTrigger"].(string))
+			newTimer := CreateTimer(t.Name, duration, t.WillTrigger)
 			newState.AddTimer(newTimer)
 		}
 
@@ -317,17 +293,50 @@ func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 
 	// Add transitions to the workflow
 	for _, t := range temp.Transitions {
-		newTransition := CreateTransition(
-			t["name"].(string),
-			t["from"].(string),
-			t["to"].(string),
-			t["trigger"].(string),
-		)
+		newTransition := CreateTransition(t.Name, t.From, t.To, t.Trigger)
 		w.AddTransition(newTransition)
 	}
 
 	return w, nil
 }
+
+func stateToJSON(s state) ([]byte, error) {
+	// Convert state timers to TimerJSON objects
+	timers := make([]TimerJSON, 0, len(s.timers))
+	for _, t := range s.timers {
+		timers = append(timers, TimerJSON{
+			Name:        t.GetName(),
+			Duration:    t.GetDuration().String(),
+			WillTrigger: t.WillTrigger(),
+		})
+	}
+
+	// Create the StateJSON object
+	stateJSON := StateJSON{
+		Name:   s.GetName(),
+		Timers: timers,
+	}
+
+	// Marshal the StateJSON object to JSON
+	return json.Marshal(stateJSON)
+}
+
+
+
+
+// Convert transition to JSON-compatible format
+func transitionToJSON(t transition) ([]byte, error) {
+	// Create the TransitionJSON object
+	transitionJSON := TransitionJSON{
+		Name:    t.GetName(),
+		From:    t.GetFrom(),
+		To:      t.GetTo(),
+		Trigger: t.GetTrigger(),
+	}
+	return json.Marshal(transitionJSON)
+}
+
+
 
 func JSONToMap(jsonStr string) (map[string]interface{}, error) {
 	// Initialize an empty map to hold the JSON structure

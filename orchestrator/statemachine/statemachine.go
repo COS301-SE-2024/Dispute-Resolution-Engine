@@ -1,11 +1,12 @@
 package statemachine
 
 import (
-	// "fmt"
+	"context"
+	"fmt"
 	"orchestrator/scheduler"
 	"orchestrator/utilities"
 	"orchestrator/workflow"
-	// "time"
+	"time"
 
 	"github.com/qmuntal/stateless"
 )
@@ -47,9 +48,33 @@ func (s *stateMachine) Init(wf workflow.IWorkflow, sch *scheduler.Scheduler) {
 	for _, state := range wf.GetStates() {
 		// For every related transition from the state, configure the state with the transition
 		toTransitions := wf.GetTransitionsByFrom(state.GetName())
+
+		stateConfig := s.stateMachine.Configure(state.GetName())
 		for _, transition := range toTransitions {
-			s.stateMachine.Configure(state.GetName()).
-				Permit(transition.GetTrigger(), transition.GetTo())
+			stateConfig.Permit(transition.GetTrigger(), transition.GetTo())
+		}
+
+		// Configure timer states
+		if timer := state.GetTimer(); timer != nil {
+			timerName := fmt.Sprintf("%s_%s", state.GetName(), timer.WillTrigger())
+
+			// Start the timer once the state is entered
+			stateConfig.OnEntry(func(_ context.Context, args ...any) error {
+				logger.Info("New state entered")
+				s.scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()), func() {
+					logger.Info("Timer expired for state", state.GetName(), ", triggering transition:", timer.WillTrigger())
+					transition := wf.GetTransition(timer.WillTrigger())
+					s.stateMachine.Fire(transition.GetTrigger())
+				})
+				return nil
+			})
+
+			// When the state is exited, remove the timer.
+			// WARNING: this may cause some kind of race condition when the exit
+			stateConfig.OnExit(func(_ context.Context, args ...any) error {
+				s.scheduler.RemoveTimer(timerName)
+				return nil
+			})
 		}
 
 		/*

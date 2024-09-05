@@ -39,19 +39,21 @@ func main() {
 	// 	logger.WithError(err).Fatal("Couldn't initialize database connection")
 	// }
 	// fmt.Println(DB)
-	period1, _ := time.ParseDuration("10s")
-	period2, _ := time.ParseDuration("20s")
-	period3, _ := time.ParseDuration("25s")
-	fee_timer1 := workflow.CreateTimer("fee_timer_1", period1, workflow.TriggerFeeNotPaid)
-	fee_timer2 := workflow.CreateTimer("fee_timer_2", period2, workflow.TriggerFeeNotPaid)
-	fee_timer3 := workflow.CreateTimer("fee_timer_3", period3, workflow.TriggerFeeNotPaid)
 
+	period, _ := time.ParseDuration("2s")
+
+	fee_timer1 := workflow.CreateTimer(period, workflow.TriggerFeeNotPaid)
 	state1 := workflow.CreateState("state1")
 	state1.SetTimer(&fee_timer1)
+
+	fee_timer2 := workflow.CreateTimer(period, workflow.TriggerFeeNotPaid)
 	state2 := workflow.CreateState("state2")
 	state2.SetTimer(&fee_timer2)
+
+	fee_timer3 := workflow.CreateTimer(period, workflow.TriggerFeeNotPaid)
 	state3 := workflow.CreateState("state3")
 	state3.SetTimer(&fee_timer3)
+
 	state4 := workflow.CreateState(workflow.StateDisputeFeeDue)
 
 	wf := workflow.CreateWorkflow(1, "workflow1", state1)
@@ -59,16 +61,13 @@ func main() {
 	wf.AddState(state3)
 	wf.AddState(state4)
 
-	t1to2 := workflow.CreateTransition("t1to2", state1.GetName(), state2.GetName(), workflow.TriggerResponseReceived)
-	t2to3 := workflow.CreateTransition("t2to3", state2.GetName(), state3.GetName(), workflow.TriggerResponseReceived)
-	t3to4 := workflow.CreateTransition("t3to4", state3.GetName(), state4.GetName(), workflow.TriggerResponseReceived)
-	t1to4 := workflow.CreateTransition("t1to4", state1.GetName(), state4.GetName(), workflow.TriggerFeeNotPaid)
-	t2to4 := workflow.CreateTransition("t2to4", state2.GetName(), state4.GetName(), workflow.TriggerFeeNotPaid)
+	t1to2 := workflow.CreateTransition("t1to2", state1.GetName(), state2.GetName(), workflow.TriggerFeeNotPaid)
+	t2to3 := workflow.CreateTransition("t2to3", state2.GetName(), state3.GetName(), workflow.TriggerFeeNotPaid)
+	t3to4 := workflow.CreateTransition("t3to4", state3.GetName(), state4.GetName(), workflow.TriggerFeeNotPaid)
+
 	wf.AddTransition(t1to2)
 	wf.AddTransition(t2to3)
 	wf.AddTransition(t3to4)
-	wf.AddTransition(t1to4)
-	wf.AddTransition(t2to4)
 
 	//test the WorkFlowToJSON function
 	// jsonStr, err := testWorkFlowToJson(wf)
@@ -167,7 +166,6 @@ func testJsonToWorkFlow(jsonStr string) error {
 	for _, s := range states {
 		fmt.Println(" - State Name:", s.GetName())
 		if t := s.GetTimer(); t != nil {
-			fmt.Println("   - Timer Name:", t.GetName())
 			fmt.Println("   - Duration:", t.GetDuration())
 			fmt.Println("   - Will Trigger:", t.WillTrigger())
 		}
@@ -176,7 +174,7 @@ func testJsonToWorkFlow(jsonStr string) error {
 	fmt.Println("Transitions:")
 	transitions := wf.GetTransitions()
 	for _, t := range transitions {
-		fmt.Println(" - Transition Name:", t.GetName())
+		fmt.Println(" - Transition Name:", t.GetDisplayName())
 		fmt.Println("   - From:", t.GetFrom())
 		fmt.Println("   - To:", t.GetTo())
 		fmt.Println("   - Trigger:", t.GetTrigger())

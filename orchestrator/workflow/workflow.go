@@ -73,17 +73,15 @@ type IWorkflow interface {
 
 // ----------------------------Timers--------------------------------
 type timer struct {
-	name        string
-	duration    time.Duration
+	// Duration that the timer will run for
+	duration time.Duration
+
+	// Transition that will be triggered when the timer expires
 	willTrigger string
 }
 
-func CreateTimer(name string, duration time.Duration, willTrigger string) timer {
-	return timer{name: name, duration: duration, willTrigger: willTrigger}
-}
-
-func (t *timer) GetName() string {
-	return t.name
+func CreateTimer(duration time.Duration, willTrigger string) timer {
+	return timer{duration: duration, willTrigger: willTrigger}
 }
 
 func (t *timer) GetDuration() time.Duration {
@@ -105,7 +103,7 @@ func (t *timer) HasDeadlinePassed() bool {
 // ----------------------------States--------------------------------
 type state struct {
 	name  string
-	timer *timer // timer name -> Timer
+	timer *timer
 }
 
 func CreateState(name string) state {
@@ -126,18 +124,25 @@ func (s *state) GetTimer() *timer {
 
 // ----------------------------Transitions--------------------------------
 type transition struct {
-	name    string
-	from    string
-	to      string
+	// Human-readable display name for a transition
+	displayName string
+
+	// The unique ID of the state to transition from
+	from string
+
+	// The unique ID of the state to transition to
+	to string
+
+	// The ID of the event that will trigger the transition
 	trigger string
 }
 
 func CreateTransition(name string, from string, to string, trigger string) transition {
-	return transition{name: name, from: from, to: to, trigger: trigger}
+	return transition{displayName: name, from: from, to: to, trigger: trigger}
 }
 
-func (t *transition) GetName() string {
-	return t.name
+func (t *transition) GetDisplayName() string {
+	return t.displayName
 }
 
 func (t *transition) GetFrom() string {
@@ -216,14 +221,13 @@ func WorkFlowToJSON(w *Workflow) (string, error) {
 }
 
 type TimerJSON struct {
-	Name        string `json:"name"`
 	Duration    string `json:"duration"`
 	WillTrigger string `json:"willTrigger"`
 }
 
 type StateJSON struct {
-	Name   string      `json:"name"`
-	Timers []TimerJSON `json:"timers"`
+	Name  string     `json:"name"`
+	Timer *TimerJSON `json:"timers,omitempty"`
 }
 
 type TransitionJSON struct {
@@ -265,13 +269,12 @@ func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 	for _, s := range temp.States {
 		newState := CreateState(s.Name)
 
-		if timer, found := s["timer"]; found {
-			timerMap := timer.(map[string]interface{})
-			duration, err := time.ParseDuration(timerMap["duration"].(string))
+		if s.Timer != nil {
+			duration, err := time.ParseDuration(s.Timer.Duration)
 			if err != nil {
 				return nil, err
 			}
-			newTimer := CreateTimer(timerMap["name"].(string), duration, timerMap["willTrigger"].(string))
+			newTimer := CreateTimer(duration, s.Timer.WillTrigger)
 			newState.SetTimer(&newTimer)
 			w.AddState(newState)
 		}
@@ -288,20 +291,17 @@ func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 }
 
 func stateToJSON(s state) ([]byte, error) {
-	// Convert state timers to TimerJSON objects
-	timers := make([]TimerJSON, 0, len(s.timers))
-	for _, t := range s.timers {
-		timers = append(timers, TimerJSON{
-			Name:        t.GetName(),
-			Duration:    t.GetDuration().String(),
-			WillTrigger: t.WillTrigger(),
-		})
-	}
-
 	// Create the StateJSON object
 	stateJSON := StateJSON{
-		Name:   s.GetName(),
-		Timers: timers,
+		Name:  s.GetName(),
+		Timer: nil,
+	}
+
+	if s.timer != nil {
+		stateJSON.Timer = &TimerJSON{
+			Duration:    s.timer.duration.String(),
+			WillTrigger: s.timer.willTrigger,
+		}
 	}
 
 	// Marshal the StateJSON object to JSON
@@ -312,7 +312,7 @@ func stateToJSON(s state) ([]byte, error) {
 func transitionToJSON(t transition) ([]byte, error) {
 	// Create the TransitionJSON object
 	transitionJSON := TransitionJSON{
-		Name:    t.GetName(),
+		Name:    t.GetDisplayName(),
 		From:    t.GetFrom(),
 		To:      t.GetTo(),
 		Trigger: t.GetTrigger(),
@@ -371,7 +371,7 @@ func (w *Workflow) GetTransition(name string) transition {
 }
 
 func (w *Workflow) AddTransition(t transition) {
-	w.transitions[t.GetName()] = t
+	w.transitions[t.GetDisplayName()] = t
 }
 
 func (w *Workflow) GetTransitions() []transition {

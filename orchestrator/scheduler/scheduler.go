@@ -62,7 +62,7 @@ func (s *Scheduler) RemoveTimer(name string) bool {
 	if found {
 		s.logger.Debug("Timer removed: ", name)
 	} else {
-		s.logger.Warning("Timer not found: ", name)
+		s.logger.Debug("Timer not found: ", name)
 	}
 
 	return found

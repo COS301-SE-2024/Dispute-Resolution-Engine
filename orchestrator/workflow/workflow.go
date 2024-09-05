@@ -240,6 +240,33 @@ func WorkFlowToJSON(w *Workflow) (string, error) {
 	return string(jsonWorkflowJSON), nil
 }
 
+type TimerJSON struct {
+	Name        string `json:"name"`
+	Duration    string `json:"duration"`
+	WillTrigger string `json:"willTrigger"`
+}
+
+type StateJSON struct {
+	Name   string      `json:"name"`
+	Timers []TimerJSON `json:"timers"`
+}
+
+type TransitionJSON struct {
+	Name    string `json:"name"`
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Trigger string `json:"trigger"`
+}
+
+type WorkflowJSON struct {
+	ID          uint32           `json:"id"`
+	Name        string           `json:"name"`
+	Initial     string           `json:"initial"`
+	States      []StateJSON      `json:"states"`
+	Transitions []TransitionJSON `json:"transitions"`
+}
+
+
 // Convert JSON to workflow
 func JSONToWorkFlow(jsonWorkflow string) (*Workflow, error) {
 	// Define a temporary structure to unmarshal the JSON data

@@ -15,21 +15,14 @@ export default function Evidence({
   label,
   url,
   date,
+  onDelete,
 }: {
   id: string;
   label: string;
   url: string;
   date: string;
+  onDelete: (id: string) => void;
 }) {
-  function downloadEvidence() {
-    alert("Download evidence");
-    // TODO: Integrate with API endpoint using `id` and `url` props
-  }
-  function deleteEvidence() {
-    alert("Delete evidence");
-    // TODO: Integrate with API endpoint using `id` prop
-  }
-
   return (
     <li className="grid grid-cols-[auto_1fr_auto] gap-2 items-center px-3 py-2 border border-primary-500/30 rounded-md">
       <FileText className="stroke-primary-500" size="1.7rem" />
@@ -44,11 +37,13 @@ export default function Evidence({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem onSelect={() => downloadEvidence()}>
-            <Download className="mr-2" />
-            <span>Download file</span>
+          <DropdownMenuItem asChild>
+            <Link href={url}>
+              <Download className="mr-2" />
+              <span>Download file</span>
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem className="text-red-500" onSelect={() => deleteEvidence()}>
+          <DropdownMenuItem className="text-red-500" onSelect={() => onDelete(id)}>
             <Trash className="mr-2" />
             <span>Delete evidence</span>
           </DropdownMenuItem>

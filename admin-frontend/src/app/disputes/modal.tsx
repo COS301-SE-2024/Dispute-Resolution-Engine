@@ -12,7 +12,7 @@ import Evidence from "./evidence";
 import { Label } from "@/components/ui/label";
 import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown";
 import { type UserDetails, type DisputeDetails, DisputeStatus } from "@/lib/types/dispute";
-import { changeDisputeStatus } from "@/lib/api/dispute";
+import { changeDisputeStatus, deleteEvidence } from "@/lib/api/dispute";
 import { useToast } from "@/lib/hooks/use-toast";
 
 export default function DisputeDetails({ details }: { details?: DisputeDetails }) {
@@ -23,6 +23,21 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
     if (data) {
       toast({
         title: "Status updated successfully",
+      });
+    } else if (error) {
+      toast({
+        variant: "error",
+        title: "Something went wrong",
+        description: error,
+      });
+    }
+  }
+
+  async function deleteEvi(id: string) {
+    const { data, error } = await deleteEvidence(details!.id, id);
+    if (data) {
+      toast({
+        title: "Evidence removed",
       });
     } else if (error) {
       toast({
@@ -64,10 +79,11 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
             </CardHeader>
             <CardContent>
               <h4 className="mb-1">Evidence</h4>
-              <ul className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-2">
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
                 {details.evidence.length > 0 ? (
                   details.evidence.map((evidence) => (
                     <Evidence
+                      onDelete={deleteEvi}
                       key={evidence.id}
                       id={evidence.id}
                       label={evidence.label}
@@ -110,7 +126,7 @@ function UserDetails(d: UserDetails) {
 
       <div>
         <Label>Email</Label>
-        <Input value={d.email} />
+        <Input disabled value={d.email} />
       </div>
 
       <div>

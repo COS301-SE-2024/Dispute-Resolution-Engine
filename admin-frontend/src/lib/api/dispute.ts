@@ -62,7 +62,14 @@ const MOCK_DATA: DisputeDetails[] = [
     date_filed: "2 days ago",
     description:
       "The Complainant contends that it has rights in respect of the name or  mark MR PLASTIC and that the domain name in dispute is identical or  similar to this name or mark and it is therefore an abusive registration.",
-    evidence: [],
+    evidence: [
+      {
+        id: "1",
+        url: "https://google.com",
+        label: "evidence.pdf",
+        submitted_at: "2 days ago",
+      },
+    ],
     complainant: {
       name: "Mr. Plastic CC",
       email: "mrplastic@gmail.com",

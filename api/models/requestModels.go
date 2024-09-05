@@ -143,3 +143,70 @@ type RejectExpert struct {
 	DisputeId int64 `json:"dispute_id"`
 	ExpertId  int64 `json:"expert_id"`
 }
+
+type SortOrder string
+type SortAttributeAdmin string
+type FilterAttributeAdmin string
+
+const (
+	SortOrderAsc  SortOrder = "asc"
+	SortOrderDesc SortOrder = "desc"
+
+	SortAttributeTitle        SortAttributeAdmin = "title"
+	SortAttributeStatus       SortAttributeAdmin = "status"
+	SortAttributeWorkflow     SortAttributeAdmin = "workflow"
+	SortAttributeDateFiled    SortAttributeAdmin = "date_filed"
+	SortAttributeDateResolved SortAttributeAdmin = "date_resolved"
+
+	FilterAttributeStatus   FilterAttributeAdmin = "status"
+	FilterAttributeWorkflow FilterAttributeAdmin = "workflow"
+)
+
+type Filter struct {
+	// The attribute to filter by
+	Attr FilterAttribute `json:"attr"`
+
+	// The value to search for
+	Value string `json:"value"`
+}
+
+type DateFilter struct {
+	Before string `json:"before,omitempty"`
+	After  string `json:"after,omitempty"`
+}
+
+type AdminDisputesRequest struct {
+	// Search term for the title of disputes
+	Search *string `json:"search,omitempty"`
+
+	// Pagination parameters
+	Limit  *int `json:"limit,omitempty"`
+	Offset *int `json:"offset,omitempty"`
+
+	Sort *struct {
+		// The attribute to sort by
+		Attr SortAttributeAdmin `json:"attr"`
+		// Sort order defaults to 'asc' if unspecified
+		Order *SortOrder `json:"order,omitempty"`
+	} `json:"sort,omitempty"`
+
+	// The filters to apply to data
+	Filter []Filter `json:"filter"`
+
+	DateFilter struct {
+		Filed struct {
+			// Filter all disputes filed before the passed-in value (inclusive)
+			Before *string `json:"before,omitempty"`
+			// Filter all disputes filed after the passed-in value (inclusive)
+			After *string `json:"after,omitempty"`
+		} `json:"filed,omitempty"`
+
+		// Specifying this filter would eliminate all unresolved disputes
+		Resolved struct {
+			// Filter all disputes resolved before the passed-in value (inclusive)
+			Before *string `json:"before,omitempty"`
+			// Filter all disputes resolved after the passed-in value (inclusive)
+			After *string `json:"after,omitempty"`
+		} `json:"resolved,omitempty"`
+	} `json:"dateFilter,omitempty"`
+}

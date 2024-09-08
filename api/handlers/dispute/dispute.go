@@ -120,26 +120,26 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
 			return
 		}
-		var searchTerm string
-		var limit int
-		var offset int
-		var sort models.Sort
-		var filters []models.Filter
-		var dateFilter models.DateFilter
+		var searchTerm *string
+		var limit *int
+		var offset *int
+		var sort *models.Sort
+		var filters *[]models.Filter
+		var dateFilter *models.DateFilter
 		if reqAdminDisputes.Search != nil {
-			searchTerm = *reqAdminDisputes.Search
+			searchTerm = reqAdminDisputes.Search
 		}
 		if reqAdminDisputes.Limit != nil {
-			limit = *reqAdminDisputes.Limit
+			limit = reqAdminDisputes.Limit
 		}
 		if reqAdminDisputes.Offset != nil {
-			offset = *reqAdminDisputes.Offset
+			offset = reqAdminDisputes.Offset
 		}
 		if reqAdminDisputes.Sort != nil {
-			sort = *reqAdminDisputes.Sort
+			sort = reqAdminDisputes.Sort
 		}
 		if reqAdminDisputes.Filter != nil {
-			filters = reqAdminDisputes.Filter
+			filters = &reqAdminDisputes.Filter
 		}
 		if reqAdminDisputes.DateFilter != nil {
 			if reqAdminDisputes.DateFilter.Filed != nil {
@@ -149,7 +149,7 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 				dateFilter.Resolved = *&reqAdminDisputes.DateFilter.Resolved
 			}
 		}
-		disputes, err := h.Model.GetAdminDisputes(searchTerm, limit, offset, sort, filters, dateFilter);
+		disputes, err := h.Model.GetAdminDisputes(searchTerm, limit, offset, sort, filters, dateFilter)
 		return
 	}
 

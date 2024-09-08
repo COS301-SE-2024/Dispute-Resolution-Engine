@@ -164,7 +164,7 @@ const (
 
 type Filter struct {
 	// The attribute to filter by
-	Attr FilterAttribute `json:"attr"`
+	Attr string `json:"attr"`
 
 	// The value to search for
 	Value string `json:"value"`

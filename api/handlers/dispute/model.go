@@ -30,8 +30,10 @@ type DisputeModel interface {
 	GetEvidenceByDispute(disputeId int64) ([]models.Evidence, error)
 	GetDisputeExperts(disputeId int64) ([]models.Expert, error)
 
+	GetAdminDisputes(searchTerm string, limit int, offset int, sort models.Sort, filters []models.Filter, dateFilter models.DateFilter) ([]models.Dispute, error)
 	GetDisputesByUser(userId int64) ([]models.Dispute, error)
 	GetDispute(disputeId int64) (models.Dispute, error)
+	
 
 	GetUserByEmail(email string) (models.User, error)
 	CreateDispute(dispute models.Dispute) (int64, error)
@@ -545,4 +547,8 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 		logger.WithError(err).Error("Error inserting the summary.")
 		return
 	}
+}
+
+func GetAdminDisputes(searchTerm string, limit int, offset int, sort models.Sort, filters []models.Filter, dateFilter models.DateFilter) ([]models.Dispute, error) {
+
 }

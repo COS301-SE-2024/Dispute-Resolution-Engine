@@ -185,6 +185,11 @@ type ResolvedDate struct {
 	After  *string `json:"after,omitempty"`
 }
 
+type Sort struct {
+	Attr string `json:"attr"`
+	Order string `json:"order,omitempty"`
+}
+
 type AdminDisputesRequest struct {
 	// Search term for the title of disputes
 	Search *string `json:"search,omitempty"`
@@ -193,12 +198,7 @@ type AdminDisputesRequest struct {
 	Limit  *int `json:"limit,omitempty"`
 	Offset *int `json:"offset,omitempty"`
 
-	Sort *struct {
-		// The attribute to sort by
-		Attr SortAttributeAdmin `json:"attr"`
-		// Sort order defaults to 'asc' if unspecified
-		Order *SortOrder `json:"order,omitempty"`
-	} `json:"sort,omitempty"`
+	Sort *Sort `json:"sort,omitempty"`
 
 	// The filters to apply to data
 	Filter []Filter `json:"filter"`

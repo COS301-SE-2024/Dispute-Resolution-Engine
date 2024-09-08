@@ -123,8 +123,7 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 		var searchTerm string
 		var limit int
 		var offset int
-		var sortAtt models.SortAttributeAdmin
-		var sortOrder models.SortOrder
+		var sort models.Sort
 		var filters []models.Filter
 		var dateFilter models.DateFilter
 		if reqAdminDisputes.Search != nil {
@@ -137,10 +136,7 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 			offset = *reqAdminDisputes.Offset
 		}
 		if reqAdminDisputes.Sort != nil {
-			sortAtt = reqAdminDisputes.Sort.Attr
-			if reqAdminDisputes.Sort.Order != nil {
-				sortOrder = *reqAdminDisputes.Sort.Order
-			}
+			sort = *reqAdminDisputes.Sort
 		}
 		if reqAdminDisputes.Filter != nil {
 			filters = reqAdminDisputes.Filter
@@ -153,7 +149,8 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 				dateFilter.Resolved = *&reqAdminDisputes.DateFilter.Resolved
 			}
 		}
-
+		disputes, err := h.Model.GetAdminDisputes(searchTerm, limit, offset, sort, filters, dateFilter);
+		return
 	}
 
 	disputes, err := h.Model.GetDisputesByUser(userID)

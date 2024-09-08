@@ -549,6 +549,61 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 	}
 }
 
-func GetAdminDisputes(searchTerm string, limit int, offset int, sort models.Sort, filters []models.Filter, dateFilter models.DateFilter) ([]models.Dispute, error) {
+func GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.Dispute, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var disputes []models.Dispute
+	db := utilities.GetDB()
+	var queryString string = ""
+	var searchString string = ""
+	var filterString string = ""
+	var dateFilterString string = ""
+	var sortString string = ""
+	if searchTerm != nil {
+		searchString = "WHERE disputes.title LIKE '%" + *searchTerm + "%'"
+	}
+	if filters != nil {
+		if searchTerm != nil {
+			filterString = "AND "
+		} else {
+			filterString = "WHERE "
+		}
+		for i, filter := range *filters {
+			if i == len(*filters)-1 {
+				filterString += filter.Attr + " = '" + filter.Value + "'"
+			} else {
+				filterString += filter.Attr + " = '" + filter.Value + "' AND "
+			}
+		}
+	}
+	if dateFilter != nil {
+		if searchTerm != nil || filters != nil {
+			dateFilterString = "AND "
+		} else {
+			dateFilterString = "WHERE "
+		}
+		if dateFilter.Filed != nil {
+			if dateFilter.Filed.Before != nil {
+				dateFilterString += "disputes.date_filed < '" + *dateFilter.Filed.Before + "'"
+			}
+			if dateFilter.Filed.After != nil {
+				dateFilterString += "disputes.date_filed > '" + *dateFilter.Filed.After + "'"
+			}
+		}
+		if dateFilter.Resolved != nil {
+			if dateFilter.Resolved.Before != nil {
+				dateFilterString += "disputes.date_resolved < '" + *dateFilter.Resolved.Before + "'"
+			}
+			if dateFilter.Resolved.After != nil {
+				dateFilterString += "disputes.date_resolved > '" + *dateFilter.Resolved.After + "'"
+			}
+		}
+	}
+	if sort != nil {
+		sortString = "ORDER BY " + sort.Attr + " " + sort.Order
+	}
+	
+
+
+
 
 }

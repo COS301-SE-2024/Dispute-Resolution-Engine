@@ -73,9 +73,7 @@ function DisputeHeader({
         <dt className="text-right font-bold">Dispute ID:</dt>
         <dd>{id}</dd>
         <dt className="text-right font-bold">Status:</dt>
-        <dd>
-          <StatusDropdown disputeId={id} status={initialStatus} />
-        </dd>
+        <dd>{initialStatus}</dd>
       </dl>
     </header>
   );

@@ -55,19 +55,26 @@ CREATE TYPE dispute_status AS ENUM (
     'Other'
 );
 
+CREATE TABLE workflows (
+	id SERIAL PRIMARY KEY NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    definition JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	author BIGINT REFERENCES user(id) NOT NULL,
+);
 
-CREATE TABLE workflow (
-	id SERIAL PRIMARY KEY,
-    definition JSONB,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	author BIGINT REFERENCES user(id),
+CREATE TABLE active_workflows (
+	id SERIAL PRIMARY KEY NOT NULL,
+    workflow BIGINT REFERENCES workflows(id) NOT NULL,
+    current_state VARCHAR(255) NOT NULL,
+    state_deadline TIMESTAMP
 );
 
 ------------------------------------------------------------- TABLE DEFINITIONS
 CREATE TABLE disputes (
 	id SERIAL PRIMARY KEY,
 	case_date DATE DEFAULT CURRENT_DATE,
-	workflow BIGINT REFERENCES workflow(id),
+	workflow BIGINT REFERENCES active_workflows(id),
 	status dispute_status DEFAULT 'Awaiting Respondant',
 	title VARCHAR(255) NOT NULL,
 	description TEXT,

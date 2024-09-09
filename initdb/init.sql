@@ -57,14 +57,17 @@ CREATE TYPE dispute_status AS ENUM (
 
 
 CREATE TABLE workflow (
-	id SERIAL PRIMARY KEY
+	id SERIAL PRIMARY KEY,
+    definition JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	author BIGINT REFERENCES user(id),
 );
 
 ------------------------------------------------------------- TABLE DEFINITIONS
 CREATE TABLE disputes (
 	id SERIAL PRIMARY KEY,
 	case_date DATE DEFAULT CURRENT_DATE,
-	workflow BIGINT REFERENCES Workflow(id),
+	workflow BIGINT REFERENCES workflow(id),
 	status dispute_status DEFAULT 'Awaiting Respondant',
 	title VARCHAR(255) NOT NULL,
 	description TEXT,
@@ -128,6 +131,7 @@ CREATE TABLE event_log (
 	event_data JSON
 );
 
+------------------------------------------------------------- TAGS
 CREATE TABLE tags (
 	id SERIAL PRIMARY KEY,
 	tag_name VARCHAR(255) NOT NULL
@@ -137,6 +141,18 @@ CREATE TABLE dispute_tags (
 	dispute_id BIGINT REFERENCES disputes(id),
 	tag_id BIGINT REFERENCES tags(id),
 	PRIMARY KEY (dispute_id, tag_id)
+);
+
+CREATE TABLE expert_tags (
+	expert_id BIGINT REFERENCES users(id),
+	tag_id BIGINT REFERENCES tags(id),
+	PRIMARY KEY (expert_id, tag_id)
+);
+
+CREATE TABLE workflow_tags (
+	workflow_id BIGINT REFERENCES workflows(id),
+	tag_id BIGINT REFERENCES tags(id),
+	PRIMARY KEY (workflow_id, tag_id)
 );
 
 ------------------------------------------------------------- TABLE CONTENTS

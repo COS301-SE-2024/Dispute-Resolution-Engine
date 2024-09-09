@@ -5,6 +5,7 @@ CREATE TABLE countries (
     country_name VARCHAR(255) NOT NULL
 );
 
+
 CREATE TABLE addresses (
     id SERIAL PRIMARY KEY,
     code VARCHAR(3) REFERENCES countries(country_code),
@@ -60,7 +61,7 @@ CREATE TABLE workflows (
     name VARCHAR(255) NOT NULL,
     definition JSONB NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	author BIGINT REFERENCES user(id) NOT NULL,
+	author BIGINT REFERENCES user(id) NOT NULL
 );
 
 CREATE TABLE active_workflows (
@@ -160,6 +161,29 @@ CREATE TABLE workflow_tags (
 	workflow_id BIGINT REFERENCES workflows(id),
 	tag_id BIGINT REFERENCES tags(id),
 	PRIMARY KEY (workflow_id, tag_id)
+);
+
+
+------------------------------------------------------------- TICKETING SYSTEM
+CREATE TYPE ticket_status_enum AS ENUM (
+	'Open',
+	'Closed',
+	'Solved',
+	'On Hold',
+);
+
+CREATE TABLE tickets (
+	id SERIAL PRIMARY KEY,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    subject VARCHAR(255) NOT NULL,
+    status ticket_status_enum NOT NULL
+);
+
+CREATE TABLE ticket_messages (
+	id SERIAL PRIMARY KEY,
+    ticket BIGINT REFERENCES tickets(id) NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    contents TEXT NOT NULL
 );
 
 ------------------------------------------------------------- TABLE CONTENTS

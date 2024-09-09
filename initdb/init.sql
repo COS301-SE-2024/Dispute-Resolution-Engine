@@ -19,8 +19,7 @@ CREATE TABLE addresses (
 );
 
 CREATE TYPE gender_enum AS ENUM ('Male', 'Female', 'Non-binary', 'Prefer not to say', 'Other');
-
-CREATE TYPE status_enum AS ENUM ('Active', 'Inactive', 'Suspended', 'Unverified');
+CREATE TYPE status_enum AS ENUM ('Active', 'Inactive', 'Suspended');
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -43,14 +42,25 @@ CREATE TABLE users (
     salt VARCHAR(255)
 );
 
-CREATE TYPE dispute_status AS ENUM ('Awaiting Respondant', 'Awaiting Complainant', 'Awaiting Expert(s)', 'Awaiting Decision', 'Closed');
+CREATE TYPE dispute_status AS ENUM (
+    'Awaiting Respondant',
+    'Active',
+    'Review',
 
-CREATE TYPE dispute_decision AS ENUM ('Resolved', 'Unresolved', 'Settled', 'Refused', 'Withdrawn', 'Transfer', 'Appeal', 'Other');
+    'Settled',
+    'Refused',
+    'Withdrawn',
+    'Transfer',
+    'Appeal',
+    'Other'
+);
+
 
 CREATE TABLE workflow (
 	id SERIAL PRIMARY KEY
 );
 
+------------------------------------------------------------- TABLE DEFINITIONS
 CREATE TABLE disputes (
 	id SERIAL PRIMARY KEY,
 	case_date DATE DEFAULT CURRENT_DATE,
@@ -60,8 +70,6 @@ CREATE TABLE disputes (
 	description TEXT,
 	complainant BIGINT REFERENCES users(id),
 	respondant BIGINT REFERENCES users(id),
-	resolved BOOLEAN DEFAULT FALSE,
-	decision dispute_decision DEFAULT 'Unresolved'
 );
 
 CREATE TABLE dispute_summaries (
@@ -70,16 +78,12 @@ CREATE TABLE dispute_summaries (
 	PRIMARY KEY (dispute)
 );
 
-CREATE TYPE expert_vote AS ENUM ('Pending','Approved','Rejected');
-CREATE TYPE expert_status AS ENUM ('Pending','Approved','Rejected','Review');
+CREATE TYPE expert_status AS ENUM ('Approved','Rejected','Review');
 
 CREATE TABLE dispute_experts (
 	dispute BIGINT REFERENCES disputes(id),
 	"user" BIGINT REFERENCES users(id),
-	complainant_vote expert_vote DEFAULT 'Pending',
-	respondant_vote expert_vote DEFAULT 'Pending',
-	expert_vote expert_vote DEFAULT 'Pending',
-	status expert_status DEFAULT 'Pending',
+	status expert_status DEFAULT 'Approved',
 	PRIMARY KEY (dispute, "user")
 );
 
@@ -129,14 +133,13 @@ CREATE TABLE tags (
 	tag_name VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE labelled_disputes (
+CREATE TABLE dispute_tags (
 	dispute_id BIGINT REFERENCES disputes(id),
 	tag_id BIGINT REFERENCES tags(id),
 	PRIMARY KEY (dispute_id, tag_id)
 );
 
--- Initialization of tables
-
+------------------------------------------------------------- TABLE CONTENTS
 INSERT INTO Countries (country_code, country_name) VALUES
 ('AF', 'Afghanistan'),
 ('AL', 'Albania'),

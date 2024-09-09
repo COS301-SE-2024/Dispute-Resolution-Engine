@@ -556,6 +556,8 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	var filterString string = ""
 	var dateFilterString string = ""
 	var sortString string = ""
+	var limitString string = ""
+	var offsetString string = ""
 	if searchTerm != nil {
 		searchString = "WHERE disputes.title LIKE '%" + *searchTerm + "%'"
 	}
@@ -602,5 +604,16 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		}
 		sortString = "ORDER BY " + sort.Attr + " " + sort.Order
 	}
-	return nil, nil
+
+	if limit != nil {
+		limitString = "LIMIT "+ string(*limit)
+	}
+	if offset != nil {
+		offsetString = "OFFSET "+ string(*offset)
+	}
+
+	
+
+	
+
 }

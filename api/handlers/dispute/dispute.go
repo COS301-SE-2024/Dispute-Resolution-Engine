@@ -150,6 +150,11 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 			}
 		}
 		disputes, err := h.Model.GetAdminDisputes(searchTerm, limit, offset, sort, filters, dateFilter)
+		if err != nil {
+			logger.WithError(err).Error("error retrieving disputes")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving disputes"})
+			return
+		}
 		return
 	}
 

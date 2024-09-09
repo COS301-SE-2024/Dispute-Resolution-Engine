@@ -16,12 +16,13 @@ CREATE TABLE addresses (
     street2 VARCHAR(255),
     street VARCHAR(255),
     address_type address_type_enum,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TYPE gender_enum AS ENUM ('Male', 'Female', 'Non-binary', 'Prefer not to say', 'Other');
 CREATE TYPE status_enum AS ENUM ('Active', 'Inactive', 'Suspended');
 
+------------------------------------------------------------- USERS
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -34,7 +35,7 @@ CREATE TABLE users (
     phone_number VARCHAR(20),
     address_id BIGINT REFERENCES addresses(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP,
     status status_enum DEFAULT 'Active',
     gender gender_enum,
@@ -42,6 +43,21 @@ CREATE TABLE users (
     timezone VARCHAR(50),
     salt VARCHAR(255)
 );
+
+CREATE FUNCTION update_user_last_update()
+RETURNS TRIGGER AS
+    $$
+    BEGIN
+        UPDATE users SET last_update = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END;
+    $$ LANGUAGE plpgsl;
+
+CREATE TRIGGER update_user_timestamp()
+    AFTER UPDATE ON user
+    FOR EACH ROW
+    EXECUTE FUNCTION update_user_last_update();
+
+
 
 CREATE TYPE dispute_status AS ENUM (
     'Awaiting Respondant',

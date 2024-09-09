@@ -384,13 +384,8 @@ func (m *disputeModelReal) CreateDefaultUser(email string, fullName string, pass
 	user.Salt = base64.StdEncoding.EncodeToString(salt)
 
 	//update log metrics
-	user.CreatedAt = utilities.GetCurrentTime()
-	user.UpdatedAt = utilities.GetCurrentTimePtr()
 	user.Status = "Active"
-
-	//Small user preferences
 	user.Role = "user"
-	user.LastLogin = nil
 
 	if result := m.db.Create(&user); result.Error != nil {
 		logger.WithError(result.Error).Error("Error creating default user")

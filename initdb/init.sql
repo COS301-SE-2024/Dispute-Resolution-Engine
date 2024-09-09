@@ -48,30 +48,18 @@ CREATE FUNCTION update_user_last_update()
 RETURNS TRIGGER AS
     $$
     BEGIN
+
         UPDATE users SET last_update = CURRENT_TIMESTAMP WHERE id = NEW.id;
     END;
     $$ LANGUAGE plpgsl;
 
 CREATE TRIGGER update_user_timestamp()
-    AFTER UPDATE ON user
+    BEFORE UPDATE ON user
     FOR EACH ROW
     EXECUTE FUNCTION update_user_last_update();
 
 
-
-CREATE TYPE dispute_status AS ENUM (
-    'Awaiting Respondant',
-    'Active',
-    'Review',
-
-    'Settled',
-    'Refused',
-    'Withdrawn',
-    'Transfer',
-    'Appeal',
-    'Other'
-);
-
+------------------------------------------------------------- WORKFLOWS
 CREATE TABLE workflows (
 	id SERIAL PRIMARY KEY NOT NULL,
     name VARCHAR(255) NOT NULL,
@@ -88,6 +76,19 @@ CREATE TABLE active_workflows (
 );
 
 ------------------------------------------------------------- TABLE DEFINITIONS
+CREATE TYPE dispute_status AS ENUM (
+    'Awaiting Respondant',
+    'Active',
+    'Review',
+
+    'Settled',
+    'Refused',
+    'Withdrawn',
+    'Transfer',
+    'Appeal',
+    'Other'
+);
+
 CREATE TABLE disputes (
 	id SERIAL PRIMARY KEY,
 	case_date DATE DEFAULT CURRENT_DATE,
@@ -105,15 +106,6 @@ CREATE TABLE dispute_summaries (
 	PRIMARY KEY (dispute)
 );
 
-CREATE TYPE expert_status AS ENUM ('Approved','Rejected','Review');
-
-CREATE TABLE dispute_experts (
-	dispute BIGINT REFERENCES disputes(id),
-	"user" BIGINT REFERENCES users(id),
-	status expert_status DEFAULT 'Approved',
-	PRIMARY KEY (dispute, "user")
-);
-
 CREATE TABLE files (
 	id SERIAL PRIMARY KEY,
 	file_name VARCHAR(255) NOT NULL,
@@ -128,6 +120,16 @@ CREATE TABLE dispute_evidence (
 	PRIMARY KEY (dispute, file_id)
 );
 
+------------------------------------------------------------- DISPUTE EXPERTS
+CREATE TYPE expert_status AS ENUM ('Approved','Rejected','Review');
+
+CREATE TABLE dispute_experts (
+	dispute BIGINT REFERENCES disputes(id),
+	"user" BIGINT REFERENCES users(id),
+	status expert_status DEFAULT 'Approved',
+	PRIMARY KEY (dispute, "user")
+);
+
 CREATE TYPE exp_obj_status AS ENUM ('Review','Sustained','Overruled');
 
 CREATE TABLE expert_objections (
@@ -140,6 +142,7 @@ CREATE TABLE expert_objections (
 	status exp_obj_status DEFAULT 'Review'
 );
 
+------------------------------------------------------------- EVENT LOG
 CREATE TYPE event_types AS ENUM (
 	'NOTIFICATION',
 	'DISPUTE',

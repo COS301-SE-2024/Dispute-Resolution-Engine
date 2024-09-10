@@ -82,6 +82,22 @@ type Transition struct {
 	Trigger string `json:"trigger"`
 }
 
+func (t Transition) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]string{
+		"id":      t.ID,
+		"from":    t.From,
+		"to":      t.To,
+		"trigger": t.Trigger,	
+})
+}
+
+func (t Transition) UnmarshalJSON(b []byte) (*Transition, error) {
+	if err := json.Unmarshal(b, &t); err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
 func NewTransition(id, from, to, trigger string) Transition {
 	return Transition{
 		ID:      id,

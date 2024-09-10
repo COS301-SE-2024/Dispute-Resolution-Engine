@@ -10,7 +10,7 @@ import (
 	// "orchestrator/env"
 	// "orchestrator/scheduler"
 	// "orchestrator/statemachine"
-	"orchestrator/controller"
+	// "orchestrator/controller"
 	"orchestrator/workflow"
 )
 
@@ -104,10 +104,15 @@ func main() {
 	for _, t := range transitions {
 		fmt.Println(t)
 	}
-	ctrl := controller.NewController()
-	ctrl.Start()
-	ctrl.RegisterStateMachine(wf)
-	ctrl.WaitForSignal()
+
+
+
+	// Vincent code ---------------------
+	// ctrl := controller.NewController()
+	// ctrl.Start()
+	// ctrl.RegisterStateMachine(wf)
+	// ctrl.WaitForSignal()
+	// ----------------------------------
 
 	//test fetch workflow from database
 	// wf2, err := workflow.FetchWorkflowFromAPI("http://localhost:8080/workflows/1")

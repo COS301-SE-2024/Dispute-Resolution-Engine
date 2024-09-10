@@ -102,19 +102,22 @@ type Transition struct {
 }
 
 func (t Transition) MarshalJSON() ([]byte, error) {
-	return json.Marshal(map[string]string{
-		"id":      t.ID,
-		"from":    t.From,
-		"to":      t.To,
-		"trigger": t.Trigger,	
-})
+	type Alias Transition
+	return json.Marshal(&struct {
+		*Alias
+	}{
+		Alias: (*Alias)(&t),
+	})
 }
 
-func (t Transition) UnmarshalJSON(b []byte) (*Transition, error) {
-	if err := json.Unmarshal(b, &t); err != nil {
-		return nil, err
+func (t *Transition) UnmarshalJSON(b []byte) error {
+	type Alias Transition
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(t),
 	}
-	return &t, nil
+	return json.Unmarshal(b, &aux)
 }
 
 func NewTransition(id, from, to, trigger string) Transition {

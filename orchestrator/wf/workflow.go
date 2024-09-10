@@ -146,40 +146,33 @@ type Workflow struct {
 	transitions map[string]Transition
 }
 
-func (t Workflow) MarshalJSON() ([]byte, error) {
-	states := make(map[string]string)
-	for _, s := range t.states {
-		state, err := s.MarshalJSON()
-		if err != nil {
-			return nil, err
-		}
-		states[s.ID] = string(state)
-	}
-
-	transitions := make(map[string]string)
-	for _, tr := range t.transitions {
-		transition, err := tr.MarshalJSON()
-		if err != nil {
-			return nil, err
-		}
-		transitions[tr.ID] = string(transition)
-	}
-	
-	return json.Marshal(map[string]string{
-		"id":   (string)(t.ID),
-		"name": t.Name,
-		"initial": t.initial,
-		// "states": string(states),
-		// "transitions": string(transitions),
+func (w Workflow) MarshalJSON() ([]byte, error) {
+	type Alias Workflow
+	return json.Marshal(&struct {
+		ID          uint32                 `json:"id"`
+		Name        string                 `json:"name"`
+		Initial     string                 `json:"initial"`
+		States      map[string]State       `json:"states"`
+		Transitions map[string]Transition  `json:"transitions"`
+		*Alias
+	}{
+		ID:          w.ID,
+		Name:        w.Name,
+		Initial:     w.Initial,
+		States:      w.States,
+		Transitions: w.Transitions,
+		Alias:       (*Alias)(&w),
 	})
 }
 
-func UnmarshalJSON(b []byte) (*Workflow, error) {
-	var wf Workflow
-	if err := json.Unmarshal(b, &wf); err != nil {
-		return nil, err
+func (w *Workflow) UnmarshalJSON(b []byte) error {
+	type Alias Workflow
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(w),
 	}
-	return &wf, nil
+	return json.Unmarshal(b, &aux)
 }
 
 func (w *Workflow) AddState(s State) {

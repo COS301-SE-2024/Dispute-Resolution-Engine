@@ -12,9 +12,24 @@ import { Textarea } from "@/components/ui/textarea";
 import CustomNode from "./CustomNode";
 
 const initialNodes = [
-  { id: "0", type: "customNode", position: { x: 0, y: 0 }, data: { label: "Node A" } },
-  { id: "1", type: "customNode", position: { x: 0, y: 100 }, data: { label: "Node B" } },
-  { id: "2", type: "customNode", position: { x: 0, y: 200 }, data: { label: "Node C" } },
+  {
+    id: "0",
+    type: "customNode",
+    position: { x: 0, y: 0 },
+    data: { label: "Node A", edges: { que: "hi" } },
+  },
+  {
+    id: "1",
+    type: "customNode",
+    position: { x: 0, y: 100 },
+    data: { label: "Node B", edges: { que: "hi" } },
+  },
+  {
+    id: "2",
+    type: "customNode",
+    position: { x: 0, y: 200 },
+    data: { label: "Node C", edges: { que: "hi" } },
+  },
 ];
 
 const initialEdges = [
@@ -51,7 +66,7 @@ function Flow() {
         id: currId.current.toString(),
         type: "customNode",
         position: { x: 0, y: 200 },
-        data: { label: params.label },
+        data: { label: params.label , edges: { que: "hi" }},
         // data: { label: params.label , time: {hours: 10, minutes: 20, seconds: 30}},
       };
       currId.current = currId.current + 1;

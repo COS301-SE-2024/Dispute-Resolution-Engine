@@ -1,30 +1,41 @@
-import { useCallback, useState } from "react";
-import { Handle, Position } from "@xyflow/react";
+import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { disputeDuration } from "@/lib/types";
 import TimerCheckbox from "./TimerCheckbox";
 import EventSection from "./EventSection";
+import { ReactNode } from "react";
 
-const handleStyle = { left: 10 };
-
-export default function CustomNode(data: any) {
+const events = [
+  {id: "a"},
+  // {id: "b"},
+  // {id: "c"},
+  // {id: "d"},
+  // {id: "e"},
+  // {id: "f"}, 
+  // {id: "g"},
+  // {id: "h"},
+  // {id: "i"},
+]
+export type CustomNodeType = Node<{
+edges? : any
+label? : any
+}, "customNode">
+export default function CustomNode(data: NodeProps<CustomNodeType>) {
   // console.log(data)
+  const numHandles = events.length
+  const gap = 30
+  const handles = events.map((event, index) => {
+    return <Handle type="target" key={index} id={event.id} style={{height: 20, width: 20, color: "blue  ",top: (140 - numHandles * gap/4) + (index * gap)}} position={Position.Right} />
+  })
   return (
     <div className="bg-opacity-100">
-      <Handle type="target" position={Position.Top} />
+      {handles}
+      {/* <Handle type="target" id="a" position={Position.Right} />
+      <Handle type="target" id="b" style={handleStyle} position={Position.Right} /> */}
       <Card className="dark:bg-black min-w-48">
         <CardHeader className="p-3 text-center">
           {/* TODO: USE state to actually change the label */}
           <CardTitle contentEditable="true" className="text-3xl" suppressContentEditableWarning={true}>
-            {data.data.label}
+            {data.data.label as ReactNode}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -32,7 +43,7 @@ export default function CustomNode(data: any) {
           <EventSection></EventSection>
         </CardContent>
       </Card>
-      <Handle type="source" position={Position.Bottom} id="a" />
+      <Handle type="source" position={Position.Left} id="a" />
     </div>
   );
 }

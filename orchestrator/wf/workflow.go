@@ -58,26 +58,22 @@ type State struct {
 }
 
 func (s State) MarshalJSON() ([]byte, error) {
-	timers, err := s.Timer.MarshalJSON();
-	if err != nil {
-		return nil, err
-	}
-
-	return json.Marshal(map[string]string{
-		"id":    s.ID,
-		"timer": string(timers),
+	type Alias State
+	return json.Marshal(&struct {
+		*Alias
+	}{
+		Alias: (*Alias)(&s),
 	})
 }
 
-func (s State) UnmarshalJSON(b []byte) (*State, error) {
-	var result struct {
-		ID    string `json:"id"`
-		Timer Timer  `json:"timer"`
+func (s *State) UnmarshalJSON(b []byte) error {
+	type Alias State
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(s),
 	}
-	if err := json.Unmarshal(b, &result); err != nil {
-		return nil, err
-	}
-	return &State{ID: result.ID, Timer: &result.Timer}, nil
+	return json.Unmarshal(b, &aux)
 }
 
 // Initialises a new state with an empty timer

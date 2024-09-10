@@ -57,6 +57,25 @@ type State struct {
 	Timer *Timer `json:"timer,omitempty"`
 }
 
+func (s State) MarshalJSON() ([]byte, error) {
+	type Alias State
+	return json.Marshal(&struct {
+		*Alias
+	}{
+		Alias: (*Alias)(&s),
+	})
+}
+
+func (s *State) UnmarshalJSON(b []byte) error {
+	type Alias State
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(s),
+	}
+	return json.Unmarshal(b, &aux)
+}
+
 // Initialises a new state with an empty timer
 func NewState(id string) State {
 	return State{ID: id, Timer: nil}
@@ -82,6 +101,25 @@ type Transition struct {
 	Trigger string `json:"trigger"`
 }
 
+func (t Transition) MarshalJSON() ([]byte, error) {
+	type Alias Transition
+	return json.Marshal(&struct {
+		*Alias
+	}{
+		Alias: (*Alias)(&t),
+	})
+}
+
+func (t *Transition) UnmarshalJSON(b []byte) error {
+	type Alias Transition
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(t),
+	}
+	return json.Unmarshal(b, &aux)
+}
+
 func NewTransition(id, from, to, trigger string) Transition {
 	return Transition{
 		ID:      id,
@@ -98,39 +136,68 @@ type Workflow struct {
 	ID   uint32
 	Name string
 
-	// ID of the initial state
-	initial string
+	// ID of the Initial state
+	Initial string
 
 	// Map of state IDs to the corresponding state info
-	states map[string]State
+	States map[string]State
 
 	// Map of transition IDs to the corresponding transition info
-	transitions map[string]Transition
+	Transitions map[string]Transition
+}
+
+func (w Workflow) MarshalJSON() ([]byte, error) {
+	type Alias Workflow
+	return json.Marshal(&struct {
+		ID          uint32                 `json:"id"`
+		Name        string                 `json:"name"`
+		Initial     string                 `json:"initial"`
+		States      map[string]State       `json:"states"`
+		Transitions map[string]Transition  `json:"transitions"`
+		*Alias
+	}{
+		ID:          w.ID,
+		Name:        w.Name,
+		Initial:     w.Initial,
+		States:      w.States,
+		Transitions: w.Transitions,
+		Alias:       (*Alias)(&w),
+	})
+}
+
+func (w *Workflow) UnmarshalJSON(b []byte) error {
+	type Alias Workflow
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(w),
+	}
+	return json.Unmarshal(b, &aux)
 }
 
 func (w *Workflow) AddState(s State) {
-	w.states[s.ID] = s
+	w.States[s.ID] = s
 }
 
 func (w *Workflow) AddTransition(t Transition) {
-	w.transitions[t.ID] = t
+	w.Transitions[t.ID] = t
 }
 
 func (w *Workflow) GetTransitions() []Transition {
-	transitions := make([]Transition, 0, len(w.transitions))
-	for _, t := range w.transitions {
+	transitions := make([]Transition, 0, len(w.Transitions))
+	for _, t := range w.Transitions {
 		transitions = append(transitions, t)
 	}
 	return transitions
 }
 
 func (w *Workflow) GetTransitionsByFrom(state string) []Transition {
-	if _, found := w.states[state]; !found {
+	if _, found := w.States[state]; !found {
 		return nil
 	}
 
 	var transitions []Transition
-	for _, t := range w.transitions {
+	for _, t := range w.Transitions {
 		if t.From == state {
 			transitions = append(transitions, t)
 		}
@@ -139,12 +206,12 @@ func (w *Workflow) GetTransitionsByFrom(state string) []Transition {
 }
 
 func (w *Workflow) GetTransitionsByTo(state string) []Transition {
-	if _, found := w.states[state]; !found {
+	if _, found := w.States[state]; !found {
 		return nil
 	}
 
 	var transitions []Transition
-	for _, t := range w.transitions {
+	for _, t := range w.Transitions {
 		if t.To == state {
 			transitions = append(transitions, t)
 		}

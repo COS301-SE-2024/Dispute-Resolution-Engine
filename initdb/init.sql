@@ -126,9 +126,27 @@ CREATE TYPE expert_status AS ENUM ('Approved','Rejected','Review');
 CREATE TABLE dispute_experts (
 	dispute BIGINT REFERENCES disputes(id),
 	"user" BIGINT REFERENCES users(id),
-	status expert_status DEFAULT 'Approved',
 	PRIMARY KEY (dispute, "user")
 );
+
+-- View that automatically determines the status of the expert in the dispute
+-- by examining the objections made to that expert
+CREATE VIEW dispute_experts_view AS 
+    SELECT dispute, "user" AS expert,
+    (WITH statuses AS (
+        SELECT status FROM expert_objections
+        WHERE dispute_id = dispute AND expert_id = "user"
+    ) SELECT CASE
+        -- Expert is rejected if there exists a sustained objection
+        WHEN 'Sustained' IN (SELECT * FROM statuses) THEN 'Rejected'::expert_status
+
+        -- Expert is under review if there exist any objections that are under review
+        WHEN 'Review' IN (SELECT * FROM statuses) THEN 'Review'::expert_status
+
+        -- Approve the expert by default
+        ELSE 'Approved'::expert_status
+    END)
+    AS status FROM dispute_experts;
 
 CREATE TYPE exp_obj_status AS ENUM ('Review','Sustained','Overruled');
 
@@ -453,3 +471,16 @@ INSERT INTO Countries (country_code, country_name) VALUES
 ('YE', 'Yemen'),
 ('ZM', 'Zambia'),
 ('ZW', 'Zimbabwe');
+
+SELECT
+	dispute,
+	"user" AS expert,
+	(WITH statuses AS (
+		SELECT DISTINCT status FROM expert_objections
+		WHERE dispute_id = dispute AND expert_id = "user"
+	) SELECT CASE
+		WHEN 'Sustained' IN statuses THEN 'Rejected'
+		WHEN 'Review' IN statuses THEN 'Review'
+		ELSE 'Approved'
+    END)
+	AS status FROM dispute_experts

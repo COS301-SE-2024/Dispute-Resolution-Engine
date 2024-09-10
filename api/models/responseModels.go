@@ -45,3 +45,17 @@ type ArchiveSearchResponse struct {
 type DisputeCreationResponse struct {
 	DisputeID int64 `json:"id"`
 }
+
+type WorkflowResp struct {
+	Id int64 `json:"id"`
+	Title string `json:"title"`
+}
+
+type AdminDisputeSummariesResponse struct{
+	Id int64 `json:"id"`
+	Title string `json:"title"`
+	Status string `json:"status"`
+	Workflow WorkflowResp `json:"workflow"`
+	DateFiled time.Time `json:"date_filed"`
+	DateResolved *time.Time `json:"date_resolved, omitempty"`
+}

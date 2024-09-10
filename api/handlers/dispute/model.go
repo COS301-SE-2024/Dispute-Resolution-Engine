@@ -611,7 +611,7 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	if offset != nil {
 		offsetString = "OFFSET "+ string(*offset)
 	}
-	queryString = "SELECT * FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
+	queryString = "SELECT id, title, status, date_filed FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
 	err := m.db.Raw(queryString).Scan(&disputes).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")

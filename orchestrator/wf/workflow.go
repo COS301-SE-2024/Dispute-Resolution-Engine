@@ -147,6 +147,42 @@ type Workflow struct {
 	transitions map[string]Transition
 }
 
+func (t Workflow) MarshalJSON() ([]byte, error) {
+	states := make(map[string]string)
+	for _, s := range t.states {
+		state, err := s.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		states[s.ID] = string(state)
+	}
+
+	transitions := make(map[string]string)
+	for _, tr := range t.transitions {
+		transition, err := tr.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		transitions[tr.ID] = string(transition)
+	}
+	
+	return json.Marshal(map[string]string{
+		"id":   (string)(t.ID),
+		"name": t.Name,
+		"initial": t.initial,
+		// "states": string(states),
+		// "transitions": string(transitions),
+	})
+}
+
+func UnmarshalJSON(b []byte) (*Workflow, error) {
+	var wf Workflow
+	if err := json.Unmarshal(b, &wf); err != nil {
+		return nil, err
+	}
+	return &wf, nil
+}
+
 func (w *Workflow) AddState(s State) {
 	w.states[s.ID] = s
 }

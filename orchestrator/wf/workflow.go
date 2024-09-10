@@ -136,14 +136,14 @@ type Workflow struct {
 	ID   uint32
 	Name string
 
-	// ID of the initial state
-	initial string
+	// ID of the Initial state
+	Initial string
 
 	// Map of state IDs to the corresponding state info
-	states map[string]State
+	States map[string]State
 
 	// Map of transition IDs to the corresponding transition info
-	transitions map[string]Transition
+	Transitions map[string]Transition
 }
 
 func (w Workflow) MarshalJSON() ([]byte, error) {
@@ -176,28 +176,28 @@ func (w *Workflow) UnmarshalJSON(b []byte) error {
 }
 
 func (w *Workflow) AddState(s State) {
-	w.states[s.ID] = s
+	w.States[s.ID] = s
 }
 
 func (w *Workflow) AddTransition(t Transition) {
-	w.transitions[t.ID] = t
+	w.Transitions[t.ID] = t
 }
 
 func (w *Workflow) GetTransitions() []Transition {
-	transitions := make([]Transition, 0, len(w.transitions))
-	for _, t := range w.transitions {
+	transitions := make([]Transition, 0, len(w.Transitions))
+	for _, t := range w.Transitions {
 		transitions = append(transitions, t)
 	}
 	return transitions
 }
 
 func (w *Workflow) GetTransitionsByFrom(state string) []Transition {
-	if _, found := w.states[state]; !found {
+	if _, found := w.States[state]; !found {
 		return nil
 	}
 
 	var transitions []Transition
-	for _, t := range w.transitions {
+	for _, t := range w.Transitions {
 		if t.From == state {
 			transitions = append(transitions, t)
 		}
@@ -206,12 +206,12 @@ func (w *Workflow) GetTransitionsByFrom(state string) []Transition {
 }
 
 func (w *Workflow) GetTransitionsByTo(state string) []Transition {
-	if _, found := w.states[state]; !found {
+	if _, found := w.States[state]; !found {
 		return nil
 	}
 
 	var transitions []Transition
-	for _, t := range w.transitions {
+	for _, t := range w.Transitions {
 		if t.To == state {
 			transitions = append(transitions, t)
 		}

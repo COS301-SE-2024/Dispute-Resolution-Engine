@@ -611,7 +611,7 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	if offset != nil {
 		offsetString = "OFFSET "+ string(*offset)
 	}
-
+	queryString = "SELECT * FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
 	
 
 	

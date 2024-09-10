@@ -11,6 +11,7 @@ import (
 	// "orchestrator/scheduler"
 	// "orchestrator/statemachine"
 	// "orchestrator/controller"
+	"orchestrator/wf"
 	"orchestrator/workflow"
 )
 
@@ -144,46 +145,46 @@ func main() {
 
 }
 
-func testWorkFlowToJson(wf workflow.IWorkflow) (string, error) {
+func testWorkFlowToJson(wf wf.Workflow) (string, error) {
 	// Convert the workflow to JSON string
-	jsonStr, err := workflow.WorkFlowToJSON(wf.(*workflow.Workflow))
+	jsonStr, err := wf.MarshalJSON()
 	if err != nil {
 		return "", err
 	}
-	return jsonStr, nil
+
+	return string(jsonStr), nil
 }
 
 func testJsonToWorkFlow(jsonStr string) error {
 	// Convert the JSON string back to a workflow
 	fmt.Println("Converting JSON to Workflow====================")
-	wf, err := workflow.JSONToWorkFlow(jsonStr)
+	var wf wf.Workflow
+	err := wf.UnmarshalJSON([]byte(jsonStr))
 	if err != nil {
 		return err
 	}
 
 	// Print the workflow details
-	fmt.Println("Workflow ID:", wf.GetID())
-	fmt.Println("Workflow Name:", wf.GetName())
-	fmt.Println("Initial State:", wf.GetInitialState())
+	fmt.Println("Workflow ID:", wf.ID)
+	fmt.Println("Workflow Name:", wf.Name)
+	fmt.Println("Initial State:", wf.Initial)
 
 	fmt.Println("States:")
-	states := wf.GetStates()
+	states := wf.States
 	for _, s := range states {
-		fmt.Println(" - State Name:", s.GetName())
-		if t := s.GetTimer(); t != nil {
-			fmt.Println("   - Duration:", t.GetDuration())
-			fmt.Println("   - Will Trigger:", t.WillTrigger())
-		}
+		fmt.Println(" - State Name:", s.ID)
+		fmt.Println("   - Timer:", s.Timer)
 	}
 
 	fmt.Println("Transitions:")
-	transitions := wf.GetTransitions()
+	transitions := wf.Transitions
 	for _, t := range transitions {
-		fmt.Println(" - Transition Name:", t.GetDisplayName())
-		fmt.Println("   - From:", t.GetFrom())
-		fmt.Println("   - To:", t.GetTo())
-		fmt.Println("   - Trigger:", t.GetTrigger())
+		fmt.Println(" - Transition Name:", t.ID)
+		fmt.Println("   - From:", t.From)
+		fmt.Println("   - To:", t.To)
+		fmt.Println("   - Trigger:", t.Trigger)
 	}
+	
 	fmt.Println("Workflow JSON conversion successful====================")
 
 	return nil

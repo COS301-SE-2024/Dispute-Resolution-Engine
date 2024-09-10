@@ -101,7 +101,7 @@ CREATE TABLE disputes (
 );
 
 CREATE TABLE dispute_summaries (
-	dispute BIGINT REFERENCES disputes(id),
+	dispute BIGINT REFERENCES disputes(id) ON DELETE CASCADE,
 	summary TEXT,
 	PRIMARY KEY (dispute)
 );
@@ -115,7 +115,7 @@ CREATE TABLE files (
 
 CREATE TABLE dispute_evidence (
 	dispute BIGINT REFERENCES disputes(id),
-	file_id BIGINT REFERENCES files(id),
+	file_id BIGINT REFERENCES files(id) ON DELETE CASCADE NOT NULL,
 	user_id BIGINT REFERENCES users(id) NOT NULL,
 	PRIMARY KEY (dispute, file_id)
 );
@@ -183,19 +183,19 @@ CREATE TABLE tags (
 );
 
 CREATE TABLE dispute_tags (
-	dispute_id BIGINT REFERENCES disputes(id),
+	dispute_id BIGINT REFERENCES disputes(id) ON DELETE CASCADE,
 	tag_id BIGINT REFERENCES tags(id),
 	PRIMARY KEY (dispute_id, tag_id)
 );
 
 CREATE TABLE expert_tags (
-	expert_id BIGINT REFERENCES users(id),
+	expert_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
 	tag_id BIGINT REFERENCES tags(id),
 	PRIMARY KEY (expert_id, tag_id)
 );
 
 CREATE TABLE workflow_tags (
-	workflow_id BIGINT REFERENCES workflows(id),
+	workflow_id BIGINT REFERENCES workflows(id) ON DELETE CASCADE,
 	tag_id BIGINT REFERENCES tags(id),
 	PRIMARY KEY (workflow_id, tag_id)
 );

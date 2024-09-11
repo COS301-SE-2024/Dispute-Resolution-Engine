@@ -2,6 +2,11 @@ package models
 
 import "time"
 
+type Response struct {
+	Data  interface{} `json:"data,omitempty"`
+	Error string      `json:"error,omitempty"`
+}
+
 type DisputeSummaryResponse struct {
 	ID          int64   `json:"id"`
 	Title       string  `json:"title"`

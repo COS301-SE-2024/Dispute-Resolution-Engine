@@ -47,17 +47,17 @@ type ArchivedDispute struct {
 	Events []Event `json:"events"`
 }
 
-type dispute_decision string
+type DisputeDecision string
 
 const (
-	Resolved   dispute_decision = "Resolved"
-	Unresolved dispute_decision = "Unresolved"
-	Settled    dispute_decision = "Settled"
-	Refused    dispute_decision = "Refused"
-	Withdrawn  dispute_decision = "Withdrawn"
-	Transfer   dispute_decision = "Transfer"
-	Appeal     dispute_decision = "Appeal"
-	Other      dispute_decision = "Other"
+	DecisionResolved   DisputeDecision = "Resolved"
+	DecisionUnresolved DisputeDecision = "Unresolved"
+	DecisionSettled    DisputeDecision = "Settled"
+	DecisionRefused    DisputeDecision = "Refused"
+	DecisionWithdrawn  DisputeDecision = "Withdrawn"
+	DecisionTransfer   DisputeDecision = "Transfer"
+	DecisionAppeal     DisputeDecision = "Appeal"
+	DecisionOther      DisputeDecision = "Other"
 )
 
 type Dispute struct {
@@ -138,25 +138,12 @@ func (Country) TableName() string {
 	return "countries"
 }
 
-type Response struct {
-	Data  interface{} `json:"data,omitempty"`
-	Error string      `json:"error,omitempty"`
-}
-
-type ExpertVote string
-
-const (
-	Pending  ExpertVote = "Pending"
-	Approved ExpertVote = "Approved"
-	Rejected ExpertVote = "Rejected"
-)
-
 type ExpertStatus string
 
 const (
-	ApprovedStatus ExpertStatus = "Approved"
-	RejectedStatus ExpertStatus = "Rejected"
-	ReviewStatus   ExpertStatus = "Review"
+	ExpertApproved ExpertStatus = "Approved"
+	ExpertReview   ExpertStatus = "Review"
+	ExpertRejected ExpertStatus = "Rejected"
 )
 
 type DisputeExpert struct {
@@ -193,9 +180,9 @@ func (DisputeEvidence) TableName() string {
 type ExpObjStatus string
 
 const (
-	Review    ExpObjStatus = "Review"
-	Sustained ExpObjStatus = "Sustained"
-	Overruled ExpObjStatus = "Overruled"
+	ObjectionReview    ExpObjStatus = "Review"
+	ObjectionSustained ExpObjStatus = "Sustained"
+	ObjectionOverruled ExpObjStatus = "Overruled"
 )
 
 type ExpertObjection struct {

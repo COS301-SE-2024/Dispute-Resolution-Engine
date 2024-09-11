@@ -274,16 +274,16 @@ func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var expertObjections models.ExpertObjection
-	if err := m.db.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeId, expertId, models.ReviewStatus).First(&expertObjections).Error; err != nil {
+	if err := m.db.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeId, expertId, models.ExpertReview).First(&expertObjections).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving expert objections")
 		return err
 	}
 
 	// Update status
 	if approved {
-		expertObjections.Status = models.Sustained
+		expertObjections.Status = models.ObjectionSustained
 	} else {
-		expertObjections.Status = models.Overruled
+		expertObjections.Status = models.ObjectionOverruled
 	}
 
 	if err := m.db.Save(&expertObjections).Error; err != nil {

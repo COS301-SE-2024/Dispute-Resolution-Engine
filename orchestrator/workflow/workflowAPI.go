@@ -7,25 +7,20 @@ import (
 	"io"
 	"net/http"
 	"orchestrator/env"
-
+	"time"
 )
 
 // ----------------------------API--------------------------------
 
-func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
+func FetchWorkflowFromAPI(apiURL string, secretKey string) (*Workflow, error) {
 	// Create a new GET request
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	key, err := env.Get("ORCHESTRATOR_KEY")
-	if err != nil {
-		return nil, err
-	}
-
 	// Set the X-Orchestrator-Key header
-	req.Header.Set("X-Orchestrator-Key", key)
+	req.Header.Set("X-Orchestrator-Key", secretKey)
 
 	// Perform the request
 	client := &http.Client{Timeout: 10 * time.Second}

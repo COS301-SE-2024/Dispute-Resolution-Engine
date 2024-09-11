@@ -2,8 +2,6 @@ package workflow
 
 import (
 	"encoding/json"
-
-	// "orchestrator/env"
 	"time"
 )
 
@@ -177,4 +175,3 @@ type UpdateWorkflowRequest struct {
 	Category           *[]int64  `json:"category,omitempty"`
 	Author             *int64    `json:"author,omitempty"`
 }
-

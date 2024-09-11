@@ -45,16 +45,15 @@ CREATE TABLE users (
 );
 
 CREATE FUNCTION update_user_last_update()
-RETURNS TRIGGER AS
-    $$
-    BEGIN
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.last_update := CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-        UPDATE users SET last_update = CURRENT_TIMESTAMP WHERE id = NEW.id;
-    END;
-    $$ LANGUAGE plpgsl;
-
-CREATE TRIGGER update_user_timestamp()
-    BEFORE UPDATE ON user
+CREATE TRIGGER update_user_timestamp
+    BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_user_last_update();
 
@@ -65,7 +64,7 @@ CREATE TABLE workflows (
     name VARCHAR(255) NOT NULL,
     definition JSONB NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	author BIGINT REFERENCES user(id) NOT NULL
+	author BIGINT REFERENCES users(id) NOT NULL
 );
 
 CREATE TABLE active_workflows (

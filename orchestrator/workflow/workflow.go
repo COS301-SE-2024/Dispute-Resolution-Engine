@@ -156,15 +156,15 @@ func (w *Workflow) GetInitialState() State {
 }
 
 type StoreWorkflowRequest struct {
-	WorkflowDefinition map[string]interface{} `json:"workflow_definition,omitempty"`
-	Category           []int64                `json:"category,omitempty"`
-	Author             *int64                 `json:"author,omitempty"`
+	WorkflowDefinition Workflow `json:"workflow_definition,omitempty"`
+	Category           []int64  `json:"category,omitempty"`
+	Author             *int64   `json:"author,omitempty"`
 }
 
 type UpdateWorkflowRequest struct {
-	WorkflowDefinition *map[string]interface{} `json:"workflow_definition,omitempty"`
-	Category           *[]int64                `json:"category,omitempty"`
-	Author             *int64                  `json:"author,omitempty"`
+	WorkflowDefinition *Workflow `json:"workflow_definition,omitempty"`
+	Category           *[]int64  `json:"category,omitempty"`
+	Author             *int64    `json:"author,omitempty"`
 }
 
 func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
@@ -204,8 +204,8 @@ func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
 	// Define a temporary structure to extract the data field and ID
 	var responseData struct {
 		Data struct {
-			ID                 int             `json:"ID"`
-			WorkflowDefinition json.RawMessage `json:"WorkflowDefinition"`
+			ID                 int      `json:"ID"`
+			WorkflowDefinition Workflow `json:"WorkflowDefinition"`
 		} `json:"data"`
 	}
 
@@ -215,36 +215,12 @@ func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
 		return nil, err
 	}
 
-	// Extract the ID field into a variable
-	id := responseData.Data.ID
-
-	// Convert the JSON response to a Workflow object using your existing function
-	workflow, err := JSONToWorkFlow(string(responseData.Data.WorkflowDefinition))
-	if err != nil {
-		return nil, err
-	}
-
-	workflow.id = uint32(id)
-	// Optionally, you can set the ID on the Workflow object
-	// workflow.ID = id
-
-	return workflow, nil
+	return &responseData.Data.WorkflowDefinition, nil
 }
 
 func StoreWorkflowToAPI(apiURL string, workflow Workflow, categories []int64, Author *int64) error {
-	// Convert the workflow to JSON string
-	workflowJSON, err := WorkFlowToJSON(workflow)
-	if err != nil {
-		return err
-	}
-
-	workflowMap, err := JSONToMap(workflowJSON)
-	if err != nil {
-		return err
-	}
-
 	store := StoreWorkflowRequest{
-		WorkflowDefinition: workflowMap,
+		WorkflowDefinition: workflow,
 		Category:           categories,
 		Author:             Author,
 	}
@@ -287,21 +263,7 @@ func StoreWorkflowToAPI(apiURL string, workflow Workflow, categories []int64, Au
 func UpdateWorkflowToAPI(apiURL string, workflow *Workflow, categories *[]int64, author *int64) error {
 	// Prepare the update request structure
 	var update UpdateWorkflowRequest
-
-	// Convert the workflow to a JSON map only if it's provided
-	if workflow != nil {
-		workflowJSON, err := WorkFlowToJSON(workflow)
-		if err != nil {
-			return err
-		}
-
-		workflowMap, err := JSONToMap(workflowJSON)
-		if err != nil {
-			return err
-		}
-
-		update.WorkflowDefinition = &workflowMap
-	}
+	update.WorkflowDefinition = workflow
 
 	// Add categories if provided
 	if categories != nil {

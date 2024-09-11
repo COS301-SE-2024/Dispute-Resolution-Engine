@@ -1,4 +1,3 @@
-export const JWT_VERIFY_TIMEOUT = 120;
 export const JWT_TIMEOUT = 60 * 20;
 export const JWT_KEY = "jwt";
 

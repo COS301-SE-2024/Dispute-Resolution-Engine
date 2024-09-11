@@ -5,6 +5,7 @@ CREATE TABLE countries (
     country_name VARCHAR(255) NOT NULL
 );
 
+
 CREATE TABLE addresses (
     id SERIAL PRIMARY KEY,
     code VARCHAR(3) REFERENCES countries(country_code),
@@ -15,13 +16,13 @@ CREATE TABLE addresses (
     street2 VARCHAR(255),
     street VARCHAR(255),
     address_type address_type_enum,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TYPE gender_enum AS ENUM ('Male', 'Female', 'Non-binary', 'Prefer not to say', 'Other');
+CREATE TYPE status_enum AS ENUM ('Active', 'Inactive', 'Suspended');
 
-CREATE TYPE status_enum AS ENUM ('Active', 'Inactive', 'Suspended', 'Unverified');
-
+------------------------------------------------------------- USERS
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -34,7 +35,7 @@ CREATE TABLE users (
     phone_number VARCHAR(20),
     address_id BIGINT REFERENCES addresses(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP,
     status status_enum DEFAULT 'Active',
     gender gender_enum,
@@ -43,44 +44,66 @@ CREATE TABLE users (
     salt VARCHAR(255)
 );
 
-CREATE TYPE dispute_status AS ENUM ('Awaiting Respondant', 'Awaiting Complainant', 'Awaiting Expert(s)', 'Awaiting Decision', 'Closed');
+CREATE FUNCTION update_user_last_update()
+RETURNS TRIGGER AS
+    $$
+    BEGIN
 
-CREATE TYPE dispute_decision AS ENUM ('Resolved', 'Unresolved', 'Settled', 'Refused', 'Withdrawn', 'Transfer', 'Appeal', 'Other');
+        UPDATE users SET last_update = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END;
+    $$ LANGUAGE plpgsl;
 
-CREATE TABLE workflow (
-	id SERIAL PRIMARY KEY
+CREATE TRIGGER update_user_timestamp()
+    BEFORE UPDATE ON user
+    FOR EACH ROW
+    EXECUTE FUNCTION update_user_last_update();
+
+
+------------------------------------------------------------- WORKFLOWS
+CREATE TABLE workflows (
+	id SERIAL PRIMARY KEY NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    definition JSONB NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	author BIGINT REFERENCES user(id) NOT NULL
+);
+
+CREATE TABLE active_workflows (
+	id SERIAL PRIMARY KEY NOT NULL,
+    workflow BIGINT REFERENCES workflows(id) NOT NULL,
+    current_state VARCHAR(255) NOT NULL,
+    state_deadline TIMESTAMP
+);
+
+------------------------------------------------------------- TABLE DEFINITIONS
+CREATE TYPE dispute_status AS ENUM (
+    'Awaiting Respondant',
+    'Active',
+    'Review',
+
+    'Settled',
+    'Refused',
+    'Withdrawn',
+    'Transfer',
+    'Appeal',
+    'Other'
 );
 
 CREATE TABLE disputes (
 	id SERIAL PRIMARY KEY,
 	case_date DATE DEFAULT CURRENT_DATE,
-	workflow BIGINT REFERENCES Workflow(id),
+	workflow BIGINT REFERENCES active_workflows(id),
 	status dispute_status DEFAULT 'Awaiting Respondant',
 	title VARCHAR(255) NOT NULL,
 	description TEXT,
 	complainant BIGINT REFERENCES users(id),
 	respondant BIGINT REFERENCES users(id),
-	resolved BOOLEAN DEFAULT FALSE,
-	decision dispute_decision DEFAULT 'Unresolved'
 );
 
 CREATE TABLE dispute_summaries (
-	dispute BIGINT REFERENCES disputes(id),
+	dispute BIGINT REFERENCES disputes(id) ON DELETE CASCADE,
 	summary TEXT,
 	PRIMARY KEY (dispute)
-);
-
-CREATE TYPE expert_vote AS ENUM ('Pending','Approved','Rejected');
-CREATE TYPE expert_status AS ENUM ('Pending','Approved','Rejected','Review');
-
-CREATE TABLE dispute_experts (
-	dispute BIGINT REFERENCES disputes(id),
-	"user" BIGINT REFERENCES users(id),
-	complainant_vote expert_vote DEFAULT 'Pending',
-	respondant_vote expert_vote DEFAULT 'Pending',
-	expert_vote expert_vote DEFAULT 'Pending',
-	status expert_status DEFAULT 'Pending',
-	PRIMARY KEY (dispute, "user")
 );
 
 CREATE TABLE files (
@@ -92,10 +115,38 @@ CREATE TABLE files (
 
 CREATE TABLE dispute_evidence (
 	dispute BIGINT REFERENCES disputes(id),
-	file_id BIGINT REFERENCES files(id),
+	file_id BIGINT REFERENCES files(id) ON DELETE CASCADE NOT NULL,
 	user_id BIGINT REFERENCES users(id) NOT NULL,
 	PRIMARY KEY (dispute, file_id)
 );
+
+------------------------------------------------------------- DISPUTE EXPERTS
+CREATE TYPE expert_status AS ENUM ('Approved','Rejected','Review');
+
+CREATE TABLE dispute_experts (
+	dispute BIGINT REFERENCES disputes(id),
+	"user" BIGINT REFERENCES users(id),
+	PRIMARY KEY (dispute, "user")
+);
+
+-- View that automatically determines the status of the expert in the dispute
+-- by examining the objections made to that expert
+CREATE VIEW dispute_experts_view AS 
+    SELECT dispute, "user" AS expert,
+    (WITH statuses AS (
+        SELECT status FROM expert_objections
+        WHERE dispute_id = dispute AND expert_id = "user"
+    ) SELECT CASE
+        -- Expert is rejected if there exists a sustained objection
+        WHEN 'Sustained' IN (SELECT * FROM statuses) THEN 'Rejected'::expert_status
+
+        -- Expert is under review if there exist any objections that are under review
+        WHEN 'Review' IN (SELECT * FROM statuses) THEN 'Review'::expert_status
+
+        -- Approve the expert by default
+        ELSE 'Approved'::expert_status
+    END)
+    AS status FROM dispute_experts;
 
 CREATE TYPE exp_obj_status AS ENUM ('Review','Sustained','Overruled');
 
@@ -109,6 +160,7 @@ CREATE TABLE expert_objections (
 	status exp_obj_status DEFAULT 'Review'
 );
 
+------------------------------------------------------------- EVENT LOG
 CREATE TYPE event_types AS ENUM (
 	'NOTIFICATION',
 	'DISPUTE',
@@ -124,19 +176,54 @@ CREATE TABLE event_log (
 	event_data JSON
 );
 
+------------------------------------------------------------- TAGS
 CREATE TABLE tags (
 	id SERIAL PRIMARY KEY,
 	tag_name VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE labelled_disputes (
-	dispute_id BIGINT REFERENCES disputes(id),
+CREATE TABLE dispute_tags (
+	dispute_id BIGINT REFERENCES disputes(id) ON DELETE CASCADE,
 	tag_id BIGINT REFERENCES tags(id),
 	PRIMARY KEY (dispute_id, tag_id)
 );
 
--- Initialization of tables
+CREATE TABLE expert_tags (
+	expert_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+	tag_id BIGINT REFERENCES tags(id),
+	PRIMARY KEY (expert_id, tag_id)
+);
 
+CREATE TABLE workflow_tags (
+	workflow_id BIGINT REFERENCES workflows(id) ON DELETE CASCADE,
+	tag_id BIGINT REFERENCES tags(id),
+	PRIMARY KEY (workflow_id, tag_id)
+);
+
+
+------------------------------------------------------------- TICKETING SYSTEM
+CREATE TYPE ticket_status_enum AS ENUM (
+	'Open',
+	'Closed',
+	'Solved',
+	'On Hold',
+);
+
+CREATE TABLE tickets (
+	id SERIAL PRIMARY KEY,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    subject VARCHAR(255) NOT NULL,
+    status ticket_status_enum NOT NULL
+);
+
+CREATE TABLE ticket_messages (
+	id SERIAL PRIMARY KEY,
+    ticket BIGINT REFERENCES tickets(id) NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    contents TEXT NOT NULL
+);
+
+------------------------------------------------------------- TABLE CONTENTS
 INSERT INTO Countries (country_code, country_name) VALUES
 ('AF', 'Afghanistan'),
 ('AL', 'Albania'),
@@ -384,3 +471,16 @@ INSERT INTO Countries (country_code, country_name) VALUES
 ('YE', 'Yemen'),
 ('ZM', 'Zambia'),
 ('ZW', 'Zimbabwe');
+
+SELECT
+	dispute,
+	"user" AS expert,
+	(WITH statuses AS (
+		SELECT DISTINCT status FROM expert_objections
+		WHERE dispute_id = dispute AND expert_id = "user"
+	) SELECT CASE
+		WHEN 'Sustained' IN statuses THEN 'Rejected'
+		WHEN 'Review' IN statuses THEN 'Review'
+		ELSE 'Approved'
+    END)
+	AS status FROM dispute_experts

@@ -16,3 +16,6 @@ export type disputeDuration = {
       minutes: number,
       seconds: number,
     }
+export type eventType = {
+  id : string
+}

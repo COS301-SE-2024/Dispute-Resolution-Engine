@@ -2,12 +2,13 @@ import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TimerCheckbox from "./TimerCheckbox";
 import EventSection from "./EventSection";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useId, useState } from "react";
+import { eventType } from "@/lib/types";
 
 const events = [
   {id: "a"},
-  // {id: "b"},
-  // {id: "c"},
+  {id: "b"},
+  {id: "c"},
   // {id: "d"},
   // {id: "e"},
   // {id: "f"}, 
@@ -21,6 +22,7 @@ label? : any
 }, "customNode">
 export default function CustomNode(data: NodeProps<CustomNodeType>) {
   // console.log(data)
+  console.log("rerender")
   const numHandles = events.length
   const gap = 30
   const handles = events.map((event, index) => {

@@ -1,6 +1,6 @@
 "use client";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { ReactFlow, addEdge, useNodesState, useEdgesState, Background } from "@xyflow/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ReactFlow, addEdge, useNodesState, useEdgesState, Background, Connection } from "@xyflow/react";
 import CustomEdge from "./CustomEdge";
 
 import "@xyflow/react/dist/style.css";
@@ -16,19 +16,19 @@ const initialNodes = [
     id: "0",
     type: "customNode",
     position: { x: 0, y: 0 },
-    data: { label: "Node A", edges: { que: "hi" } },
+    data: { label: "Node A", edges: [{ id: "hi" }] },
   },
   {
     id: "1",
     type: "customNode",
     position: { x: 0, y: 100 },
-    data: { label: "Node B", edges: { que: "hi" } },
+    data: { label: "Node B", edges: [{ id: "b" }, {id: "C"}] },
   },
   {
     id: "2",
     type: "customNode",
     position: { x: 0, y: 200 },
-    data: { label: "Node C", edges: { que: "hi" } },
+    data: { label: "Node C", edges: [{ id: "c" }] },
   },
 ];
 
@@ -48,16 +48,28 @@ type NewNodeData = z.infer<typeof newNodeSchema>;
 
 // http://localhost:3000/workflow
 function Flow() {
-  let currId = useRef(3);
+  let currId = useRef(3)
+  let currEdgeId = useRef(0)
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const nodeTypes = useMemo(() => ({ customNode: CustomNode }), []);
   const onConnect = useCallback(
-    (connection: any) => {
+    (connection: Connection) => {
       const edge = { ...connection, type: "custom-edge" };
-      setEdges((eds) => addEdge(edge, eds));
+      setEdges((eds) => addEdge(edge, eds) as { id: string; type: string; source: string; target: string; }[]);
+      setNodes((node) => {
+        console.log("setting nodes")
+        for(var index in node){
+          if (node[index].id == connection.source || node[index].id == connection.target){
+            node[index].data.edges.push({id: "newEdge: " + currEdgeId.current})
+            currEdgeId.current = currEdgeId.current + 1
+            console.log("setting correct nodes")
+          }
+        }
+        return node
+      })
     },
-    [setEdges]
+    [setEdges, setNodes]
   );
 
   const addNode = useCallback(
@@ -66,7 +78,7 @@ function Flow() {
         id: currId.current.toString(),
         type: "customNode",
         position: { x: 0, y: 200 },
-        data: { label: params.label , edges: { que: "hi" }},
+        data: { label: params.label , edges: [{ id: "hi" }]},
         // data: { label: params.label , time: {hours: 10, minutes: 20, seconds: 30}},
       };
       currId.current = currId.current + 1;

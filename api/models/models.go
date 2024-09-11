@@ -160,21 +160,12 @@ const (
 )
 
 type DisputeExpert struct {
-	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
-	User    int64 `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	Dispute int64        `gorm:"primaryKey;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	Expert  int64        `gorm:"primaryKey;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	Status  ExpertStatus `gorm:"<-:false;type:expert_status`
 }
 
 func (DisputeExpert) TableName() string {
-	return "dispute_experts"
-}
-
-type DisputeExpertView struct {
-	Dispute int64        `gorm:"->`
-	Expert  int64        `gorm:"->`
-	Status  ExpertStatus `gorm:"->;type:expert_status`
-}
-
-func (DisputeExpertView) TableName() string {
 	return "dispute_experts_view"
 }
 

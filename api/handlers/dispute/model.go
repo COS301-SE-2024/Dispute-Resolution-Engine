@@ -366,10 +366,10 @@ func (m disputeModelReal) AssignExpertsToDispute(disputeID int64) ([]models.User
 
 	// Insert the selected experts into the dispute_experts table
 	for _, expert := range selectedUsers {
-		if err := m.db.Create(&models.DisputeExpert{
-			Dispute: disputeID,
-			User:    expert.ID,
-		}).Error; err != nil {
+
+		// A raw query is used here because GORM tries to insert the Status field of the struct,
+		// despite the field being marked as read-only. Why did we use an ORM?
+		if err := m.db.Raw("INSERT INTO dispute_experts_view VALUES (?, ?)", disputeID, expert.ID).Error; err != nil {
 			return nil, err
 		}
 	}

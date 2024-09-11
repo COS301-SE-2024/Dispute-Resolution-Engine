@@ -161,6 +161,29 @@ CREATE VIEW dispute_experts_view AS
     END)
     AS status FROM dispute_experts;
 
+
+CREATE FUNCTION check_valid_objection()
+RETURNS trigger AS 
+    $$
+    DECLARE
+        count integer;
+    BEGIN
+        SELECT COUNT(*) FROM dispute_experts de
+            WHERE de.dispute = NEW.dispute_id AND de."user" = NEW.expert_id INTO count;
+
+        IF count = 0 THEN
+            RAISE EXCEPTION 'Expert (ID = %) is not assigned to dispute (ID = %)', NEW.dispute_id, NEW.expert_id;
+        END IF;
+
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_valid_objection
+    BEFORE INSERT OR UPDATE ON expert_objections
+    FOR EACH ROW
+    EXECUTE FUNCTION check_valid_objection();
+
 ------------------------------------------------------------- EVENT LOG
 CREATE TYPE event_types AS ENUM (
 	'NOTIFICATION',

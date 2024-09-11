@@ -154,23 +154,28 @@ const (
 type ExpertStatus string
 
 const (
-	PendingStatus  ExpertStatus = "Pending"
 	ApprovedStatus ExpertStatus = "Approved"
 	RejectedStatus ExpertStatus = "Rejected"
 	ReviewStatus   ExpertStatus = "Review"
 )
 
 type DisputeExpert struct {
-	Dispute         int64        `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
-	User            int64        `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
-	ComplainantVote ExpertVote   `gorm:"column:complainant_vote;type:expert_vote;default:'Pending'"`
-	RespondantVote  ExpertVote   `gorm:"column:respondant_vote;type:expert_vote;default:'Pending'"`
-	ExpertVote      ExpertVote   `gorm:"column:expert_vote;type:expert_vote;default:'Pending'"`
-	Status          ExpertStatus `gorm:"column:status;type:expert_status;default:'Pending'"`
+	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	User    int64 `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
 }
 
 func (DisputeExpert) TableName() string {
 	return "dispute_experts"
+}
+
+type DisputeExpertView struct {
+	Dispute int64        `gorm:"->`
+	Expert  int64        `gorm:"->`
+	Status  ExpertStatus `gorm:"->;type:expert_status`
+}
+
+func (DisputeExpertView) TableName() string {
+	return "dispute_experts_view"
 }
 
 type File struct {

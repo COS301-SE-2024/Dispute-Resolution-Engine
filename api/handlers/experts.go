@@ -72,12 +72,8 @@ func (h *Expert) AssignExpertsToDispute(disputeID int64) ([]models.User, error) 
 	// Insert the selected experts into the dispute_experts table
 	for _, expert := range selectedUsers {
 		if err := h.DB.Create(&models.DisputeExpert{
-			Dispute:         disputeID,
-			User:            expert.ID,
-			ComplainantVote: "Approved",
-			RespondantVote:  "Approved",
-			ExpertVote:      "Approved",
-			Status:          "Approved",
+			Dispute: disputeID,
+			User:    expert.ID,
 		}).Error; err != nil {
 			return nil, err
 		}

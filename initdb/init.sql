@@ -96,7 +96,7 @@ CREATE TABLE disputes (
 	title VARCHAR(255) NOT NULL,
 	description TEXT,
 	complainant BIGINT REFERENCES users(id),
-	respondant BIGINT REFERENCES users(id),
+	respondant BIGINT REFERENCES users(id)
 );
 
 CREATE TABLE dispute_summaries (
@@ -128,6 +128,20 @@ CREATE TABLE dispute_experts (
 	PRIMARY KEY (dispute, "user")
 );
 
+
+
+CREATE TYPE exp_obj_status AS ENUM ('Review','Sustained','Overruled');
+
+CREATE TABLE expert_objections (
+	id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	dispute_id BIGINT REFERENCES disputes(id),
+	expert_id BIGINT REFERENCES users(id),
+	user_id BIGINT REFERENCES users(id),
+	reason TEXT,
+	status exp_obj_status DEFAULT 'Review'
+);
+
 -- View that automatically determines the status of the expert in the dispute
 -- by examining the objections made to that expert
 CREATE VIEW dispute_experts_view AS 
@@ -146,18 +160,6 @@ CREATE VIEW dispute_experts_view AS
         ELSE 'Approved'::expert_status
     END)
     AS status FROM dispute_experts;
-
-CREATE TYPE exp_obj_status AS ENUM ('Review','Sustained','Overruled');
-
-CREATE TABLE expert_objections (
-	id SERIAL PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	dispute_id BIGINT REFERENCES disputes(id),
-	expert_id BIGINT REFERENCES users(id),
-	user_id BIGINT REFERENCES users(id),
-	reason TEXT,
-	status exp_obj_status DEFAULT 'Review'
-);
 
 ------------------------------------------------------------- EVENT LOG
 CREATE TYPE event_types AS ENUM (
@@ -205,7 +207,7 @@ CREATE TYPE ticket_status_enum AS ENUM (
 	'Open',
 	'Closed',
 	'Solved',
-	'On Hold',
+	'On Hold'
 );
 
 CREATE TABLE tickets (
@@ -470,16 +472,3 @@ INSERT INTO Countries (country_code, country_name) VALUES
 ('YE', 'Yemen'),
 ('ZM', 'Zambia'),
 ('ZW', 'Zimbabwe');
-
-SELECT
-	dispute,
-	"user" AS expert,
-	(WITH statuses AS (
-		SELECT DISTINCT status FROM expert_objections
-		WHERE dispute_id = dispute AND expert_id = "user"
-	) SELECT CASE
-		WHEN 'Sustained' IN statuses THEN 'Rejected'
-		WHEN 'Review' IN statuses THEN 'Review'
-		ELSE 'Approved'
-    END)
-	AS status FROM dispute_experts

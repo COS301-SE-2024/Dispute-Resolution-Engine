@@ -15,15 +15,14 @@ import (
 
 type IStateMachine interface {
 	// initialise the state machine with a workflow
-	Init(workflow workflow.IWorkflow, scheduler *scheduler.Scheduler)
+	Init(wf_id string, workflow workflow.Workflow, scheduler *scheduler.Scheduler)
 	Start()
 }
 
 type stateMachine struct {
-	id           uint32
-	name         string
+	label         string
 	stateMachine *stateless.StateMachine
-	workflow     workflow.IWorkflow
+	workflow     workflow.Workflow
 	scheduler    *scheduler.Scheduler
 }
 
@@ -31,44 +30,39 @@ func NewStateMachine() IStateMachine {
 	return &stateMachine{}
 }
 
-func (s *stateMachine) Init(wf workflow.IWorkflow, sch *scheduler.Scheduler) {
+func (s *stateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Scheduler) {
 	logger := utilities.NewLogger().LogWithCaller()
 	logger.Info("Initialising state machine")
 
-	initState := wf.GetInitialState() // this whole sequence is a bit weird, but idk how else to do it
-	initStatePtr := &initState        // without changing the workflow interface
+	// initState := wf.GetInitialState() // this whole sequence is a bit weird, but idk how else to do it
+	// initStatePtr := &initState        // without changing the workflow interface
 
-	s.id = wf.GetID()
-	s.name = wf.GetName()
-	s.stateMachine = stateless.NewStateMachine(initStatePtr.GetName())
+	s.label = wf.Label
+	s.stateMachine = stateless.NewStateMachine(wf.Initial)
 	s.workflow = wf
 	s.scheduler = sch // 1 second interval
 
 	// For every state in the workflow, add it to the state machine
-	for _, state := range wf.GetStates() {
+	for state_id, state := range wf.States {
 		// For every related transition from the state, configure the state with the transition
-		toTransitions := wf.GetTransitionsByFrom(state.GetName())
+		stateConfig := s.stateMachine.Configure(state_id)
 
-		stateConfig := s.stateMachine.Configure(state.GetName())
-		for _, transition := range toTransitions {
-			stateConfig.Permit(transition.GetTrigger(), transition.GetTo())
+		for trigger_id, trigger := range state.Triggers {
+			stateConfig.Permit(trigger_id, trigger.Next)
 		}
-
+		
 		// Configure timer states
-		if timer := state.GetTimer(); timer != nil {
-			timerName := fmt.Sprintf("%s_%s", state.GetName(), timer.WillTrigger())
-
+		if timer := state.Timer; timer != nil {
+			timerName := fmt.Sprintf("%s_%s",wf_id ,state_id)
 			// Start the timer once the state is entered
 			stateConfig.OnEntry(func(_ context.Context, args ...any) error {
 				logger.Info("New state entered")
 				s.scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()), func() {
-					logger.Info("Timer expired for state", state.GetName(), ", triggering transition:", timer.WillTrigger())
-					transition := wf.GetTransition(timer.WillTrigger())
-					s.stateMachine.Fire(transition.GetTrigger())
+					logger.Info("Timer expired for state", state_id)
+					s.stateMachine.Fire(timer.OnExpire)
 				})
 				return nil
 			})
-
 			// When the state is exited, remove the timer.
 			// WARNING: this may cause some kind of race condition when the exit
 			stateConfig.OnExit(func(_ context.Context, args ...any) error {
@@ -76,21 +70,6 @@ func (s *stateMachine) Init(wf workflow.IWorkflow, sch *scheduler.Scheduler) {
 				return nil
 			})
 		}
-
-		/*
-			// For every timer in the state, add it to the scheduler
-			for _, timer := range state.GetTimers() {
-
-				timerName := fmt.Sprintf("%s_%s", state.GetName(), timer.WillTrigger())
-
-				// Add the timer to the scheduler
-				s.scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()), func() {
-					logger.Info("Timer expired for state", state.GetName(), ", triggering transition:", timer.WillTrigger())
-					transition := wf.GetTransition(timer.WillTrigger())
-					s.stateMachine.Fire(transition.GetTrigger())
-				})
-			}
-		*/
 	}
 }
 

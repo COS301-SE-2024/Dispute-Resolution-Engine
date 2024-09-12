@@ -5,6 +5,8 @@ import EventSection from "./EventSection";
 import { ReactNode, useEffect, useId, useState } from "react";
 import { eventType } from "@/lib/types";
 
+import flow from "@xyflow/react";
+
 // const events = [
 //   {id: "a"},
 //   {id: "b"},
@@ -24,13 +26,28 @@ export type CustomNodeType = Node<
   "customNode"
 >;
 
+/** The diameter (in pixels) of a single handle */
+const handleDiameter = 20;
+
+/** The gap (in pixels) between handles */
+const handleGap = 20;
+
+/** Default styles applied to every handle */
+const handleStyle = {
+  height: handleDiameter,
+  width: handleDiameter,
+};
+
+/** Calculates a handle's offset given it's index */
+const offset = (i: number) => i * (handleDiameter + handleGap);
+
 export default function CustomNode(data: NodeProps<CustomNodeType>) {
-  // console.log(data)
-  const fullHeigh = 280;
   const events = data.data.edges;
   const numHandles = events.length;
   console.log("rerender", numHandles);
-  const gap = 30;
+
+  const minHeight = offset(numHandles + 1);
+
   const handles = events.map((event, index) => {
     return (
       <Handle
@@ -38,49 +55,45 @@ export default function CustomNode(data: NodeProps<CustomNodeType>) {
         key={index}
         id={event.id}
         style={{
-          height: 10,
-          width: 10,
+          ...handleStyle,
           color: "blue  ",
-          top: 40 - (numHandles * gap) / 4 + index * gap,
+          top: offset(index),
         }}
         position={Position.Right}
-      >{event.id}</Handle>
+      >
+        {event.id}
+      </Handle>
     );
   });
 
   return (
-    <div className="bg-opacity-100">
-      {handles}
-      <Handle
-        type="source"
-        id="new"
-        style={{
-          height: 20,
-          width: 20,
-          color: "white",
-          top: 40 - (numHandles * gap) / 4 + numHandles * gap,
-        }}
-        position={Position.Right}
-      >Event_Name</Handle>
+    <Card className="min-w-48">
       {/* <Handle type="target" id="a" position={Position.Right} />
       <Handle type="target" id="b" style={handleStyle} position={Position.Right} /> */}
-      <Card className="min-w-48">
-        <CardHeader className="p-3 text-center">
-          {/* TODO: USE state to actually change the label */}
-          <CardTitle
-            contentEditable="true"
-            className="text-3xl"
-            suppressContentEditableWarning={true}
-          >
-            {data.data.label as ReactNode}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* <TimerCheckbox data={data} /> */}
-          {/* <EventSection></EventSection> */}
-        </CardContent>
-      </Card>
-      <Handle type="target" position={Position.Left} id="a" />
-    </div>
+      <CardHeader className="p-3 text-center">
+        {/* TODO: USE state to actually change the label */}
+        <CardTitle className="text-3xl" suppressContentEditableWarning={true}>
+          {data.data.label as ReactNode}
+        </CardTitle>
+      </CardHeader>
+      <CardContent style={{ minHeight }} className="relative">
+        {handles}
+        <Handle
+          type="source"
+          id="new"
+          style={{
+            ...handleStyle,
+            color: "white",
+            top: offset(numHandles),
+          }}
+          position={Position.Right}
+        >
+          Event_Name
+        </Handle>
+        <Handle type="target" position={Position.Left} id="a" style={handleStyle} />
+        {/* <TimerCheckbox data={data} /> */}
+        {/* <EventSection></EventSection> */}
+      </CardContent>
+    </Card>
   );
 }

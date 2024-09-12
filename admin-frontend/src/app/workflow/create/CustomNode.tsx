@@ -1,14 +1,11 @@
-"use client"
-import { Handle, Node, NodeProps, Position, ReactFlowInstance, useReactFlow } from "@xyflow/react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import TimerCheckbox from "./TimerCheckbox";
-import EventSection from "./EventSection";
-import { ReactNode, useEffect, useId, useRef, useState } from "react";
-import { eventType } from "@/lib/types";
-import { Button } from "@/components/ui/button";
-import { CircleX } from "lucide-react";
+"use client";
+import { Handle, Node, NodeProps, Position, useReactFlow } from "@xyflow/react";
+import { FormEvent, ReactNode, useRef, useState } from "react";
+import { CircleX, Pencil } from "lucide-react";
 
-import flow from "@xyflow/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // const events = [
 //   {id: "a"},
@@ -44,6 +41,43 @@ const handleStyle = {
 /** Calculates a handle's offset given it's index */
 const offset = (i: number) => i * (handleDiameter + handleGap);
 
+function EditForm({
+  value,
+  onCancel = () => {},
+  onCommit = () => {},
+}: {
+  value: string;
+  onCancel?: () => void;
+  onCommit?: (value: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const newValue = inputRef.current!.value;
+    if (newValue === value) {
+      onCancel();
+    } else if (newValue.length === 0) {
+      onCancel();
+    } else {
+      onCommit(newValue);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="grow">
+      <Input
+        ref={inputRef}
+        defaultValue={value}
+        autoFocus
+        className="w-fit"
+        onBlur={onCancel}
+        placeholder="Node label"
+      />
+    </form>
+  );
+}
+
 export default function CustomNode(data: NodeProps<CustomNodeType>) {
   const events = data.data.edges;
   const numHandles = events.length;
@@ -68,23 +102,47 @@ export default function CustomNode(data: NodeProps<CustomNodeType>) {
       </Handle>
     );
   });
-  const flowInst = useReactFlow()
-  const deleteNode = function(){
-    const nodes = flowInst.getNodes()
+  const flowInst = useReactFlow();
+  const deleteNode = function () {
+    const nodes = flowInst.getNodes();
     flowInst.setNodes((nodes) => nodes.filter((node) => node.id !== data.id));
+  };
+
+  /** Used to determine when a component the label of a node is being edited */
+  const [editing, setEditing] = useState(false);
+
+  function setNodeLabel(value: string) {
+    setEditing(false);
+    alert(value);
+    // TODO: add proper changes here
   }
+
   return (
     <Card className="min-w-48">
       {/* <Handle type="target" id="a" position={Position.Right} />
       <Handle type="target" id="b" style={handleStyle} position={Position.Right} /> */}
-      <CardHeader className="p-3 text-center">
-        {/* TODO: USE state to actually change the label */}
-      <button className="nodrag nopan" onClick={deleteNode}>
-        <CircleX></CircleX>
-      </button>
-        <CardTitle className="text-3xl" suppressContentEditableWarning={true}>
-          {data.data.label as ReactNode}
-        </CardTitle>
+      <CardHeader className="p-3 flex gap-1 flex-row items-center">
+        <Button
+          variant="ghost"
+          className="rounded-full p-2 items-center justify-center"
+          onClick={deleteNode}
+        >
+          <CircleX size="1rem" />
+        </Button>
+        {editing ? (
+          <EditForm
+            value={data.data.label}
+            onCommit={setNodeLabel}
+            onCancel={() => setEditing(false)}
+          />
+        ) : (
+          <>
+            <CardTitle className="grow text-base">{data.data.label as ReactNode}</CardTitle>
+            <Button variant="ghost" className="rounded-full p-2" onClick={() => setEditing(true)}>
+              <Pencil size="1rem" />
+            </Button>
+          </>
+        )}
       </CardHeader>
       <CardContent style={{ minHeight }} className="relative">
         {handles}

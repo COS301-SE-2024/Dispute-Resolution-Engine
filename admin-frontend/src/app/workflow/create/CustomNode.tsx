@@ -44,7 +44,7 @@ export default function CustomNode(data: NodeProps<CustomNodeType>) {
           top: 40 - (numHandles * gap) / 4 + index * gap,
         }}
         position={Position.Right}
-      />
+      >{event.id}</Handle>
     );
   });
 
@@ -57,11 +57,11 @@ export default function CustomNode(data: NodeProps<CustomNodeType>) {
         style={{
           height: 20,
           width: 20,
-          color: "blue  ",
+          color: "white",
           top: 40 - (numHandles * gap) / 4 + numHandles * gap,
         }}
         position={Position.Right}
-      />
+      >Event_Name</Handle>
       {/* <Handle type="target" id="a" position={Position.Right} />
       <Handle type="target" id="b" style={handleStyle} position={Position.Right} /> */}
       <Card className="min-w-48">

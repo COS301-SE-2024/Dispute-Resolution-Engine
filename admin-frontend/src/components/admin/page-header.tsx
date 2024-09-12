@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 export default function PageHeader({ label, children }: { label: string; children?: ReactNode }) {
   return (
     <header className="flex">

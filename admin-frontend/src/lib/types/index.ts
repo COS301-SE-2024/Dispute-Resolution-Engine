@@ -12,3 +12,4 @@ export type Result<T, E = string> =
     };
 
 export * from "./dispute";
+export * from "./workflow";

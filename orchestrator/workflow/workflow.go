@@ -2,6 +2,7 @@ package workflow
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -164,14 +165,34 @@ func (w *Workflow) GetInitialState() State {
 	return w.States[w.Initial]
 }
 
-type StoreWorkflowRequest struct {
-	WorkflowDefinition Workflow `json:"workflow_definition,omitempty"`
-	Category           []int64  `json:"category,omitempty"`
-	Author             *int64   `json:"author,omitempty"`
-}
 
-type UpdateWorkflowRequest struct {
-	WorkflowDefinition *Workflow `json:"workflow_definition,omitempty"`
-	Category           *[]int64  `json:"category,omitempty"`
-	Author             *int64    `json:"author,omitempty"`
+func (w *Workflow) GetWorkflowString() string {
+	result := fmt.Sprintf("Workflow: %s\n", w.Label)
+	result += fmt.Sprintf("Initial State: %s\n", w.Initial)
+
+	// Iterate through each state in the workflow
+	for stateID, state := range w.States {
+		result += fmt.Sprintf("\nState ID: %s\n", stateID)
+		result += fmt.Sprintf("  Label: %s\n", state.Label)
+		result += fmt.Sprintf("  Description: %s\n", state.Description)
+
+		// Print triggers
+		if len(state.Triggers) > 0 {
+			result += "  Triggers:\n"
+			for triggerID, trigger := range state.Triggers {
+				result += fmt.Sprintf("    - ID: %s, Label: %s, Next State: %s\n", triggerID, trigger.Label, trigger.Next)
+			}
+		} else {
+			result += "  No Triggers\n"
+		}
+
+		// Print timer if exists
+		if state.Timer != nil {
+			result += fmt.Sprintf("  Timer: Duration: %s, On Expire: %s\n", state.Timer.GetDuration().String(), state.Timer.OnExpire)
+		} else {
+			result += "  No Timer\n"
+		}
+	}
+
+	return result
 }

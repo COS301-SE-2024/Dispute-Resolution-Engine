@@ -8,9 +8,22 @@ import (
 	"net/http"
 	"orchestrator/env"
 	"time"
+
 )
 
 // ----------------------------API--------------------------------
+
+type StoreWorkflowRequest struct {
+	WorkflowDefinition Workflow `json:"workflow_definition,omitempty"`
+	Category           []int64  `json:"category,omitempty"`
+	Author             *int64   `json:"author,omitempty"`
+}
+
+type UpdateWorkflowRequest struct {
+	WorkflowDefinition *Workflow `json:"workflow_definition,omitempty"`
+	Category           *[]int64  `json:"category,omitempty"`
+	Author             *int64    `json:"author,omitempty"`
+}
 
 func FetchWorkflowFromAPI(apiURL string, secretKey string) (*Workflow, error) {
 	// Create a new GET request

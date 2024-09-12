@@ -41,6 +41,7 @@ const edgeTypes = {
   "custom-edge": CustomEdge,
 };
 
+
 const newNodeSchema = z.object({
   label: z.string().min(1).max(50),
 });

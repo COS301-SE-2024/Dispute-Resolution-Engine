@@ -1,18 +1,12 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ReactFlow,
-  addEdge,
-  useNodesState,
-  useEdgesState,
-  Background,
-  Connection,
-} from "@xyflow/react";
+
+import { useCallback, useMemo, useRef } from "react";
+import { ReactFlow, addEdge, useNodesState, useEdgesState, Connection } from "@xyflow/react";
 import CustomEdge from "./CustomEdge";
 
 import "@xyflow/react/dist/style.css";
 import { Button } from "@/components/ui/button";
-import { FormProvider, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
@@ -118,7 +112,7 @@ function Flow() {
   return (
     <div className="h-full grid grid-rows-[1fr_auto]">
       <ReactFlow
-        className="dark:bg-surface-dark-950"
+        className="dark:bg-surface-dark-950 stroke-primary-500"
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}

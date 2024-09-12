@@ -1,9 +1,8 @@
-import { Input } from "@/components/ui/input";
 import {
   BaseEdge,
   EdgeLabelRenderer,
-  getBezierPath,
-  getStraightPath,
+  Position,
+  getSmoothStepPath,
   useReactFlow,
 } from "@xyflow/react";
 import { CircleX } from "lucide-react";
@@ -23,11 +22,14 @@ export default function CustomEdge({
 }) {
   const { setEdges, getEdges } = useReactFlow();
   const { setNodes } = useReactFlow();
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
     targetX,
     targetY,
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+    borderRadius: 10,
   });
 
   return (

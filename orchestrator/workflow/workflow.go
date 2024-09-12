@@ -115,6 +115,18 @@ type State struct {
 	Timer *Timer `json:"timer,omitempty"`
 }
 
+func CreateState(label, description string) State {
+	return State{
+		Label:       label,
+		Description: description,
+		Triggers:    make(map[string]Trigger),
+	}
+}
+
+func (s *State) AddTrigger(trigger Trigger) {
+	s.Triggers[trigger.Label] = trigger
+}
+
 // ----------------------------Trigger--------------------------------
 type Trigger struct {
 	// Human-readable label of the trigger
@@ -166,6 +178,8 @@ type UpdateWorkflowRequest struct {
 	Category           *[]int64  `json:"category,omitempty"`
 	Author             *int64    `json:"author,omitempty"`
 }
+
+// ----------------------------API--------------------------------
 
 func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
 	// Create a new GET request

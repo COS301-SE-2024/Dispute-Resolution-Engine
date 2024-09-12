@@ -40,7 +40,7 @@ export default function CustomEdge({
             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
             pointerEvents: "all",
             display: "flex",
-            gap: "12px"
+            gap: "12px",
           }}
         >
           <h1 contentEditable="true" className="text-3xl" suppressContentEditableWarning={true}>

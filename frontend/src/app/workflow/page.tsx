@@ -16,19 +16,19 @@ const initialNodes = [
     id: "0",
     type: "customNode",
     position: { x: 0, y: 0 },
-    data: { label: "Node A", edges: [{ id: "hi" }] },
+    data: { label: "Node A", edges: [{id: "testId"}] },
   },
   {
     id: "1",
     type: "customNode",
     position: { x: 0, y: 100 },
-    data: { label: "Node B", edges: [{ id: "b" }, {id: "C"}] },
+    data: { label: "Node B", edges: [{id: "testId2"}] },
   },
   {
     id: "2",
     type: "customNode",
     position: { x: 0, y: 200 },
-    data: { label: "Node C", edges: [{ id: "c" }] },
+    data: { label: "Node C", edges: [] },
   },
 ];
 
@@ -58,18 +58,29 @@ function Flow() {
       const edge = { ...connection, type: "custom-edge" };
       setEdges((eds) => addEdge(edge, eds) as { id: string; type: string; source: string; target: string; }[]);
       setNodes((node) => {
-        console.log("setting nodes")
+        console.log("setting nodes", edges, node)
         for(var index in node){
-          if (node[index].id == connection.source || node[index].id == connection.target){
-            node[index].data.edges.push({id: "newEdge: " + currEdgeId.current})
-            currEdgeId.current = currEdgeId.current + 1
-            console.log("setting correct nodes")
+          var currEdges = []
+          if(connection.source == node[index].id){
+            currEdges.push({id: "newConn"})
           }
+          for(var edgeIndex in edges){
+            if (edges[edgeIndex].source == node[index].id) {
+              currEdges.push({id: edges[edgeIndex].target})
+            }
+          }
+          console.log(currEdges)
+          node[index].data.edges = currEdges
+          // if (node[index].id == connection.source || node[index].id == connection.target){
+          //   node[index].data.edges.push({id: "newEdge: " + currEdgeId.current})
+          //   currEdgeId.current = currEdgeId.current + 1
+          //   console.log("setting correct nodes: ", node[index])
+          // }
         }
         return node
       })
     },
-    [setEdges, setNodes]
+    [setEdges, setNodes, edges]
   );
 
   const addNode = useCallback(

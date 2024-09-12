@@ -1,16 +1,10 @@
-import { Search, Filter } from "lucide-react";
+import { Filter, Search } from "lucide-react";
+import { z } from "zod";
 
 import PageHeader from "@/components/admin/page-header";
-
+import StatusFilter from "@/components/dispute/status-filter";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -18,6 +12,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -27,16 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import Link from "next/link";
 import { getDisputeDetails, getDisputeList } from "@/lib/api/dispute";
-import { z } from "zod";
+import { type DisputeDetails } from "@/lib/types/dispute";
+
 import Details from "./modal";
-import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown";
 import DisputeRow from "./row";
-import { type AdminDispute, type DisputeDetails } from "@/lib/types/dispute";
 
 const searchSchema = z.object({
   id: z.string().optional(),
@@ -89,7 +81,7 @@ export default async function Disputes({ searchParams }: { searchParams: unknown
               <strong className="col-span-2">Filter</strong>
 
               <label>Status</label>
-              <StatusSelect />
+              <StatusFilter />
               <label>Workflow</label>
               <StatusSelect />
               <div className="col-span-2 flex flex-end">

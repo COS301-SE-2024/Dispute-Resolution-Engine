@@ -1,9 +1,12 @@
-import { Handle, Node, NodeProps, Position } from "@xyflow/react";
+"use client"
+import { Handle, Node, NodeProps, Position, ReactFlowInstance, useReactFlow } from "@xyflow/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TimerCheckbox from "./TimerCheckbox";
 import EventSection from "./EventSection";
-import { ReactNode, useEffect, useId, useState } from "react";
+import { ReactNode, useEffect, useId, useRef, useState } from "react";
 import { eventType } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { CircleX } from "lucide-react";
 
 // const events = [
 //   {id: "a"},
@@ -47,7 +50,11 @@ export default function CustomNode(data: NodeProps<CustomNodeType>) {
       >{event.id}</Handle>
     );
   });
-
+  const flowInst = useReactFlow()
+  const deleteNode = function(){
+    const nodes = flowInst.getNodes()
+    flowInst.setNodes((nodes) => nodes.filter((node) => node.id !== data.id));
+  }
   return (
     <div className="bg-opacity-100">
       {handles}
@@ -61,10 +68,12 @@ export default function CustomNode(data: NodeProps<CustomNodeType>) {
           top: 40 - (numHandles * gap) / 4 + numHandles * gap,
         }}
         position={Position.Right}
-      >Event_Name</Handle>
-      {/* <Handle type="target" id="a" position={Position.Right} />
-      <Handle type="target" id="b" style={handleStyle} position={Position.Right} /> */}
+      >NEW</Handle>
+      
       <Card className="min-w-48">
+      <button className="nodrag nopan" onClick={deleteNode}>
+        <CircleX></CircleX>
+      </button>
         <CardHeader className="p-3 text-center">
           {/* TODO: USE state to actually change the label */}
           <CardTitle

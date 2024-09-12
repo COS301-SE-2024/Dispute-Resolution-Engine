@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   addEdge,
@@ -7,6 +7,7 @@ import {
   useEdgesState,
   Background,
   Connection,
+  Edge,
 } from "@xyflow/react";
 import CustomEdge from "./CustomEdge";
 
@@ -39,7 +40,7 @@ const initialNodes = [
   },
 ];
 
-const initialEdges = [
+const initialEdges : Edge[]= [
   { id: "0->1", type: "custom-edge", source: "0", target: "1" },
   { id: "1->2", type: "custom-edge", source: "1", target: "2" },
 ];
@@ -56,36 +57,34 @@ type NewNodeData = z.infer<typeof newNodeSchema>;
 // http://localhost:3000/workflow
 function Flow() {
   let currId = useRef(3);
-  let currEdgeId = useRef(0);
+  let currEdgeId = useRef(1);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const nodeTypes = useMemo(() => ({ customNode: CustomNode }), []);
   const onConnect = useCallback(
     (connection: Connection) => {
-      const edge = { ...connection, type: "custom-edge" };
+      const edge = { ...connection, type: "custom-edge"};
       setEdges(
         (eds) =>
           addEdge(edge, eds) as { id: string; type: string; source: string; target: string }[],
       );
+      // TODO MAKE THE PAGE manage a latest handle that the node uses for it's new handle
+      // TODO morph "new" ids into unique ids in page
       setNodes((node) => {
         console.log("setting nodes", edges, node);
         for (var index in node) {
           var currEdges = [];
           if (connection.source == node[index].id) {
-            currEdges.push({ id: "newConn" });
+            currEdges.push({ id: currEdgeId.current});
+            currEdgeId.current = currEdgeId.current + 1
           }
           for (var edgeIndex in edges) {
             if (edges[edgeIndex].source == node[index].id) {
-              currEdges.push({ id: edges[edgeIndex].target });
+              currEdges.push({ id: edges[index].sourceHandle ? edges[index].sourceHandle : ""} );
             }
           }
           console.log(currEdges);
-          node[index].data.edges = currEdges;
-          // if (node[index].id == connection.source || node[index].id == connection.target){
-          //   node[index].data.edges.push({id: "newEdge: " + currEdgeId.current})
-          //   currEdgeId.current = currEdgeId.current + 1
-          //   console.log("setting correct nodes: ", node[index])
-          // }
+          node[index].data.edges = currEdges.map(edge => ({ id: (edge.id?.toString() ?? "") }));
         }
         return node;
       });
@@ -100,7 +99,6 @@ function Flow() {
         type: "customNode",
         position: { x: 0, y: 200 },
         data: { label: params.label, edges: [{ id: "hi" }] },
-        // data: { label: params.label , time: {hours: 10, minutes: 20, seconds: 30}},
       };
       currId.current = currId.current + 1;
       setNodes((nds) => nds.concat(newNode));

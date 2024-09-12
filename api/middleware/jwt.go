@@ -101,21 +101,6 @@ func (j *JwtMiddleware) JWTMiddleware(c *gin.Context) {
 	logger := j.Logger
 	envLoader := j.EnvLoader
 
-	// Check for Orchestrator Header
-	orchestratorKey := c.GetHeader("X-Orchestrator-Key")
-	expectedOrchestratorKey, err := envLoader.Get("ORCHESTRATOR_KEY")
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
-		return
-	}
-
-	// If the request comes from the orchestrator, skip JWT authentication
-	if orchestratorKey == expectedOrchestratorKey {
-		logger.Info("Request from orchestrator, skipping JWT authentication")
-		c.Next()
-		return
-	}
-
 	authorizationHeader := c.GetHeader("Authorization")
 	if authorizationHeader == "" {
 		logger.Error("No Authorization header")

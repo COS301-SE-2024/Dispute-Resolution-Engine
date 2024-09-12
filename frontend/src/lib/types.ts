@@ -10,3 +10,12 @@ export type Result<T, E = string> =
       data?: never;
       error: E;
     };
+export type disputeDuration = {
+      days: number,
+      hours: number,
+      minutes: number,
+      seconds: number,
+    }
+export type eventType = {
+  id : string
+}

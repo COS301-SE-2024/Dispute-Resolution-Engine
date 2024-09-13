@@ -29,6 +29,10 @@ type mockEvidence struct {
 type mockDisputeModel struct {
 	throwErrors bool
 	evidence    []mockEvidence
+	decision    *mockDecision
+}
+type mockDecision struct {
+	data string
 }
 type mockJwtModel struct {
 	throwErrors bool
@@ -85,6 +89,18 @@ func createFileField(w *multipart.Writer, field, filename, value string) {
 // ---------------------------------------------------------------- MODEL MOCKS
 // mock model auditlogger
 func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
+	return nil
+}
+
+func (m *mockDisputeModel) UploadDecision(userId, disputeId int64, decision string, file io.Reader) error {
+	if m.throwErrors {
+		return errors.ErrUnsupported
+	}
+
+	data, _ := io.ReadAll(file)
+	m.decision = &mockDecision{
+		data: string(data),
+	}
 	return nil
 }
 

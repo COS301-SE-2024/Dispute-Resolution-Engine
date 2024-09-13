@@ -14,7 +14,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -26,7 +25,12 @@ import (
 )
 
 type DisputeModel interface {
+	// Uploads evidence relating to a dispute to the passed-in path (relative to the file-storage root)
 	UploadEvidence(userId, disputeId int64, path string, file io.Reader) (uint, error)
+
+	// Uploads a decision for a dispute
+	UploadDecision(userId, disputeId int64, decision string, file io.Reader) error
+
 	GetEvidenceByDispute(disputeId int64) ([]models.Evidence, error)
 	GetDisputeExperts(disputeId int64) ([]models.Expert, error)
 
@@ -66,6 +70,12 @@ func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 		Model:       &disputeModelReal{db: db, env: env.NewEnvLoader()},
 		AuditLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader),
 	}
+}
+
+func (m *disputeModelReal) UploadDecision(userId, disputeId int64, decision string, file io.Reader) error {
+	logger := utilities.NewLogger().LogWithCaller()
+	logger.Error("dispute decision not implemeted")
+	return nil
 }
 
 func (m *disputeModelReal) UploadEvidence(userId, disputeId int64, path string, file io.Reader) (uint, error) {
@@ -431,7 +441,7 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		logger.WithError(err).Error("Something went wrong reading the response body.")
 		return

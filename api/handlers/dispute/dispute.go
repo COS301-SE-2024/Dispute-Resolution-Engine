@@ -29,12 +29,86 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/:id/evidence", h.UploadEvidence)
 	g.PUT("/dispute/status", h.UpdateStatus)
 
+	g.POST("/:id/decision", h.UploadEvidence)
+
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
 
 	//create dispute
 
 	//archive routes
+}
+
+// @Summary Uploads a decision write-up
+// @Description Uploads a decision write-up made by an expert
+// @Tags dispute
+// @Accept json
+// @Produce json
+// @Success 200 {object} models.Response "Dispute Summary Endpoint"
+// @Router /dispute/:id/decision [post]
+func (h Dispute) UploadDecision(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Retrive the dispute ID
+	disputeId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.WithError(err).Error("Invalid Dispute ID")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+
+	// Parse the request body
+	form, err := c.MultipartForm()
+	if err != nil {
+		logger.WithError(err).Error("Failed to parse form data")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to parse form data"})
+		return
+	}
+
+	// Retrieve the JWT
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
+	// Only allow experts to upload decisions
+	if claims.Role != "expert" {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
+	// Retrieve the decision
+	if _, ok := form.Value["decision"]; !ok {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing decision"})
+		return
+	}
+	decision := form.Value["decision"][0]
+
+	// Retrieve the writeup
+	if _, ok := form.Value["writeup"]; !ok {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing writeup"})
+		return
+	}
+	fileHeader := form.File["writeup"][0]
+
+	// Retrieve the file
+	file, err := fileHeader.Open()
+	if err != nil {
+		logger.WithError(err).Error("error opening multipart file")
+		utilities.InternalError(c)
+		return
+	}
+
+	if err := h.Model.UploadDecision(claims.ID, int64(disputeId), decision, file); err != nil {
+		logger.WithError(err).Error("failed to upload decision")
+		utilities.InternalError(c)
+	}
+	c.JSON(http.StatusCreated, models.Response{
+		Data: "Decision uploaded",
+	})
 }
 
 // @Summary Get a summary list of disputes

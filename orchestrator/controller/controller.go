@@ -21,11 +21,12 @@ type Controller struct {
 func NewController() *Controller {
 	return &Controller{
 		StateMachineRegistry: make(map[string]statemachine.IStateMachine),
-		logger: *utilities.NewLogger().LogWithCaller(),
+		logger: *utilities.NewLogger(),
 		Scheduler: scheduler.NewWithLogger(time.Second, utilities.NewLogger()),
 	}
 }
 
+// Start starts the controller (and scheduler)
 func (c *Controller) Start() {
 	c.logger.Info("Starting controller...")
 	c.logger.Info("Starting scheduler...")
@@ -46,11 +47,11 @@ func (c *Controller) WaitForSignal() {
     signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
     sig := <-sigs
     c.logger.Info("Received signal: ", sig)
-    c.Shutdown()
+    c.shutdown()
 }
 
-// Shutdown gracefully shuts down the controller
-func (c *Controller) Shutdown() {
+// shutdown gracefully shuts down the controller
+func (c *Controller) shutdown() {
     c.logger.Info("Shutting down controller")
 	// Functions for ceasing all statemachines and the scheduler
 }

@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"fmt"
 	"orchestrator/utilities"
 	"sync"
 	"time"
@@ -91,6 +92,7 @@ func (s *Scheduler) checkTimers(currentTime time.Time) {
 
 	s.logger.Info("Checking all timers")
 	for _, timer := range s.timers {
+		fmt.Println("==========",timer.Deadline)//! not triggering the timer
 		if currentTime.After(timer.Deadline) {
 			s.logger.Info("Timer expired:", timer.Name)
 			go timer.Event()

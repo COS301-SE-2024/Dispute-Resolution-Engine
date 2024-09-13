@@ -11,7 +11,7 @@ import (
 	// "orchestrator/env"
 	// "orchestrator/scheduler"
 	// "orchestrator/statemachine"
-	// "orchestrator/controller"
+	"orchestrator/controller"
 	// "orchestrator/wf"
 	"orchestrator/workflow"
 )
@@ -27,7 +27,7 @@ var RequiredEnvVariables = []string{
 }
 
 func main() {
-
+	// ======== Json Tests =========
 	//read template workflow form json file
 	file, err := os.Open("templates/v2.json")
 	if err != nil {
@@ -51,4 +51,12 @@ func main() {
 
 	fmt.Println(wf.GetWorkflowString())
 
+	// ======== Statemachine Tests =========
+	// Create a new controller
+	c := controller.NewController()
+	c.Start()
+	// Register the workflow with the controller
+	c.RegisterStateMachine("wf1", wf)
+	// Wait for a signal to shutdown
+	c.WaitForSignal()
 }

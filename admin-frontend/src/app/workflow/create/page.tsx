@@ -70,47 +70,14 @@ function Flow() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const nodeTypes = useMemo(() => ({ customNode: CustomNode }), []);
-  // const onConnect = useCallback(
-  //   (connection: Connection) => {
-  //     if (connection.sourceHandle == "new") {
-  //       connection.sourceHandle = currId.current.toString()
-  //       currId.current = currId.current + 1
-  //     }
-  //     const edge = { ...connection, type: "custom-edge"};
-  //     setEdges(
-  //       (eds) =>
-  //         addEdge(edge, eds) as { id: string; type: string; source: string; target: string }[],
-  //     );
-  //     // TODO MAKE THE PAGE manage a latest handle that the node uses for it's new handle
-  //     // TODO morph "new" ids into unique ids in page
-  //     setNodes((node) => {
-  //       console.log("setting nodes", edges, node);
-  //       for (var index in node) {
-  //         var currEdges = [];
-  //         if (connection.sourceHandle === currId.current.toString() &&  connection.source === node[index].id) {
-  //           currEdges.push({ id: connection.sourceHandle});
-  //         }
-  //         for (var edgeIndex in edges) {
-  //           if (edges[edgeIndex].source == node[index].id) {
-  //             currEdges.push({ id: edges[index].sourceHandle ? edges[index].sourceHandle : ""} );
-  //           }
-  //         }
-  //         console.log(currEdges);
-  //         node[index].data.edges = currEdges
-  //       }
-  //       return node;
-  //     });
-  //   },
-  //   [setEdges, setNodes, edges],
-  // );
   const reactFlowInstance = useReactFlow()
   const updateNodeInternals = useUpdateNodeInternals()
   const onConnect = useCallback(
     (connection: Connection) => {
       const edges = reactFlowInstance.getEdges();
       const nodes = reactFlowInstance.getNodes();
-      console.log("edges before ", edges)
-      console.log("nodes before ", nodes)
+      // console.log("edges before ", edges)
+      // console.log("nodes before ", nodes)
       let newEdge = false;
       if (connection.sourceHandle === "new") {
         connection.sourceHandle = currId.current.toString();
@@ -129,10 +96,8 @@ function Flow() {
       }
       reactFlowInstance.setEdges(edges);
       reactFlowInstance.setNodes(nodes);
-      console.log("edges after ", edges)
-      console.log("nodes after ", nodes)
     },
-    [reactFlowInstance]
+    [reactFlowInstance, updateNodeInternals]
   );
 
   return (

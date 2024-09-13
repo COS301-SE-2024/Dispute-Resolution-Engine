@@ -1,11 +1,15 @@
 import {
   BaseEdge,
+  Edge,
   EdgeLabelRenderer,
   Position,
   getSmoothStepPath,
   useReactFlow,
+  useUpdateNodeInternals,
 } from "@xyflow/react";
 import { CircleX } from "lucide-react";
+import { useCallback } from "react";
+import { CustomNodeType } from "./CustomNode";
 
 export default function CustomEdge({
   id,
@@ -22,6 +26,8 @@ export default function CustomEdge({
 }) {
   const { setEdges, getEdges } = useReactFlow();
   const { setNodes } = useReactFlow();
+  const reactFlowInstance = useReactFlow();
+  const updateNodeInternals = useUpdateNodeInternals();
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -31,7 +37,40 @@ export default function CustomEdge({
     targetPosition: Position.Left,
     borderRadius: 10,
   });
-
+  const deleteEdge = useCallback(
+    function () {
+      const nodes = reactFlowInstance.getNodes();
+      let edges = reactFlowInstance.getEdges();
+      console.log("edges before ", edges)
+      console.log("nodes before ", nodes)
+      console.log("id before ", id)
+      let deletedEdge: Edge | null = null;
+      for (let index in edges) {
+        if (edges[index].id == id) {
+          deletedEdge = edges[index];
+          break;
+        }
+      }
+      console.log("deletedEdge ", deletedEdge)
+      edges = edges.filter((e) => e.id !== (deletedEdge ?? { id: "" }).id);
+      for (let index in nodes) {
+        if (deletedEdge && nodes[index].id == deletedEdge.source) {
+          (nodes[index] as CustomNodeType).data.edges = (nodes[index] as CustomNodeType).data.edges.filter(
+            (edge) => edge.id != deletedEdge.sourceHandle
+          );
+          updateNodeInternals(nodes[index].id);
+        }
+      }
+      console.log("edges after ", edges)
+      console.log("nodes after ", nodes)
+      reactFlowInstance.setEdges(edges);
+      reactFlowInstance.setNodes(nodes);
+      if (deletedEdge) {
+        updateNodeInternals(deletedEdge.source)
+      }
+    },
+    [id, reactFlowInstance, updateNodeInternals]
+  );
   return (
     <>
       <BaseEdge id={id} path={edgePath} />
@@ -50,25 +89,28 @@ export default function CustomEdge({
           </h1>
           <button
             className="nodrag nopan"
-            onClick={() => {
-              setEdges((es) => es.filter((e) => e.id !== id));
-              setNodes((node) => {
-                let edges = getEdges();
-                edges = edges.filter((e) => e.id !== id);
-                console.log("setting nodes", edges, node);
-                for (var index in node) {
-                  var currEdges = [];
-                  for (var edgeIndex in edges) {
-                    if (edges[edgeIndex].source == node[index].id) {
-                      currEdges.push({ id: edges[edgeIndex].target });
-                    }
-                  }
-                  console.log(currEdges);
-                  node[index].data.edges = currEdges;
-                }
-                return node;
-              });
-            }}
+            onClick={
+              deleteEdge
+              //   () => {
+              //   setEdges((es) => es.filter((e) => e.id !== id));
+              //   setNodes((node) => {
+              //     let edges = getEdges();
+              //     edges = edges.filter((e) => e.id !== id);
+              //     console.log("setting nodes", edges, node);
+              //     for (var index in node) {
+              //       var currEdges = [];
+              //       for (var edgeIndex in edges) {
+              //         if (edges[edgeIndex].source == node[index].id) {
+              //           currEdges.push({ id: edges[edgeIndex].target });
+              //         }
+              //       }
+              //       console.log(currEdges);
+              //       node[index].data.edges = currEdges;
+              //     }
+              //     return node;
+              //   });
+              // }
+            }
           >
             <CircleX />
           </button>

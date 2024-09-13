@@ -1,7 +1,7 @@
 "use client";
 import { Handle, Node, NodeProps, Position, useReactFlow } from "@xyflow/react";
 import { FormEvent, ReactNode, useRef, useState } from "react";
-import { CircleX, Pencil } from "lucide-react";
+import { CirclePlus, CircleX, Pencil } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 
 export type CustomNodeType = Node<
   {
-    edges: [{ id: string }];
+    edges: { id: string }[];
     label?: any;
   },
   "customNode"
@@ -142,7 +142,7 @@ export default function CustomNode(data: NodeProps<CustomNodeType>) {
           }}
           position={Position.Right}
         >
-          Event_Name
+          +
         </Handle>
         <Handle type="target" position={Position.Left} id="a" style={handleStyle} />
         {/* <TimerCheckbox data={data} /> */}

@@ -170,3 +170,28 @@ interface ExpertRejectRequest {
   accepted: boolean;
 }
 ```
+
+# Dispute Decision
+
+- **Endpoint:** `POST /disputes/{id}/decision`
+- **Summary:** Used for experts to submit decisions
+- **Headers:**
+  - `Authorization: Bearer <JWT>`
+
+The data is submitted as `FormData`:
+```ts
+type DisputeDecision =
+    | 'Refused'
+    | 'Withdrawn'
+    | 'Transfer'
+    | 'Appeal'
+    | 'Other';
+
+interface DecideDisputeRequest {
+    // The decision made by the expert
+    decision: DisputeDecision;
+
+    // The writeup made by expert explaining the decision
+    writeup: File
+}
+```

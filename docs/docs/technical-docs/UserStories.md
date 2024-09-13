@@ -12,7 +12,7 @@ It is worth noting that *concerned parties* only refer to complainants and respo
 
 > As a Concerned party I want to be notified of an update in a dispute I am involved in so that I am well-informed of the status of the dispute.
 
-> As a Concerned Party, I want to be look at an archive of previously resolved cases such that I can clearly see how 
+> As a Concerned Party, I want to be look at an archive of previously resolved cases such that I can clearly see how
 
 > As a Concerned Party, I want to search the archive for disputes related to my case, such that I can get a sense of precedence
 
@@ -53,6 +53,8 @@ It is worth noting that *concerned parties* only refer to complainants and respo
 > As a Mediator I want to see cultural information of each party so that I can be more sensitive to the Parties
 
 > As a Mediator I want to be able to deny an assignment to a dispute when there is a conflict of interest so that the dispute remains unbiased.
+
+> As an expert I want to submit a writeup along with a decision so that I can describe the decision of a dispute
 
 ## Organisation Owner
 > As an organisation owner I want to create an organisation so that I can manage that organisation

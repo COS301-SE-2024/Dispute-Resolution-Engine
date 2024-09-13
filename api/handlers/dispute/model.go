@@ -30,7 +30,7 @@ type DisputeModel interface {
 	GetEvidenceByDispute(disputeId int64) ([]models.Evidence, error)
 	GetDisputeExperts(disputeId int64) ([]models.Expert, error)
 
-	GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.Dispute, error)
+	GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, error)
 	GetDisputesByUser(userId int64) ([]models.Dispute, error)
 	GetDispute(disputeId int64) (models.Dispute, error)
 
@@ -558,7 +558,7 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		var workflow models.WorkflowResp
 		err = m.db.Raw("SELECT id, name FROM workflows WHERE id = ?", dispute.Workflow).First(&workflow).Error
 		if err != nil {
-			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + string(*dispute.ID))
+			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + string(dispute.Id))
 		}
 		disputes[i].Workflow = workflow
 	}

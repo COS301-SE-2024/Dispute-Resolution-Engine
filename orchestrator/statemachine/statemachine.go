@@ -30,7 +30,7 @@ func NewStateMachine() IStateMachine {
 }
 
 func (s *stateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Scheduler) {
-	logger := utilities.NewLogger().LogWithCaller()
+	logger := utilities.NewLogger()
 	logger.Info("Initialising state machine")
 
 	// initState := wf.GetInitialState() // this whole sequence is a bit weird, but idk how else to do it
@@ -55,15 +55,23 @@ func (s *stateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Sc
 			fmt.Println("Timer found", timer.OnExpire)
 			timerName := fmt.Sprintf("%s_%s",wf_id ,state_id)
 
-			// Start the timer once the state is entered
-			stateConfig.OnEntry(func(_ context.Context, args ...any) error {
-				logger.Info("New state entered")
+			// If the current state is the initial state, start the timer
+			if state_id == wf.Initial {
 				s.scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()), func() {
 					logger.Info("Timer expired for state", state_id)
 					s.stateMachine.Fire(timer.OnExpire)
 				})
-				return nil
-			})
+			} else {
+				// When the state is entered, start the timer
+				stateConfig.OnEntry(func(_ context.Context, args ...any) error {
+					logger.Info("New state entered")
+					s.scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()), func() {
+						logger.Info("Timer expired for state", state_id)
+						s.stateMachine.Fire(timer.OnExpire)
+					})
+					return nil
+				})
+			}
 
 			// When the state is exited, remove the timer.
 			// WARNING: this may cause some kind of race condition when the exit

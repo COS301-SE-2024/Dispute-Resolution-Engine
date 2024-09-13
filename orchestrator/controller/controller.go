@@ -12,7 +12,7 @@ import (
 )
 
 type Controller struct {
-	StateMachineRegistry map[uint32]statemachine.IStateMachine
+	StateMachineRegistry map[string]statemachine.IStateMachine
 	logger utilities.Logger
 	Scheduler *scheduler.Scheduler
 }
@@ -20,7 +20,7 @@ type Controller struct {
 // NewController creates a new controller instance
 func NewController() *Controller {
 	return &Controller{
-		StateMachineRegistry: make(map[uint32]statemachine.IStateMachine),
+		StateMachineRegistry: make(map[string]statemachine.IStateMachine),
 		logger: *utilities.NewLogger().LogWithCaller(),
 		Scheduler: scheduler.NewWithLogger(time.Second, utilities.NewLogger()),
 	}
@@ -33,12 +33,11 @@ func (c *Controller) Start() {
 }
 
 // RegisterStateMachine registers a state machine with the controller AND starts it.
-func (c *Controller) RegisterStateMachine(wf workflow.IWorkflow) {
+func (c *Controller) RegisterStateMachine(wfID string, wf workflow.Workflow) {
 	// Create and initilise a new state machine
 	sm := statemachine.NewStateMachine()
-	sm.Init(wf, c.Scheduler)
-	c.StateMachineRegistry[wf.GetID()] = sm
-	go c.StateMachineRegistry[wf.GetID()].Start()
+	sm.Init(wfID, wf, c.Scheduler)
+	c.StateMachineRegistry[wfID] = sm
 }
 
 // WaitForSignal blocks until an appropriate signal is received

@@ -53,6 +53,7 @@ func (s *stateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Sc
 		// Configure timer states
 		if timer := state.Timer; timer != nil {
 			timerName := fmt.Sprintf("%s_%s",wf_id ,state_id)
+
 			// Start the timer once the state is entered
 			stateConfig.OnEntry(func(_ context.Context, args ...any) error {
 				logger.Info("New state entered")
@@ -62,6 +63,7 @@ func (s *stateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Sc
 				})
 				return nil
 			})
+			
 			// When the state is exited, remove the timer.
 			// WARNING: this may cause some kind of race condition when the exit
 			stateConfig.OnExit(func(_ context.Context, args ...any) error {

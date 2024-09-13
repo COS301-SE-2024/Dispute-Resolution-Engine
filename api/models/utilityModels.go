@@ -43,7 +43,7 @@ func ConvertUserVerifyToUser(dbUser UserVerify) *User {
 		PhoneNumber:       dbUser.PhoneNumber,
 		AddressID:         dbUser.AddressID,
 		CreatedAt:         dbUser.CreatedAt,
-		UpdatedAt:         dbUser.UpdatedAt,
+		LastUpdate:        dbUser.LastUpdate,
 		LastLogin:         dbUser.LastLogin,
 		Status:            dbUser.Status,
 		Gender:            dbUser.Gender,

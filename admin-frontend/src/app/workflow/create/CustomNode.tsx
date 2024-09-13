@@ -7,17 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-// const events = [
-//   {id: "a"},
-//   {id: "b"},
-//   {id: "c"},
-//   // {id: "d"},
-//   // {id: "e"},
-//   // {id: "f"},
-//   // {id: "g"},
-//   // {id: "h"},
-//   // {id: "i"},
-// ]
 export type CustomNodeType = Node<
   {
     edges: [{ id: string }];
@@ -81,7 +70,6 @@ function EditForm({
 export default function CustomNode(data: NodeProps<CustomNodeType>) {
   const events = data.data.edges;
   const numHandles = events.length;
-  console.log("rerender", numHandles);
 
   const minHeight = offset(numHandles + 1);
 
@@ -119,8 +107,6 @@ export default function CustomNode(data: NodeProps<CustomNodeType>) {
 
   return (
     <Card className="min-w-48">
-      {/* <Handle type="target" id="a" position={Position.Right} />
-      <Handle type="target" id="b" style={handleStyle} position={Position.Right} /> */}
       <CardHeader className="p-3 flex gap-1 flex-row items-center">
         <Button
           variant="ghost"

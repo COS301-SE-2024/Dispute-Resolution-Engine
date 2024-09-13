@@ -99,6 +99,12 @@ CREATE TABLE disputes (
 	respondant BIGINT REFERENCES users(id)
 );
 
+CREATE TABLE dispute_decision (
+	dispute_id BIGINT PRIMARY KEY REFERENCES disputes(id),
+    writeup BIGINT REFERENCES files(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE dispute_summaries (
 	dispute BIGINT REFERENCES disputes(id) ON DELETE CASCADE,
 	summary TEXT,
@@ -144,7 +150,7 @@ CREATE TABLE expert_objections (
 
 -- View that automatically determines the status of the expert in the dispute
 -- by examining the objections made to that expert
-CREATE VIEW dispute_experts_view AS 
+CREATE VIEW dispute_experts_view AS
     SELECT dispute, "user" AS expert,
     (WITH statuses AS (
         SELECT status FROM expert_objections

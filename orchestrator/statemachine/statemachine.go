@@ -52,7 +52,6 @@ func (s *stateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Sc
 		
 		// Configure timer states
 		if timer := state.Timer; timer != nil {
-			fmt.Println("Timer found", timer.OnExpire)
 			timerName := fmt.Sprintf("%s_%s",wf_id ,state_id)
 
 			// If the current state is the initial state, start the timer

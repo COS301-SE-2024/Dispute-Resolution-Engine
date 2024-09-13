@@ -16,7 +16,6 @@ import (
 type IStateMachine interface {
 	// initialise the state machine with a workflow
 	Init(wf_id string, workflow workflow.Workflow, scheduler *scheduler.Scheduler)
-	Start()
 }
 
 type stateMachine struct {
@@ -71,13 +70,4 @@ func (s *stateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Sc
 			})
 		}
 	}
-}
-
-func (s *stateMachine) Start() {
-	logger := utilities.NewLogger().LogWithCaller()
-	logger.Info("Starting state machine")
-	initState := s.workflow.GetInitialState()
-	initStatePtr := &initState
-	transition := s.workflow.GetTransitionsByFrom(initStatePtr.GetName())[0]
-	s.stateMachine.Fire(transition.GetTrigger())
 }

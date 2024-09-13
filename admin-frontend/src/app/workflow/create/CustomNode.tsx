@@ -86,7 +86,7 @@ export default function CustomNode(data: NodeProps<CustomNodeType>) {
         }}
         position={Position.Right}
       >
-        {event.id}
+        
       </Handle>
     );
   });

@@ -11,6 +11,7 @@ import {
   useReactFlow,
   ReactFlowProvider,
   useUpdateNodeInternals,
+  ConnectionState,
 } from "@xyflow/react";
 import CustomEdge from "./CustomEdge";
 
@@ -70,8 +71,8 @@ function Flow() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const nodeTypes = useMemo(() => ({ customNode: CustomNode }), []);
-  const reactFlowInstance = useReactFlow()
-  const updateNodeInternals = useUpdateNodeInternals()
+  const reactFlowInstance = useReactFlow();
+  const updateNodeInternals = useUpdateNodeInternals();
   const onConnect = useCallback(
     (connection: Connection) => {
       const edges = reactFlowInstance.getEdges();
@@ -82,8 +83,8 @@ function Flow() {
       if (connection.sourceHandle === "new") {
         connection.sourceHandle = currId.current.toString();
         currId.current = currId.current + 1;
-        edges.push({ ...connection, type: "custom-edge", id: currId.current.toString()} as Edge);
-        currId.current++
+        edges.push({ ...connection, type: "custom-edge", id: currId.current.toString() } as Edge);
+        currId.current++;
         newEdge = true;
       }
       for (let nodeIndex in nodes) {
@@ -91,13 +92,57 @@ function Flow() {
           (nodes[nodeIndex] as CustomNodeType).data.edges.push({
             id: connection.sourceHandle ?? "whyNoHandle",
           });
-          updateNodeInternals(nodes[nodeIndex].id)
+          updateNodeInternals(nodes[nodeIndex].id);
         }
       }
       reactFlowInstance.setEdges(edges);
       reactFlowInstance.setNodes(nodes);
     },
     [reactFlowInstance, updateNodeInternals]
+  );
+  const { screenToFlowPosition } = useReactFlow();
+  const onConnectEnd = useCallback(
+    (event: any, connectionState: Omit<ConnectionState, "inProgress">) => {
+      if (!connectionState.isValid) {
+        const edges = reactFlowInstance.getEdges();
+        const nodes = reactFlowInstance.getNodes();
+        const nodeId = currId.current.toString();
+        currId.current++;
+        const handleId = currId.current
+        currId.current++
+        const { clientX, clientY } =
+          'changedTouches' in event ? event.changedTouches[0] : event;
+        const newNode: CustomNodeType = {
+          id: nodeId,
+          type: "customNode",
+          position: screenToFlowPosition({
+            x: clientX,
+            y: clientY,
+          }),
+          data: { label: "New Node", edges: [] },
+        };
+        const edgeId = currId.current
+        currId.current++
+        const newEdge : Edge = {
+          id: edgeId.toString(),
+          source: connectionState.fromNode?.id ?? "",
+          target: nodeId,
+          type: "custom-edge",
+          sourceHandle: handleId.toString()
+        }
+        for(let index in nodes){
+          if (nodes[index].id == newEdge.source) {
+            (nodes[index] as CustomNodeType).data.edges.push({id: handleId.toString()})
+          }
+        }
+        nodes.push(newNode)
+        edges.push(newEdge)
+        reactFlowInstance.setNodes(nodes)
+        reactFlowInstance.setEdges(edges)
+        updateNodeInternals(newNode.id)
+      }
+    },
+    [reactFlowInstance, screenToFlowPosition, updateNodeInternals]
   );
 
   return (
@@ -108,6 +153,7 @@ function Flow() {
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
+      onConnectEnd={onConnectEnd}
       edgeTypes={edgeTypes}
       nodeTypes={nodeTypes}
       colorMode="system"

@@ -1,14 +1,8 @@
 package workflow
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
-	"io"
-	"net/http"
-	"orchestrator/env"
-
-	// "orchestrator/env"
+	"fmt"
 	"time"
 )
 
@@ -115,6 +109,22 @@ type State struct {
 	Timer *Timer `json:"timer,omitempty"`
 }
 
+func CreateState(label, description string) State {
+	return State{
+		Label:       label,
+		Description: description,
+		Triggers:    make(map[string]Trigger),
+	}
+}
+
+func (s *State) AddTrigger(trigger Trigger) {
+	s.Triggers[trigger.Label] = trigger
+}
+
+func (s *State) SetTimer(timer Timer) {
+	s.Timer = &timer
+}
+
 // ----------------------------Trigger--------------------------------
 type Trigger struct {
 	// Human-readable label of the trigger
@@ -155,159 +165,34 @@ func (w *Workflow) GetInitialState() State {
 	return w.States[w.Initial]
 }
 
-type StoreWorkflowRequest struct {
-	WorkflowDefinition Workflow `json:"workflow_definition,omitempty"`
-	Category           []int64  `json:"category,omitempty"`
-	Author             *int64   `json:"author,omitempty"`
-}
 
-type UpdateWorkflowRequest struct {
-	WorkflowDefinition *Workflow `json:"workflow_definition,omitempty"`
-	Category           *[]int64  `json:"category,omitempty"`
-	Author             *int64    `json:"author,omitempty"`
-}
+func (w *Workflow) GetWorkflowString() string {
+	result := fmt.Sprintf("Workflow: %s\n", w.Label)
+	result += fmt.Sprintf("Initial State: %s\n", w.Initial)
 
-func FetchWorkflowFromAPI(apiURL string) (*Workflow, error) {
-	// Create a new GET request
-	req, err := http.NewRequest("GET", apiURL, nil)
-	if err != nil {
-		return nil, err
+	// Iterate through each state in the workflow
+	for stateID, state := range w.States {
+		result += fmt.Sprintf("\nState ID: %s\n", stateID)
+		result += fmt.Sprintf("  Label: %s\n", state.Label)
+		result += fmt.Sprintf("  Description: %s\n", state.Description)
+
+		// Print triggers
+		if len(state.Triggers) > 0 {
+			result += "  Triggers:\n"
+			for triggerID, trigger := range state.Triggers {
+				result += fmt.Sprintf("    - ID: %s, Label: %s, Next State: %s\n", triggerID, trigger.Label, trigger.Next)
+			}
+		} else {
+			result += "  No Triggers\n"
+		}
+
+		// Print timer if exists
+		if state.Timer != nil {
+			result += fmt.Sprintf("  Timer: Duration: %s, On Expire: %s\n", state.Timer.GetDuration().String(), state.Timer.OnExpire)
+		} else {
+			result += "  No Timer\n"
+		}
 	}
 
-	key, err := env.Get("ORCHESTRATOR_KEY")
-	if err != nil {
-		return nil, err
-	}
-
-	// Set the X-Orchestrator-Key header
-	req.Header.Set("X-Orchestrator-Key", key)
-
-	// Perform the request
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Check for non-200 status code
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("failed to fetch workflow: " + resp.Status)
-	}
-
-	// Read the response body
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// Define a temporary structure to extract the data field and ID
-	var responseData struct {
-		Data struct {
-			ID                 int      `json:"ID"`
-			WorkflowDefinition Workflow `json:"WorkflowDefinition"`
-		} `json:"data"`
-	}
-
-	// Unmarshal the JSON response to extract the "data" field
-	err = json.Unmarshal(body, &responseData)
-	if err != nil {
-		return nil, err
-	}
-
-	return &responseData.Data.WorkflowDefinition, nil
-}
-
-func StoreWorkflowToAPI(apiURL string, workflow Workflow, categories []int64, Author *int64) error {
-	store := StoreWorkflowRequest{
-		WorkflowDefinition: workflow,
-		Category:           categories,
-		Author:             Author,
-	}
-	storeJSON, err := json.Marshal(store)
-	if err != nil {
-		return err
-	}
-
-	// Create a new POST request with the workflow JSON as the body
-	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(storeJSON))
-	if err != nil {
-		return err
-	}
-
-	// Set the appropriate content-type header
-	key, err := env.Get("ORCHESTRATOR_KEY")
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Orchestrator-Key", key)
-
-	// Perform the request
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Check for non-200 status code
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-		return errors.New("failed to store workflow: " + resp.Status)
-	}
-
-	return nil
-}
-
-func UpdateWorkflowToAPI(apiURL string, workflow *Workflow, categories *[]int64, author *int64) error {
-	// Prepare the update request structure
-	var update UpdateWorkflowRequest
-	update.WorkflowDefinition = workflow
-
-	// Add categories if provided
-	if categories != nil {
-		update.Category = categories
-	}
-
-	// Add author if provided
-	if author != nil {
-		update.Author = author
-	}
-
-	// Marshal the update request object to JSON
-	updateJSON, err := json.Marshal(update)
-	if err != nil {
-		return err
-	}
-
-	// Create a new PUT request with the update JSON as the body
-	req, err := http.NewRequest("PUT", apiURL, bytes.NewBuffer(updateJSON))
-	if err != nil {
-		return err
-	}
-
-	// Set the appropriate headers
-	key, err := env.Get("ORCHESTRATOR_KEY")
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Orchestrator-Key", key)
-
-	// Perform the request
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Check for non-200 status code
-	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-		return errors.New("failed to update workflow: " + resp.Status)
-	}
-
-	return nil
+	return result
 }

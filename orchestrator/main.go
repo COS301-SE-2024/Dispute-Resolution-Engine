@@ -1,9 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"time"
-
+	"io"
+	"os"
 	// "orchestrator/db"
 	// "orchestrator/env"
 	// "orchestrator/utilities"
@@ -11,7 +12,7 @@ import (
 	// "orchestrator/scheduler"
 	// "orchestrator/statemachine"
 	// "orchestrator/controller"
-	"orchestrator/wf"
+	// "orchestrator/wf"
 	"orchestrator/workflow"
 )
 
@@ -27,165 +28,27 @@ var RequiredEnvVariables = []string{
 
 func main() {
 
-	// fmt.Println("Hello, World!")
-	// logger := utilities.NewLogger().LogWithCaller()
-	// env.LoadFromFile(".env", "api.env")
-
-	// for _, key := range RequiredEnvVariables {
-	// 	env.Register(key)
-	// }
-
-	// DB, err := db.Init()
-	// if err != nil {
-	// 	logger.WithError(err).Fatal("Couldn't initialize database connection")
-	// }
-	// fmt.Println(DB)
-
-	period, _ := time.ParseDuration("2s")
-
-	fee_timer1 := workflow.CreateTimer(period, workflow.TriggerFeeNotPaid)
-	state1 := workflow.CreateState("state1")
-	state1.SetTimer(&fee_timer1)
-
-	fee_timer2 := workflow.CreateTimer(period, workflow.TriggerFeeNotPaid)
-	state2 := workflow.CreateState("state2")
-	state2.SetTimer(&fee_timer2)
-
-	fee_timer3 := workflow.CreateTimer(period, workflow.TriggerFeeNotPaid)
-	state3 := workflow.CreateState("state3")
-	state3.SetTimer(&fee_timer3)
-
-	state4 := workflow.CreateState(workflow.StateDisputeFeeDue)
-
-	wf := workflow.CreateWorkflow(1, "workflow1", state1)
-	wf.AddState(state2)
-	wf.AddState(state3)
-	wf.AddState(state4)
-
-	t1to2 := workflow.CreateTransition("t1to2", state1.GetName(), state2.GetName(), workflow.TriggerFeeNotPaid)
-	t2to3 := workflow.CreateTransition("t2to3", state2.GetName(), state3.GetName(), workflow.TriggerFeeNotPaid)
-	t3to4 := workflow.CreateTransition("t3to4", state3.GetName(), state4.GetName(), workflow.TriggerFeeNotPaid)
-
-	wf.AddTransition(t1to2)
-	wf.AddTransition(t2to3)
-	wf.AddTransition(t3to4)
-
-	//test the WorkFlowToJSON function
-	// jsonStr, err := testWorkFlowToJson(wf)
-	// if err != nil {
-	// 	fmt.Println("Error:", err)
-	// 	return
-	// }
-	// fmt.Println("Workflow JSON:\n", jsonStr+"\n------------\n")
-
-	//test storing workflow in database
-	// var category []int64
-	// err = workflow.StoreWorkflowToAPI("http://localhost:8080/workflows", wf, category, nil)
-	// if err != nil {
-	// 	fmt.Println("Error:", err)
-	// 	return
-	// }
-
-	// test the JSONToWorkFlow function
-	// err = testJsonToWorkFlow(jsonStr)
-	// if err != nil {
-	// 	fmt.Println("Error:", err)
-	// 	return
-	// }
-
-	fmt.Println(wf.GetID())
-	fmt.Println(wf.GetName())
-	fmt.Println(wf.GetInitialState())
-	states := wf.GetStates()
-	for _, s := range states {
-		fmt.Println(s)
-	}
-
-	transitions := wf.GetTransitions()
-	for _, t := range transitions {
-		fmt.Println(t)
-	}
-
-
-
-	// Vincent code ---------------------
-	// ctrl := controller.NewController()
-	// ctrl.Start()
-	// ctrl.RegisterStateMachine(wf)
-	// ctrl.WaitForSignal()
-	// ----------------------------------
-
-	//test fetch workflow from database
-	// wf2, err := workflow.FetchWorkflowFromAPI("http://localhost:8080/workflows/1")
-	// if err != nil {
-	// 	fmt.Println("Error:", err)
-	// 	return
-	// }
-	// fmt.Println("====================================")
-	// fmt.Println(wf2.GetID())
-	// fmt.Println(wf2.GetName())
-	// fmt.Println(wf2.GetInitialState())
-	// states = wf2.GetStates()
-	// for _, s := range states {
-	// 	fmt.Println(s)
-	// }
-
-	// transitions = wf2.GetTransitions()
-	// for _, t := range transitions {
-	// 	fmt.Println(t)
-	// }
-	// fmt.Println("====================================")
-
-	// //test update workflow in database
-	// err = workflow.UpdateWorkflowToAPI("http://localhost:8080/workflows/6", wf2, nil, nil)
-	// if err != nil {
-	// 	fmt.Println("Error:", err)
-	// 	return
-	// }
-
-}
-
-func testWorkFlowToJson(wf wf.Workflow) (string, error) {
-	// Convert the workflow to JSON string
-	jsonStr, err := wf.MarshalJSON()
+	//read template workflow form json file
+	file, err := os.Open("templates/v2.json")
 	if err != nil {
-		return "", err
+		fmt.Println("Error:", err)
+		return
 	}
 
-	return string(jsonStr), nil
-}
-
-func testJsonToWorkFlow(jsonStr string) error {
-	// Convert the JSON string back to a workflow
-	fmt.Println("Converting JSON to Workflow====================")
-	var wf wf.Workflow
-	err := wf.UnmarshalJSON([]byte(jsonStr))
+	// Read the JSON file
+	jsonData, err := io.ReadAll(file)
 	if err != nil {
-		return err
+		fmt.Println("Error:", err)
+		return
 	}
 
-	// Print the workflow details
-	fmt.Println("Workflow ID:", wf.ID)
-	fmt.Println("Workflow Name:", wf.Name)
-	fmt.Println("Initial State:", wf.Initial)
-
-	fmt.Println("States:")
-	states := wf.States
-	for _, s := range states {
-		fmt.Println(" - State Name:", s.ID)
-		fmt.Println("   - Timer:", s.Timer)
+	var wf workflow.Workflow
+	err = json.Unmarshal(jsonData, &wf)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
 	}
 
-	fmt.Println("Transitions:")
-	transitions := wf.Transitions
-	for _, t := range transitions {
-		fmt.Println(" - Transition Name:", t.ID)
-		fmt.Println("   - From:", t.From)
-		fmt.Println("   - To:", t.To)
-		fmt.Println("   - Trigger:", t.Trigger)
-	}
-	
-	fmt.Println("Workflow JSON conversion successful====================")
+	fmt.Println(wf.GetWorkflowString())
 
-	return nil
 }

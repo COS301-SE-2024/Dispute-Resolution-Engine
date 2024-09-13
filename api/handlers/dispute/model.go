@@ -484,9 +484,9 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 	}
 }
 
-func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.Dispute, error) {
+func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	var disputes []models.Dispute
+	var disputes []models.AdminDisputeSummariesResponse
 	var queryString string = ""
 	var searchString string = ""
 	var filterString string = ""
@@ -542,15 +542,27 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	}
 
 	if limit != nil {
-		limitString = "LIMIT "+ string(*limit)
+		limitString = "LIMIT " + string(*limit)
 	}
 	if offset != nil {
-		offsetString = "OFFSET "+ string(*offset)
+		offsetString = "OFFSET " + string(*offset)
 	}
+	//get relevant disputes data
 	queryString = "SELECT id, title, status, date_filed FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
 	err := m.db.Raw(queryString).Scan(&disputes).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")
 	}
+	//now for each dispute, get the workflow
+	for i, dispute := range disputes {
+		var workflow models.WorkflowResp
+		err = m.db.Raw("SELECT id, name FROM workflows WHERE id = ?", dispute.Workflow).First(&workflow).Error
+		if err != nil {
+			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + string(*dispute.ID))
+		}
+		disputes[i].Workflow = workflow
+	}
+
 	return disputes, err
+
 }

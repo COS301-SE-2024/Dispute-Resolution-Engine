@@ -1,39 +1,55 @@
-import { useCallback } from "react";
-import { Handle, Position } from "@xyflow/react";
+import { Handle, Node, NodeProps, Position } from "@xyflow/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import TimerCheckbox from "./TimerCheckbox";
+import EventSection from "./EventSection";
+import { ReactNode, useEffect, useId, useState } from "react";
+import { eventType } from "@/lib/types";
 
-const handleStyle = { left: 10 };
-
-export default function CustomNode(data: any) {
-  const onChange = useCallback((evt: any) => {
-    console.log(evt.target.value);
-  }, []);
-  const arr = ["days", "hours", "minutes", "seconds"];
-  const inputs = arr.map((currInput) => {
-    return (
-      <>
-        <Label htmlFor={currInput + "Inp"}>{currInput.charAt(0).toUpperCase() + currInput.slice(1)}</Label>
-        <Input id={currInput + "Inp"} type="number" className="h-2 w-16 p-3"></Input>
-      </>
-    );
-  });
+// const events = [
+//   {id: "a"},
+//   {id: "b"},
+//   {id: "c"},
+//   // {id: "d"},
+//   // {id: "e"},
+//   // {id: "f"}, 
+//   // {id: "g"},
+//   // {id: "h"},
+//   // {id: "i"},
+// ]
+export type CustomNodeType = Node<{
+edges : [{id: string}]
+label? : any
+}, "customNode">
+export default function CustomNode(data: NodeProps<CustomNodeType>) {
+  // console.log(data)
+  const fullHeigh = 280
+  const events = data.data.edges
+  const numHandles = events.length
+  console.log("rerender", numHandles)
+  const gap = 30
+  const handles = events.map((event, index) => {
+    return <Handle type="source" key={index} id={event.id} style={{height: 10, width: 10, color: "blue  ",top: (40 - numHandles * gap/4) + (index * gap)}} position={Position.Right} />
+  })
+  
   return (
     <div className="bg-opacity-100">
-      <Handle type="target" position={Position.Top} />
-      <Card className="dark:bg-black">
-        <CardHeader className="p-4 text-center">
-          <CardTitle contentEditable="true">Node A</CardTitle>
+      {handles}
+      <Handle type="source" id="new" style={{height: 20, width: 20, color: "blue  ",top: (40 - numHandles * gap/4) + (numHandles * gap)}} position={Position.Right} />
+      {/* <Handle type="target" id="a" position={Position.Right} />
+      <Handle type="target" id="b" style={handleStyle} position={Position.Right} /> */}
+      <Card className="dark:bg-black min-w-48">
+        <CardHeader className="p-3 text-center">
+          {/* TODO: USE state to actually change the label */}
+          <CardTitle contentEditable="true" className="text-3xl" suppressContentEditableWarning={true}>
+            {data.data.label as ReactNode}
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 items-center gap-3">
-            {inputs}
-          </div>
+          {/* <TimerCheckbox data={data} /> */}
+          {/* <EventSection></EventSection> */}
         </CardContent>
       </Card>
-      <Handle type="source" position={Position.Bottom} id="a" />
-      <Handle type="source" position={Position.Bottom} id="b" style={handleStyle} />
+      <Handle type="target" position={Position.Left} id="a" />
     </div>
   );
 }

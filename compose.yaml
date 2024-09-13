@@ -13,6 +13,18 @@ services:
           path: ./frontend
     labels:
       - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+  admin-frontend: # --------------------------------------------------------- Admin Frontend
+    build: ./admin-frontend
+    ports:
+      - "3001:3000"
+    env_file:
+      - fe.env
+    depends_on:
+      - "api"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./admin-frontend
   api: # ------------------------------------------------------------------API
     build: ./api
     ports:

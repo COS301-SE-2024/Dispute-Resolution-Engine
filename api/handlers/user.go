@@ -93,7 +93,7 @@ func (h User) UpdateUser(c *gin.Context) {
 	var updateUser models.UpdateUser
 	if err := c.BindJSON(&updateUser); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Something went wrong..."})
 		return
 	}
 
@@ -149,7 +149,7 @@ func (h User) RemoveAccount(c *gin.Context) {
 	var user models.DeleteUser
 	if err := c.BindJSON(&user); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
 		return
 	}
 
@@ -202,7 +202,7 @@ func (h User) UpdateUserAddress(c *gin.Context) {
 	var updateUserAddress models.UpdateAddress
 	if err := c.BindJSON(&updateUserAddress); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
 		return
 	}
 	//retrieve the record from the database

@@ -9,6 +9,7 @@ import (
 	"orchestrator/db"
 	"orchestrator/env"
 	"time"
+
 	"gorm.io/gorm"
 )
 
@@ -28,9 +29,9 @@ type UpdateWorkflowRequest struct {
 
 
 type API interface {
-	FetchWorkflowFromAPI(apiURL string, secretKey string) (*Workflow, error)
-	StoreWorkflowToAPI(apiURL string, workflow Workflow, categories []int64, Author *int64) error
-	UpdateWorkflowToAPI(apiURL string, workflow *Workflow, categories *[]int64, author *int64) error
+	Fetch(id int) (*Workflow, error)
+	Store(apiURL string, workflow Workflow, categories []int64, Author *int64) error
+	Update(apiURL string, workflow *Workflow, categories *[]int64, author *int64) error
 }
 
 type APIWorkflow struct{
@@ -45,6 +46,10 @@ func CreateAPIWorkflow() *APIWorkflow {
 	return &APIWorkflow{
 		DB: Database,
 	}
+}
+
+func (api *APIWorkflow) Fetch(id int) (*Workflow, error) {
+	return nil, nil
 }
 
 func FetchWorkflowFromAPI(apiURL string, secretKey string) (*Workflow, error) {

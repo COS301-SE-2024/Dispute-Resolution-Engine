@@ -49,7 +49,12 @@ func CreateAPIWorkflow() *APIWorkflow {
 }
 
 func (api *APIWorkflow) Fetch(id int) (*Workflow, error) {
-	return nil, nil
+	var workflow Workflow
+	result := api.DB.First(&workflow, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &workflow, nil
 }
 
 func FetchWorkflowFromAPI(apiURL string, secretKey string) (*Workflow, error) {

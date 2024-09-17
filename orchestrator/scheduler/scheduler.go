@@ -1,7 +1,6 @@
 package scheduler
 
 import (
-	"fmt"
 	"orchestrator/utilities"
 	"sync"
 	"time"

@@ -6,9 +6,10 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"orchestrator/db"
 	"orchestrator/env"
 	"time"
-
+	"gorm.io/gorm"
 )
 
 // ----------------------------API--------------------------------
@@ -23,6 +24,27 @@ type UpdateWorkflowRequest struct {
 	WorkflowDefinition *Workflow `json:"workflow_definition,omitempty"`
 	Category           *[]int64  `json:"category,omitempty"`
 	Author             *int64    `json:"author,omitempty"`
+}
+
+
+type API interface {
+	FetchWorkflowFromAPI(apiURL string, secretKey string) (*Workflow, error)
+	StoreWorkflowToAPI(apiURL string, workflow Workflow, categories []int64, Author *int64) error
+	UpdateWorkflowToAPI(apiURL string, workflow *Workflow, categories *[]int64, author *int64) error
+}
+
+type APIWorkflow struct{
+	DB *gorm.DB
+}
+
+func CreateAPIWorkflow() *APIWorkflow {
+	Database, err := db.Init()
+	if err != nil {
+		return nil
+	}
+	return &APIWorkflow{
+		DB: Database,
+	}
 }
 
 func FetchWorkflowFromAPI(apiURL string, secretKey string) (*Workflow, error) {

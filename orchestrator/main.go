@@ -73,3 +73,16 @@ func manualTestStoreWorkflow(wf workflow.Workflow) {
 	}
 	fmt.Println("Workflow stored successfully")
 }
+
+func manualTestFetchWorkflow(id int) {
+	api := workflow.CreateAPIWorkflow()
+	fmt.Println("fetching workflow")
+	// Fetch the workflow from the API
+	wf, err := api.Fetch(id)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(wf.GetWorkflowString())
+	fmt.Println("Workflow fetched successfully")
+}

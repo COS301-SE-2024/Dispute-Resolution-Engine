@@ -11,10 +11,24 @@ services:
       watch:
         - action: rebuild
           path: ./frontend
+    labels:
+      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+  admin-frontend: # --------------------------------------------------------- Admin Frontend
+    build: ./admin-frontend
+    ports:
+      - "3001:3000"
+    env_file:
+      - fe.env
+    depends_on:
+      - "api"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./admin-frontend
   api: # ------------------------------------------------------------------API
     build: ./api
     ports:
-      - "8080:8080"
+      - "8181:8080"
     env_file:
       - api.env
     depends_on:
@@ -71,13 +85,15 @@ services:
   grafana: # -------------------------------------------------------------Grafana
     image: docker.io/grafana/grafana-oss
     container_name: grafana
-    env_file:
-      - graf.env
+    # env_file:
+    #   - graf.env
     ports:
       - "3001:3000" # Changed Grafana's port to avoid conflict with frontend
     volumes:
       - grafana-data:/var/lib/grafana
     restart: unless-stopped
+    labels:
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
   cadvisor: # -----------------------------------------------------------Cadvisor
     image: gcr.io/cadvisor/cadvisor
     container_name: cadvisor
@@ -116,6 +132,17 @@ services:
     configs:
       - source: promtail-config
         target: /etc/promtail/config.yaml
+    labels:
+      - "traefik.enable=false"
+
+  reverse-proxy: # ------------------------------------------------------Traefik
+    image: traefik:v3.1
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 volumes: # ---------------------------------------------------------------Volumes
   pgdata:
   evi_files:

@@ -36,10 +36,10 @@ export default function CreateDisputeClient() {
 
   const { register, setError } = form;
 
-  const formRef = useRef(null);
-
   const [files, setFiles] = useState<File[]>([]);
 
+  // Used to access the FormData on a form submission
+  const formRef = useRef(null);
   const onSubmit = async function (dataFromForm: DisputeCreateData) {
     const formdata = new FormData(formRef.current!);
     files.forEach((file) => formdata.append("file", file, file.name));

@@ -30,8 +30,8 @@ type UpdateWorkflowRequest struct {
 
 type API interface {
 	Fetch(id int) (*Workflow, error)
-	Store(apiURL string, workflow Workflow, categories []int64, Author *int64) error
-	Update(apiURL string, workflow *Workflow, categories *[]int64, author *int64) error
+	Store(workflow Workflow, categories []int64, Author *int64) error
+	Update(id int, workflow *Workflow, categories *[]int64, author *int64) error
 }
 
 type APIWorkflow struct{
@@ -56,6 +56,56 @@ func (api *APIWorkflow) Fetch(id int) (*Workflow, error) {
 	}
 	return &workflow, nil
 }
+
+
+func (api *APIWorkflow) Store(workflow Workflow, categories []int64, Author *int64) error {
+	marshal, err := json.Marshal(workflow)
+	if err != nil {
+		return err
+	}
+
+	//check if use exist in users table
+	var user db.User
+	result := api.DB.First(&user, Author)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	//check if category exist in tags table
+	for _, category := range categories { 
+		var tag db.Tag
+		result := api.DB.First(&tag, category)
+		if result.Error != nil {
+			return result.Error
+		}
+	}
+
+	//add entry in the db
+	workflowDbEntry := &db.Workflow{
+		WorkflowDefinition: marshal,
+		AuthorID:           uint(*Author),
+	}
+
+	result = api.DB.Create(&workflowDbEntry)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	//add associated tags
+	for _, category := range categories {
+		labelledWorkflow := &db.LabelledWorkflows{
+			WorkflowID: workflowDbEntry.ID,
+			TagID:      uint(category),
+		}
+		result = api.DB.Create(&labelledWorkflow)
+		if result.Error != nil {
+			return result.Error
+		}
+	}
+
+	return nil
+}
+
 
 func FetchWorkflowFromAPI(apiURL string, secretKey string) (*Workflow, error) {
 	// Create a new GET request

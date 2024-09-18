@@ -106,6 +106,56 @@ func (api *APIWorkflow) Store(workflow Workflow, categories []int64, Author *int
 	return nil
 }
 
+func (api *APIWorkflow) Update(id int, workflow *Workflow, categories *[]int64, author *int64) error {
+	//get existign workflow
+	var existingWorkflow db.Workflow
+	result := api.DB.First(&existingWorkflow, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	
+	// Update the WorkflowDefinition if provided
+	if workflow != nil {
+		workflowDefinition, err := json.Marshal(*workflow)
+		if err != nil {
+			return err
+		}
+		existingWorkflow.WorkflowDefinition = workflowDefinition
+	}
+
+	// Update the AuthorID if provided
+	if author != nil {
+		existingWorkflow.AuthorID = uint(*author)
+	}
+	// Save the updated workflow
+	result = api.DB.Save(&existingWorkflow)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	// Manage categories (tags) in labelled_workflow if provided
+	if categories != nil {
+		// Remove existing tags
+		err := api.DB.Where("workflow_id = ?", existingWorkflow.ID).Delete(&db.LabelledWorkflows{}).Error
+		if err != nil {
+			return err
+		}
+
+		// Insert new tags
+		for _, categoryID := range *categories {
+			labelledWorkflow := &db.LabelledWorkflows{
+				WorkflowID: existingWorkflow.ID,
+				TagID:      uint(categoryID),
+			}
+			err = api.DB.Create(&labelledWorkflow).Error
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 func FetchWorkflowFromAPI(apiURL string, secretKey string) (*Workflow, error) {
 	// Create a new GET request

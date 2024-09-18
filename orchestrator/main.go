@@ -18,11 +18,11 @@ import (
 
 var RequiredEnvVariables = []string{
 	// PostGres-related variables
-	// "DATABASE_URL",
-	// "DATABASE_PORT",
-	// "DATABASE_USER",
-	// "DATABASE_PASSWORD",
-	// "DATABASE_NAME",
+	"DATABASE_URL",
+	"DATABASE_PORT",
+	"DATABASE_USER",
+	"DATABASE_PASSWORD",
+	"DATABASE_NAME",
 	"ORCHESTRATOR_KEY",
 }
 
@@ -59,4 +59,17 @@ func main() {
 	c.RegisterStateMachine("wf1", wf)
 	// Wait for a signal to shutdown
 	c.WaitForSignal()
+}
+
+
+func manualTestStoreWorkflow(wf workflow.Workflow) {
+	api := workflow.CreateAPIWorkflow()
+	fmt.Println("storing workflow")
+	// Store the workflow to the API
+	err := api.Store(wf, []int64{}, nil)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Workflow stored successfully")
 }

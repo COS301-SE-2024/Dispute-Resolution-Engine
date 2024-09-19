@@ -73,7 +73,7 @@ func (h *Expert) AssignExpertsToDispute(disputeID int64) ([]models.User, error) 
 	for _, expert := range selectedUsers {
 		if err := h.DB.Create(&models.DisputeExpert{
 			Dispute: disputeID,
-			User:    expert.ID,
+			Expert:  expert.ID,
 		}).Error; err != nil {
 			return nil, err
 		}

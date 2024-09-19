@@ -11,54 +11,66 @@ import (
 	// "orchestrator/env"
 	// "orchestrator/scheduler"
 	// "orchestrator/statemachine"
-	"orchestrator/controller"
+	// "orchestrator/controller"
 	// "orchestrator/wf"
 	"orchestrator/workflow"
 )
 
-var RequiredEnvVariables = []string{
-	// PostGres-related variables
-	"DATABASE_URL",
-	"DATABASE_PORT",
-	"DATABASE_USER",
-	"DATABASE_PASSWORD",
-	"DATABASE_NAME",
-	"ORCHESTRATOR_KEY",
-}
 
 func main() {
 	// ======== Json Tests =========
 	//read template workflow form json file
-	file, err := os.Open("templates/v2.json")
-	if err != nil {
-		fmt.Println("Error:", err)
+	// Read the JSON file
+
+
+
+	wf, shouldReturn := readWorkflowFromFile("templates/v2.json")
+	if shouldReturn {
 		return
 	}
 
-	// Read the JSON file
+	wf2, shouldReturn := readWorkflowFromFile("templates/v2.json")
+	if shouldReturn {
+		return
+	}
+
+	fmt.Println(wf.GetWorkflowString())
+
+	manualTestStoreWorkflow(wf)
+	manualTestFetchWorkflow(1)
+
+	manualTestUpdateWorkflow(1, wf2)
+
+	// // ======== Statemachine Tests =========
+	// // Create a new controller
+	// c := controller.NewController()
+	// c.Start()
+	// // Register the workflow with the controller
+	// c.RegisterStateMachine("wf1", wf)
+	// // Wait for a signal to shutdown
+	// c.WaitForSignal()
+}
+
+func readWorkflowFromFile(fileName string) (workflow.Workflow, bool) {
+	file, err := os.Open(fileName)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return workflow.Workflow{}, true
+	}
+
 	jsonData, err := io.ReadAll(file)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
+		return workflow.Workflow{}, true
 	}
 
 	var wf workflow.Workflow
 	err = json.Unmarshal(jsonData, &wf)
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
+		return workflow.Workflow{}, true
 	}
-
-	fmt.Println(wf.GetWorkflowString())
-
-	// ======== Statemachine Tests =========
-	// Create a new controller
-	c := controller.NewController()
-	c.Start()
-	// Register the workflow with the controller
-	c.RegisterStateMachine("wf1", wf)
-	// Wait for a signal to shutdown
-	c.WaitForSignal()
+	return wf, false
 }
 
 
@@ -85,4 +97,17 @@ func manualTestFetchWorkflow(id int) {
 	}
 	fmt.Println(wf.GetWorkflowString())
 	fmt.Println("Workflow fetched successfully")
+}
+
+
+func manualTestUpdateWorkflow(id int, wf workflow.Workflow) {
+	api := workflow.CreateAPIWorkflow()
+	fmt.Println("updating workflow")
+	// Update the workflow in the API
+	err := api.Update(id, &wf, nil, nil)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println("Workflow updated successfully")
 }

@@ -47,30 +47,29 @@ type ArchivedDispute struct {
 	Events []Event `json:"events"`
 }
 
-type DisputeDecision string
+type DisputeStatus string
 
 const (
-	DecisionResolved   DisputeDecision = "Resolved"
-	DecisionUnresolved DisputeDecision = "Unresolved"
-	DecisionSettled    DisputeDecision = "Settled"
-	DecisionRefused    DisputeDecision = "Refused"
-	DecisionWithdrawn  DisputeDecision = "Withdrawn"
-	DecisionTransfer   DisputeDecision = "Transfer"
-	DecisionAppeal     DisputeDecision = "Appeal"
-	DecisionOther      DisputeDecision = "Other"
+	StatusAwaitingRespondant DisputeStatus = "Awaiting Respondant"
+	StatusActive             DisputeStatus = "Active"
+	StatusReview             DisputeStatus = "Review"
+	StatusSettled            DisputeStatus = "Settled"
+	StatusRefused            DisputeStatus = "Refused"
+	StatusWithdrawn          DisputeStatus = "Withdrawn"
+	StatusTransfer           DisputeStatus = "Transfer"
+	StatusAppeal             DisputeStatus = "Appeal"
+	StatusOther              DisputeStatus = "Other"
 )
 
 type Dispute struct {
-	ID          *int64           `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
-	CaseDate    time.Time        `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
-	Workflow    *int64           `json:"workflow" gorm:"column:workflow"`
-	Status      string           `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
-	Title       string           `json:"title" gorm:"type:varchar(255);not null;column:title"`
-	Description string           `json:"description" gorm:"type:text;column:description"`
-	Complainant int64            `json:"complainant" gorm:"column:complainant"`
-	Respondant  *int64           `json:"respondant" gorm:"column:respondant"`
-	Resolved    bool             `json:"resolved" gorm:"default:false;column:resolved"`
-	Decision    dispute_decision `json:"decision" gorm:"type:dispute_decision_enum;default:'Unresolved';column:decision"`
+	ID          *int64        `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	CaseDate    time.Time     `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
+	Workflow    *int64        `json:"workflow" gorm:"column:workflow"`
+	Status      DisputeStatus `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
+	Title       string        `json:"title" gorm:"type:varchar(255);not null;column:title"`
+	Description string        `json:"description" gorm:"type:text;column:description"`
+	Complainant int64         `json:"complainant" gorm:"column:complainant"`
+	Respondant  *int64        `json:"respondant" gorm:"column:respondant"`
 }
 
 type DisputeSummaries struct {

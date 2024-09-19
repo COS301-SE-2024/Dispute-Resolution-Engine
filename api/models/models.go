@@ -69,8 +69,6 @@ type Dispute struct {
 	Description string           `json:"description" gorm:"type:text;column:description"`
 	Complainant int64            `json:"complainant" gorm:"column:complainant"`
 	Respondant  *int64           `json:"respondant" gorm:"column:respondant"`
-	Resolved    bool             `json:"resolved" gorm:"default:false;column:resolved"`
-	Decision    dispute_decision `json:"decision" gorm:"type:dispute_decision_enum;default:'Unresolved';column:decision"`
 }
 
 type DisputeSummaries struct {

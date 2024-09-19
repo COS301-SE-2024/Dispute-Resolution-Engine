@@ -24,6 +24,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/create", h.CreateDispute)
 	g.GET("/:id", h.GetDispute)
 
+	g.POST("", h.GetSummaryListOfDisputes)
 	g.POST("/:id/experts/reject", h.ExpertObjection)
 	g.POST("/:id/experts/review-rejection", h.ExpertObjectionsReview)
 	g.POST("/:id/evidence", h.UploadEvidence)
@@ -143,10 +144,10 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 		}
 		if reqAdminDisputes.DateFilter != nil {
 			if reqAdminDisputes.DateFilter.Filed != nil {
-				dateFilter.Filed = *&reqAdminDisputes.DateFilter.Filed
+				dateFilter.Filed = reqAdminDisputes.DateFilter.Filed
 			}
 			if reqAdminDisputes.DateFilter.Resolved != nil {
-				dateFilter.Resolved = *&reqAdminDisputes.DateFilter.Resolved
+				dateFilter.Resolved = reqAdminDisputes.DateFilter.Resolved
 			}
 		}
 		disputes, err := h.Model.GetAdminDisputes(searchTerm, limit, offset, sort, filters, dateFilter)
@@ -378,8 +379,6 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 		Description: description,
 		Complainant: complainantID,
 		Respondant:  respondantID,
-		Resolved:    false,
-		Decision:    models.Unresolved,
 	})
 	if err != nil {
 		logger.WithError(err).Error("Error creating dispute")

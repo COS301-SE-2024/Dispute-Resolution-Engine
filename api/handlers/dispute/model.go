@@ -519,10 +519,10 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		}
 		if dateFilter.Filed != nil {
 			if dateFilter.Filed.Before != nil {
-				dateFilterString += "disputes.date_filed < '" + *dateFilter.Filed.Before + "'"
+				dateFilterString += "disputes.case_date < '" + *dateFilter.Filed.Before + "'"
 			}
 			if dateFilter.Filed.After != nil {
-				dateFilterString += "disputes.date_filed > '" + *dateFilter.Filed.After + "'"
+				dateFilterString += "disputes.case_date > '" + *dateFilter.Filed.After + "'"
 			}
 		}
 		if dateFilter.Resolved != nil {
@@ -548,7 +548,7 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		offsetString = "OFFSET " + string(*offset)
 	}
 	//get relevant disputes data
-	queryString = "SELECT id, title, status, date_filed FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
+	queryString = "SELECT id, title, status, case_date FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
 	err := m.db.Raw(queryString).Scan(&disputes).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")

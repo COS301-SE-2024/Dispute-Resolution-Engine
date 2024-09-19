@@ -6,7 +6,8 @@ import { CirclePlus, CircleX, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { type GraphState } from "@/lib/types";
+import { GraphInstance, type GraphState } from "@/lib/types";
+import EditForm from "./edit-form";
 
 /** The diameter (in pixels) of a single handle */
 const handleDiameter = 20;
@@ -22,43 +23,6 @@ const handleStyle = {
 
 /** Calculates a handle's offset given it's index */
 const offset = (i: number) => i * (handleDiameter + handleGap);
-
-function EditForm({
-  value,
-  onCancel = () => {},
-  onCommit = () => {},
-}: {
-  value: string;
-  onCancel?: () => void;
-  onCommit?: (value: string) => void;
-}) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const newValue = inputRef.current!.value;
-    if (newValue === value) {
-      onCancel();
-    } else if (newValue.length === 0) {
-      onCancel();
-    } else {
-      onCommit(newValue);
-    }
-  }
-
-  return (
-    <form onSubmit={onSubmit} className="grow">
-      <Input
-        ref={inputRef}
-        defaultValue={value}
-        autoFocus
-        className="w-fit"
-        onBlur={onCancel}
-        placeholder="Node label"
-      />
-    </form>
-  );
-}
 
 export default function CustomNode(data: NodeProps<GraphState>) {
   const events = data.data.edges;
@@ -81,19 +45,21 @@ export default function CustomNode(data: NodeProps<GraphState>) {
       ></Handle>
     );
   });
-  const flowInst = useReactFlow();
-  const deleteNode = function () {
-    const nodes = flowInst.getNodes();
-    flowInst.setNodes((nodes) => nodes.filter((node) => node.id !== data.id));
-  };
+
+  const reactFlow: GraphInstance = useReactFlow();
+
+  function deleteNode() {
+    reactFlow.setNodes((nodes) => nodes.filter((node) => node.id !== data.id));
+  }
 
   /** Used to determine when a component the label of a node is being edited */
   const [editing, setEditing] = useState(false);
 
   function setNodeLabel(value: string) {
     setEditing(false);
-    alert(value);
-    // TODO: add proper changes here
+    reactFlow.updateNodeData(data.id, {
+      label: value,
+    });
   }
 
   return (

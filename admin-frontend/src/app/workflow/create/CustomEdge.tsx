@@ -8,10 +8,12 @@ import {
   useReactFlow,
   useUpdateNodeInternals,
 } from "@xyflow/react";
-import { CircleX } from "lucide-react";
-import { useCallback } from "react";
+import { CircleX, Pencil } from "lucide-react";
+import { useCallback, useState } from "react";
 
-import { type GraphTrigger, type GraphState } from "@/lib/types";
+import { type GraphTrigger, type GraphState, GraphInstance } from "@/lib/types";
+import EditForm from "./edit-form";
+import { Button } from "@/components/ui/button";
 
 export default function CustomEdge({
   id,
@@ -21,9 +23,8 @@ export default function CustomEdge({
   targetY,
   data,
 }: EdgeProps<GraphTrigger>) {
-  const { setEdges, getEdges } = useReactFlow();
-  const { setNodes } = useReactFlow();
-  const reactFlowInstance = useReactFlow();
+  const reactFlow: GraphInstance = useReactFlow();
+
   const updateNodeInternals = useUpdateNodeInternals();
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
@@ -36,8 +37,8 @@ export default function CustomEdge({
   });
   const deleteEdge = useCallback(
     function () {
-      const nodes = reactFlowInstance.getNodes();
-      let edges = reactFlowInstance.getEdges();
+      const nodes = reactFlow.getNodes();
+      let edges = reactFlow.getEdges();
       console.log("edges before ", edges);
       console.log("nodes before ", nodes);
       console.log("id before ", id);
@@ -60,14 +61,25 @@ export default function CustomEdge({
       }
       console.log("edges after ", edges);
       console.log("nodes after ", nodes);
-      reactFlowInstance.setEdges(edges);
-      reactFlowInstance.setNodes(nodes);
+      reactFlow.setEdges(edges);
+      reactFlow.setNodes(nodes);
       if (deletedEdge) {
         updateNodeInternals(deletedEdge.source);
       }
     },
-    [id, reactFlowInstance, updateNodeInternals],
+    [id, reactFlow, updateNodeInternals],
   );
+
+  /** Used to determine when a component the label of a node is being edited */
+  const [editing, setEditing] = useState(false);
+
+  function setEdgeLabel(value: string) {
+    setEditing(false);
+    reactFlow.updateEdgeData(id, {
+      trigger: value,
+    });
+  }
+
   return (
     <>
       <BaseEdge id={id} path={edgePath} />
@@ -81,12 +93,31 @@ export default function CustomEdge({
             gap: "12px",
           }}
         >
-          <h1 contentEditable="true" className="text-l" suppressContentEditableWarning={true}>
-            {data?.trigger ?? "error"}
-          </h1>
-          <button className="nodrag nopan" onClick={deleteEdge}>
-            <CircleX />
-          </button>
+          {editing ? (
+            <EditForm
+              value={data!.trigger}
+              onCommit={setEdgeLabel}
+              onCancel={() => setEditing(false)}
+            />
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                className="nodrag nopan rounded-full p-2"
+                onClick={() => setEditing(true)}
+              >
+                <CircleX />
+              </Button>
+              <p className="text-l">{data!.trigger}</p>
+              <Button
+                variant="ghost"
+                className="nodrag nopan rounded-full p-2"
+                onClick={() => setEditing(true)}
+              >
+                <Pencil size="1rem" />
+              </Button>
+            </>
+          )}
         </div>
       </EdgeLabelRenderer>
     </>

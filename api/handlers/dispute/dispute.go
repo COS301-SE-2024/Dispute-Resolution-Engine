@@ -281,7 +281,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	var respondantID *int64
 	respondent, err := h.Model.GetUserByEmail(email)
 	defaultAccount := false
-	//so if the error is record not found
+	//so if the error is "record not found"
 	if err != nil {
 		//if the user is not found in the database then we create the default user
 		if err.Error() == "record not found" {
@@ -359,12 +359,13 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	}
 
 	//asssign experts to dispute
-	_, err = h.Model.AssignExpertsToDispute(disputeId)
+	selected, err := h.Model.AssignExpertsToDispute(disputeId)
 	if err != nil {
 		logger.WithError(err).Error("Error assigning experts to dispute")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
 		return
 	}
+	logger.Info("Assigned experts", selected)
 
 	// Respond with success message
 	if !defaultAccount {

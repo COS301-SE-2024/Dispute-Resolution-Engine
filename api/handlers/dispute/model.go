@@ -160,7 +160,13 @@ func (m *disputeModelReal) GetEvidenceByDispute(disputeId int64) (evidence []mod
 }
 func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.Expert, err error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	err = m.db.Table("dispute_experts").Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").Joins("JOIN users ON dispute_experts.user = users.id").Where("dispute = ?", disputeId).Where("dispute_experts.status = 'Approved'").Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").Find(&experts).Error
+	err = m.db.Table("dispute_experts_view").
+		Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").
+		Joins("JOIN users ON dispute_experts_view.expert = users.id").
+		Where("dispute = ?", disputeId).
+		Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").
+		Find(&experts).Error
+
 	if err != nil && err.Error() != "record not found" {
 		logger.WithError(err).Error("Error retrieving dispute experts")
 		return
@@ -369,7 +375,7 @@ func (m disputeModelReal) AssignExpertsToDispute(disputeID int64) ([]models.User
 
 		// A raw query is used here because GORM tries to insert the Status field of the struct,
 		// despite the field being marked as read-only. Why did we use an ORM?
-		if err := m.db.Raw("INSERT INTO dispute_experts_view VALUES (?, ?)", disputeID, expert.ID).Error; err != nil {
+		if err := m.db.Exec("INSERT INTO dispute_experts_view VALUES (?, ?)", disputeID, expert.ID).Error; err != nil {
 			return nil, err
 		}
 	}

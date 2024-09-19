@@ -6,14 +6,7 @@ import { CirclePlus, CircleX, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-export type CustomNodeType = Node<
-  {
-    edges: { id: string }[];
-    label?: any;
-  },
-  "customNode"
->;
+import { type GraphState } from "@/lib/types";
 
 /** The diameter (in pixels) of a single handle */
 const handleDiameter = 20;
@@ -67,7 +60,7 @@ function EditForm({
   );
 }
 
-export default function CustomNode(data: NodeProps<CustomNodeType>) {
+export default function CustomNode(data: NodeProps<GraphState>) {
   const events = data.data.edges;
   const numHandles = events.length;
 
@@ -85,9 +78,7 @@ export default function CustomNode(data: NodeProps<CustomNodeType>) {
           top: offset(index),
         }}
         position={Position.Right}
-      >
-        
-      </Handle>
+      ></Handle>
     );
   });
   const flowInst = useReactFlow();

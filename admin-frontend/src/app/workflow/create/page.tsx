@@ -12,6 +12,7 @@ import {
   ReactFlowProvider,
   useUpdateNodeInternals,
   ConnectionState,
+  type ReactFlowInstance,
 } from "@xyflow/react";
 import CustomEdge from "./CustomEdge";
 
@@ -21,39 +22,20 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Textarea } from "@/components/ui/textarea";
-import CustomNode, { CustomNodeType } from "./CustomNode";
+import CustomNode from "./CustomNode";
 
-const initialNodes = [
+import { type Workflow, type GraphState, type GraphTrigger, GraphInstance } from "@/lib/types";
+
+const initialNodes: GraphState[] = [
   {
     id: "0",
     type: "customNode",
     position: { x: 0, y: 0 },
     data: { label: "Node A", edges: [] },
   },
-  {
-    id: "1",
-    type: "customNode",
-    position: { x: 0, y: 100 },
-    data: { label: "Node B", edges: [] },
-  },
-  {
-    id: "2",
-    type: "customNode",
-    position: { x: 0, y: 200 },
-    data: { label: "Node C", edges: [] },
-  },
-  {
-    id: "3",
-    type: "customNode",
-    position: { x: 0, y: 300 },
-    data: { label: "Node D", edges: [] },
-  },
 ];
 
-const initialEdges: Edge[] = [
-  { id: "0->1", type: "custom-edge", source: "0", target: "1" },
-  { id: "1->2", type: "custom-edge", source: "1", target: "2" },
-];
+const initialEdges: GraphTrigger[] = [];
 
 const edgeTypes = {
   "custom-edge": CustomEdge,
@@ -70,6 +52,7 @@ function Flow() {
   let currEdgeId = useRef(1);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
   const nodeTypes = useMemo(() => ({ customNode: CustomNode }), []);
   const reactFlowInstance = useReactFlow();
   const updateNodeInternals = useUpdateNodeInternals();
@@ -77,28 +60,36 @@ function Flow() {
     (connection: Connection) => {
       const edges = reactFlowInstance.getEdges();
       const nodes = reactFlowInstance.getNodes();
-      // console.log("edges before ", edges)
-      // console.log("nodes before ", nodes)
+
       let newEdge = false;
       if (connection.sourceHandle === "new") {
         connection.sourceHandle = currId.current.toString();
         currId.current = currId.current + 1;
-        edges.push({ ...connection, type: "custom-edge", id: currId.current.toString() } as Edge);
+        edges.push({
+          ...connection,
+          data: {
+            trigger: "bruh",
+          },
+          type: "custom-edge",
+          id: currId.current.toString(),
+        } satisfies GraphTrigger);
         currId.current++;
         newEdge = true;
       }
+
       for (let nodeIndex in nodes) {
         if (nodes[nodeIndex].id === connection.source) {
-          (nodes[nodeIndex] as CustomNodeType).data.edges.push({
+          (nodes[nodeIndex] as GraphState).data.edges.push({
             id: connection.sourceHandle ?? "whyNoHandle",
           });
           updateNodeInternals(nodes[nodeIndex].id);
         }
       }
+      console.log("connect");
       reactFlowInstance.setEdges(edges);
       reactFlowInstance.setNodes(nodes);
     },
-    [reactFlowInstance, updateNodeInternals]
+    [reactFlowInstance, updateNodeInternals],
   );
   const { screenToFlowPosition } = useReactFlow();
   const onConnectEnd = useCallback(
@@ -108,11 +99,10 @@ function Flow() {
         const nodes = reactFlowInstance.getNodes();
         const nodeId = currId.current.toString();
         currId.current++;
-        const handleId = currId.current
-        currId.current++
-        const { clientX, clientY } =
-          'changedTouches' in event ? event.changedTouches[0] : event;
-        const newNode: CustomNodeType = {
+        const handleId = currId.current;
+        currId.current++;
+        const { clientX, clientY } = "changedTouches" in event ? event.changedTouches[0] : event;
+        const newNode: GraphState = {
           id: nodeId,
           type: "customNode",
           position: screenToFlowPosition({
@@ -121,28 +111,31 @@ function Flow() {
           }),
           data: { label: "New Node", edges: [] },
         };
-        const edgeId = currId.current
-        currId.current++
-        const newEdge : Edge = {
+        const edgeId = currId.current;
+        currId.current++;
+        const newEdge: Edge = {
           id: edgeId.toString(),
           source: connectionState.fromNode?.id ?? "",
           target: nodeId,
+          data: {
+            trigger: "new trigger",
+          },
           type: "custom-edge",
-          sourceHandle: handleId.toString()
-        }
-        for(let index in nodes){
+          sourceHandle: handleId.toString(),
+        };
+        for (let index in nodes) {
           if (nodes[index].id == newEdge.source) {
-            (nodes[index] as CustomNodeType).data.edges.push({id: handleId.toString()})
+            (nodes[index] as GraphState).data.edges.push({ id: handleId.toString() });
           }
         }
-        nodes.push(newNode)
-        edges.push(newEdge)
-        reactFlowInstance.setNodes(nodes)
-        reactFlowInstance.setEdges(edges)
-        updateNodeInternals(newNode.id)
+        nodes.push(newNode);
+        edges.push(newEdge);
+        reactFlowInstance.setNodes(nodes);
+        reactFlowInstance.setEdges(edges);
+        updateNodeInternals(newNode.id);
       }
     },
-    [reactFlowInstance, screenToFlowPosition, updateNodeInternals]
+    [reactFlowInstance, screenToFlowPosition, updateNodeInternals],
   );
 
   return (
@@ -161,9 +154,41 @@ function Flow() {
     />
   );
 }
-function ProviderBS() {
+
+function InnerProvider() {
   const currNodeId = useRef(500);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const reactFlow: GraphInstance = useReactFlow();
+
+  function convertWorkflow() {
+    const { nodes, edges } = reactFlow.toObject();
+    const workflow: Workflow = {
+      label: "bruh",
+      initial: "Im not sure",
+      states: Object.fromEntries(
+        nodes.map((node) => [
+          node.id,
+          {
+            label: node.data.label,
+            description: "sure bud",
+            events: Object.fromEntries(
+              edges
+                .filter((edge) => edge.source == node.id)
+                .map((edge) => [
+                  edge.id,
+                  {
+                    label: "oi blud, do somfin",
+                    next_state: edge.target,
+                  },
+                ]),
+            ),
+          },
+        ]),
+      ),
+    };
+    console.log(workflow);
+  }
   const addNode = useCallback(
     (params: any) => {
       const newNode = {
@@ -175,19 +200,19 @@ function ProviderBS() {
       currNodeId.current = currNodeId.current + 1;
       setNodes((nds) => nds.concat(newNode));
     },
-    [setNodes]
+    [setNodes],
   );
+
   const form = useForm<NewNodeData>({
     defaultValues: {
       label: "New Node",
     },
     resolver: zodResolver(newNodeSchema),
   });
+
   return (
     <div className="h-full grid grid-rows-[1fr_auto]">
-      <ReactFlowProvider>
-        <Flow></Flow>
-      </ReactFlowProvider>
+      <Flow></Flow>
       <form
         onSubmit={form.handleSubmit(addNode)}
         className="p-5 bg-surface-light-50 dark:bg-surface-dark-900 border-t border-primary-500/30"
@@ -195,7 +220,16 @@ function ProviderBS() {
         <Textarea {...form.register("label")}></Textarea>
         <Button type="submit">ADD NODE</Button>
       </form>
+      <Button onClick={convertWorkflow}>Convert to workflow</Button>
     </div>
+  );
+}
+
+function ProviderBS() {
+  return (
+    <ReactFlowProvider>
+      <InnerProvider />
+    </ReactFlowProvider>
   );
 }
 export default ProviderBS;

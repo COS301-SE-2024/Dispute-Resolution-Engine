@@ -1,6 +1,7 @@
 import {
   BaseEdge,
   Edge,
+  EdgeProps,
   EdgeLabelRenderer,
   Position,
   getSmoothStepPath,
@@ -9,7 +10,8 @@ import {
 } from "@xyflow/react";
 import { CircleX } from "lucide-react";
 import { useCallback } from "react";
-import { CustomNodeType } from "./CustomNode";
+
+import { type GraphTrigger, type GraphState } from "@/lib/types";
 
 export default function CustomEdge({
   id,
@@ -17,13 +19,8 @@ export default function CustomEdge({
   sourceY,
   targetX,
   targetY,
-}: {
-  id: string;
-  sourceX: number;
-  sourceY: number;
-  targetX: number;
-  targetY: number;
-}) {
+  data,
+}: EdgeProps<GraphTrigger>) {
   const { setEdges, getEdges } = useReactFlow();
   const { setNodes } = useReactFlow();
   const reactFlowInstance = useReactFlow();
@@ -41,9 +38,9 @@ export default function CustomEdge({
     function () {
       const nodes = reactFlowInstance.getNodes();
       let edges = reactFlowInstance.getEdges();
-      console.log("edges before ", edges)
-      console.log("nodes before ", nodes)
-      console.log("id before ", id)
+      console.log("edges before ", edges);
+      console.log("nodes before ", nodes);
+      console.log("id before ", id);
       let deletedEdge: Edge | null = null;
       for (let index in edges) {
         if (edges[index].id == id) {
@@ -51,25 +48,25 @@ export default function CustomEdge({
           break;
         }
       }
-      console.log("deletedEdge ", deletedEdge)
+      console.log("deletedEdge ", deletedEdge);
       edges = edges.filter((e) => e.id !== (deletedEdge ?? { id: "" }).id);
       for (let index in nodes) {
         if (deletedEdge && nodes[index].id == deletedEdge.source) {
-          (nodes[index] as CustomNodeType).data.edges = (nodes[index] as CustomNodeType).data.edges.filter(
-            (edge) => edge.id != deletedEdge.sourceHandle
+          (nodes[index] as GraphState).data.edges = (nodes[index] as GraphState).data.edges.filter(
+            (edge) => edge.id != deletedEdge.sourceHandle,
           );
           updateNodeInternals(nodes[index].id);
         }
       }
-      console.log("edges after ", edges)
-      console.log("nodes after ", nodes)
+      console.log("edges after ", edges);
+      console.log("nodes after ", nodes);
       reactFlowInstance.setEdges(edges);
       reactFlowInstance.setNodes(nodes);
       if (deletedEdge) {
-        updateNodeInternals(deletedEdge.source)
+        updateNodeInternals(deletedEdge.source);
       }
     },
-    [id, reactFlowInstance, updateNodeInternals]
+    [id, reactFlowInstance, updateNodeInternals],
   );
   return (
     <>
@@ -85,14 +82,9 @@ export default function CustomEdge({
           }}
         >
           <h1 contentEditable="true" className="text-l" suppressContentEditableWarning={true}>
-            trigger
+            {data?.trigger ?? "error"}
           </h1>
-          <button
-            className="nodrag nopan"
-            onClick={
-              deleteEdge
-            }
-          >
+          <button className="nodrag nopan" onClick={deleteEdge}>
             <CircleX />
           </button>
         </div>

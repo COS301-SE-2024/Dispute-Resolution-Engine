@@ -7,19 +7,21 @@ import (
 
 // Workflow model
 type Workflow struct {
-	ID                 uint            `gorm:"primaryKey;autoIncrement"`
-	WorkflowDefinition json.RawMessage `gorm:"type:json;not null"`
-	CreatedAt          time.Time       `gorm:"autoCreateTime"`
-	AuthorID           uint            `gorm:"not null"`
-	Author             User            `gorm:"foreignKey:AuthorID;references:ID"`
+    ID                 uint64          `gorm:"primaryKey;autoIncrement"`
+	Name               string          `gorm:"type:varchar(100);not null"`
+    Definition         json.RawMessage `gorm:"column:definition;type:jsonb"`
+    CreatedAt          time.Time       `gorm:"autoCreateTime"`
+    AuthorID           *int64          `gorm:"column:author"`
+    Author             *User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
 }
 
+
 // LabelledWorkflows model
-type LabelledWorkflows struct {
-	WorkflowID uint     `gorm:"primaryKey;not null"`
-	TagID      uint     `gorm:"primaryKey;not null"`
-	Workflow   Workflow `gorm:"foreignKey:WorkflowID;references:ID"`
-	Tag        Tag      `gorm:"foreignKey:TagID;references:ID"`
+type LabelledWorkflow struct {
+	WorkflowID uint64   `gorm:"primaryKey;column:workflow_id"`
+	TagID      uint64   `gorm:"primaryKey;column:tag_id"`
+	Workflow   Workflow `gorm:"foreignKey:WorkflowID"`
+	Tag        Tag      `gorm:"foreignKey:TagID"`
 }
 
 type User struct {
@@ -45,19 +47,18 @@ type User struct {
 
 // Tag model
 type Tag struct {
-	ID      uint   `gorm:"primaryKey;autoIncrement"`
-	TagName string `gorm:"type:varchar(255);not null"`
+	ID      uint64 `gorm:"primaryKey;autoIncrement"`
+	TagName string `gorm:"type:varchar(100);not null"`
 }
-
 func (Tag) TableName() string {
 	return "tags"
 }
 
 func (Workflow) TableName() string {
-	return "workflow"
+	return "workflows"
 }
 
-func (LabelledWorkflows) TableName() string {
+func (LabelledWorkflow) TableName() string {
 	return "labelled_workflows"
 }
 

@@ -75,6 +75,7 @@ export function graphToWorkflow({
   nodes,
   edges,
 }: ReactFlowJsonObject<GraphState, GraphTrigger>): WorkflowDefinition {
+  console.log(nodes, edges);
   return {
     initial: "Im not sure",
     states: Object.fromEntries(
@@ -98,4 +99,19 @@ export function graphToWorkflow({
       ])
     ),
   };
+}
+
+export function workflowToGraph(workflow: Workflow): [GraphState[], GraphTrigger[]] {
+  return [
+    Object.keys(workflow.states).map((id) => ({
+      id,
+      type: "customNode",
+      data: {
+        label: workflow.states[id].label,
+        edges: [],
+      },
+      position: { x: 0, y: 0 },
+    })),
+    [],
+  ];
 }

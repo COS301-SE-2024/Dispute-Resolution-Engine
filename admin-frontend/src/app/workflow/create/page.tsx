@@ -17,8 +17,10 @@ import { Button } from "@/components/ui/button";
 import CustomNode from "./CustomNode";
 
 import { type Workflow, type GraphState, type GraphTrigger, GraphInstance } from "@/lib/types";
-import { graphToWorkflow } from "@/lib/api/workflow";
+import { graphToWorkflow, workflowToGraph } from "@/lib/api/workflow";
 import { Textarea } from "@/components/ui/textarea";
+import { z } from "zod";
+import { workflowSchema } from "@/lib/schema/workflow";
 
 const initialNodes: GraphState[] = [
   {
@@ -135,24 +137,54 @@ function Flow() {
 
 function InnerProvider() {
   const reactFlow: GraphInstance = useReactFlow();
+
   const [result, setResult] = useState("");
+  const [error, setError] = useState<string>();
 
   function toWorkflow() {
     const workflow = graphToWorkflow(reactFlow.toObject());
     setResult(JSON.stringify(workflow, null, 2));
+    setError(undefined);
   }
+
   function fromWorkflow() {
-    const workflow = graphToWorkflow(reactFlow.toObject());
-    console.log(workflow);
+    let json;
+    try {
+      json = JSON.parse(result);
+    } catch (e) {
+      setError((e as Error).message);
+      return;
+    }
+
+    const { data, error } = workflowSchema.safeParse(json);
+    if (error) {
+      setError(error.issues[0].message);
+      return;
+    }
+
+    setError(undefined);
+
+    const [nodes, edges] = workflowToGraph(data);
+    reactFlow.setNodes(nodes);
+    reactFlow.setEdges(edges);
   }
 
   return (
-    <div className="h-full grid grid-cols-[auto_1fr]">
+    <div className="h-full grid grid-cols-[1fr_3fr]">
       <div className="p-2 space-y-2 flex flex-col">
-        <Textarea className="grow" value={result} onChange={(e) => setResult(e.target.value)} />
-        <div className="flex gap-2 items-center">
-          <Button onClick={toWorkflow}>Convert to workflow</Button>
-          <Button onClick={fromWorkflow}>From workflow</Button>
+        <Textarea
+          className="grow resize-none font-mono"
+          value={result}
+          onChange={(e) => setResult(e.target.value)}
+        />
+        <div className="flex flex-col gap-2">
+          {error && (
+            <p role="alert" className="text-red-500">
+              {error}
+            </p>
+          )}
+          <Button onClick={toWorkflow}>Convert graph to workflow</Button>
+          <Button onClick={fromWorkflow}>Convert workflow to graph</Button>
         </div>
       </div>
       <Flow></Flow>

@@ -565,7 +565,7 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	}
 	//get relevant disputes data
 	var intermediateDisputes []models.AdminIntermediate
-	queryString = "SELECT id, title, status, case_date FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
+	queryString = "SELECT id, title, status, case_date, date_resolved FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
 	err := m.db.Raw(queryString).Scan(&intermediateDisputes).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")
@@ -586,12 +586,11 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		}
 		disputeResp.Workflow = workflow
 		//get the date resolved
-		if disputeResp.DateResolved != nil {
-			err = m.db.Raw("SELECT date_resolved FROM disputes WHERE id = ?", dispute.Id).Scan(&disputeResp.DateResolved).Error
-			if err != nil {
-				logger.WithError(err).Error("Error retrieving date resolved for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
-			}
+		if dispute.DateResolved != nil {
+			dateResolved := dispute.DateResolved.Format("2006-01-02")
+			disputeResp.DateResolved = &dateResolved
 		}
+
 		disputes = append(disputes, disputeResp)
 	}
 

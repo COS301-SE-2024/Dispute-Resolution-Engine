@@ -564,19 +564,35 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		offsetString = " OFFSET " + strconv.Itoa(*offset)
 	}
 	//get relevant disputes data
+	var intermediateDisputes []models.AdminIntermediate
 	queryString = "SELECT id, title, status, case_date FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
-	err := m.db.Raw(queryString).Scan(&disputes).Error
+	err := m.db.Raw(queryString).Scan(&intermediateDisputes).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")
 	}
-	//now for each dispute, get the workflow
-	for i, dispute := range disputes {
+
+	//take the intermediate disputes and fill in the admin response information
+	for _, dispute := range intermediateDisputes {
+		var disputeResp models.AdminDisputeSummariesResponse
+		disputeResp.Id = dispute.Id
+		disputeResp.Title = dispute.Title
+		disputeResp.Status = dispute.Status
+		disputeResp.DateFiled = dispute.DateFiled
+		//get the workflow
 		var workflow models.WorkflowResp
-		err = m.db.Raw("SELECT id, name FROM workflows WHERE id = ?", dispute.Workflow).First(&workflow).Error
+		err = m.db.Raw("SELECT id, name FROM workflows WHERE id = (SELECT workflow FROM disputes WHERE id = ?)", dispute.Id).First(&workflow).Error
 		if err != nil {
 			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
 		}
-		disputes[i].Workflow = workflow
+		disputeResp.Workflow = workflow
+		//get the date resolved
+		if disputeResp.DateResolved != nil {
+			err = m.db.Raw("SELECT date_resolved FROM disputes WHERE id = ?", dispute.Id).Scan(&disputeResp.DateResolved).Error
+			if err != nil {
+				logger.WithError(err).Error("Error retrieving date resolved for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
+			}
+		}
+		disputes = append(disputes, disputeResp)
 	}
 
 	return disputes, err

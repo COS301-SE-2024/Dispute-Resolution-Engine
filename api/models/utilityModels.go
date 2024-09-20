@@ -83,3 +83,10 @@ type DefaultUser struct {
 	FirstName string
 	Surname   string
 }
+
+type AdminIntermediate struct {
+	Id        int64
+	Title     string
+	Status    string    `json:"status"`
+	DateFiled time.Time `json:"date_filed"`
+}

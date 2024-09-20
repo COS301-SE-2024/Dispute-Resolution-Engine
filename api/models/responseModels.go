@@ -62,5 +62,5 @@ type AdminDisputeSummariesResponse struct{
 	Status string `json:"status"`
 	Workflow WorkflowResp `json:"workflow"`
 	DateFiled time.Time `json:"date_filed"`
-	DateResolved *time.Time `json:"date_resolved, omitempty"`
+	DateResolved *time.Time `json:"date_resolved,omitempty"`
 }

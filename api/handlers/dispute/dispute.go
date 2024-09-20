@@ -143,6 +143,7 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 			filters = &reqAdminDisputes.Filter
 		}
 		if reqAdminDisputes.DateFilter != nil {
+			dateFilter = &models.DateFilter{}
 			if reqAdminDisputes.DateFilter.Filed != nil {
 				dateFilter.Filed = reqAdminDisputes.DateFilter.Filed
 			}

@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -495,42 +496,51 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	var limitString string = ""
 	var offsetString string = ""
 	if searchTerm != nil {
-		searchString = "WHERE disputes.title LIKE '%" + *searchTerm + "%'"
+		searchString = " WHERE disputes.title LIKE '%" + *searchTerm + "%' "
 	}
-	if filters != nil {
+	if filters != nil && len(*filters) > 0 {
 		if searchTerm != nil {
-			filterString = "AND "
+			filterString = " AND "
 		} else {
-			filterString = "WHERE "
+			filterString = " WHERE "
 		}
 		for i, filter := range *filters {
-			if i == len(*filters)-1 {
-				filterString += filter.Attr + " = '" + filter.Value + "'"
-			} else {
-				filterString += filter.Attr + " = '" + filter.Value + "' AND "
+			filterString += filter.Attr + " = '" + filter.Value + "'"
+			if i < len(*filters)-1 {
+				filterString += " AND "
 			}
 		}
 	}
+
 	if dateFilter != nil {
-		if searchTerm != nil || filters != nil {
-			dateFilterString = "AND "
+		if searchTerm != nil || (filters != nil && len(*filters) > 0) {
+			dateFilterString = " AND "
 		} else {
-			dateFilterString = "WHERE "
+			dateFilterString = " WHERE "
 		}
 		if dateFilter.Filed != nil {
 			if dateFilter.Filed.Before != nil {
-				dateFilterString += "disputes.case_date < '" + *dateFilter.Filed.Before + "'"
+				dateFilterString += "disputes.case_date < '" + *dateFilter.Filed.Before + "' "
 			}
 			if dateFilter.Filed.After != nil {
-				dateFilterString += "disputes.case_date > '" + *dateFilter.Filed.After + "'"
+				if dateFilter.Filed.Before != nil {
+					dateFilterString += "AND "
+				}
+				dateFilterString += "disputes.case_date > '" + *dateFilter.Filed.After + "' "
 			}
 		}
 		if dateFilter.Resolved != nil {
 			if dateFilter.Resolved.Before != nil {
-				dateFilterString += "disputes.date_resolved < '" + *dateFilter.Resolved.Before + "'"
+				if dateFilter.Filed != nil {
+					dateFilterString += "AND "
+				}
+				dateFilterString += "disputes.date_resolved < '" + *dateFilter.Resolved.Before + "' "
 			}
 			if dateFilter.Resolved.After != nil {
-				dateFilterString += "disputes.date_resolved > '" + *dateFilter.Resolved.After + "'"
+				if dateFilter.Filed != nil || dateFilter.Resolved.Before != nil {
+					dateFilterString += "AND "
+				}
+				dateFilterString += "disputes.date_resolved > '" + *dateFilter.Resolved.After + "' "
 			}
 		}
 	}
@@ -538,14 +548,14 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		if sort.Order == "" {
 			sort.Order = "asc"
 		}
-		sortString = "ORDER BY " + sort.Attr + " " + sort.Order
+		sortString = " ORDER BY " + sort.Attr + " " + sort.Order
 	}
 
 	if limit != nil {
-		limitString = "LIMIT " + string(*limit)
+		limitString = " LIMIT " + strconv.Itoa(*limit)
 	}
 	if offset != nil {
-		offsetString = "OFFSET " + string(*offset)
+		offsetString = " OFFSET " + strconv.Itoa(*offset)
 	}
 	//get relevant disputes data
 	queryString = "SELECT id, title, status, case_date FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
@@ -558,11 +568,10 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		var workflow models.WorkflowResp
 		err = m.db.Raw("SELECT id, name FROM workflows WHERE id = ?", dispute.Workflow).First(&workflow).Error
 		if err != nil {
-			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + string(dispute.Id))
+			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
 		}
 		disputes[i].Workflow = workflow
 	}
 
 	return disputes, err
-
 }

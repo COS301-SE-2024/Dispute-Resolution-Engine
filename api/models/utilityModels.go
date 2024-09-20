@@ -85,8 +85,8 @@ type DefaultUser struct {
 }
 
 type AdminIntermediate struct {
-	Id        int64
-	Title     string
-	Status    string    `json:"status"`
-	DateFiled time.Time `json:"date_filed"`
+	Id       int64     `gorm:"column:id"`
+	Title    string    `gorm:"column:title"`
+	Status   string    `gorm:"column:status"`
+	CaseDate time.Time `gorm:"column:case_date"`
 }

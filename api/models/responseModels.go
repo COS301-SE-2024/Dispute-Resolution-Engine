@@ -52,15 +52,15 @@ type DisputeCreationResponse struct {
 }
 
 type WorkflowResp struct {
-	Id int64 `json:"id"`
-	Title string `json:"title"`
+	Id    int64  `gorm column:"id"`
+	Title string `gorm column:"name"`
 }
 
-type AdminDisputeSummariesResponse struct{
-	Id int64 `json:"id"`
-	Title string `json:"title"`
-	Status string `json:"status"`
-	Workflow WorkflowResp `json:"workflow"`
-	DateFiled time.Time `json:"date_filed"`
-	DateResolved *time.Time `json:"date_resolved,omitempty"`
+type AdminDisputeSummariesResponse struct {
+	Id           int64        `json:"id"`
+	Title        string       `json:"title"`
+	Status       string       `json:"status"`
+	Workflow     WorkflowResp `json:"workflow"`
+	DateFiled    string       `json:"date_filed"`
+	DateResolved *string      `json:"date_resolved,omitempty"`
 }

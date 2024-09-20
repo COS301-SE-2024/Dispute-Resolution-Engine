@@ -493,7 +493,7 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 
 func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	var disputes []models.AdminDisputeSummariesResponse
+	var disputes []models.AdminDisputeSummariesResponse = []models.AdminDisputeSummariesResponse{}
 	var queryString string = ""
 	var searchString string = ""
 	var filterString string = ""
@@ -577,7 +577,7 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		disputeResp.Id = dispute.Id
 		disputeResp.Title = dispute.Title
 		disputeResp.Status = dispute.Status
-		disputeResp.DateFiled = dispute.DateFiled
+		disputeResp.DateFiled = dispute.CaseDate.Format("2006-01-02")
 		//get the workflow
 		var workflow models.WorkflowResp
 		err = m.db.Raw("SELECT id, name FROM workflows WHERE id = (SELECT workflow FROM disputes WHERE id = ?)", dispute.Id).First(&workflow).Error

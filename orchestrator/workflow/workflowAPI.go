@@ -57,7 +57,7 @@ func (api *APIWorkflow) Fetch(id int) (*Workflow, error) {
 	return &workflow, nil
 }
 
-func (api *APIWorkflow) Store(workflow Workflow, categories []int64, Author *int64) error {
+func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64, Author *int64) error {
 	marshal, err := json.Marshal(workflow)
 	if err != nil {
 		fmt.Println("Error marshalling workflow: ")
@@ -108,12 +108,17 @@ func (api *APIWorkflow) Store(workflow Workflow, categories []int64, Author *int
 	return nil
 }
 
-func (api *APIWorkflow) Update(id int, workflow *Workflow, categories *[]int64, author *int64) error {
+func (api *APIWorkflow) Update(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error {
 	//get existign workflow
 	var existingWorkflow db.Workflow
 	result := api.DB.First(&existingWorkflow, id)
 	if result.Error != nil {
 		return result.Error
+	}
+
+	// Update the name if provided
+	if name != nil {
+		existingWorkflow.Name = *name
 	}
 
 	// Update the WorkflowDefinition if provided

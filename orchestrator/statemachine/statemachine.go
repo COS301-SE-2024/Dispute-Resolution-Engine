@@ -35,8 +35,6 @@ func (s *stateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Sc
 
 	// initState := wf.GetInitialState() // this whole sequence is a bit weird, but idk how else to do it
 	// initStatePtr := &initState        // without changing the workflow interface
-
-	s.label = wf.Label
 	s.stateMachine = stateless.NewStateMachine(wf.Initial)
 	s.workflow = wf
 	s.scheduler = sch // 1 second interval

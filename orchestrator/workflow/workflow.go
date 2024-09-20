@@ -140,9 +140,6 @@ func NewTrigger(label, next string) Trigger {
 
 // ----------------------------Workflow--------------------------------
 type Workflow struct {
-	// The human-readable label for the workflow
-	Label string `json:"label"`
-
 	// The ID of the initial state of the workflow
 	Initial string `json:"initial"`
 
@@ -151,9 +148,8 @@ type Workflow struct {
 }
 
 // Factory method
-func CreateWorkflow(label, initialId string, initial State) Workflow {
+func CreateWorkflow( initialId string, initial State) Workflow {
 	w := Workflow{
-		Label:   label,
 		Initial: initialId,
 		States:  make(map[string]State),
 	}
@@ -167,8 +163,7 @@ func (w *Workflow) GetInitialState() State {
 
 
 func (w *Workflow) GetWorkflowString() string {
-	result := fmt.Sprintf("Workflow: %s\n", w.Label)
-	result += fmt.Sprintf("Initial State: %s\n", w.Initial)
+	result := fmt.Sprintf("Initial State: %s\n", w.Initial)
 
 	// Iterate through each state in the workflow
 	for stateID, state := range w.States {

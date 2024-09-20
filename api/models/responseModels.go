@@ -2,12 +2,17 @@ package models
 
 import "time"
 
+type Response struct {
+	Data  interface{} `json:"data,omitempty"`
+	Error string      `json:"error,omitempty"`
+}
+
 type DisputeSummaryResponse struct {
-	ID          int64   `json:"id"`
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Status      string  `json:"status"`
-	Role        *string `json:"role,omitempty"`
+	ID          int64         `json:"id"`
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
+	Status      DisputeStatus `json:"status"`
+	Role        *string       `json:"role,omitempty"`
 }
 
 type Expert struct {
@@ -19,14 +24,14 @@ type Expert struct {
 }
 
 type DisputeDetailsResponse struct {
-	ID          int64      `json:"id"`
-	Title       string     `json:"title"`
-	Description string     `json:"description"`
-	Status      string     `json:"status"`
-	DateCreated time.Time  `json:"case_date"`
-	Evidence    []Evidence `json:"evidence"`
-	Experts     []Expert   `json:"experts"`
-	Role        string     `json:"role"`
+	ID          int64         `json:"id"`
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
+	Status      DisputeStatus `json:"status"`
+	DateCreated time.Time     `json:"case_date"`
+	Evidence    []Evidence    `json:"evidence"`
+	Experts     []Expert      `json:"experts"`
+	Role        string        `json:"role"`
 }
 
 type Evidence struct {

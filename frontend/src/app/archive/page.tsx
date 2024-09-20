@@ -27,7 +27,7 @@ function ArchivedDispute(props: ArchivedDisputeSummary) {
           ))}
         </ul>
       </CardHeader>
-      <CardContent asChild className="dark:text-white/50 grow">
+      <CardContent asChild className="dark:text-white/50 grow truncate">
         <p>{props.summary}</p>
       </CardContent>
       <CardFooter className="flex justify-between">

@@ -120,12 +120,7 @@ func (h Auth) CreateUser(c *gin.Context) {
 	user.Salt = base64.StdEncoding.EncodeToString(salt)
 
 	//update log metrics
-	user.CreatedAt = utilities.GetCurrentTime()
-	user.UpdatedAt = utilities.GetCurrentTimePtr()
 	user.Status = "Active"
-
-	//Small user preferences
-	user.LastLogin = nil
 
 	// if result := h.DB.Create(&user); result.Error != nil {
 	// 	c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating user"})

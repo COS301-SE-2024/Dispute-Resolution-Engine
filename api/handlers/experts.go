@@ -30,7 +30,7 @@ func (h Expert) recommendExpert(c *gin.Context) {
 	var recommendexpert models.RecommendExpert
 	if err := c.BindJSON(&recommendexpert); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Something went wrong fetching the dispute..."})
 		return
 	}
 
@@ -38,7 +38,7 @@ func (h Expert) recommendExpert(c *gin.Context) {
 	selectedUsers, err := h.AssignExpertsToDispute(int64(recommendexpert.DisputeId))
 	if err != nil {
 		logger.WithError(err).Error("Failed to assign experts to dispute")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Somethig went wrong getting the experts..."})
 		return
 	}
 
@@ -72,12 +72,8 @@ func (h *Expert) AssignExpertsToDispute(disputeID int64) ([]models.User, error) 
 	// Insert the selected experts into the dispute_experts table
 	for _, expert := range selectedUsers {
 		if err := h.DB.Create(&models.DisputeExpert{
-			Dispute:         disputeID,
-			User:            expert.ID,
-			ComplainantVote: "Approved",
-			RespondantVote:  "Approved",
-			ExpertVote:      "Approved",
-			Status:          "Approved",
+			Dispute: disputeID,
+			Expert:  expert.ID,
 		}).Error; err != nil {
 			return nil, err
 		}
@@ -92,7 +88,7 @@ func (h Expert) rejectExpert(c *gin.Context) {
 	var rejectexpert models.RejectExpert
 	if err := c.BindJSON(&rejectexpert); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
 		return
 	}
 

@@ -160,7 +160,13 @@ func (m *disputeModelReal) GetEvidenceByDispute(disputeId int64) (evidence []mod
 }
 func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.Expert, err error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	err = m.db.Table("dispute_experts").Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").Joins("JOIN users ON dispute_experts.user = users.id").Where("dispute = ?", disputeId).Where("dispute_experts.status = 'Approved'").Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").Find(&experts).Error
+	err = m.db.Table("dispute_experts_view").
+		Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").
+		Joins("JOIN users ON dispute_experts_view.expert = users.id").
+		Where("dispute = ?", disputeId).
+		Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").
+		Find(&experts).Error
+
 	if err != nil && err.Error() != "record not found" {
 		logger.WithError(err).Error("Error retrieving dispute experts")
 		return
@@ -256,19 +262,6 @@ func (m *disputeModelReal) UpdateDisputeStatus(disputeId int64, status string) e
 func (m *disputeModelReal) ObjectExpert(userId, disputeId, expertId int64, reason string) error {
 	logger := utilities.NewLogger().LogWithCaller()
 
-	//update dispute experts table
-	var disputeExpert models.DisputeExpert
-	if err := m.db.Where("dispute = ? AND dispute_experts.user = ?", disputeId, expertId).First(&disputeExpert).Error; err != nil {
-		logger.WithError(err).Errorf("Error retrieving dispute expert (%d-%d)", disputeId, expertId)
-		return err
-	}
-
-	disputeExpert.Status = models.ReviewStatus
-	if err := m.db.Save(&disputeExpert).Error; err != nil {
-		logger.WithError(err).Error("Error updating dispute expert")
-		return err
-	}
-
 	//add entry to expert objections table
 	expertObjection := models.ExpertObjection{
 		DisputeID: disputeId,
@@ -286,66 +279,24 @@ func (m *disputeModelReal) ObjectExpert(userId, disputeId, expertId int64, reaso
 func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error {
 	logger := utilities.NewLogger().LogWithCaller()
 
-	var expertObjections []models.ExpertObjection
-	if err := m.db.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeId, expertId, models.ReviewStatus).Find(&expertObjections).Error; err != nil {
+	var expertObjections models.ExpertObjection
+	if err := m.db.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeId, expertId, models.ExpertReview).First(&expertObjections).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving expert objections")
 		return err
 	}
 
-	var disputeExpert models.DisputeExpert
-	if err := m.db.Where("dispute = ? AND dispute_experts.user = ? AND status = ?", disputeId, expertId, models.ReviewStatus).First(&disputeExpert).Error; err != nil {
-		logger.WithError(err).Error("Error retrieving dispute expert")
-		return nil
-	}
-
-	// Start a transaction
-	tx := m.db.Begin()
-	if tx.Error != nil {
-		logger.WithError(tx.Error).Error("Error starting transaction")
-		return tx.Error
-	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Error("Goroutine panicked, rolled back transaction")
-			tx.Rollback()
-		}
-	}()
-
-	// Update expert objections
+	// Update status
 	if approved {
-		for i := range expertObjections {
-			expertObjections[i].Status = models.Sustained
-		}
-		disputeExpert.Status = models.RejectedStatus
+		expertObjections.Status = models.ObjectionSustained
 	} else {
-		for i := range expertObjections {
-			expertObjections[i].Status = models.Overruled
-		}
-		disputeExpert.Status = models.ApprovedStatus
+		expertObjections.Status = models.ObjectionOverruled
 	}
 
-	// Save the expert objections
-	for _, objection := range expertObjections {
-		if err := tx.Save(&objection).Error; err != nil {
-			tx.Rollback()
-			logger.WithError(err).Error("Error updating expert objections")
-			return err
-		}
-	}
-
-	// Save the dispute expert
-	if err := tx.Save(&disputeExpert).Error; err != nil {
-		tx.Rollback()
-		logger.WithError(err).Error("Error updating dispute expert")
+	if err := m.db.Save(&expertObjections).Error; err != nil {
+		logger.WithError(err).Error("Error updating expert objections")
 		return err
 	}
 
-	// Commit the transaction
-	if err := tx.Commit().Error; err != nil {
-		logger.WithError(err).Error("Error committing transaction")
-		return err
-	}
 	return nil
 }
 
@@ -384,13 +335,8 @@ func (m *disputeModelReal) CreateDefaultUser(email string, fullName string, pass
 	user.Salt = base64.StdEncoding.EncodeToString(salt)
 
 	//update log metrics
-	user.CreatedAt = utilities.GetCurrentTime()
-	user.UpdatedAt = utilities.GetCurrentTimePtr()
 	user.Status = "Active"
-
-	//Small user preferences
 	user.Role = "user"
-	user.LastLogin = nil
 
 	if result := m.db.Create(&user); result.Error != nil {
 		logger.WithError(result.Error).Error("Error creating default user")
@@ -426,14 +372,10 @@ func (m disputeModelReal) AssignExpertsToDispute(disputeID int64) ([]models.User
 
 	// Insert the selected experts into the dispute_experts table
 	for _, expert := range selectedUsers {
-		if err := m.db.Create(&models.DisputeExpert{
-			Dispute:         disputeID,
-			User:            expert.ID,
-			ComplainantVote: "Approved",
-			RespondantVote:  "Approved",
-			ExpertVote:      "Approved",
-			Status:          "Approved",
-		}).Error; err != nil {
+
+		// A raw query is used here because GORM tries to insert the Status field of the struct,
+		// despite the field being marked as read-only. Why did we use an ORM?
+		if err := m.db.Exec("INSERT INTO dispute_experts_view VALUES (?, ?)", disputeID, expert.ID).Error; err != nil {
 			return nil, err
 		}
 	}

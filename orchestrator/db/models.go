@@ -5,22 +5,22 @@ import (
 	"time"
 )
 
-// Workflow model
-type Workflow struct {
+// Workflowdb model
+type Workflowdb struct {
 	ID         uint64          `gorm:"primaryKey;autoIncrement"`
 	Name       string          `gorm:"type:varchar(100);not null"`
 	Definition json.RawMessage `gorm:"column:definition;type:jsonb"`
 	CreatedAt  time.Time       `gorm:"autoCreateTime"`
-	AuthorID   int64          `gorm:"column:author"`
+	AuthorID   int64           `gorm:"column:author"`
 	Author     *User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
 }
 
 // LabelledWorkflows model
 type LabelledWorkflow struct {
-	WorkflowID uint64   `gorm:"primaryKey;column:workflow_id"`
-	TagID      uint64   `gorm:"primaryKey;column:tag_id"`
-	Workflow   Workflow `gorm:"foreignKey:WorkflowID"`
-	Tag        Tag      `gorm:"foreignKey:TagID"`
+	WorkflowID uint64     `gorm:"primaryKey;column:workflow_id"`
+	TagID      uint64     `gorm:"primaryKey;column:tag_id"`
+	Workflow   Workflowdb `gorm:"foreignKey:WorkflowID"`
+	Tag        Tag        `gorm:"foreignKey:TagID"`
 }
 
 type User struct {
@@ -54,7 +54,7 @@ func (Tag) TableName() string {
 	return "tags"
 }
 
-func (Workflow) TableName() string {
+func (Workflowdb) TableName() string {
 	return "workflows"
 }
 

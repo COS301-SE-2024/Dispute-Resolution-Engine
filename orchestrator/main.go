@@ -36,8 +36,8 @@ func main() {
 
 	fmt.Println(wf.GetWorkflowString())
 
-	manualTestStoreWorkflow(wf)
-	manualTestFetchWorkflow(1)
+	// manualTestStoreWorkflow(wf)
+	// manualTestFetchWorkflow(1)
 
 	manualTestUpdateWorkflow(1, wf2)
 
@@ -78,7 +78,7 @@ func manualTestStoreWorkflow(wf workflow.Workflow) {
 	api := workflow.CreateAPIWorkflow()
 	fmt.Println("storing workflow")
 	// Store the workflow to the API
-	err := api.Store(wf, []int64{}, nil)
+	err := api.Store("test",wf, []int64{}, 1)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -95,7 +95,14 @@ func manualTestFetchWorkflow(id int) {
 		fmt.Println("Error:", err)
 		return
 	}
-	fmt.Println(wf.GetWorkflowString())
+
+	var unmarshalledWorkflow workflow.Workflow
+	err = json.Unmarshal(wf.Definition, &unmarshalledWorkflow)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(unmarshalledWorkflow.GetWorkflowString())
 	fmt.Println("Workflow fetched successfully")
 }
 
@@ -104,7 +111,8 @@ func manualTestUpdateWorkflow(id int, wf workflow.Workflow) {
 	api := workflow.CreateAPIWorkflow()
 	fmt.Println("updating workflow")
 	// Update the workflow in the API
-	err := api.Update(id, &wf, nil, nil)
+	bob:= "bob"
+	err := api.Update(id, &bob, &wf, nil, nil)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

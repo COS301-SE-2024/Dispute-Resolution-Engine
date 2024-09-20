@@ -29,7 +29,7 @@ type UpdateWorkflowRequest struct {
 }
 
 type API interface {
-	Fetch(id int) (*Workflow, error)
+	Fetch(id int) (*db.Workflowdb, error)
 	Store(workflow Workflow, categories []int64, Author int64) error
 	Update(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error
 }
@@ -48,8 +48,8 @@ func CreateAPIWorkflow() *APIWorkflow {
 	}
 }
 
-func (api *APIWorkflow) Fetch(id int) (*Workflow, error) {
-	var workflow Workflow
+func (api *APIWorkflow) Fetch(id int) (*db.Workflowdb, error) {
+	var workflow db.Workflowdb
 	result := api.DB.First(&workflow, id)
 	if result.Error != nil {
 		return nil, result.Error
@@ -66,12 +66,12 @@ func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64
 
 	//check if use exist in users table
 
-		var user db.User
-		result := api.DB.First(&user, Author)
-		if result.Error != nil {
-			return result.Error
-		}
-	
+	var user db.User
+	result := api.DB.First(&user, Author)
+	if result.Error != nil {
+		return result.Error
+	}
+
 	//check if category exist in tags table
 	for _, category := range categories {
 		var tag db.Tag
@@ -82,10 +82,10 @@ func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64
 	}
 
 	//add entry in the db
-	workflowDbEntry := &db.Workflow{
-		Name:               name,
+	workflowDbEntry := &db.Workflowdb{
+		Name:       name,
 		Definition: marshal,
-		AuthorID:           Author,
+		AuthorID:   Author,
 	}
 
 	result = api.DB.Create(&workflowDbEntry)
@@ -110,7 +110,7 @@ func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64
 
 func (api *APIWorkflow) Update(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error {
 	//get existign workflow
-	var existingWorkflow db.Workflow
+	var existingWorkflow db.Workflowdb
 	result := api.DB.First(&existingWorkflow, id)
 	if result.Error != nil {
 		return result.Error

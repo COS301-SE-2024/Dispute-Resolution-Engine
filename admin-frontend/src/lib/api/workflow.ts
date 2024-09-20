@@ -1,5 +1,9 @@
 "use server";
 
+import { ReactFlowJsonObject } from "@xyflow/react";
+
+import { Workflow, GraphState, GraphTrigger } from "@/lib/types";
+
 import {
   type WorkflowDetailsResponse,
   type WorkflowUpdateRequest,
@@ -7,6 +11,7 @@ import {
   type WorkflowCreateResponse,
   type WorkflowListRequest,
   type WorkflowListResponse,
+  WorkflowDefinition,
 } from "../types/workflow";
 
 import { getAuthToken } from "../jwt";
@@ -64,4 +69,33 @@ export async function deleteWorkflow(id: string): Promise<void> {
       Authorization: `Bearer ${getAuthToken()}`,
     },
   });
+}
+
+export function graphToWorkflow({
+  nodes,
+  edges,
+}: ReactFlowJsonObject<GraphState, GraphTrigger>): WorkflowDefinition {
+  return {
+    initial: "Im not sure",
+    states: Object.fromEntries(
+      nodes.map((node) => [
+        node.id,
+        {
+          label: node.data.label,
+          description: "sure bud",
+          events: Object.fromEntries(
+            edges
+              .filter((edge) => edge.source == node.id)
+              .map((edge) => [
+                edge.id,
+                {
+                  label: "oi blud, do somfin",
+                  next_state: edge.target,
+                },
+              ])
+          ),
+        },
+      ])
+    ),
+  };
 }

@@ -104,7 +104,7 @@ export default function CustomEdge({
               <Button
                 variant="ghost"
                 className="nodrag nopan rounded-full p-2"
-                onClick={() => setEditing(true)}
+                onClick={deleteEdge}
               >
                 <CircleX />
               </Button>

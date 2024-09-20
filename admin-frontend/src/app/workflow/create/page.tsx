@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   useNodesState,
@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import CustomNode from "./CustomNode";
 
 import { type Workflow, type GraphState, type GraphTrigger, GraphInstance } from "@/lib/types";
+import { graphToWorkflow } from "@/lib/api/workflow";
+import { Textarea } from "@/components/ui/textarea";
 
 const initialNodes: GraphState[] = [
   {
@@ -133,40 +135,27 @@ function Flow() {
 
 function InnerProvider() {
   const reactFlow: GraphInstance = useReactFlow();
+  const [result, setResult] = useState("");
 
-  function convertWorkflow() {
-    const { nodes, edges } = reactFlow.toObject();
-    const workflow: Workflow = {
-      label: "bruh",
-      initial: "Im not sure",
-      states: Object.fromEntries(
-        nodes.map((node) => [
-          node.id,
-          {
-            label: node.data.label,
-            description: "sure bud",
-            events: Object.fromEntries(
-              edges
-                .filter((edge) => edge.source == node.id)
-                .map((edge) => [
-                  edge.id,
-                  {
-                    label: "oi blud, do somfin",
-                    next_state: edge.target,
-                  },
-                ]),
-            ),
-          },
-        ]),
-      ),
-    };
+  function toWorkflow() {
+    const workflow = graphToWorkflow(reactFlow.toObject());
+    setResult(JSON.stringify(workflow, null, 2));
+  }
+  function fromWorkflow() {
+    const workflow = graphToWorkflow(reactFlow.toObject());
     console.log(workflow);
   }
 
   return (
-    <div className="h-full grid grid-rows-[1fr_auto]">
+    <div className="h-full grid grid-cols-[auto_1fr]">
+      <div className="p-2 space-y-2 flex flex-col">
+        <Textarea className="grow" value={result} onChange={(e) => setResult(e.target.value)} />
+        <div className="flex gap-2 items-center">
+          <Button onClick={toWorkflow}>Convert to workflow</Button>
+          <Button onClick={fromWorkflow}>From workflow</Button>
+        </div>
+      </div>
       <Flow></Flow>
-      <Button onClick={convertWorkflow}>Convert to workflow</Button>
     </div>
   );
 }

@@ -30,8 +30,8 @@ type UpdateWorkflowRequest struct {
 
 type API interface {
 	Fetch(id int) (*Workflow, error)
-	Store(workflow Workflow, categories []int64, Author *int64) error
-	Update(id int, workflow *Workflow, categories *[]int64, author *int64) error
+	Store(workflow Workflow, categories []int64, Author int64) error
+	Update(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error
 }
 
 type APIWorkflow struct {
@@ -57,7 +57,7 @@ func (api *APIWorkflow) Fetch(id int) (*Workflow, error) {
 	return &workflow, nil
 }
 
-func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64, Author *int64) error {
+func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64, Author int64) error {
 	marshal, err := json.Marshal(workflow)
 	if err != nil {
 		fmt.Println("Error marshalling workflow: ")
@@ -65,13 +65,12 @@ func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64
 	}
 
 	//check if use exist in users table
-	if Author != nil {
+
 		var user db.User
 		result := api.DB.First(&user, Author)
 		if result.Error != nil {
 			return result.Error
 		}
-	}
 	
 	//check if category exist in tags table
 	for _, category := range categories {
@@ -88,7 +87,7 @@ func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64
 		AuthorID:           Author,
 	}
 
-	result := api.DB.Create(&workflowDbEntry)
+	result = api.DB.Create(&workflowDbEntry)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -132,7 +131,7 @@ func (api *APIWorkflow) Update(id int, name *string, workflow *Workflow, categor
 
 	// Update the AuthorID if provided
 	if author != nil {
-		existingWorkflow.AuthorID = author
+		existingWorkflow.AuthorID = *author
 	}
 	// Save the updated workflow
 	result = api.DB.Save(&existingWorkflow)

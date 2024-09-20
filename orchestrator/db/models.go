@@ -7,14 +7,13 @@ import (
 
 // Workflow model
 type Workflow struct {
-    ID                 uint64          `gorm:"primaryKey;autoIncrement"`
-	Name               string          `gorm:"type:varchar(100);not null"`
-    Definition         json.RawMessage `gorm:"column:definition;type:jsonb"`
-    CreatedAt          time.Time       `gorm:"autoCreateTime"`
-    AuthorID           *int64          `gorm:"column:author"`
-    Author             *User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
+	ID         uint64          `gorm:"primaryKey;autoIncrement"`
+	Name       string          `gorm:"type:varchar(100);not null"`
+	Definition json.RawMessage `gorm:"column:definition;type:jsonb"`
+	CreatedAt  time.Time       `gorm:"autoCreateTime"`
+	AuthorID   int64          `gorm:"column:author"`
+	Author     *User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
 }
-
 
 // LabelledWorkflows model
 type LabelledWorkflow struct {
@@ -36,7 +35,7 @@ type User struct {
 	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20)"`
 	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`
 	CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
-	LastUpdate         *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
+	LastUpdate        *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
 	LastLogin         *time.Time `gorm:"type:timestamp"`
 	Status            string     `json:"status" gorm:"type:varchar(20);default:'active'"`
 	Gender            string     `json:"gender" gorm:"type:gender_enum"`
@@ -50,6 +49,7 @@ type Tag struct {
 	ID      uint64 `gorm:"primaryKey;autoIncrement"`
 	TagName string `gorm:"type:varchar(100);not null"`
 }
+
 func (Tag) TableName() string {
 	return "tags"
 }

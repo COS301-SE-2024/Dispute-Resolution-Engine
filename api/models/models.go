@@ -47,28 +47,29 @@ type ArchivedDispute struct {
 	Events []Event `json:"events"`
 }
 
-type dispute_decision string
+type DisputeStatus string
 
 const (
-	Resolved   dispute_decision = "Resolved"
-	Unresolved dispute_decision = "Unresolved"
-	Settled    dispute_decision = "Settled"
-	Refused    dispute_decision = "Refused"
-	Withdrawn  dispute_decision = "Withdrawn"
-	Transfer   dispute_decision = "Transfer"
-	Appeal     dispute_decision = "Appeal"
-	Other      dispute_decision = "Other"
+	StatusAwaitingRespondant DisputeStatus = "Awaiting Respondant"
+	StatusActive             DisputeStatus = "Active"
+	StatusReview             DisputeStatus = "Review"
+	StatusSettled            DisputeStatus = "Settled"
+	StatusRefused            DisputeStatus = "Refused"
+	StatusWithdrawn          DisputeStatus = "Withdrawn"
+	StatusTransfer           DisputeStatus = "Transfer"
+	StatusAppeal             DisputeStatus = "Appeal"
+	StatusOther              DisputeStatus = "Other"
 )
 
 type Dispute struct {
-	ID          *int64           `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
-	CaseDate    time.Time        `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
-	Workflow    *int64           `json:"workflow" gorm:"column:workflow"`
-	Status      string           `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
-	Title       string           `json:"title" gorm:"type:varchar(255);not null;column:title"`
-	Description string           `json:"description" gorm:"type:text;column:description"`
-	Complainant int64            `json:"complainant" gorm:"column:complainant"`
-	Respondant  *int64           `json:"respondant" gorm:"column:respondant"`
+	ID          *int64        `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	CaseDate    time.Time     `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
+	Workflow    *int64        `json:"workflow" gorm:"column:workflow"`
+	Status      DisputeStatus `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
+	Title       string        `json:"title" gorm:"type:varchar(255);not null;column:title"`
+	Description string        `json:"description" gorm:"type:text;column:description"`
+	Complainant int64         `json:"complainant" gorm:"column:complainant"`
+	Respondant  *int64        `json:"respondant" gorm:"column:respondant"`
 }
 
 type DisputeSummaries struct {
@@ -136,43 +137,21 @@ func (Country) TableName() string {
 	return "countries"
 }
 
-type Response struct {
-	Data  interface{} `json:"data,omitempty"`
-	Error string      `json:"error,omitempty"`
-}
-
-type ExpertVote string
-
-const (
-	Pending  ExpertVote = "Pending"
-	Approved ExpertVote = "Approved"
-	Rejected ExpertVote = "Rejected"
-)
-
 type ExpertStatus string
 
 const (
-	ApprovedStatus ExpertStatus = "Approved"
-	RejectedStatus ExpertStatus = "Rejected"
-	ReviewStatus   ExpertStatus = "Review"
+	ExpertApproved ExpertStatus = "Approved"
+	ExpertReview   ExpertStatus = "Review"
+	ExpertRejected ExpertStatus = "Rejected"
 )
 
 type DisputeExpert struct {
-	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
-	User    int64 `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	Dispute int64        `gorm:"primaryKey;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	Expert  int64        `gorm:"primaryKey;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	Status  ExpertStatus `gorm:"<-:false;type:expert_status`
 }
 
 func (DisputeExpert) TableName() string {
-	return "dispute_experts"
-}
-
-type DisputeExpertView struct {
-	Dispute int64        `gorm:"->`
-	Expert  int64        `gorm:"->`
-	Status  ExpertStatus `gorm:"->;type:expert_status`
-}
-
-func (DisputeExpertView) TableName() string {
 	return "dispute_experts_view"
 }
 
@@ -200,9 +179,9 @@ func (DisputeEvidence) TableName() string {
 type ExpObjStatus string
 
 const (
-	Review    ExpObjStatus = "Review"
-	Sustained ExpObjStatus = "Sustained"
-	Overruled ExpObjStatus = "Overruled"
+	ObjectionReview    ExpObjStatus = "Review"
+	ObjectionSustained ExpObjStatus = "Sustained"
+	ObjectionOverruled ExpObjStatus = "Overruled"
 )
 
 type ExpertObjection struct {

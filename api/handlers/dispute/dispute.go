@@ -330,7 +330,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	var respondantID *int64
 	respondent, err := h.Model.GetUserByEmail(email)
 	defaultAccount := false
-	//so if the error is record not found
+	//so if the error is "record not found"
 	if err != nil {
 		//if the user is not found in the database then we create the default user
 		if err.Error() == "record not found" {
@@ -408,12 +408,13 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	}
 
 	//asssign experts to dispute
-	_, err = h.Model.AssignExpertsToDispute(disputeId)
+	selected, err := h.Model.AssignExpertsToDispute(disputeId)
 	if err != nil {
 		logger.WithError(err).Error("Error assigning experts to dispute")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
 		return
 	}
+	logger.Info("Assigned experts", selected)
 
 	// Respond with success message
 	if !defaultAccount {
@@ -444,17 +445,13 @@ func (h Dispute) UpdateStatus(c *gin.Context) {
 
 	logger.Info("Dispute status updated successfully")
 
+	jwtClaims, err := h.JWT.GetClaims(c)
 	if err != nil {
-		logger.WithError(err).Error("Error initializing dispute proceedings logger")
-	} else {
-		jwtClaims, err := h.JWT.GetClaims(c)
-		if err != nil {
-			logger.Error("Unauthorized access attempt")
-			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
-			return
-		}
-		h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": jwtClaims, "message": "Dispute status update successful"})
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
 	}
+	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": jwtClaims, "message": "Dispute status update successful"})
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute status update successful"})
 }
 

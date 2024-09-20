@@ -162,7 +162,13 @@ func (m *disputeModelReal) GetEvidenceByDispute(disputeId int64) (evidence []mod
 }
 func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.Expert, err error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	err = m.db.Table("dispute_experts").Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").Joins("JOIN users ON dispute_experts.user = users.id").Where("dispute = ?", disputeId).Where("dispute_experts.status = 'Approved'").Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").Find(&experts).Error
+	err = m.db.Table("dispute_experts_view").
+		Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").
+		Joins("JOIN users ON dispute_experts_view.expert = users.id").
+		Where("dispute = ?", disputeId).
+		Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").
+		Find(&experts).Error
+
 	if err != nil && err.Error() != "record not found" {
 		logger.WithError(err).Error("Error retrieving dispute experts")
 		return
@@ -276,16 +282,16 @@ func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var expertObjections models.ExpertObjection
-	if err := m.db.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeId, expertId, models.ReviewStatus).First(&expertObjections).Error; err != nil {
+	if err := m.db.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeId, expertId, models.ExpertReview).First(&expertObjections).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving expert objections")
 		return err
 	}
 
 	// Update status
 	if approved {
-		expertObjections.Status = models.Sustained
+		expertObjections.Status = models.ObjectionSustained
 	} else {
-		expertObjections.Status = models.Overruled
+		expertObjections.Status = models.ObjectionOverruled
 	}
 
 	if err := m.db.Save(&expertObjections).Error; err != nil {
@@ -368,10 +374,10 @@ func (m disputeModelReal) AssignExpertsToDispute(disputeID int64) ([]models.User
 
 	// Insert the selected experts into the dispute_experts table
 	for _, expert := range selectedUsers {
-		if err := m.db.Create(&models.DisputeExpert{
-			Dispute: disputeID,
-			User:    expert.ID,
-		}).Error; err != nil {
+
+		// A raw query is used here because GORM tries to insert the Status field of the struct,
+		// despite the field being marked as read-only. Why did we use an ORM?
+		if err := m.db.Exec("INSERT INTO dispute_experts_view VALUES (?, ?)", disputeID, expert.ID).Error; err != nil {
 			return nil, err
 		}
 	}

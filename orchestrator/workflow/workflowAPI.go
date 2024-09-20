@@ -83,6 +83,7 @@ func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64
 
 	//add entry in the db
 	workflowDbEntry := &db.Workflow{
+		Name:               name,
 		Definition: marshal,
 		AuthorID:           Author,
 	}

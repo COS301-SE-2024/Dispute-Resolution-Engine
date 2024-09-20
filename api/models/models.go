@@ -17,7 +17,7 @@ type User struct {
 	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20)"`
 	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`
 	CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
-	UpdatedAt         *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
+	LastUpdate        *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
 	LastLogin         *time.Time `gorm:"type:timestamp"`
 	Status            string     `json:"status" gorm:"type:varchar(20);default:'active'"`
 	Gender            string     `json:"gender" gorm:"type:gender_enum"`
@@ -78,7 +78,7 @@ type Workflow struct {
 	WorkflowDefinition json.RawMessage `gorm:"type:json"`
 	CreatedAt          time.Time       `gorm:"autoCreateTime"`
 	AuthorID           *int64          `gorm:"column:author" `
-	Author             *User            `gorm:"foreignKey:AuthorID", json:"author,omitempty"`
+	Author             *User           `gorm:"foreignKey:AuthorID", json:"author,omitempty"`
 }
 
 func (Workflow) TableName() string {
@@ -130,7 +130,7 @@ const (
 	Disputes     EventTypes = "DISPUTE"
 	Users        EventTypes = "USER"
 	Experts      EventTypes = "EXPERT"
-	Workflows     EventTypes = "WORKFLOW"
+	Workflows    EventTypes = "WORKFLOW"
 )
 
 // EventLog represents the event_log table

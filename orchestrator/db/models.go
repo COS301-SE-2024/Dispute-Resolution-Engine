@@ -36,7 +36,7 @@ type User struct {
 	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20)"`
 	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`
 	CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
-	UpdatedAt         *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
+	LastUpdate         *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
 	LastLogin         *time.Time `gorm:"type:timestamp"`
 	Status            string     `json:"status" gorm:"type:varchar(20);default:'active'"`
 	Gender            string     `json:"gender" gorm:"type:gender_enum"`

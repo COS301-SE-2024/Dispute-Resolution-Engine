@@ -41,7 +41,7 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 - [Quality Requirements](./docs/QualityRequirements.md)
 - [Architecture Requirements](./docs/Architecture.md)
 - [Technological Requirements](./docs/TechnologyRequirements.md)
-- [Coding Standards](./docs/CodingStandards.md)
+- [Coding Standards](./readme-assets/Coding_Standards.pdf)
 
 # Meet the Team
 

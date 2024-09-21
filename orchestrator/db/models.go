@@ -11,8 +11,9 @@ type Workflowdb struct {
 	Name       string          `gorm:"type:varchar(100);not null"`
 	Definition json.RawMessage `gorm:"column:definition;type:jsonb"`
 	CreatedAt  time.Time       `gorm:"autoCreateTime"`
-	AuthorID   int64           `gorm:"column:author"`
-	Author     *User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
+
+	AuthorID int64 `gorm:"column:author"`
+	Author   *User `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
 }
 
 // LabelledWorkflows model
@@ -21,6 +22,13 @@ type LabelledWorkflow struct {
 	TagID      uint64     `gorm:"primaryKey;column:tag_id"`
 	Workflow   Workflowdb `gorm:"foreignKey:WorkflowID"`
 	Tag        Tag        `gorm:"foreignKey:TagID"`
+}
+
+type ActiveWorkflows struct {
+	ID            int64     `gorm:"primaryKey;autoIncrement"`
+	WorkflowID    int64     `gorm:"column:workflow;not null"`               // Foreign Key to Workflow
+	CurrentState  string    `gorm:"column:current_state;type:varchar(255)"` // Current State
+	StateDeadline time.Time `gorm:"column:state_deadline;type:timestamp"`   // Deadline for the current state
 }
 
 type User struct {
@@ -64,4 +72,8 @@ func (LabelledWorkflow) TableName() string {
 
 func (User) TableName() string {
 	return "users"
+}
+
+func (ActiveWorkflows) TableName() string {
+	return "active_workflows"
 }

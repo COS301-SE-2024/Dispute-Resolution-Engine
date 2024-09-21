@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,7 +37,7 @@ func (h Archive) Highlights(c *gin.Context) {
 
 	// Query the database
 	var disputes []models.Dispute
-	if err := h.DB.Model(&models.Dispute{}).Where("resolved = ?", true).Limit(limit).Scan(&disputes).Error; err != nil {
+	if err := h.DB.Model(&models.Dispute{}).Where("date_resolved IS NOT NULL").Limit(limit).Scan(&disputes).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving disputes"})
 		return
@@ -59,7 +58,7 @@ func (h Archive) Highlights(c *gin.Context) {
 			Summary:      disputeSummary.Summary,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
 			DateFiled:    dispute.CaseDate.Format("2006-08-01"),
-			DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
+			DateResolved: dispute.DateResolved.Format("2006-08-01"), // Placeholder for resolved date
 			Resolution:   string(dispute.Status),
 		}
 	}
@@ -126,7 +125,7 @@ func (h Archive) SearchArchive(c *gin.Context) {
 		query = query.Where("title ILIKE ? OR description ILIKE ?", "%"+searchTerm+"%", "%"+searchTerm+"%")
 	}
 
-	query = query.Where("resolved = ?", true)
+	query = query.Where("date_resolved IS NOT NULL", true)
 
 	var count int64
 	query = query.Count(&count)
@@ -168,7 +167,7 @@ func (h Archive) SearchArchive(c *gin.Context) {
 			Summary:      disputeSummary.Summary,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
 			DateFiled:    dispute.CaseDate.Format("2006-08-01"),
-			DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
+			DateResolved: dispute.DateResolved.Format("2006-08-01"), // Placeholder for resolved date
 			Resolution:   string(dispute.Status),
 		})
 	}
@@ -256,7 +255,7 @@ func (h Archive) getArchive(c *gin.Context) {
 				Summary:      disputeSummary.Summary,
 				Category:     []string{"Dispute"}, // Assuming a default category for now
 				DateFiled:    dispute.CaseDate.Format("2006-08-01"),
-				DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
+				DateResolved: dispute.DateResolved.Format("2006-08-01"), // Placeholder for resolved date
 				Resolution:   string(dispute.Status),
 			},
 			Events: []models.Event{},

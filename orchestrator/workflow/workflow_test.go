@@ -57,7 +57,7 @@ func manualTestStoreWorkflow(wf workflow.Workflow) {
 	api := workflow.CreateAPIWorkflow()
 	fmt.Println("storing workflow")
 	// Store the workflow to the API
-	err := api.Store("test",wf, []int64{}, 1)
+	err := api.StoreWorkflow("test", wf, []int64{}, 1)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -69,7 +69,7 @@ func manualTestFetchWorkflow(id int) {
 	api := workflow.CreateAPIWorkflow()
 	fmt.Println("fetching workflow")
 	// Fetch the workflow from the API
-	wf, err := api.Fetch(id)
+	wf, err := api.FetchWorkflow(id)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -85,13 +85,12 @@ func manualTestFetchWorkflow(id int) {
 	fmt.Println("Workflow fetched successfully")
 }
 
-
 func manualTestUpdateWorkflow(id int, wf workflow.Workflow) {
 	api := workflow.CreateAPIWorkflow()
 	fmt.Println("updating workflow")
 	// Update the workflow in the API
-	bob:= "bob"
-	err := api.Update(id, &bob, &wf, nil, nil)
+	bob := "bob"
+	err := api.UpdateWorkflow(id, &bob, &wf, nil, nil)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

@@ -9,20 +9,6 @@ import (
 )
 
 // ----------------------------API--------------------------------
-
-type StoreWorkflowRequest struct {
-	WorkflowDefinition Workflow `json:"workflow_definition,omitempty"`
-	Category           []int64  `json:"category,omitempty"`
-	Author             *int64   `json:"author,omitempty"`
-}
-
-type UpdateWorkflowRequest struct {
-	WorkflowDefinition *Workflow `json:"workflow_definition,omitempty"`
-	Category           *[]int64  `json:"category,omitempty"`
-	Author             *int64    `json:"author,omitempty"`
-	
-}
-
 type API interface {
 	Fetch(id int) (*db.Workflowdb, error)
 	Store(workflow Workflow, categories []int64, Author int64) error
@@ -43,7 +29,7 @@ func CreateAPIWorkflow() *APIWorkflow {
 	}
 }
 
-func (api *APIWorkflow) Fetch(id int) (*db.Workflowdb, error) {
+func (api *APIWorkflow) FetchWorkflow(id int) (*db.Workflowdb, error) {
 	var workflow db.Workflowdb
 	result := api.DB.First(&workflow, id)
 	if result.Error != nil {
@@ -52,7 +38,7 @@ func (api *APIWorkflow) Fetch(id int) (*db.Workflowdb, error) {
 	return &workflow, nil
 }
 
-func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64, Author int64) error {
+func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories []int64, Author int64) error {
 	marshal, err := json.Marshal(workflow)
 	if err != nil {
 		fmt.Println("Error marshalling workflow: ")
@@ -103,7 +89,7 @@ func (api *APIWorkflow) Store(name string, workflow Workflow, categories []int64
 	return nil
 }
 
-func (api *APIWorkflow) Update(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error {
+func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error {
 	//get existign workflow
 	var existingWorkflow db.Workflowdb
 	result := api.DB.First(&existingWorkflow, id)
@@ -157,4 +143,22 @@ func (api *APIWorkflow) Update(id int, name *string, workflow *Workflow, categor
 	}
 
 	return nil
+}
+
+func (api *APIWorkflow) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) {
+	var activeWorkflows []db.ActiveWorkflows
+	result := api.DB.Find(&activeWorkflows)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return activeWorkflows, nil
+} 
+
+func (api *APIWorkflow) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error) {
+	var activeWorkflow db.ActiveWorkflows
+	result := api.DB.First(&activeWorkflow, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &activeWorkflow, nil
 }

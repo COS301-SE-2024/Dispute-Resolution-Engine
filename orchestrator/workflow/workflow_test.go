@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"orchestrator/workflow"
+	"time"
 	// "testing"
 	// "github.com/stretchr/testify/assert"
 )
@@ -107,7 +108,7 @@ func maunalTestFetchActiveWorkflows() {
 		fmt.Println("Error:", err)
 		return
 	}
-	fmt.Println(activeWorkflows)
+
 	if len(activeWorkflows) != 0 {
 		for _, activeWorkflow := range activeWorkflows {
 			var unmarshalledWorkflow workflow.Workflow
@@ -144,4 +145,20 @@ func manualTestFetchActiveWorkflow(id int) {
 
 	fmt.Println("Active workflow fetched successfully")
 	fmt.Println(activeWorkflow)
+}
+
+func manualTestUpdateActiveWorkflow(){
+	api := workflow.CreateAPIWorkflow()
+	fmt.Println("updating active workflow")
+	// Update the active workflow in the API
+	id := 1
+	currentState := "new state"
+	dateSubmitted := time.Now()
+	stateDeadline := time.Now().Add(24 * time.Hour)
+
+	err := api.UpdateActiveWorkflow(id, nil, &currentState, &dateSubmitted, &stateDeadline)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 }

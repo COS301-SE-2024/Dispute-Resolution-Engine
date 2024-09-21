@@ -153,10 +153,9 @@ func (api *APIWorkflow) FetchActiveWorkflows() ([]ActiveWorkflowsResponse, error
 	// Use a join to fetch active workflows and their related workflow definitions
 	result := api.DB.
 		Table("active_workflows").
-		Select("active_workflows.id, active_workflows.workflow as workflow_id, workflows.name as workflow_definition, active_workflows.current_state, active_workflows.state_deadline").
+		Select("active_workflows.id, active_workflows.workflow as workflow_id, workflows.definition as workflow_definition, active_workflows.current_state, active_workflows.state_deadline").
 		Joins("join workflows on workflows.id = active_workflows.workflow").
 		Scan(&activeWorkflows)
-
 	// Check for errors in the result
 	if result.Error != nil {
 		return nil, result.Error
@@ -164,6 +163,7 @@ func (api *APIWorkflow) FetchActiveWorkflows() ([]ActiveWorkflowsResponse, error
 
 	return activeWorkflows, nil
 }
+
 
 
 func (api *APIWorkflow) FetchActiveWorkflow(id int) (*ActiveWorkflowsResponse, error) {

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
+
 	// "orchestrator/db"
 	// "orchestrator/env"
 	// "orchestrator/utilities"
@@ -15,7 +17,6 @@ import (
 	// "orchestrator/wf"
 	"orchestrator/workflow"
 )
-
 
 func main() {
 	// ======== Json Tests =========
@@ -60,4 +61,20 @@ func readWorkflowFromFile(fileName string) (workflow.Workflow, bool) {
 		return workflow.Workflow{}, true
 	}
 	return wf, false
+}
+
+func manualTestUpdateActiveWorkflow(){
+	api := workflow.CreateAPIWorkflow()
+	fmt.Println("updating active workflow")
+	// Update the active workflow in the API
+	id := 1
+	currentState := "new state"
+	dateSubmitted := time.Now()
+	stateDeadline := time.Now().Add(24 * time.Hour)
+
+	err := api.UpdateActiveWorkflow(id, nil, &currentState, &dateSubmitted, &stateDeadline)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
 }

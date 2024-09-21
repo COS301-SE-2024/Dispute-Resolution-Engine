@@ -19,9 +19,10 @@ type UpdateWorkflowRequest struct {
 //----response models----
 
 type ActiveWorkflowsResponse struct {
-	ID                 int64    `json:"id,omitempty"`
-	WorkflowID         int64    `json:"workflow_id,omitempty"`
-	WorkflowDefinition json.RawMessage `json:"workflow_definition,omitempty"`
-	CurrentState       string   `json:"current_state,omitempty"`
-	StateDeadline      string   `json:"state_deadline,omitempty"`
+    ID                 int64           `json:"id,omitempty"`
+    WorkflowID         int64           `json:"workflow_id,omitempty"`
+    WorkflowDefinition json.RawMessage `json:"workflow_definition,omitempty"`  
+    CurrentState       string          `json:"current_state,omitempty"`
+    StateDeadline      string          `json:"state_deadline,omitempty"`
 }
+

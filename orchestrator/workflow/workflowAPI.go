@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"orchestrator/db"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -180,4 +181,36 @@ func (api *APIWorkflow) FetchActiveWorkflow(id int) (*ActiveWorkflowsResponse, e
 	}
 
 	return &activeWorkflow, nil
+}
+
+func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentState *string, stateDeadline *time.Time) error {
+	// Fetch the active workflow
+	var activeWorkflow db.ActiveWorkflows
+	result := api.DB.First(&activeWorkflow, id)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	// Update the workflowID if provided
+	if workflowID != nil {
+		activeWorkflow.WorkflowID = int64(*workflowID)
+	}
+
+	// Update the currentState if provided
+	if currentState != nil {
+		activeWorkflow.CurrentState = *currentState
+	}
+
+	// Update the stateDeadline if provided
+	if stateDeadline != nil {
+		activeWorkflow.StateDeadline = *stateDeadline
+	}
+
+	// Save the updated active workflow
+	result = api.DB.Save(&activeWorkflow)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }

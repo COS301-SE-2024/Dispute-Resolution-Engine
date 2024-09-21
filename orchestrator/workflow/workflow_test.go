@@ -97,3 +97,51 @@ func manualTestUpdateWorkflow(id int, wf workflow.Workflow) {
 	}
 	fmt.Println("Workflow updated successfully")
 }
+
+func maunalTestFetchActiveWorkflows() {
+	api := workflow.CreateAPIWorkflow()
+	fmt.Println("fetching active workflows")
+	// Fetch the active workflows from the API
+	activeWorkflows, err := api.FetchActiveWorkflows()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(activeWorkflows)
+	if len(activeWorkflows) != 0 {
+		for _, activeWorkflow := range activeWorkflows {
+			var unmarshalledWorkflow workflow.Workflow
+			err = json.Unmarshal(activeWorkflow.WorkflowDefinition, &unmarshalledWorkflow)
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+
+			fmt.Println(unmarshalledWorkflow.GetWorkflowString())
+		}
+	}
+
+	fmt.Println("Active workflows fetched successfully")
+	fmt.Println(activeWorkflows)
+}
+
+func manualTestFetchActiveWorkflow(id int) {
+	api := workflow.CreateAPIWorkflow()
+	fmt.Println("fetching active workflow")
+	// Fetch the active workflow from the API
+	activeWorkflow, err := api.FetchActiveWorkflow(id)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+	fmt.Println(activeWorkflow)
+	var unmarshalledWorkflow workflow.Workflow
+	err = json.Unmarshal(activeWorkflow.WorkflowDefinition, &unmarshalledWorkflow)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	fmt.Println("Active workflow fetched successfully")
+	fmt.Println(activeWorkflow)
+}

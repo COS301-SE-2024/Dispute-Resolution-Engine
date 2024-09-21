@@ -1,5 +1,7 @@
 package workflow
 
+import "encoding/json"
+
 //----request models----
 
 type StoreWorkflowRequest struct {
@@ -19,7 +21,7 @@ type UpdateWorkflowRequest struct {
 type ActiveWorkflowsResponse struct {
 	ID                 int64    `json:"id,omitempty"`
 	WorkflowID         int64    `json:"workflow_id,omitempty"`
-	WorkflowDefinition Workflow `json:"workflow_definition,omitempty"`
+	WorkflowDefinition json.RawMessage `json:"workflow_definition,omitempty"`
 	CurrentState       string   `json:"current_state,omitempty"`
 	StateDeadline      string   `json:"state_deadline,omitempty"`
 }

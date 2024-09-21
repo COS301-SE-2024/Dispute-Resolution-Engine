@@ -51,14 +51,15 @@ func (h Archive) Highlights(c *gin.Context) {
 		if err != nil {
 			logger.WithError(err).Error("Could not get dispute for id:" + fmt.Sprint(*dispute.ID))
 		}
+
 		summaries[i] = models.ArchivedDisputeSummary{
 			ID:           *dispute.ID,
 			Title:        dispute.Title,
 			Description:  dispute.Description,
 			Summary:      disputeSummary.Summary,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
-			DateFiled:    dispute.CaseDate.Format("2006-08-01"),
-			DateResolved: dispute.DateResolved.Format("2006-08-01"), // Placeholder for resolved date
+			DateFiled:    dispute.CaseDate.Format("2006-01-02"),
+			DateResolved: dispute.DateResolved.Format("2006-01-02"), // Placeholder for resolved date
 			Resolution:   string(dispute.Status),
 		}
 	}
@@ -166,8 +167,8 @@ func (h Archive) SearchArchive(c *gin.Context) {
 			Description:  dispute.Description,
 			Summary:      disputeSummary.Summary,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
-			DateFiled:    dispute.CaseDate.Format("2006-08-01"),
-			DateResolved: dispute.DateResolved.Format("2006-08-01"), // Placeholder for resolved date
+			DateFiled:    dispute.CaseDate.Format("2006-01-02"),
+			DateResolved: dispute.DateResolved.Format("2006-01-02"), // Placeholder for resolved date
 			Resolution:   string(dispute.Status),
 		})
 	}
@@ -254,8 +255,8 @@ func (h Archive) getArchive(c *gin.Context) {
 				Description:  dispute.Description,
 				Summary:      disputeSummary.Summary,
 				Category:     []string{"Dispute"}, // Assuming a default category for now
-				DateFiled:    dispute.CaseDate.Format("2006-08-01"),
-				DateResolved: dispute.DateResolved.Format("2006-08-01"), // Placeholder for resolved date
+				DateFiled:    dispute.CaseDate.Format("2006-01-02"),
+				DateResolved: dispute.DateResolved.Format("2006-01-02"), // Placeholder for resolved date
 				Resolution:   string(dispute.Status),
 			},
 			Events: []models.Event{},

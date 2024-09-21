@@ -37,6 +37,7 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
 # Documentation
 
+- [Installation Manual](./readme-assets/Installation_Manual.pdf) 
 - [Software Requirements](./docs/SoftwareRequirements.md)
 - [Non-functional Requirements](./readme-assets/Non-functional_Requirements.pdf)
 - [Architecture Requirements](./docs/Architecture.md)

@@ -13,11 +13,27 @@ import (
 	// "orchestrator/scheduler"
 	// "orchestrator/statemachine"
 	"orchestrator/controller"
+	"orchestrator/handlers"
 	// "orchestrator/wf"
 	"orchestrator/workflow"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	router := gin.Default()
+
+	handlers := handlers.NewHandler()
+	//add notify of update state machine handler
+	router.POST("/restart", handlers.RestartStateMachine)
+	//add notify of START state machine handler
+	router.POST("/start", handlers.StartStateMachine)
+
+	router.Run(":8090")
+}
+
+
+func testInitalWorkflow(){
 	// ======== Json Tests =========
 	//read template workflow form json file
 	// Read the JSON file
@@ -27,6 +43,8 @@ func main() {
 		return
 	}
 	fmt.Println(wf.GetWorkflowString())
+
+	
 
 	// ======== Statemachine Tests =========
 	// Create a new controller

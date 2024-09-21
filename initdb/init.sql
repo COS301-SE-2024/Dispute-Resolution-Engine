@@ -68,7 +68,8 @@ CREATE TABLE workflows (
 CREATE TABLE active_workflows (
 	id SERIAL PRIMARY KEY NOT NULL,
     workflow BIGINT REFERENCES workflows(id) NOT NULL,
-    current_state VARCHAR(255) NOT NULL,
+    current_state VARCHAR(255),
+    date_submitted TIMESTAMP,
     state_deadline TIMESTAMP
 );
 

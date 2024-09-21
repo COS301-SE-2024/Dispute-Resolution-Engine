@@ -183,7 +183,7 @@ func (api *APIWorkflow) FetchActiveWorkflow(id int) (*ActiveWorkflowsResponse, e
 	return &activeWorkflow, nil
 }
 
-func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentState *string, stateDeadline *time.Time) error {
+func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentState *string,  dateSubmitted *time.Time, stateDeadline *time.Time) error {
 	// Fetch the active workflow
 	var activeWorkflow db.ActiveWorkflows
 	result := api.DB.First(&activeWorkflow, id)
@@ -199,6 +199,11 @@ func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentSta
 	// Update the currentState if provided
 	if currentState != nil {
 		activeWorkflow.CurrentState = *currentState
+	}
+
+	// Update the dateSubmitted if provided
+	if dateSubmitted != nil {
+		activeWorkflow.DateSubmitted = *dateSubmitted
 	}
 
 	// Update the stateDeadline if provided

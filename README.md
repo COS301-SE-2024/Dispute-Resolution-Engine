@@ -38,7 +38,7 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 # Documentation
 
 - [Software Requirements](./docs/SoftwareRequirements.md)
-- [Quality Requirements](./docs/QualityRequirements.md)
+- [Non-functional Requirements](./readme-assets/Non-functional_Requirements.pdf)
 - [Architecture Requirements](./docs/Architecture.md)
 - [Technological Requirements](./docs/TechnologyRequirements.md)
 - [Coding Standards](./readme-assets/Coding_Standards.pdf)

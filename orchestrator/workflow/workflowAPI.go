@@ -145,20 +145,39 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 	return nil
 }
 
-func (api *APIWorkflow) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) {
-	var activeWorkflows []db.ActiveWorkflows
-	result := api.DB.Find(&activeWorkflows)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return activeWorkflows, nil
-} 
+func (api *APIWorkflow) FetchActiveWorkflows() ([]ActiveWorkflowsResponse, error) {
+	// Define a slice to hold the result
+	var activeWorkflows []ActiveWorkflowsResponse
 
-func (api *APIWorkflow) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error) {
-	var activeWorkflow db.ActiveWorkflows
-	result := api.DB.First(&activeWorkflow, id)
+	// Use a join to fetch active workflows and their related workflow definitions
+	result := api.DB.
+		Table("active_workflows").
+		Select("active_workflows.id, active_workflows.workflow as workflow_id, workflows.name as workflow_definition, active_workflows.current_state, active_workflows.state_deadline").
+		Joins("join workflows on workflows.id = active_workflows.workflow").
+		Scan(&activeWorkflows)
+
+	// Check for errors in the result
 	if result.Error != nil {
 		return nil, result.Error
 	}
+
+	return activeWorkflows, nil
+}
+
+
+func (api *APIWorkflow) FetchActiveWorkflow(id int) (*ActiveWorkflowsResponse, error) {
+	var activeWorkflow ActiveWorkflowsResponse
+
+	result := api.DB.
+		Table("active_workflows").
+		Select("active_workflows.id, active_workflows.workflow as workflow_id, workflows.name as workflow_definition, active_workflows.current_state, active_workflows.state_deadline").
+		Joins("join workflows on workflows.id = active_workflows.workflow").
+		Where("active_workflows.id = ?", id).
+		Scan(&activeWorkflow)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
 	return &activeWorkflow, nil
 }

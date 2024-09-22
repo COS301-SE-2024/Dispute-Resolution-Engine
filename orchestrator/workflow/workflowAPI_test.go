@@ -177,13 +177,12 @@ func (tdb *TestDbNegative) SaveActiveWorkflowInstance(activeWorkflow *db.ActiveW
 
 type WorkflowAPITestSuitePositive struct {
 	suite.Suite
-	dbQuery     *TestDbPositive
+	dbQuery *TestDbPositive
 }
 
 func (suite *WorkflowAPITestSuitePositive) SetupTest() {
 	suite.dbQuery = &TestDbPositive{}
 }
-
 
 func (suite *WorkflowAPITestSuitePositive) TestFetchWorkflowQuery_Positive() {
 	// Create the APIWorkflow instance using the mock database
@@ -205,14 +204,35 @@ func (suite *WorkflowAPITestSuitePositive) TestFetchWorkflowQuery_Positive() {
 }
 
 func (suite *WorkflowAPITestSuitePositive) TestStoreWorkflow_Positive() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
 
+	//call function
+	wf := workflow.Workflow{Initial: "dispute_created"}
+	tags := []int64{1}
+	err := testingWorkflowAPI.StoreWorkflow("Test Workflow", wf, tags, 1)
+	// Assert that no error occurred
+	suite.NoError(err)
 }
 
 func (suite *WorkflowAPITestSuitePositive) TestUpdateWorkflow_Positive() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	//call function
+	wf := workflow.Workflow{Initial: "dispute_created"}
+	name := "bogus"
+	err := testingWorkflowAPI.UpdateWorkflow(1, &name, &wf, nil, nil)
+	// Assert that no error occurred
+	suite.NoError(err)
 }
 
 func (suite *WorkflowAPITestSuitePositive) TestFetchActiverWorkflows_Positive() {
-
+	
 }
 
 func (suite *WorkflowAPITestSuitePositive) TestFetchActiveWorkflow_Positive() {

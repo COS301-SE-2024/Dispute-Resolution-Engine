@@ -33,9 +33,9 @@ func NewHandler(ctrlr *controller.Controller) *Handler {
 func (h *Handler) StartStateMachine(c *gin.Context) {
 	h.logger.Info("Starting state machine...")
 	// Get the workflow ID from the request
-	workflowIDStr := c.PostForm("id")
+	active_wf_id_str := c.PostForm("id")
 	// Convert the workflow ID to an integer
-	workflowID, err := strconv.Atoi(workflowIDStr)
+	active_wf_id, err := strconv.Atoi(active_wf_id_str)
 	if err != nil {
 		h.logger.Error("Invalid workflow ID")
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -44,7 +44,7 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 		return
 	}
 	// Fetch the workflow definition from the database
-	wf_record, err := h.api.FetchWorkflow(workflowID)
+	active_wf_record, err := h.api.FetchActiveWorkflow(active_wf_id)
 	if err != nil {
 		h.logger.Error("Error fetching workflow definition")
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -54,7 +54,7 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 	}
 	// Unmarshal the workflow definition
 	var wf workflow.Workflow
-	err = json.Unmarshal([]byte(wf_record.Definition), &wf)
+	err = json.Unmarshal([]byte(active_wf_record.WorkflowInstance), &wf)
 	if err != nil {
 		h.logger.Error("Error unmarshalling workflow definition")
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -64,13 +64,12 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 	}
 
 	// Register the state machine with the controller
-	h.controller.RegisterStateMachine(workflowIDStr, wf)
+	h.controller.RegisterStateMachine(active_wf_id_str, wf)
 
 	// Update the active workflow in the database
 	dateSubmitted := time.Now()
 	stateDeadline := time.Now().Add(wf.States[wf.Initial].Timer.Duration.Duration)
-	//! how do we get ID of the active workflow to be updated?
-	err = h.api.UpdateActiveWorkflow(workflowID, nil, &wf.Initial, &dateSubmitted, &stateDeadline, nil)
+	err = h.api.UpdateActiveWorkflow(active_wf_id, nil, &wf.Initial, &dateSubmitted, &stateDeadline, nil)
 	if err != nil {
 		h.logger.Error("Error updating active workflow")
 		c.JSON(http.StatusInternalServerError, gin.H{

@@ -494,79 +494,87 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	var disputes []models.AdminDisputeSummariesResponse = []models.AdminDisputeSummariesResponse{}
-	var queryString string = ""
-	var searchString string = ""
-	var filterString string = ""
-	var dateFilterString string = ""
-	var sortString string = ""
-	var limitString string = ""
-	var offsetString string = ""
+	var queryString strings.Builder
+	var queryParams []interface{}
+
+	queryString.WriteString("SELECT id, title, status, case_date, date_resolved FROM disputes")
+
 	if searchTerm != nil {
-		searchString = " WHERE disputes.title LIKE '%" + *searchTerm + "%' "
+		queryString.WriteString(" WHERE disputes.title LIKE ?")
+		queryParams = append(queryParams, "%"+*searchTerm+"%")
 	}
+
 	if filters != nil && len(*filters) > 0 {
 		if searchTerm != nil {
-			filterString = " AND "
+			queryString.WriteString(" AND ")
 		} else {
-			filterString = " WHERE "
+			queryString.WriteString(" WHERE ")
 		}
 		for i, filter := range *filters {
-			filterString += filter.Attr + " = '" + filter.Value + "'"
+			queryString.WriteString(filter.Attr + " = ?")
+			queryParams = append(queryParams, filter.Value)
 			if i < len(*filters)-1 {
-				filterString += " AND "
+				queryString.WriteString(" AND ")
 			}
 		}
 	}
 
 	if dateFilter != nil {
 		if searchTerm != nil || (filters != nil && len(*filters) > 0) {
-			dateFilterString = " AND "
+			queryString.WriteString(" AND ")
 		} else {
-			dateFilterString = " WHERE "
+			queryString.WriteString(" WHERE ")
 		}
 		if dateFilter.Filed != nil {
 			if dateFilter.Filed.Before != nil {
-				dateFilterString += "disputes.case_date < '" + *dateFilter.Filed.Before + "' "
+				queryString.WriteString("disputes.case_date < ? ")
+				queryParams = append(queryParams, *dateFilter.Filed.Before)
 			}
 			if dateFilter.Filed.After != nil {
 				if dateFilter.Filed.Before != nil {
-					dateFilterString += "AND "
+					queryString.WriteString("AND ")
 				}
-				dateFilterString += "disputes.case_date > '" + *dateFilter.Filed.After + "' "
+				queryString.WriteString("disputes.case_date > ? ")
+				queryParams = append(queryParams, *dateFilter.Filed.After)
 			}
 		}
 		if dateFilter.Resolved != nil {
 			if dateFilter.Resolved.Before != nil {
 				if dateFilter.Filed != nil {
-					dateFilterString += "AND "
+					queryString.WriteString("AND ")
 				}
-				dateFilterString += "disputes.date_resolved < '" + *dateFilter.Resolved.Before + "' "
+				queryString.WriteString("disputes.date_resolved < ? ")
+				queryParams = append(queryParams, *dateFilter.Resolved.Before)
 			}
 			if dateFilter.Resolved.After != nil {
 				if dateFilter.Filed != nil || dateFilter.Resolved.Before != nil {
-					dateFilterString += "AND "
+					queryString.WriteString("AND ")
 				}
-				dateFilterString += "disputes.date_resolved > '" + *dateFilter.Resolved.After + "' "
+				queryString.WriteString("disputes.date_resolved > ? ")
+				queryParams = append(queryParams, *dateFilter.Resolved.After)
 			}
 		}
 	}
+
 	if sort != nil {
 		if sort.Order == "" {
 			sort.Order = "asc"
 		}
-		sortString = " ORDER BY " + sort.Attr + " " + sort.Order
+		queryString.WriteString(" ORDER BY " + sort.Attr + " " + sort.Order)
 	}
 
 	if limit != nil {
-		limitString = " LIMIT " + strconv.Itoa(*limit)
+		queryString.WriteString(" LIMIT ?")
+		queryParams = append(queryParams, *limit)
 	}
 	if offset != nil {
-		offsetString = " OFFSET " + strconv.Itoa(*offset)
+		queryString.WriteString(" OFFSET ?")
+		queryParams = append(queryParams, *offset)
 	}
+
 	//get relevant disputes data
 	var intermediateDisputes []models.AdminIntermediate
-	queryString = "SELECT id, title, status, case_date, date_resolved FROM disputes " + searchString + filterString + dateFilterString + sortString + limitString + offsetString
-	err := m.db.Raw(queryString).Scan(&intermediateDisputes).Error
+	err := m.db.Raw(queryString.String(), queryParams...).Scan(&intermediateDisputes).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")
 	}

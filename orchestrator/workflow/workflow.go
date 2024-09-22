@@ -51,7 +51,7 @@ const (
 // ----------------------------Timers--------------------------------
 type Timer struct {
 	// The duration that the timer should run for
-	Duration durationWrapper `json:"duration"`
+	Duration DurationWrapper `json:"duration"`
 
 	// The ID of the trigger to fire when the timer expires
 	OnExpire string `json:"on_expire"`
@@ -59,12 +59,12 @@ type Timer struct {
 
 // Because time.Duration is not marshallable, we need to introduce
 // a wrapper so that we can implement that ourselves
-type durationWrapper struct {
+type DurationWrapper struct {
 	time.Duration
 }
 
 func CreateTimer(duration time.Duration, onExpire string) Timer {
-	return Timer{Duration: durationWrapper{duration}, OnExpire: onExpire}
+	return Timer{Duration: DurationWrapper{duration}, OnExpire: onExpire}
 }
 
 func (t *Timer) GetDuration() time.Duration {
@@ -72,18 +72,18 @@ func (t *Timer) GetDuration() time.Duration {
 }
 
 func (t *Timer) SetDuration(duration time.Duration) {
-	t.Duration = durationWrapper{duration}
+	t.Duration = DurationWrapper{duration}
 }
 
 func (t *Timer) GetDeadline() time.Time {
 	return time.Now().Add(t.Duration.Duration)
 }
 
-func (d durationWrapper) MarshalJSON() ([]byte, error) {
+func (d DurationWrapper) MarshalJSON() ([]byte, error) {
 	return json.Marshal(d.String())
 }
 
-func (d *durationWrapper) UnmarshalJSON(b []byte) error {
+func (d *DurationWrapper) UnmarshalJSON(b []byte) error {
 	var value string
 	if err := json.Unmarshal(b, &value); err != nil {
 		return err

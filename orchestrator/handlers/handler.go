@@ -43,16 +43,32 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 		})
 		return
 	}
-	// Fetch the workflow definition from the database
+	
+	startWorkflow(h, active_wf_id, c, active_wf_id_str)
+}
+
+
+// for when the api notifies the orchestartor that there has been a manual change to the state machine
+// will stop any current state machine and start a new one
+//body should contain id of the state machine in json format
+func (h *Handler) RestartStateMachine(c *gin.Context) {
+	h.logger.Info("Restarting state machine...")
+	
+	c.JSON(http.StatusOK, gin.H{
+		"message": "State machine updated successfully!",
+	})
+}
+
+func startWorkflow(h *Handler, active_wf_id int, c *gin.Context, active_wf_id_str string) bool {
 	active_wf_record, err := h.api.FetchActiveWorkflow(active_wf_id)
 	if err != nil {
 		h.logger.Error("Error fetching workflow definition")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error fetching workflow definition",
 		})
-		return
+		return true
 	}
-	// Unmarshal the workflow definition
+
 	var wf workflow.Workflow
 	err = json.Unmarshal([]byte(active_wf_record.WorkflowInstance), &wf)
 	if err != nil {
@@ -60,13 +76,11 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error unmarshalling workflow definition",
 		})
-		return
+		return true
 	}
 
-	// Register the state machine with the controller
 	h.controller.RegisterStateMachine(active_wf_id_str, wf)
 
-	// Update the active workflow in the database
 	dateSubmitted := time.Now()
 	stateDeadline := time.Now().Add(wf.States[wf.Initial].Timer.Duration.Duration)
 	err = h.api.UpdateActiveWorkflow(active_wf_id, nil, &wf.Initial, &dateSubmitted, &stateDeadline, nil)
@@ -75,21 +89,12 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error updating active workflow",
 		})
-		return
+		return true
 	}
 
-	// Return a success response
 	h.logger.Info("State machine started successfully!")
 	c.JSON(http.StatusOK, gin.H{
 		"message": "State machine started successfully!",
 	})
-}
-
-// for when the api notifies the orchestartor that there has been a manual change to the state machine
-// will stop any current state machine and start a new one
-//body should contain id of the state machine in json format
-func (h *Handler) RestartStateMachine(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"message": "State machine updated successfully!",
-	})
+	return false
 }

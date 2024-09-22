@@ -56,15 +56,14 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 
 	//check if use exist in users table
 
-	var user db.User
-	result := api.DB.First(&user, Author)
-	if result.Error != nil {
-		return result.Error
+	_, err = api.WfQuery.FetchUserQuery(Author)
+	if err != nil {
+		return err
 	}
 
 	//check if category exist in tags table
 	for _, category := range categories {
-		_, err := api.WfQuery.FetchTagsByID(int(category))
+		_, err := api.WfQuery.FetchTagsByID(category)
 		if err != nil {
 			return err
 		}
@@ -77,9 +76,9 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 		AuthorID:   Author,
 	}
 
-	result = api.DB.Create(&workflowDbEntry)
-	if result.Error != nil {
-		return result.Error
+	err = api.WfQuery.CreateWorkflows(workflowDbEntry)
+	if err != nil {
+		return err
 	}
 
 	//add associated tags
@@ -88,9 +87,9 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 			WorkflowID: workflowDbEntry.ID,
 			TagID:      uint64(category),
 		}
-		result = api.DB.Create(&labelledWorkflow)
-		if result.Error != nil {
-			return result.Error
+		err = api.WfQuery.CreateLabbelledWorkdlows(labelledWorkflow)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -99,10 +98,9 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 
 func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error {
 	//get existign workflow
-	var existingWorkflow db.Workflowdb
-	result := api.DB.First(&existingWorkflow, id)
-	if result.Error != nil {
-		return result.Error
+	existingWorkflow, err := api.WfQuery.FetchWorkflowQuery(id)
+	if err != nil {
+		return err
 	}
 
 	// Update the name if provided
@@ -124,15 +122,15 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 		existingWorkflow.AuthorID = *author
 	}
 	// Save the updated workflow
-	result = api.DB.Save(&existingWorkflow)
-	if result.Error != nil {
-		return result.Error
+	err = api.WfQuery.SaveWorkflowInstance(existingWorkflow)
+	if err != nil {
+		return err
 	}
 
 	// Manage categories (tags) in labelled_workflow if provided
 	if categories != nil {
 		// Remove existing tags
-		err := api.DB.Where("workflow_id = ?", existingWorkflow.ID).Delete(&db.LabelledWorkflow{}).Error
+		err = api.WfQuery.DeleteLabelledWorkfloByWorkflowId(existingWorkflow.ID)
 		if err != nil {
 			return err
 		}
@@ -143,7 +141,7 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 				WorkflowID: existingWorkflow.ID,
 				TagID:      uint64(categoryID),
 			}
-			err = api.DB.Create(&labelledWorkflow).Error
+			err = api.WfQuery.CreateLabbelledWorkdlows(labelledWorkflow)
 			if err != nil {
 				return err
 			}
@@ -154,44 +152,31 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 }
 
 func (api *APIWorkflow) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) {
-	// Define a slice to hold the result
-	var activeWorkflows []db.ActiveWorkflows
-
 	// Use a join to fetch active workflows and their related workflow definitions
-	result := api.DB.
-		Table("active_workflows").
-		Select("id, workflow as workflow_id, current_state, state_deadline, workflow_instance").
-		Scan(&activeWorkflows)
+	activeWorkflows, err := api.WfQuery.FetchActiveWorkflows()
 	// Check for errors in the result
-	if result.Error != nil {
-		return nil, result.Error
+	if err != nil {
+		return nil, err
 	}
 
 	return activeWorkflows, nil
 }
 
 func (api *APIWorkflow) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error) {
-	var activeWorkflow db.ActiveWorkflows
-
-	result := api.DB.
-		Table("active_workflows").
-		Select("id, workflow as workflow_id, current_state, state_deadline, workflow_instance").
-		Where("id = ?", id).
-		Scan(&activeWorkflow)
-
-	if result.Error != nil {
-		return nil, result.Error
+	// Fetch the active workflow from the database
+	activeWorkflow, err := api.WfQuery.FetchActiveWorkflow(id)
+	if err != nil {
+		return nil, err
 	}
 
-	return &activeWorkflow, nil
+	return activeWorkflow, nil
 }
 
 func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentState *string, dateSubmitted *time.Time, stateDeadline *time.Time, workflowInstance *json.RawMessage) error {
 	// Fetch the active workflow
-	var activeWorkflow db.ActiveWorkflows
-	result := api.DB.First(&activeWorkflow, id)
-	if result.Error != nil {
-		return result.Error
+	activeWorkflow, err := api.WfQuery.FetchActiveWorkflow(id)
+	if err != nil {
+		return err
 	}
 
 	// Update the workflowID if provided
@@ -220,9 +205,9 @@ func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentSta
 	}
 
 	// Save the updated active workflow
-	result = api.DB.Save(&activeWorkflow)
-	if result.Error != nil {
-		return result.Error
+	err = api.WfQuery.SaveActiveWorkflowInstance(activeWorkflow)
+	if err != nil {
+		return err
 	}
 
 	return nil

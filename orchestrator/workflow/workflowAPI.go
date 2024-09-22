@@ -127,7 +127,6 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 		return err
 	}
 
-
 	// Manage categories (tags) in labelled_workflow if provided
 	if categories != nil {
 		// Remove existing tags
@@ -175,10 +174,9 @@ func (api *APIWorkflow) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error)
 
 func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentState *string, dateSubmitted *time.Time, stateDeadline *time.Time, workflowInstance *json.RawMessage) error {
 	// Fetch the active workflow
-	var activeWorkflow db.ActiveWorkflows
-	result := api.DB.First(&activeWorkflow, id)
-	if result.Error != nil {
-		return result.Error
+	activeWorkflow, err := api.WfQuery.FetchActiveWorkflow(id)
+	if err != nil {
+		return err
 	}
 
 	// Update the workflowID if provided
@@ -207,9 +205,9 @@ func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentSta
 	}
 
 	// Save the updated active workflow
-	result = api.DB.Save(&activeWorkflow)
-	if result.Error != nil {
-		return result.Error
+	err = api.WfQuery.SaveActiveWorkflowInstance(activeWorkflow)
+	if err != nil {
+		return err
 	}
 
 	return nil

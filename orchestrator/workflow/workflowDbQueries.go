@@ -17,7 +17,7 @@ type DBQuery interface {
 
 	FetchActiveWorkflows() ([]db.ActiveWorkflows, error)
 	FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error)
-	SaveActiveWorkflow(activeWorkflow *db.ActiveWorkflows) error
+	SaveActiveWorkflowInstance(activeWorkflow *db.ActiveWorkflows) error
 }
 
 type WorkflowQuery struct {
@@ -117,4 +117,12 @@ func (wfq *WorkflowQuery) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, erro
 	}
 
 	return &activeWorkflow, nil
+}
+
+func (wfq *WorkflowQuery) SaveActiveWorkflowInstance(activeWorkflow *db.ActiveWorkflows) error {
+	result := wfq.DB.Save(activeWorkflow)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }

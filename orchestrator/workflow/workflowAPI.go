@@ -14,8 +14,8 @@ type API interface {
 	FetchWorkflow(id int) (*db.Workflowdb, error)
 	StoreWorkflow(name string, workflow Workflow, categories []int64, Author int64) error
 	UpdateWorkflow(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error
-	FetchActiveWorkflows() ([]ActiveWorkflowsResponse, error)
-	FetchActiveWorkflow(id int) (*ActiveWorkflowsResponse, error)
+	FetchActiveWorkflows() ([]db.ActiveWorkflows, error)
+	FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error)
 	UpdateActiveWorkflow(id int, workflowID *int, currentState *string, dateSubmitted *time.Time, stateDeadline *time.Time) error
 }
 
@@ -151,9 +151,9 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 	return nil
 }
 
-func (api *APIWorkflow) FetchActiveWorkflows() ([]ActiveWorkflowsResponse, error) {
+func (api *APIWorkflow) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) {
 	// Define a slice to hold the result
-	var activeWorkflows []ActiveWorkflowsResponse
+	var activeWorkflows []db.ActiveWorkflows
 
 	// Use a join to fetch active workflows and their related workflow definitions
 	result := api.DB.
@@ -169,8 +169,8 @@ func (api *APIWorkflow) FetchActiveWorkflows() ([]ActiveWorkflowsResponse, error
 	return activeWorkflows, nil
 }
 
-func (api *APIWorkflow) FetchActiveWorkflow(id int) (*ActiveWorkflowsResponse, error) {
-	var activeWorkflow ActiveWorkflowsResponse
+func (api *APIWorkflow) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error) {
+	var activeWorkflow db.ActiveWorkflows
 
 	result := api.DB.
 		Table("active_workflows").

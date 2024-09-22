@@ -112,7 +112,7 @@ func maunalTestFetchActiveWorkflows() {
 	if len(activeWorkflows) != 0 {
 		for _, activeWorkflow := range activeWorkflows {
 			var unmarshalledWorkflow workflow.Workflow
-			err = json.Unmarshal(activeWorkflow.WorkflowDefinition, &unmarshalledWorkflow)
+			err = json.Unmarshal(activeWorkflow.WorkflowInstance, &unmarshalledWorkflow)
 			if err != nil {
 				fmt.Println("Error:", err)
 				return
@@ -137,7 +137,7 @@ func manualTestFetchActiveWorkflow(id int) {
 	}
 	fmt.Println(activeWorkflow)
 	var unmarshalledWorkflow workflow.Workflow
-	err = json.Unmarshal(activeWorkflow.WorkflowDefinition, &unmarshalledWorkflow)
+	err = json.Unmarshal(activeWorkflow.WorkflowInstance, &unmarshalledWorkflow)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

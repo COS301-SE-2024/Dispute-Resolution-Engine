@@ -1,11 +1,13 @@
 package workflow_test
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"orchestrator/workflow"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateTimer(t *testing.T) {
@@ -36,4 +38,28 @@ func TestGetDeadline(t *testing.T) {
 	// The deadline should be roughly now + 5 seconds, we add some tolerance
 	assert.WithinDuration(t, time.Now().Add(duration), deadline, time.Millisecond*100, "The deadline should be current time + 5s")
 }
+
+func TestMarshalDurationWrapper(t *testing.T) {
+	duration := 15 * time.Second
+	durWrapper := workflow.DurationWrapper{Duration: duration}
+
+	marshaled, err := json.Marshal(durWrapper)
+	assert.NoError(t, err, "Marshaling should not return an error")
+
+	expected := `"15s"`
+	assert.JSONEq(t, expected, string(marshaled), "The marshaled JSON should be the string '15s'")
+}
+
+func TestUnmarshalDurationWrapper(t *testing.T) {
+	jsonStr := `"30s"`
+	var durWrapper workflow.DurationWrapper
+
+	err := json.Unmarshal([]byte(jsonStr), &durWrapper)
+	assert.NoError(t, err, "Unmarshaling should not return an error")
+
+	expectedDuration := 30 * time.Second
+	assert.Equal(t, expectedDuration, durWrapper.Duration, "The unmarshaled duration should be 30s")
+}
+
+
 

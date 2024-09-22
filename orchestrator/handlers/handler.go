@@ -3,12 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"time"
 
 	"orchestrator/controller"
 	"orchestrator/utilities"
 	"orchestrator/workflow"
-	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -44,7 +44,6 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 		return
 	}
 	active_wf_id_str := Res.ID
-	h.logger.Info("Active workflow ID: ", active_wf_id_str)
 	// Convert the workflow ID to an integer
 	active_wf_id, err := strconv.Atoi(active_wf_id_str)
 	if err != nil {

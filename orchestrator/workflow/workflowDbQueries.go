@@ -14,7 +14,7 @@ type DBQuery interface {
 	CreateLabbelledWorkdlows(labelledWorkflow *db.LabelledWorkflow) error
 	SaveWorkflowInstance(activeWorkflow *db.Workflowdb) error
 	DeleteLabelledWorkfloByWorkflowId(id uint64) error
-	
+
 	FetchActiveWorkflows() ([]db.ActiveWorkflows, error)
 	FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error)
 	SaveActiveWorkflow(activeWorkflow *db.ActiveWorkflows) error
@@ -103,4 +103,18 @@ func (wfq *WorkflowQuery) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) {
 	}
 	return activeWorkflows, nil
 }
-	
+
+func (wfq *WorkflowQuery) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error) {
+	var activeWorkflow db.ActiveWorkflows
+	result := wfq.DB.
+		Table("active_workflows").
+		Select("id, workflow as workflow_id, current_state, state_deadline, workflow_instance").
+		Where("id = ?", id).
+		Scan(&activeWorkflow)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &activeWorkflow, nil
+}

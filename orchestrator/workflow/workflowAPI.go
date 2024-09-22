@@ -164,19 +164,13 @@ func (api *APIWorkflow) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) {
 }
 
 func (api *APIWorkflow) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error) {
-	var activeWorkflow db.ActiveWorkflows
-
-	result := api.DB.
-		Table("active_workflows").
-		Select("id, workflow as workflow_id, current_state, state_deadline, workflow_instance").
-		Where("id = ?", id).
-		Scan(&activeWorkflow)
-
-	if result.Error != nil {
-		return nil, result.Error
+	// Fetch the active workflow from the database
+	activeWorkflow, err := api.WfQuery.FetchActiveWorkflow(id)
+	if err != nil {
+		return nil, err
 	}
 
-	return &activeWorkflow, nil
+	return activeWorkflow, nil
 }
 
 func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentState *string, dateSubmitted *time.Time, stateDeadline *time.Time, workflowInstance *json.RawMessage) error {

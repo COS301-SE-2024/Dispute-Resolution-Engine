@@ -56,15 +56,14 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 
 	//check if use exist in users table
 
-	var user db.User
-	result := api.DB.First(&user, Author)
-	if result.Error != nil {
-		return result.Error
+	_, err = api.WfQuery.FetchUserQuery(Author)
+	if err != nil {
+		return err
 	}
 
 	//check if category exist in tags table
 	for _, category := range categories {
-		_, err := api.WfQuery.FetchTagsByID(int(category))
+		_, err := api.WfQuery.FetchTagsByID(category)
 		if err != nil {
 			return err
 		}
@@ -77,9 +76,9 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 		AuthorID:   Author,
 	}
 
-	result = api.DB.Create(&workflowDbEntry)
-	if result.Error != nil {
-		return result.Error
+	err = api.WfQuery.CreateWorkflows(workflowDbEntry)
+	if err != nil {
+		return err
 	}
 
 	//add associated tags

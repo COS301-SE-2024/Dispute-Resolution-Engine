@@ -8,8 +8,8 @@ import (
 
 type DBQuery interface {
 	FetchWorkflowQuery(id int) (*db.Workflowdb, error)
-	FetchUserQuery(id int) (*db.User, error)
-	FetchTagsByID(id int) (*db.Tag, error)
+	FetchUserQuery(id int64) (*db.User, error)
+	FetchTagsByID(id int64) (*db.Tag, error)
 	CreateWorkflows(workflow *db.Workflowdb) error
 	CreateLabbelledWorkdlows(labelledWorkflow *db.LabelledWorkflow) error
 	SaveWorkflowInstance(activeWorkflow *db.ActiveWorkflows) error
@@ -43,7 +43,7 @@ func (wfq *WorkflowQuery) FetchWorkflowQuery(id int) (*db.Workflowdb, error) {
 	return &workflow, nil
 }
 
-func (wfq *WorkflowQuery) FetchUserQuery(id int) (*db.User, error) {
+func (wfq *WorkflowQuery) FetchUserQuery(id int64) (*db.User, error) {
 	var user db.User
 	result := wfq.DB.First(&user, id)
 	if result.Error != nil {
@@ -52,11 +52,19 @@ func (wfq *WorkflowQuery) FetchUserQuery(id int) (*db.User, error) {
 	return &user, nil
 }
 
-func (wfq *WorkflowQuery) FetchTagsByID(id int) (*db.Tag, error) {
+func (wfq *WorkflowQuery) FetchTagsByID(id int64) (*db.Tag, error) {
 	var tag db.Tag
 	result := wfq.DB.First(&tag, id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return &tag, nil
+}
+
+func (wfq *WorkflowQuery) CreateWorkflows(workflow *db.Workflowdb) error {
+	result := wfq.DB.Create(workflow)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
 }

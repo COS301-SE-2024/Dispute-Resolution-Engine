@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"orchestrator/db"
+	"orchestrator/workflow"
 	"time"
+
+	"github.com/stretchr/testify/suite"
 )
 
 //---------------------------- model - dbPositive ----------------------------
@@ -61,16 +64,16 @@ func (tdb *TestDbPositive) FetchWorkflowQuery(id int) (*db.Workflowdb, error) {
 
 func (tdb *TestDbPositive) FetchUserQuery(id int64) (*db.User, error) {
 	return &db.User{
-		ID:                1,
-		FirstName:         "Test",
-		Surname:           "User",
-		Birthdate:         time.Now(),
-		Nationality:       "Kenyan",
-		Role:              "Admin",
-		Email:             "test@test.com",
-		PasswordHash:      "password",
-		CreatedAt:         time.Now(),
-		Status:            "active",
+		ID:           1,
+		FirstName:    "Test",
+		Surname:      "User",
+		Birthdate:    time.Now(),
+		Nationality:  "Kenyan",
+		Role:         "Admin",
+		Email:        "test@test.com",
+		PasswordHash: "password",
+		CreatedAt:    time.Now(),
+		Status:       "active",
 	}, nil
 }
 
@@ -85,11 +88,15 @@ func (tdb *TestDbPositive) CreateWorkflows(workflow *db.Workflowdb) error {
 	return nil
 }
 
-func (tdb *TestDbPositive) CreateLabbelledWorkdlows(labelledWorkflow *db.LabelledWorkflow) error {
+func (tdb *TestDbPositive) CreateLabbelledWorkflows(labelledWorkflow *db.LabelledWorkflow) error {
 	return nil
 }
 
 func (tdb *TestDbPositive) SaveWorkflowInstance(workflow *db.Workflowdb) error {
+	return nil
+}
+
+func (tdb *TestDbPositive) DeleteLabelledWorkflowByWorkflowId(id uint64) error {
 	return nil
 }
 
@@ -117,12 +124,12 @@ func (tdb *TestDbPositive) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, err
 	}, nil
 }
 
-func (tdb *TestDbPositive) SaveActiveWorkflow(activeWorkflow *db.ActiveWorkflows) error {
+func (tdb *TestDbPositive) SaveActiveWorkflowInstance(activeWorkflow *db.ActiveWorkflows) error {
 	return nil
 }
 
-//---------------------------- model - dbPositive ----------------------------
-//---------------------------- model - dbNegative ----------------------------
+// ---------------------------- model - dbPositive ----------------------------
+// ---------------------------- model - dbNegative ----------------------------
 type TestDbNegative struct {
 }
 
@@ -142,7 +149,11 @@ func (tdb *TestDbNegative) CreateWorkflows(workflow *db.Workflowdb) error {
 	return errors.New("error")
 }
 
-func (tdb *TestDbNegative) CreateLabbelledWorkdlows(labelledWorkflow *db.LabelledWorkflow) error {
+func (tdb *TestDbNegative) DeleteLabelledWorkflowByWorkflowId(id uint64) error {
+	return errors.New("error")
+}
+
+func (tdb *TestDbNegative) CreateLabbelledWorkflows(labelledWorkflow *db.LabelledWorkflow) error {
 	return errors.New("error")
 }
 
@@ -158,8 +169,54 @@ func (tdb *TestDbNegative) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, err
 	return nil, errors.New("error")
 }
 
-func (tdb *TestDbNegative) SaveActiveWorkflow(activeWorkflow *db.ActiveWorkflows) error {
+func (tdb *TestDbNegative) SaveActiveWorkflowInstance(activeWorkflow *db.ActiveWorkflows) error {
 	return errors.New("error")
 }
+
 //---------------------------- model - dbNegative ----------------------------
 
+type WorkflowAPITestSuitePositive struct {
+	suite.Suite
+	dbQuery     *TestDbPositive
+}
+
+func (suite *WorkflowAPITestSuitePositive) SetupTest() {
+	suite.dbQuery = &TestDbPositive{}
+}
+
+
+func (suite *WorkflowAPITestSuitePositive) TestFetchWorkflowQuery_Positive() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call FetchWorkflowQuery
+	workflow, err := testingWorkflowAPI.FetchWorkflow(1)
+
+	// Assert that no error occurred and the workflow is not nil
+	suite.NoError(err)
+	suite.NotNil(workflow)
+
+	// Assert specific fields in the workflow for correctness
+	suite.Equal(1, workflow.ID)
+	suite.Equal("Test Workflow", workflow.Name)
+	suite.Equal(1, workflow.AuthorID)
+}
+
+func (suite *WorkflowAPITestSuitePositive) TestStoreWorkflow_Positive() {
+
+}
+
+func (suite *WorkflowAPITestSuitePositive) TestUpdateWorkflow_Positive() {
+}
+
+func (suite *WorkflowAPITestSuitePositive) TestFetchActiverWorkflows_Positive() {
+
+}
+
+func (suite *WorkflowAPITestSuitePositive) TestFetchActiveWorkflow_Positive() {
+}
+
+func (suite *WorkflowAPITestSuitePositive) TestUpdateActiveWorkflow_Positive() {
+}

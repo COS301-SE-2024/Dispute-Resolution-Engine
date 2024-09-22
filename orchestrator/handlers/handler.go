@@ -44,13 +44,27 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 		return
 	}
 	// Fetch the workflow definition from the database
-	// Unmarshal the workflow definition
-	// Register the state machine with the controller
-	wf, shouldReturn := addWorkflow(h, active_wf_id, c, active_wf_id_str)
-
-	if shouldReturn {
+	active_wf_record, err := h.api.FetchActiveWorkflow(active_wf_id)
+	if err != nil {
+		h.logger.Error("Error fetching workflow definition")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error fetching workflow definition",
+		})
 		return
 	}
+	// Unmarshal the workflow definition
+	var wf workflow.Workflow
+	err = json.Unmarshal([]byte(active_wf_record.WorkflowInstance), &wf)
+	if err != nil {
+		h.logger.Error("Error unmarshalling workflow definition")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error unmarshalling workflow definition",
+		})
+		return
+	}
+
+	// Register the state machine with the controller
+	h.controller.RegisterStateMachine(active_wf_id_str, wf)
 
 	// Update the active workflow in the database
 	dateSubmitted := time.Now()
@@ -71,16 +85,36 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 	})
 }
 
-func addWorkflow(h *Handler, active_wf_id int, c *gin.Context, active_wf_id_str string) (workflow.Workflow, bool) {
+// For when the API notifies the orchestrator that there has been a manual change to the state machine.
+// Will overwrite any current state machine with a new one.
+// Body should contain the ID of the state machine in JSON format.
+func (h *Handler) RestartStateMachine(c *gin.Context) {
+	h.logger.Info("Restarting state machine...")
+
+	// Get the workflow ID from the request
+	active_wf_id_str := c.PostForm("id")
+	
+	// Convert the workflow ID to an integer
+	active_wf_id, err := strconv.Atoi(active_wf_id_str)
+	if err != nil {
+		h.logger.Error("Invalid workflow ID")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid workflow ID",
+		})
+		return
+	}
+
+	// Fetch the workflow definition from the database
 	active_wf_record, err := h.api.FetchActiveWorkflow(active_wf_id)
 	if err != nil {
 		h.logger.Error("Error fetching workflow definition")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error fetching workflow definition",
 		})
-		return workflow.Workflow{}, true
+		return
 	}
 
+	// Unmarshal the workflow definition
 	var wf workflow.Workflow
 	err = json.Unmarshal([]byte(active_wf_record.WorkflowInstance), &wf)
 	if err != nil {
@@ -88,18 +122,21 @@ func addWorkflow(h *Handler, active_wf_id int, c *gin.Context, active_wf_id_str 
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error unmarshalling workflow definition",
 		})
-		return workflow.Workflow{}, true
+		return
 	}
 
-	h.controller.RegisterStateMachine(active_wf_id_str, wf)
-	return wf, false
-}
+	// Get the current state and state deadline
+	state_deadline := active_wf_record.StateDeadline
+	current_state := active_wf_record.CurrentState
 
-// for when the api notifies the orchestartor that there has been a manual change to the state machine
-// will stop any current state machine and start a new one
-//body should contain id of the state machine in json format
-func (h *Handler) RestartStateMachine(c *gin.Context) {
-	h.logger.Info("Restarting state machine...")
+	// Make the current workflow's initial state the current state
+	wf.Initial = current_state
+
+	// Update the state deadline
+	wf.States[current_state].Timer.Duration.Duration = time.Until(state_deadline)
+
+	// Register the state machine with the controller
+	h.controller.RegisterStateMachine(active_wf_id_str, wf)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "State machine updated successfully!",

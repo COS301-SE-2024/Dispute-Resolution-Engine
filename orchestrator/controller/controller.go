@@ -37,6 +37,11 @@ func (c *Controller) Start() {
 func (c *Controller) RegisterStateMachine(wfID string, wf workflow.Workflow) {
 	// Create and initilise a new state machine
 	sm := statemachine.NewStateMachine()
+	// Remove any active timers for the state machine
+	for state_id := range wf.States {
+		timerName := wfID + "_" + state_id
+		c.Scheduler.RemoveTimer(timerName)
+	}
 	sm.Init(wfID, wf, c.Scheduler)
 	c.StateMachineRegistry[wfID] = sm
 }

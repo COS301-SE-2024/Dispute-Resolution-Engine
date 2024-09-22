@@ -5,6 +5,7 @@ import (
 	"errors"
 	"orchestrator/db"
 	"orchestrator/workflow"
+	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
@@ -174,7 +175,7 @@ func (tdb *TestDbNegative) SaveActiveWorkflowInstance(activeWorkflow *db.ActiveW
 }
 
 //---------------------------- model - dbNegative ----------------------------
-
+//---------------------------- WorkflowAPITestSuitePositive ----------------------------
 type WorkflowAPITestSuitePositive struct {
 	suite.Suite
 	dbQuery *TestDbPositive
@@ -198,9 +199,9 @@ func (suite *WorkflowAPITestSuitePositive) TestFetchWorkflowQuery_Positive() {
 	suite.NotNil(workflow)
 
 	// Assert specific fields in the workflow for correctness
-	suite.Equal(1, workflow.ID)
+	suite.Equal(uint64(1), workflow.ID)
 	suite.Equal("Test Workflow", workflow.Name)
-	suite.Equal(1, workflow.AuthorID)
+	suite.Equal(int64(1), workflow.AuthorID)
 }
 
 func (suite *WorkflowAPITestSuitePositive) TestStoreWorkflow_Positive() {
@@ -245,8 +246,8 @@ func (suite *WorkflowAPITestSuitePositive) TestFetchActiverWorkflows_Positive() 
 	suite.NotNil(workflows)
 
 	// Assert specific fields in the workflow for correctness
-	suite.Equal(1, workflows[0].ID)
-	suite.Equal(1, workflows[0].WorkflowID)
+	suite.Equal(int64(1), workflows[0].ID)
+	suite.Equal(int64(1), workflows[0].WorkflowID)
 	suite.Equal("new state", workflows[0].CurrentState)
 }
 
@@ -264,8 +265,8 @@ func (suite *WorkflowAPITestSuitePositive) TestFetchActiveWorkflow_Positive() {
 	suite.NotNil(workflow)
 
 	// Assert specific fields in the workflow for correctness
-	suite.Equal(1, workflow.ID)
-	suite.Equal(1, workflow.WorkflowID)
+	suite.Equal(int64(1), workflow.ID)
+	suite.Equal(int64(1), workflow.WorkflowID)
 	suite.Equal("new state", workflow.CurrentState)
 }
 
@@ -281,3 +282,215 @@ func (suite *WorkflowAPITestSuitePositive) TestUpdateActiveWorkflow_Positive() {
 	// Assert that no error occurred
 	suite.NoError(err)
 }
+
+func TestWorkflowAPITestSuitePositive(t *testing.T) {
+    suite.Run(t, new(WorkflowAPITestSuitePositive))
+}
+//---------------------------- WorkflowAPITestSuitePositive ----------------------------
+//---------------------------- WorkflowAPITestSuiteNegative ----------------------------
+type WorkflowAPITestSuiteNegative struct {
+	suite.Suite
+	dbQuery *TestDbNegative
+}
+
+func (suite *WorkflowAPITestSuiteNegative) SetupTest() {
+	suite.dbQuery = &TestDbNegative{}
+}
+
+func (suite *WorkflowAPITestSuiteNegative) TestFetchWorkflowQuery_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call FetchWorkflowQuery
+	workflow, err := testingWorkflowAPI.FetchWorkflow(1)
+
+	// Assert that an error occurred and the workflow is nil
+	suite.Error(err)
+	suite.Nil(workflow)
+}
+
+func (suite *WorkflowAPITestSuiteNegative) TestStoreWorkflow_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	//call function
+	wf := workflow.Workflow{Initial: "dispute_created"}
+	tags := []int64{1}
+	err := testingWorkflowAPI.StoreWorkflow("Test Workflow", wf, tags, 1)
+	// Assert that an error occurred
+	suite.Error(err)
+}
+
+func (suite *WorkflowAPITestSuiteNegative) TestUpdateWorkflow_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	//call function
+	wf := workflow.Workflow{Initial: "dispute_created"}
+	name := "bogus"
+	err := testingWorkflowAPI.UpdateWorkflow(1, &name, &wf, nil, nil)
+	// Assert that an error occurred
+	suite.Error(err)
+}
+
+func (suite *WorkflowAPITestSuiteNegative) TestFetchActiverWorkflows_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call FetchActiveWorkflows
+	workflows, err := testingWorkflowAPI.FetchActiveWorkflows()
+
+	// Assert that an error occurred and the workflows is nil
+	suite.Error(err)
+	suite.Nil(workflows)
+}
+
+func (suite *WorkflowAPITestSuiteNegative) TestFetchActiveWorkflow_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call FetchActiveWorkflow
+	workflow, err := testingWorkflowAPI.FetchActiveWorkflow(1)
+
+	// Assert that an error occurred and the workflow is nil
+	suite.Error(err)
+	suite.Nil(workflow)
+}
+
+func (suite *WorkflowAPITestSuiteNegative) TestUpdateActiveWorkflow_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call UpdateActiveWorkflow
+	err := testingWorkflowAPI.UpdateActiveWorkflow(1, nil, nil, nil, nil, nil)
+
+	// Assert that an error occurred
+	suite.Error(err)
+}
+
+func TestWorkflowAPITestSuiteNegative(t *testing.T) {
+	suite.Run(t, new(WorkflowAPITestSuiteNegative))
+}
+
+//---------------------------- manual tests ----------------------------
+
+// func manualTestStoreWorkflow(wf workflow.Workflow) {
+// 	api := workflow.CreateAPIWorkflow()
+// 	fmt.Println("storing workflow")
+// 	// Store the workflow to the API
+// 	err := api.StoreWorkflow("test", wf, []int64{}, 1)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+// 	fmt.Println("Workflow stored successfully")
+// }
+
+// func manualTestFetchWorkflow(id int) {
+// 	api := workflow.CreateAPIWorkflow()
+// 	fmt.Println("fetching workflow")
+// 	// Fetch the workflow from the API
+// 	wf, err := api.FetchWorkflow(id)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+
+// 	var unmarshalledWorkflow workflow.Workflow
+// 	err = json.Unmarshal(wf.Definition, &unmarshalledWorkflow)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+// 	fmt.Println(unmarshalledWorkflow.GetWorkflowString())
+// 	fmt.Println("Workflow fetched successfully")
+// }
+
+// func manualTestUpdateWorkflow(id int, wf workflow.Workflow) {
+// 	api := workflow.CreateAPIWorkflow()
+// 	fmt.Println("updating workflow")
+// 	// Update the workflow in the API
+// 	bob := "bob"
+// 	err := api.UpdateWorkflow(id, &bob, &wf, nil, nil)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+// 	fmt.Println("Workflow updated successfully")
+// }
+
+// func maunalTestFetchActiveWorkflows() {
+// 	api := workflow.CreateAPIWorkflow()
+// 	fmt.Println("fetching active workflows")
+// 	// Fetch the active workflows from the API
+// 	activeWorkflows, err := api.FetchActiveWorkflows()
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+
+// 	if len(activeWorkflows) != 0 {
+// 		for _, activeWorkflow := range activeWorkflows {
+// 			var unmarshalledWorkflow workflow.Workflow
+// 			err = json.Unmarshal(activeWorkflow.WorkflowInstance, &unmarshalledWorkflow)
+// 			if err != nil {
+// 				fmt.Println("Error:", err)
+// 				return
+// 			}
+
+// 			fmt.Println(unmarshalledWorkflow.GetWorkflowString())
+// 		}
+// 	}
+
+// 	fmt.Println("Active workflows fetched successfully")
+// 	fmt.Println(activeWorkflows)
+// }
+
+// func manualTestFetchActiveWorkflow(id int) {
+// 	api := workflow.CreateAPIWorkflow()
+// 	fmt.Println("fetching active workflow")
+// 	// Fetch the active workflow from the API
+// 	activeWorkflow, err := api.FetchActiveWorkflow(id)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+// 	fmt.Println(activeWorkflow)
+// 	var unmarshalledWorkflow workflow.Workflow
+// 	err = json.Unmarshal(activeWorkflow.WorkflowInstance, &unmarshalledWorkflow)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+
+// 	fmt.Println("Active workflow fetched successfully")
+// 	fmt.Println(activeWorkflow)
+// }
+
+// func manualTestUpdateActiveWorkflow(){
+// 	api := workflow.CreateAPIWorkflow()
+// 	fmt.Println("updating active workflow")
+// 	// Update the active workflow in the API
+// 	id := 1
+// 	currentState := "new state"
+// 	dateSubmitted := time.Now()
+// 	stateDeadline := time.Now().Add(24 * time.Hour)
+
+// 	err := api.UpdateActiveWorkflow(id, nil, &currentState, &dateSubmitted, &stateDeadline, nil)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		return
+// 	}
+// }

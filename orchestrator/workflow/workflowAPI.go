@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"orchestrator/db"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // Interface for the workflow API
@@ -21,18 +19,12 @@ type API interface {
 
 // APIWorkflow is the implementation of the API interface
 type APIWorkflow struct {
-	DB      *gorm.DB
 	WfQuery DBQuery
 }
 
 // Workflow is the struct that represents a workflow
 func CreateAPIWorkflow() *APIWorkflow {
-	Database, err := db.Init()
-	if err != nil {
-		return nil
-	}
 	return &APIWorkflow{
-		DB:      Database,
 		WfQuery: CreateDBQuery(),
 	}
 }

@@ -159,7 +159,7 @@ func (api *APIWorkflow) FetchActiveWorkflows() ([]ActiveWorkflowsResponse, error
 	result := api.DB.
 		Table("active_workflows").
 		Select("active_workflows.id, active_workflows.workflow as workflow_id, workflows.definition as workflow_definition, active_workflows.current_state, active_workflows.state_deadline").
-		Joins("join workflows on workflows.id = active_workflows.workflow").
+		Joins("join workflows on workflows.id = active_workflows.workflow"). //! Needs to be changed
 		Scan(&activeWorkflows)
 	// Check for errors in the result
 	if result.Error != nil {

@@ -98,10 +98,9 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 
 func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error {
 	//get existign workflow
-	var existingWorkflow db.Workflowdb
-	result := api.DB.First(&existingWorkflow, id)
-	if result.Error != nil {
-		return result.Error
+	existingWorkflow, err := api.WfQuery.FetchWorkflowQuery(id)
+	if err != nil {
+		return err
 	}
 
 	// Update the name if provided
@@ -123,10 +122,11 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 		existingWorkflow.AuthorID = *author
 	}
 	// Save the updated workflow
-	result = api.DB.Save(&existingWorkflow)
-	if result.Error != nil {
-		return result.Error
+	err = api.WfQuery.SaveWorkflowInstance(existingWorkflow)
+	if err != nil {
+		return err
 	}
+
 
 	// Manage categories (tags) in labelled_workflow if provided
 	if categories != nil {

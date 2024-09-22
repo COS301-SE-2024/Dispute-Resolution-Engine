@@ -71,6 +71,7 @@ CREATE TABLE active_workflows (
     current_state VARCHAR(255),
     date_submitted TIMESTAMP,
     state_deadline TIMESTAMP
+	workflow_instance JSONB NOT NULL
 );
 
 ------------------------------------------------------------- TABLE DEFINITIONS
@@ -95,7 +96,8 @@ CREATE TABLE disputes (
 	title VARCHAR(255) NOT NULL,
 	description TEXT,
 	complainant BIGINT REFERENCES users(id),
-	respondant BIGINT REFERENCES users(id)
+	respondant BIGINT REFERENCES users(id),
+    date_resolved DATE DEFAULT NULL
 );
 
 CREATE TABLE dispute_summaries (

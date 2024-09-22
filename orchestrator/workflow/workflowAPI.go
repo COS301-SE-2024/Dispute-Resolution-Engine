@@ -9,17 +9,22 @@ import (
 	"gorm.io/gorm"
 )
 
-// ----------------------------API--------------------------------
+// Interface for the workflow API
 type API interface {
-	Fetch(id int) (*db.Workflowdb, error)
-	Store(workflow Workflow, categories []int64, Author int64) error
-	Update(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error
+	FetchWorkflow(id int) (*db.Workflowdb, error)
+	StoreWorkflow(name string, workflow Workflow, categories []int64, Author int64) error
+	UpdateWorkflow(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error
+	FetchActiveWorkflows() ([]ActiveWorkflowsResponse, error)
+	FetchActiveWorkflow(id int) (*ActiveWorkflowsResponse, error)
+	UpdateActiveWorkflow(id int, workflowID *int, currentState *string, dateSubmitted *time.Time, stateDeadline *time.Time) error
 }
 
+// APIWorkflow is the implementation of the API interface
 type APIWorkflow struct {
 	DB *gorm.DB
 }
 
+// Workflow is the struct that represents a workflow
 func CreateAPIWorkflow() *APIWorkflow {
 	Database, err := db.Init()
 	if err != nil {

@@ -10,6 +10,14 @@ type DBQuery interface {
 	FetchWorkflowQuery(id int) (*db.Workflowdb, error)
 	FetchUserQuery(id int) (*db.User, error)
 	FetchTagsByID(id int) (*db.Tag, error)
+	CreateWorkflows(workflow *db.Workflowdb) error
+	CreateLabbelledWorkdlows(labelledWorkflow *db.LabelledWorkflow) error
+	SaveWorkflowInstance(activeWorkflow *db.ActiveWorkflows) error
+	DeleteLabelledWorkflow(labelledWorkflow *db.LabelledWorkflow) error
+	
+	FetchActiveWorkflows() ([]db.ActiveWorkflows, error)
+	FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error)
+	SaveActiveWorkflow(activeWorkflow *db.ActiveWorkflows) error
 }
 
 type WorkflowQuery struct {

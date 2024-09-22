@@ -92,4 +92,15 @@ func (wfq *WorkflowQuery) DeleteLabelledWorkfloByWorkflowId(id uint64) error {
 	}
 	return nil
 }
+
+func (wfq *WorkflowQuery) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) {
+	var activeWorkflows []db.ActiveWorkflows
+	result := wfq.DB.Table("active_workflows").
+		Select("id, workflow as workflow_id, current_state, state_deadline, workflow_instance").
+		Scan(&activeWorkflows)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return activeWorkflows, nil
+}
 	

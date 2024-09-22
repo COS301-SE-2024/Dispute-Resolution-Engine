@@ -142,7 +142,7 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 				WorkflowID: existingWorkflow.ID,
 				TagID:      uint64(categoryID),
 			}
-			err = api.DB.Create(&labelledWorkflow).Error
+			err = api.WfQuery.CreateLabbelledWorkdlows(labelledWorkflow)
 			if err != nil {
 				return err
 			}
@@ -153,17 +153,11 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 }
 
 func (api *APIWorkflow) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) {
-	// Define a slice to hold the result
-	var activeWorkflows []db.ActiveWorkflows
-
 	// Use a join to fetch active workflows and their related workflow definitions
-	result := api.DB.
-		Table("active_workflows").
-		Select("id, workflow as workflow_id, current_state, state_deadline, workflow_instance").
-		Scan(&activeWorkflows)
+	activeWorkflows, err := api.WfQuery.FetchActiveWorkflows()
 	// Check for errors in the result
-	if result.Error != nil {
-		return nil, result.Error
+	if err != nil {
+		return nil, err
 	}
 
 	return activeWorkflows, nil

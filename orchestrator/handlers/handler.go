@@ -13,6 +13,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type Response struct {
+	ID string `json:"id"`
+}
 
 type Handler struct {
 	controller* controller.Controller // Pointer to the controller
@@ -33,7 +36,15 @@ func NewHandler(ctrlr *controller.Controller, apiHandler workflow.API) *Handler 
 func (h *Handler) StartStateMachine(c *gin.Context) {
 	h.logger.Info("Starting state machine...")
 	// Get the workflow ID from the request
-	active_wf_id_str := c.PostForm("id")
+	var Res Response
+	if err := c.ShouldBindJSON(&Res); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request",
+		})
+		return
+	}
+	active_wf_id_str := Res.ID
+	h.logger.Info("Active workflow ID: ", active_wf_id_str)
 	// Convert the workflow ID to an integer
 	active_wf_id, err := strconv.Atoi(active_wf_id_str)
 	if err != nil {
@@ -92,7 +103,14 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 	h.logger.Info("Restarting state machine...")
 
 	// Get the workflow ID from the request
-	active_wf_id_str := c.PostForm("id")
+	var Res Response
+	if err := c.ShouldBindJSON(&Res); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request",
+		})
+		return
+	}
+	active_wf_id_str := Res.ID
 	
 	// Convert the workflow ID to an integer
 	active_wf_id, err := strconv.Atoi(active_wf_id_str)

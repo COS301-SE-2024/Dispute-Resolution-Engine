@@ -311,6 +311,37 @@ func (suite *WorkflowAPITestSuiteNegative) TestFetchWorkflowQuery_Negative() {
 	suite.Nil(workflow)
 }
 
+func (suite *WorkflowAPITestSuiteNegative) TestStoreWorkflow_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	//call function
+	wf := workflow.Workflow{Initial: "dispute_created"}
+	tags := []int64{1}
+	err := testingWorkflowAPI.StoreWorkflow("Test Workflow", wf, tags, 1)
+	// Assert that an error occurred
+	suite.Error(err)
+}
+
+func (suite *WorkflowAPITestSuiteNegative) TestUpdateWorkflow_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	//call function
+	wf := workflow.Workflow{Initial: "dispute_created"}
+	name := "bogus"
+	err := testingWorkflowAPI.UpdateWorkflow(1, &name, &wf, nil, nil)
+	// Assert that an error occurred
+	suite.Error(err)
+}
+
+
+
+
 //---------------------------- manual tests ----------------------------
 
 // func manualTestStoreWorkflow(wf workflow.Workflow) {

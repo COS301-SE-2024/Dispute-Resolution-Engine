@@ -5,6 +5,7 @@ import (
 	"errors"
 	"orchestrator/db"
 	"orchestrator/workflow"
+	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
@@ -174,7 +175,7 @@ func (tdb *TestDbNegative) SaveActiveWorkflowInstance(activeWorkflow *db.ActiveW
 }
 
 //---------------------------- model - dbNegative ----------------------------
-
+//---------------------------- WorkflowAPITestSuitePositive ----------------------------
 type WorkflowAPITestSuitePositive struct {
 	suite.Suite
 	dbQuery *TestDbPositive
@@ -198,9 +199,9 @@ func (suite *WorkflowAPITestSuitePositive) TestFetchWorkflowQuery_Positive() {
 	suite.NotNil(workflow)
 
 	// Assert specific fields in the workflow for correctness
-	suite.Equal(1, workflow.ID)
+	suite.Equal(uint64(1), workflow.ID)
 	suite.Equal("Test Workflow", workflow.Name)
-	suite.Equal(1, workflow.AuthorID)
+	suite.Equal(int64(1), workflow.AuthorID)
 }
 
 func (suite *WorkflowAPITestSuitePositive) TestStoreWorkflow_Positive() {
@@ -245,8 +246,8 @@ func (suite *WorkflowAPITestSuitePositive) TestFetchActiverWorkflows_Positive() 
 	suite.NotNil(workflows)
 
 	// Assert specific fields in the workflow for correctness
-	suite.Equal(1, workflows[0].ID)
-	suite.Equal(1, workflows[0].WorkflowID)
+	suite.Equal(int64(1), workflows[0].ID)
+	suite.Equal(int64(1), workflows[0].WorkflowID)
 	suite.Equal("new state", workflows[0].CurrentState)
 }
 
@@ -264,8 +265,8 @@ func (suite *WorkflowAPITestSuitePositive) TestFetchActiveWorkflow_Positive() {
 	suite.NotNil(workflow)
 
 	// Assert specific fields in the workflow for correctness
-	suite.Equal(1, workflow.ID)
-	suite.Equal(1, workflow.WorkflowID)
+	suite.Equal(int64(1), workflow.ID)
+	suite.Equal(int64(1), workflow.WorkflowID)
 	suite.Equal("new state", workflow.CurrentState)
 }
 
@@ -282,7 +283,33 @@ func (suite *WorkflowAPITestSuitePositive) TestUpdateActiveWorkflow_Positive() {
 	suite.NoError(err)
 }
 
+func TestWorkflowAPITestSuitePositive(t *testing.T) {
+    suite.Run(t, new(WorkflowAPITestSuitePositive))
+}
+//---------------------------- WorkflowAPITestSuitePositive ----------------------------
+//---------------------------- WorkflowAPITestSuiteNegative ----------------------------
+type WorkflowAPITestSuiteNegative struct {
+	suite.Suite
+	dbQuery *TestDbNegative
+}
 
+func (suite *WorkflowAPITestSuiteNegative) SetupTest() {
+	suite.dbQuery = &TestDbNegative{}
+}
+
+func (suite *WorkflowAPITestSuiteNegative) TestFetchWorkflowQuery_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call FetchWorkflowQuery
+	workflow, err := testingWorkflowAPI.FetchWorkflow(1)
+
+	// Assert that an error occurred and the workflow is nil
+	suite.Error(err)
+	suite.Nil(workflow)
+}
 
 //---------------------------- manual tests ----------------------------
 

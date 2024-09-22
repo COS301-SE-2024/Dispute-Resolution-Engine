@@ -85,3 +85,18 @@ func TestUnmarshalTimer(t *testing.T) {
 	assert.Equal(t, "trigger_event", tmr.OnExpire, "The OnExpire trigger should match the provided value")
 }
 
+// Mock Trigger for testing purposes
+type Trigger struct {
+	Label string
+}
+
+func TestCreateState(t *testing.T) {
+	// Create a new state
+	state := workflow.CreateState("Initial", "This is the initial state.")
+
+	// Assert state properties
+	assert.Equal(t, "Initial", state.Label)
+	assert.Equal(t, "This is the initial state.", state.Description)
+	assert.Empty(t, state.Triggers)
+	assert.Nil(t, state.Timer)
+}

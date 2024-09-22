@@ -156,7 +156,7 @@ func manualTestUpdateActiveWorkflow(){
 	dateSubmitted := time.Now()
 	stateDeadline := time.Now().Add(24 * time.Hour)
 
-	err := api.UpdateActiveWorkflow(id, nil, &currentState, &dateSubmitted, &stateDeadline)
+	err := api.UpdateActiveWorkflow(id, nil, &currentState, &dateSubmitted, &stateDeadline, nil)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

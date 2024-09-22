@@ -16,7 +16,7 @@ type API interface {
 	UpdateWorkflow(id int, name *string, workflow *Workflow, categories *[]int64, author *int64) error
 	FetchActiveWorkflows() ([]db.ActiveWorkflows, error)
 	FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error)
-	UpdateActiveWorkflow(id int, workflowID *int, currentState *string, dateSubmitted *time.Time, stateDeadline *time.Time) error
+	UpdateActiveWorkflow(id int, workflowID *int, currentState *string, dateSubmitted *time.Time, stateDeadline *time.Time, workflowInstance *json.RawMessage) error
 }
 
 // APIWorkflow is the implementation of the API interface
@@ -184,7 +184,7 @@ func (api *APIWorkflow) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error)
 	return &activeWorkflow, nil
 }
 
-func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentState *string,  dateSubmitted *time.Time, stateDeadline *time.Time) error {
+func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentState *string,  dateSubmitted *time.Time, stateDeadline *time.Time, workflowInstance *json.RawMessage) error {
 	// Fetch the active workflow
 	var activeWorkflow db.ActiveWorkflows
 	result := api.DB.First(&activeWorkflow, id)
@@ -210,6 +210,11 @@ func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentSta
 	// Update the stateDeadline if provided
 	if stateDeadline != nil {
 		activeWorkflow.StateDeadline = *stateDeadline
+	}
+
+	// Update the workflowInstance if provided
+	if workflowInstance != nil {
+		activeWorkflow.WorkflowInstance = *workflowInstance
 	}
 
 	// Save the updated active workflow

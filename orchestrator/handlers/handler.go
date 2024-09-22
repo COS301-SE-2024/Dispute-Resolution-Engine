@@ -70,7 +70,7 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 	dateSubmitted := time.Now()
 	stateDeadline := time.Now().Add(wf.States[wf.Initial].Timer.Duration.Duration)
 	//! how do we get ID of the active workflow to be updated?
-	err = h.api.UpdateActiveWorkflow(workflowID, nil, &wf.Initial, &dateSubmitted, &stateDeadline)
+	err = h.api.UpdateActiveWorkflow(workflowID, nil, &wf.Initial, &dateSubmitted, &stateDeadline, nil)
 	if err != nil {
 		h.logger.Error("Error updating active workflow")
 		c.JSON(http.StatusInternalServerError, gin.H{

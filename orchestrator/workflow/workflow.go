@@ -71,6 +71,10 @@ func (t *Timer) GetDuration() time.Duration {
 	return t.Duration.Duration
 }
 
+func (t *Timer) SetDuration(duration time.Duration) {
+	t.Duration = durationWrapper{duration}
+}
+
 func (t *Timer) GetDeadline() time.Time {
 	return time.Now().Add(t.Duration.Duration)
 }

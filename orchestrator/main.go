@@ -1,34 +1,43 @@
 package main
 
 import (
-	"orchestrator/controller"
-	"orchestrator/handlers"
+	// "orchestrator/controller"
+	// "orchestrator/handlers"
+	"fmt"
 	"orchestrator/workflow"
-
-	"github.com/gin-gonic/gin"
+	// "github.com/gin-gonic/gin"
 )
 
 func main() {
-	router := gin.Default()
+	dbQuery := workflow.CreateWorkflowQuery()
 
-	// Create a new controller instance
-	controller := controller.NewController()
-	// Start the controller
-	controller.Start()
+	wf, err := dbQuery.FetchActiveWorkflow(1)
+	if err != nil {
+		panic(err)
+	}
 
-	// Create a new handler instance
-	queryEngine:= workflow.CreateWorkflowQuery()
-	apiHandler := workflow.CreateAPIWorkflow(queryEngine)
+	fmt.Println(wf)
 
-	handlers := handlers.NewHandler(controller, &apiHandler)
+	// router := gin.Default()
 
-	// Add notify of update state machine handler
-	router.POST("/restart", handlers.RestartStateMachine)
-	// Add notify of START state machine handler
-	router.POST("/start", handlers.StartStateMachine)
+	// // Create a new controller instance
+	// controller := controller.NewController()
+	// // Start the controller
+	// controller.Start()
 
-	router.Run(":8090")
+	// // Create a new handler instance
+	// queryEngine:= workflow.CreateWorkflowQuery()
+	// apiHandler := workflow.CreateAPIWorkflow(queryEngine)
 
-	// Wait for a signal to shutdown
-	controller.WaitForSignal()
+	// handlers := handlers.NewHandler(controller, &apiHandler)
+
+	// // Add notify of update state machine handler
+	// router.POST("/restart", handlers.RestartStateMachine)
+	// // Add notify of START state machine handler
+	// router.POST("/start", handlers.StartStateMachine)
+
+	// router.Run(":8090")
+
+	// // Wait for a signal to shutdown
+	// controller.WaitForSignal()
 }

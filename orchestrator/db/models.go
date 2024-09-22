@@ -26,11 +26,11 @@ type LabelledWorkflow struct {
 
 type ActiveWorkflows struct {
 	ID               int64           `gorm:"primaryKey;autoIncrement"`
-	WorkflowID       int64           `gorm:"column:workflow;not null"`               // Foreign Key to Workflow
+	Workflow         int64           `gorm:"not null"`               // Foreign Key to Workflow
 	CurrentState     string          `gorm:"column:current_state;type:varchar(255)"` // Current State
 	DateSubmitted    time.Time       `gorm:"column:date_submitted;type:timestamp"`   // Date the workflow was submitted
 	StateDeadline    time.Time       `gorm:"column:state_deadline;type:timestamp"`   // Deadline for the current state
-	WorkflowInstance json.RawMessage `gorm:"column:definition;type:jsonb"`
+	WorkflowInstance json.RawMessage `gorm:"type:jsonb"`
 }
 
 type User struct {

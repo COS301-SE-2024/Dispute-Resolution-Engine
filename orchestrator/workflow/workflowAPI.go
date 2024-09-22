@@ -173,7 +173,7 @@ func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentSta
 
 	// Update the workflowID if provided
 	if workflowID != nil {
-		activeWorkflow.WorkflowID = int64(*workflowID)
+		activeWorkflow.Workflow = int64(*workflowID)
 	}
 
 	// Update the currentState if provided

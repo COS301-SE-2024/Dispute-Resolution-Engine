@@ -108,7 +108,7 @@ func (wfq *WorkflowQuery) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, erro
 	var activeWorkflow db.ActiveWorkflows
 	result := wfq.DB.
 		Table("active_workflows").
-		Select("id, workflow as workflow_id, current_state, state_deadline, workflow_instance").
+		Select("id, workflow, current_state, state_deadline, workflow_instance").
 		Where("id = ?", id).
 		Scan(&activeWorkflow)
 

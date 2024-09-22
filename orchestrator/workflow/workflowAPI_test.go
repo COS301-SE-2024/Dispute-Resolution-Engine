@@ -105,7 +105,7 @@ func (tdb *TestDbPositive) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) 
 	return []db.ActiveWorkflows{
 		{
 			ID:               1,
-			WorkflowID:       1,
+			Workflow:         1,
 			CurrentState:     "new state",
 			DateSubmitted:    time.Now(),
 			StateDeadline:    time.Now(),
@@ -117,7 +117,7 @@ func (tdb *TestDbPositive) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) 
 func (tdb *TestDbPositive) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error) {
 	return &db.ActiveWorkflows{
 		ID:               1,
-		WorkflowID:       1,
+		Workflow:         1,
 		CurrentState:     "new state",
 		DateSubmitted:    time.Now(),
 		StateDeadline:    time.Now(),
@@ -174,8 +174,8 @@ func (tdb *TestDbNegative) SaveActiveWorkflowInstance(activeWorkflow *db.ActiveW
 	return errors.New("error")
 }
 
-//---------------------------- model - dbNegative ----------------------------
-//---------------------------- WorkflowAPITestSuitePositive ----------------------------
+// ---------------------------- model - dbNegative ----------------------------
+// ---------------------------- WorkflowAPITestSuitePositive ----------------------------
 type WorkflowAPITestSuitePositive struct {
 	suite.Suite
 	dbQuery *TestDbPositive
@@ -247,7 +247,7 @@ func (suite *WorkflowAPITestSuitePositive) TestFetchActiverWorkflows_Positive() 
 
 	// Assert specific fields in the workflow for correctness
 	suite.Equal(int64(1), workflows[0].ID)
-	suite.Equal(int64(1), workflows[0].WorkflowID)
+	suite.Equal(int64(1), workflows[0].Workflow)
 	suite.Equal("new state", workflows[0].CurrentState)
 }
 
@@ -266,7 +266,7 @@ func (suite *WorkflowAPITestSuitePositive) TestFetchActiveWorkflow_Positive() {
 
 	// Assert specific fields in the workflow for correctness
 	suite.Equal(int64(1), workflow.ID)
-	suite.Equal(int64(1), workflow.WorkflowID)
+	suite.Equal(int64(1), workflow.Workflow)
 	suite.Equal("new state", workflow.CurrentState)
 }
 
@@ -284,10 +284,11 @@ func (suite *WorkflowAPITestSuitePositive) TestUpdateActiveWorkflow_Positive() {
 }
 
 func TestWorkflowAPITestSuitePositive(t *testing.T) {
-    suite.Run(t, new(WorkflowAPITestSuitePositive))
+	suite.Run(t, new(WorkflowAPITestSuitePositive))
 }
-//---------------------------- WorkflowAPITestSuitePositive ----------------------------
-//---------------------------- WorkflowAPITestSuiteNegative ----------------------------
+
+// ---------------------------- WorkflowAPITestSuitePositive ----------------------------
+// ---------------------------- WorkflowAPITestSuiteNegative ----------------------------
 type WorkflowAPITestSuiteNegative struct {
 	suite.Suite
 	dbQuery *TestDbNegative

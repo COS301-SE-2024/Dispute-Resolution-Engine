@@ -131,7 +131,7 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 	// Manage categories (tags) in labelled_workflow if provided
 	if categories != nil {
 		// Remove existing tags
-		err := api.DB.Where("workflow_id = ?", existingWorkflow.ID).Delete(&db.LabelledWorkflow{}).Error
+		err = api.WfQuery.DeleteLabelledWorkfloByWorkflowId(existingWorkflow.ID)
 		if err != nil {
 			return err
 		}

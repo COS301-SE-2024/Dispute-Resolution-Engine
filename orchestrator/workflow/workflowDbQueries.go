@@ -13,7 +13,7 @@ type DBQuery interface {
 	CreateWorkflows(workflow *db.Workflowdb) error
 	CreateLabbelledWorkdlows(labelledWorkflow *db.LabelledWorkflow) error
 	SaveWorkflowInstance(activeWorkflow *db.Workflowdb) error
-	DeleteLabelledWorkflow(labelledWorkflow *db.LabelledWorkflow) error
+	DeleteLabelledWorkfloByWorkflowId(id uint64) error
 	
 	FetchActiveWorkflows() ([]db.ActiveWorkflows, error)
 	FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error)
@@ -84,3 +84,12 @@ func (wfq *WorkflowQuery) SaveWorkflowInstance(workflow *db.Workflowdb) error {
 	}
 	return nil
 }
+
+func (wfq *WorkflowQuery) DeleteLabelledWorkfloByWorkflowId(id uint64) error {
+	err := wfq.DB.Where("workflow_id = ?", id).Delete(&db.LabelledWorkflow{}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+	

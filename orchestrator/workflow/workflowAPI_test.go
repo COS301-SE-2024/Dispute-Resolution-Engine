@@ -2,9 +2,12 @@ package workflow_test
 
 import (
 	"encoding/json"
+	"errors"
 	"orchestrator/db"
 	"time"
 )
+
+//---------------------------- model - dbPositive ----------------------------
 
 type TestDbPositive struct {
 }
@@ -117,3 +120,46 @@ func (tdb *TestDbPositive) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, err
 func (tdb *TestDbPositive) SaveActiveWorkflow(activeWorkflow *db.ActiveWorkflows) error {
 	return nil
 }
+
+//---------------------------- model - dbPositive ----------------------------
+//---------------------------- model - dbNegative ----------------------------
+type TestDbNegative struct {
+}
+
+func (tdb *TestDbNegative) FetchWorkflowQuery(id int) (*db.Workflowdb, error) {
+	return nil, errors.New("error")
+}
+
+func (tdb *TestDbNegative) FetchUserQuery(id int64) (*db.User, error) {
+	return nil, errors.New("error")
+}
+
+func (tdb *TestDbNegative) FetchTagsByID(id int64) (*db.Tag, error) {
+	return nil, errors.New("error")
+}
+
+func (tdb *TestDbNegative) CreateWorkflows(workflow *db.Workflowdb) error {
+	return errors.New("error")
+}
+
+func (tdb *TestDbNegative) CreateLabbelledWorkdlows(labelledWorkflow *db.LabelledWorkflow) error {
+	return errors.New("error")
+}
+
+func (tdb *TestDbNegative) SaveWorkflowInstance(workflow *db.Workflowdb) error {
+	return errors.New("error")
+}
+
+func (tdb *TestDbNegative) FetchActiveWorkflows() ([]db.ActiveWorkflows, error) {
+	return nil, errors.New("error")
+}
+
+func (tdb *TestDbNegative) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error) {
+	return nil, errors.New("error")
+}
+
+func (tdb *TestDbNegative) SaveActiveWorkflow(activeWorkflow *db.ActiveWorkflows) error {
+	return errors.New("error")
+}
+//---------------------------- model - dbNegative ----------------------------
+

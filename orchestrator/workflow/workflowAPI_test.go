@@ -232,11 +232,43 @@ func (suite *WorkflowAPITestSuitePositive) TestUpdateWorkflow_Positive() {
 }
 
 func (suite *WorkflowAPITestSuitePositive) TestFetchActiverWorkflows_Positive() {
-	
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call FetchActiveWorkflows
+	workflows, err := testingWorkflowAPI.FetchActiveWorkflows()
+
+	// Assert that no error occurred and the workflows is not nil
+	suite.NoError(err)
+	suite.NotNil(workflows)
+
+	// Assert specific fields in the workflow for correctness
+	suite.Equal(1, workflows[0].ID)
+	suite.Equal(1, workflows[0].WorkflowID)
+	suite.Equal("new state", workflows[0].CurrentState)
 }
 
 func (suite *WorkflowAPITestSuitePositive) TestFetchActiveWorkflow_Positive() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call FetchActiveWorkflow
+	workflow, err := testingWorkflowAPI.FetchActiveWorkflow(1)
+
+	// Assert that no error occurred and the workflow is not nil
+	suite.NoError(err)
+	suite.NotNil(workflow)
+
+	// Assert specific fields in the workflow for correctness
+	suite.Equal(1, workflow.ID)
+	suite.Equal(1, workflow.WorkflowID)
+	suite.Equal("new state", workflow.CurrentState)
 }
 
 func (suite *WorkflowAPITestSuitePositive) TestUpdateActiveWorkflow_Positive() {
+	
 }

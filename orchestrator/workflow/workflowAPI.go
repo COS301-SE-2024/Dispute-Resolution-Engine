@@ -164,8 +164,6 @@ func (api *APIWorkflow) FetchActiveWorkflows() ([]ActiveWorkflowsResponse, error
 	return activeWorkflows, nil
 }
 
-
-
 func (api *APIWorkflow) FetchActiveWorkflow(id int) (*ActiveWorkflowsResponse, error) {
 	var activeWorkflow ActiveWorkflowsResponse
 

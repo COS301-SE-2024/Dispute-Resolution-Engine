@@ -21,7 +21,8 @@ type API interface {
 
 // APIWorkflow is the implementation of the API interface
 type APIWorkflow struct {
-	DB *gorm.DB
+	DB      *gorm.DB
+	WfQuery DBQuery
 }
 
 // Workflow is the struct that represents a workflow
@@ -31,17 +32,19 @@ func CreateAPIWorkflow() *APIWorkflow {
 		return nil
 	}
 	return &APIWorkflow{
-		DB: Database,
+		DB:      Database,
+		WfQuery: CreateDBQuery(),
 	}
 }
 
 func (api *APIWorkflow) FetchWorkflow(id int) (*db.Workflowdb, error) {
-	var workflow db.Workflowdb
-	result := api.DB.First(&workflow, id)
-	if result.Error != nil {
-		return nil, result.Error
+	// Fetch the workflow from the database
+	workflow, err := api.WfQuery.FetchWorkflowQuery(id)
+	if err != nil {
+		return nil, err
 	}
-	return &workflow, nil
+
+	return workflow, nil
 }
 
 func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories []int64, Author int64) error {
@@ -61,10 +64,9 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 
 	//check if category exist in tags table
 	for _, category := range categories {
-		var tag db.Tag
-		result := api.DB.First(&tag, category)
-		if result.Error != nil {
-			return result.Error
+		_, err := api.WfQuery.FetchTagsByID(int(category))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -184,7 +186,7 @@ func (api *APIWorkflow) FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error)
 	return &activeWorkflow, nil
 }
 
-func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentState *string,  dateSubmitted *time.Time, stateDeadline *time.Time, workflowInstance *json.RawMessage) error {
+func (api *APIWorkflow) UpdateActiveWorkflow(id int, workflowID *int, currentState *string, dateSubmitted *time.Time, stateDeadline *time.Time, workflowInstance *json.RawMessage) error {
 	// Fetch the active workflow
 	var activeWorkflow db.ActiveWorkflows
 	result := api.DB.First(&activeWorkflow, id)

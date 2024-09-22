@@ -157,7 +157,7 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving disputes"})
 			return
 		}
-		c.JSON(http.StatusOK, models.Response{Data: disputes})
+		c.JSON(http.StatusOK, models.Response{Data: disputes, Total: int64(len(disputes))})
 		return
 	}
 

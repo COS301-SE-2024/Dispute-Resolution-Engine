@@ -61,5 +61,27 @@ func TestUnmarshalDurationWrapper(t *testing.T) {
 	assert.Equal(t, expectedDuration, durWrapper.Duration, "The unmarshaled duration should be 30s")
 }
 
+func TestMarshalTimer(t *testing.T) {
+	duration := 20 * time.Second
+	onExpire := "trigger_event"
+	tmr := workflow.CreateTimer(duration, onExpire)
 
+	marshaled, err := json.Marshal(tmr)
+	assert.NoError(t, err, "Marshaling the timer should not return an error")
+
+	expectedJSON := `{"duration":"20s","on_expire":"trigger_event"}`
+	assert.JSONEq(t, expectedJSON, string(marshaled), "The marshaled JSON should match the expected structure")
+}
+
+func TestUnmarshalTimer(t *testing.T) {
+	jsonStr := `{"duration":"10s","on_expire":"trigger_event"}`
+	var tmr workflow.Timer
+
+	err := json.Unmarshal([]byte(jsonStr), &tmr)
+	assert.NoError(t, err, "Unmarshaling the timer should not return an error")
+
+	expectedDuration := 10 * time.Second
+	assert.Equal(t, expectedDuration, tmr.GetDuration(), "The unmarshaled timer should have a duration of 10s")
+	assert.Equal(t, "trigger_event", tmr.OnExpire, "The OnExpire trigger should match the provided value")
+}
 

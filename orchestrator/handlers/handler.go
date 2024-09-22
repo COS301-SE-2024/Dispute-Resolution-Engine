@@ -29,7 +29,7 @@ func NewHandler(ctrlr *controller.Controller) *Handler {
 }
 
 // For when the api notifies the orchestrator to start a new state machine.
-// Body should contain the id of the state machine json format.
+// Body should contain the id of the state machine to be started in json.
 func (h *Handler) StartStateMachine(c *gin.Context) {
 	h.logger.Info("Starting state machine...")
 	// Get the workflow ID from the request

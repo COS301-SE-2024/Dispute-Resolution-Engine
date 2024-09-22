@@ -270,5 +270,14 @@ func (suite *WorkflowAPITestSuitePositive) TestFetchActiveWorkflow_Positive() {
 }
 
 func (suite *WorkflowAPITestSuitePositive) TestUpdateActiveWorkflow_Positive() {
-	
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call UpdateActiveWorkflow
+	err := testingWorkflowAPI.UpdateActiveWorkflow(1, nil, nil, nil, nil, nil)
+
+	// Assert that no error occurred
+	suite.NoError(err)
 }

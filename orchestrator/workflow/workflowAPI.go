@@ -87,9 +87,9 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 			WorkflowID: workflowDbEntry.ID,
 			TagID:      uint64(category),
 		}
-		result = api.DB.Create(&labelledWorkflow)
-		if result.Error != nil {
-			return result.Error
+		err = api.WfQuery.CreateLabbelledWorkdlows(labelledWorkflow)
+		if err != nil {
+			return err
 		}
 	}
 

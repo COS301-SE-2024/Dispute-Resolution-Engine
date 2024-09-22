@@ -68,3 +68,11 @@ func (wfq *WorkflowQuery) CreateWorkflows(workflow *db.Workflowdb) error {
 	}
 	return nil
 }
+
+func (wfq *WorkflowQuery) CreateLabbelledWorkdlows(labelledWorkflow *db.LabelledWorkflow) error {
+	result := wfq.DB.Create(labelledWorkflow)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

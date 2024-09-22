@@ -49,6 +49,17 @@ const (
 )
 
 // ----------------------------Timers--------------------------------
+type TimerInterface interface {
+	GetDuration() time.Duration
+	SetDuration(duration time.Duration)
+	GetDeadline() time.Time
+}
+
+type DurationWrapperInterface interface {
+	MarshalJSON() ([]byte, error)
+	UnmarshalJSON(b []byte) error
+}
+
 type Timer struct {
 	// The duration that the timer should run for
 	Duration DurationWrapper `json:"duration"`
@@ -98,6 +109,12 @@ func (d *DurationWrapper) UnmarshalJSON(b []byte) error {
 }
 
 // ----------------------------States--------------------------------
+type StateInterface interface {
+	AddTrigger(trigger Trigger)
+	SetTimer(timer Timer)
+}
+
+
 type State struct {
 	// Human-readable label of the state
 	Label string `json:"label"`
@@ -130,6 +147,9 @@ func (s *State) SetTimer(timer Timer) {
 }
 
 // ----------------------------Trigger--------------------------------
+type TriggerInterface interface {
+}
+
 type Trigger struct {
 	// Human-readable label of the trigger
 	Label string `json:"label"`
@@ -143,6 +163,12 @@ func NewTrigger(label, next string) Trigger {
 }
 
 // ----------------------------Workflow--------------------------------
+type WorkflowInterface interface {
+	GetInitialState() State
+	GetWorkflowString() string
+}
+
+
 type Workflow struct {
 	// The ID of the initial state of the workflow
 	Initial string `json:"initial"`

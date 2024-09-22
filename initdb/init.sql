@@ -70,7 +70,7 @@ CREATE TABLE active_workflows (
     workflow BIGINT REFERENCES workflows(id) NOT NULL,
     current_state VARCHAR(255),
     date_submitted TIMESTAMP,
-    state_deadline TIMESTAMP
+    state_deadline TIMESTAMP,
 	workflow_instance JSONB NOT NULL
 );
 

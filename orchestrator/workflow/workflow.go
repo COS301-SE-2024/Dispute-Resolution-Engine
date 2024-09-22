@@ -148,7 +148,7 @@ type Workflow struct {
 }
 
 // Factory method
-func CreateWorkflow( initialId string, initial State) Workflow {
+func CreateWorkflow(initialId string, initial State) Workflow {
 	w := Workflow{
 		Initial: initialId,
 		States:  make(map[string]State),

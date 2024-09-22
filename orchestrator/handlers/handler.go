@@ -1,12 +1,14 @@
 package handlers
 
 import (
-	"net/http"
-	"strconv"
 	"encoding/json"
+	"net/http"
+
 	"orchestrator/controller"
 	"orchestrator/utilities"
 	"orchestrator/workflow"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,7 +52,6 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 		})
 		return
 	}
-
 	// Unmarshal the workflow definition
 	var wf workflow.Workflow
 	err = json.Unmarshal([]byte(wf_record.Definition), &wf)
@@ -64,6 +65,18 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 
 	// Register the state machine with the controller
 	h.controller.RegisterStateMachine(workflowIDStr, wf)
+
+	// Update the active workflow in the database
+	dateSubmitted := time.Now()
+	stateDeadline := time.Now().Add(wf.States[wf.Initial].Timer.Duration.Duration)
+	err = h.api.UpdateActiveWorkflow(workflowID, nil, &wf.Initial, &dateSubmitted, &stateDeadline)
+	if err != nil {
+		h.logger.Error("Error updating active workflow")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error updating active workflow",
+		})
+		return
+	}
 
 	// Return a success response
 	h.logger.Info("State machine started successfully!")

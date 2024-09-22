@@ -22,6 +22,8 @@ func main() {
 	// Add notify of START state machine handler
 	router.POST("/start", handlers.StartStateMachine)
 
-
 	router.Run(":8090")
+
+	// Wait for a signal to shutdown
+	controller.WaitForSignal()
 }

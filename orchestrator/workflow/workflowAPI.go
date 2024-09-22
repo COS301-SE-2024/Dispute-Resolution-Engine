@@ -23,9 +23,9 @@ type APIWorkflow struct {
 }
 
 // Workflow is the struct that represents a workflow
-func CreateAPIWorkflow() *APIWorkflow {
-	return &APIWorkflow{
-		WfQuery: CreateDBQuery(),
+func CreateAPIWorkflow(queryEngine DBQuery) APIWorkflow {
+	return APIWorkflow{
+		WfQuery: queryEngine,
 	}
 }
 
@@ -79,7 +79,7 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 			WorkflowID: workflowDbEntry.ID,
 			TagID:      uint64(category),
 		}
-		err = api.WfQuery.CreateLabbelledWorkdlows(labelledWorkflow)
+		err = api.WfQuery.CreateLabbelledWorkflows(labelledWorkflow)
 		if err != nil {
 			return err
 		}
@@ -122,7 +122,7 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 	// Manage categories (tags) in labelled_workflow if provided
 	if categories != nil {
 		// Remove existing tags
-		err = api.WfQuery.DeleteLabelledWorkfloByWorkflowId(existingWorkflow.ID)
+		err = api.WfQuery.DeleteLabelledWorkflowByWorkflowId(existingWorkflow.ID)
 		if err != nil {
 			return err
 		}
@@ -133,7 +133,7 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 				WorkflowID: existingWorkflow.ID,
 				TagID:      uint64(categoryID),
 			}
-			err = api.WfQuery.CreateLabbelledWorkdlows(labelledWorkflow)
+			err = api.WfQuery.CreateLabbelledWorkflows(labelledWorkflow)
 			if err != nil {
 				return err
 			}

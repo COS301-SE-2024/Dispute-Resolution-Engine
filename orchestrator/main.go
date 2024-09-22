@@ -1,8 +1,10 @@
 package main
 
 import (
-	"orchestrator/handlers"
 	"orchestrator/controller"
+	"orchestrator/handlers"
+	"orchestrator/workflow"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +17,10 @@ func main() {
 	controller.Start()
 
 	// Create a new handler instance
-	handlers := handlers.NewHandler(controller)
+	queryEngine:= workflow.CreateWorkflowQuery()
+	apiHandler := workflow.CreateAPIWorkflow(queryEngine)
+
+	handlers := handlers.NewHandler(controller, &apiHandler)
 
 	// Add notify of update state machine handler
 	router.POST("/restart", handlers.RestartStateMachine)

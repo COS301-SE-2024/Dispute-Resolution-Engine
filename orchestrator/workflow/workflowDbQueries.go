@@ -11,9 +11,9 @@ type DBQuery interface {
 	FetchUserQuery(id int64) (*db.User, error)
 	FetchTagsByID(id int64) (*db.Tag, error)
 	CreateWorkflows(workflow *db.Workflowdb) error
-	CreateLabbelledWorkdlows(labelledWorkflow *db.LabelledWorkflow) error
+	CreateLabbelledWorkflows(labelledWorkflow *db.LabelledWorkflow) error
 	SaveWorkflowInstance(activeWorkflow *db.Workflowdb) error
-	DeleteLabelledWorkfloByWorkflowId(id uint64) error
+	DeleteLabelledWorkflowByWorkflowId(id uint64) error
 
 	FetchActiveWorkflows() ([]db.ActiveWorkflows, error)
 	FetchActiveWorkflow(id int) (*db.ActiveWorkflows, error)
@@ -24,7 +24,7 @@ type WorkflowQuery struct {
 	DB *gorm.DB
 }
 
-func CreateDBQuery() *WorkflowQuery {
+func CreateWorkflowQuery() *WorkflowQuery {
 	Database, err := db.Init()
 	if err != nil {
 		return nil
@@ -69,7 +69,7 @@ func (wfq *WorkflowQuery) CreateWorkflows(workflow *db.Workflowdb) error {
 	return nil
 }
 
-func (wfq *WorkflowQuery) CreateLabbelledWorkdlows(labelledWorkflow *db.LabelledWorkflow) error {
+func (wfq *WorkflowQuery) CreateLabbelledWorkflows(labelledWorkflow *db.LabelledWorkflow) error {
 	result := wfq.DB.Create(labelledWorkflow)
 	if result.Error != nil {
 		return result.Error
@@ -85,7 +85,7 @@ func (wfq *WorkflowQuery) SaveWorkflowInstance(workflow *db.Workflowdb) error {
 	return nil
 }
 
-func (wfq *WorkflowQuery) DeleteLabelledWorkfloByWorkflowId(id uint64) error {
+func (wfq *WorkflowQuery) DeleteLabelledWorkflowByWorkflowId(id uint64) error {
 	err := wfq.DB.Where("workflow_id = ?", id).Delete(&db.LabelledWorkflow{}).Error
 	if err != nil {
 		return err

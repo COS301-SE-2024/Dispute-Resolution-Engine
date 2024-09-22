@@ -20,11 +20,11 @@ type Handler struct {
 	api workflow.API
 }
 
-func NewHandler(ctrlr *controller.Controller) *Handler {
+func NewHandler(ctrlr *controller.Controller, apiHandler workflow.API) *Handler {
 	return &Handler{
 		controller: ctrlr,
 		logger: *utilities.NewLogger(),
-		api: workflow.CreateAPIWorkflow(),
+		api: apiHandler,
 	}
 }
 

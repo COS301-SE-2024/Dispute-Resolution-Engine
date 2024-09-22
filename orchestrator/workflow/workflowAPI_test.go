@@ -339,8 +339,50 @@ func (suite *WorkflowAPITestSuiteNegative) TestUpdateWorkflow_Negative() {
 	suite.Error(err)
 }
 
+func (suite *WorkflowAPITestSuiteNegative) TestFetchActiverWorkflows_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
 
+	// Call FetchActiveWorkflows
+	workflows, err := testingWorkflowAPI.FetchActiveWorkflows()
 
+	// Assert that an error occurred and the workflows is nil
+	suite.Error(err)
+	suite.Nil(workflows)
+}
+
+func (suite *WorkflowAPITestSuiteNegative) TestFetchActiveWorkflow_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call FetchActiveWorkflow
+	workflow, err := testingWorkflowAPI.FetchActiveWorkflow(1)
+
+	// Assert that an error occurred and the workflow is nil
+	suite.Error(err)
+	suite.Nil(workflow)
+}
+
+func (suite *WorkflowAPITestSuiteNegative) TestUpdateActiveWorkflow_Negative() {
+	// Create the APIWorkflow instance using the mock database
+	testingWorkflowAPI := workflow.APIWorkflow{
+		WfQuery: suite.dbQuery,
+	}
+
+	// Call UpdateActiveWorkflow
+	err := testingWorkflowAPI.UpdateActiveWorkflow(1, nil, nil, nil, nil, nil)
+
+	// Assert that an error occurred
+	suite.Error(err)
+}
+
+func TestWorkflowAPITestSuiteNegative(t *testing.T) {
+	suite.Run(t, new(WorkflowAPITestSuiteNegative))
+}
 
 //---------------------------- manual tests ----------------------------
 

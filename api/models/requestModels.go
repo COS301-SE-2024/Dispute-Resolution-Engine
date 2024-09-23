@@ -157,3 +157,9 @@ type UpdateWorkflow struct {
 	Category           *[]int64                `json:"category,omitempty"`
 	Author             *int64                  `json:"author,omitempty"`
 }
+
+type NewActiveWorkflow struct {
+	DisputeID int64  `json:"dispute_id"`
+	Workflow  int64  `json:"workflow_id"`
+	
+}

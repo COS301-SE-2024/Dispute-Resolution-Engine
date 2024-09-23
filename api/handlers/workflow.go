@@ -5,6 +5,7 @@ import (
 	"api/utilities"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -287,3 +288,75 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.Response{Data: "Workflow and associated tags deleted"})
 }
+
+func (w Workflow) NewActiveWorkflow(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	var newActiveWorkflow models.NewActiveWorkflow
+	err := c.BindJSON(&newActiveWorkflow)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request payload"})
+		return
+	}
+
+	// Find the dispute
+	var dispute models.Dispute
+	result := w.DB.First(&dispute, newActiveWorkflow.DisputeID)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			logger.Warnf("Dispute with ID %d not found", newActiveWorkflow.DisputeID)
+			c.JSON(http.StatusNotFound, models.Response{Error: "Dispute not found"})
+		} else {
+			logger.Error(result.Error)
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		}
+		return
+	}
+
+	// Find the workflow
+	var workflow models.Workflow
+	result = w.DB.First(&workflow, newActiveWorkflow.Workflow)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			logger.Warnf("Workflow with ID %d not found", newActiveWorkflow.Workflow)
+			c.JSON(http.StatusNotFound, models.Response{Error: "Workflow not found"})
+		} else {
+			logger.Error(result.Error)
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		}
+		return
+	}
+
+	// Update the dispute with the new workflow
+	workflowID := int64(workflow.ID)
+	dispute.Workflow = &workflowID
+	result = w.DB.Save(&dispute)
+	if result.Error != nil {
+		logger.Error(result.Error)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	//add entry to active Workflows
+	timeNow := time.Now()
+	activeWorkflow := models.ActiveWorkflows{
+		ID:           *dispute.ID,
+		Workflow:     workflowID,
+		WorkflowInstance: workflow.Definition,
+		DateSubmitted: timeNow,
+	}
+
+	result = w.DB.Create(&activeWorkflow)
+	if result.Error != nil {
+		logger.Error(result.Error)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	//send request to orchestrator to activate workflow
+
+	c.JSON(http.StatusOK, models.Response{Data: "Databse updated and request to Activate workflow sent"})
+
+}
+	

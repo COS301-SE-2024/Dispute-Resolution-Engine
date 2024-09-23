@@ -114,7 +114,7 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 	userID := jwtClaims.ID
 	userRole := jwtClaims.Role
 
-	if userRole == "admin" {
+	if userRole == "admin" && c.Request.Method == "POST" {
 		var reqAdminDisputes models.AdminDisputesRequest
 		if err := c.BindJSON(&reqAdminDisputes); err != nil {
 			logger.WithError(err).Error("Invalid request")

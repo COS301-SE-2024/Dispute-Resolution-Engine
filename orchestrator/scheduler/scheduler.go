@@ -13,17 +13,17 @@ type Timer struct {
 }
 
 type Scheduler struct {
-	timers       map[string]Timer
-	lock         *sync.RWMutex
-	pollInterval time.Duration
-	logger       *utilities.Logger
+	Timers       map[string]Timer
+	Lock         *sync.RWMutex
+	PollInterval time.Duration
+	Logger       *utilities.Logger
 }
 
 func New(pollInterval time.Duration) *Scheduler {
 	return &Scheduler{
-		timers:       make(map[string]Timer),
-		lock:         &sync.RWMutex{},
-		pollInterval: pollInterval,
+		Timers:       make(map[string]Timer),
+		Lock:         &sync.RWMutex{},
+		PollInterval: pollInterval,
 	}
 }
 
@@ -35,40 +35,40 @@ func NewScheduler() *Scheduler {
 
 func NewWithLogger(pollInterval time.Duration, logger *utilities.Logger) *Scheduler {
 	return &Scheduler{
-		timers:       make(map[string]Timer),
-		lock:         &sync.RWMutex{},
-		pollInterval: pollInterval,
-		logger:       logger,
+		Timers:       make(map[string]Timer),
+		Lock:         &sync.RWMutex{},
+		PollInterval: pollInterval,
+		Logger:       logger,
 	}
 }
 
 // Adds a new timer that will execute the callback after the deadline, overwriting
 // any existing timer with the same name.
 func (s *Scheduler) AddTimer(name string, deadline time.Time, event func()) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock.Lock()
+	defer s.Lock.Unlock()
 
-	s.timers[name] = Timer{
+	s.Timers[name] = Timer{
 		Name:     name,
 		Deadline: deadline,
 		Event:    event,
 	}
-	s.logger.Info("Timer added: ", name, ". Expires at ", deadline)
+	s.Logger.Info("Timer added: ", name, ". Expires at ", deadline)
 }
 
 // Removes the timer with the passed-in name, returning whether that timer was
 // found and successfully removed.
 func (s *Scheduler) RemoveTimer(name string) bool {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.Lock.Lock()
+	defer s.Lock.Unlock()
 
-	_, found := s.timers[name]
-	delete(s.timers, name)
+	_, found := s.Timers[name]
+	delete(s.Timers, name)
 
 	if found {
-		s.logger.Debug("Timer removed: ", name)
+		s.Logger.Debug("Timer removed: ", name)
 	} else {
-		s.logger.Debug("Timer not found: ", name)
+		s.Logger.Debug("Timer not found: ", name)
 	}
 
 	return found
@@ -76,14 +76,14 @@ func (s *Scheduler) RemoveTimer(name string) bool {
 
 // Spawns a new goroutine that polls the timer registry for expired timers
 func (s *Scheduler) Start(stop chan struct{}) {
-	ticker := time.NewTicker(s.pollInterval)
+	ticker := time.NewTicker(s.PollInterval)
 	go func() {
 		for {
 			select {
 			case currentTime := <-ticker.C:
 				s.checkTimers(currentTime)
 			case <-stop:
-				s.logger.Info("Scheduler stopped")
+				s.Logger.Info("Scheduler stopped")
 				return
 			}
 		}
@@ -92,24 +92,24 @@ func (s *Scheduler) Start(stop chan struct{}) {
 
 // Triggers the callbacks of all expired timers
 func (s *Scheduler) checkTimers(currentTime time.Time) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+	s.Lock.RLock()
+	defer s.Lock.RUnlock()
 
-	s.logger.Info("Checking all timers")
-	for _, timer := range s.timers {
+	s.Logger.Info("Checking all timers")
+	for _, timer := range s.Timers {
 		if currentTime.After(timer.Deadline) {
-			s.logger.Info("Timer expired:", timer.Name)
+			s.Logger.Info("Timer expired:", timer.Name)
 			go timer.Event()
 
 			// There is no way to upgrade an existing lock, so this is the way (unfortunately)
-			s.lock.RUnlock()
-			s.lock.Lock()
+			s.Lock.RUnlock()
+			s.Lock.Lock()
 
-			delete(s.timers, timer.Name)
-			s.logger.Debug("Timer removed: ", timer.Name)
+			delete(s.Timers, timer.Name)
+			s.Logger.Debug("Timer removed: ", timer.Name)
 
-			s.lock.Unlock()
-			s.lock.RLock()
+			s.Lock.Unlock()
+			s.Lock.RLock()
 		}
 	}
 }

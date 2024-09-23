@@ -89,14 +89,33 @@ func TestUnmarshalTimer(t *testing.T) {
 type Trigger struct {
 	Label string
 }
-
 func TestCreateState(t *testing.T) {
-	// Create a new state
-	state := workflow.CreateState("Initial", "This is the initial state.")
+	label := "Initial"
+	description := "This is the initial state."
+	state := workflow.CreateState(label, description)
 
-	// Assert state properties
-	assert.Equal(t, "Initial", state.Label)
-	assert.Equal(t, "This is the initial state.", state.Description)
-	assert.Empty(t, state.Triggers)
-	assert.Nil(t, state.Timer)
+	assert.Equal(t, label, state.Label, "The state label should match the provided value")
+	assert.Equal(t, description, state.Description, "The state description should match the provided value")
+	assert.Empty(t, state.Triggers, "The state should have no triggers initially")
+	assert.Nil(t, state.Timer, "The state should have no timer initially")
+}
+
+func TestAddTrigger(t *testing.T) {
+	state := workflow.CreateState("State1", "A test state")
+	trigger := workflow.NewTrigger("Trigger1", "NextState")
+
+	state.AddTrigger(trigger)
+
+	assert.Contains(t, state.Triggers, trigger.Label, "The state should contain the added trigger")
+	assert.Equal(t, trigger, state.Triggers[trigger.Label], "The added trigger should match the expected trigger")
+}
+
+func TestSetTimer(t *testing.T) {
+	state := workflow.CreateState("State1", "A test state")
+	timer := workflow.CreateTimer(10*time.Second, "trigger_event")
+
+	state.SetTimer(timer)
+
+	assert.NotNil(t, state.Timer, "The state should have a timer set")
+	assert.Equal(t, timer, *state.Timer, "The state's timer should match the expected timer")
 }

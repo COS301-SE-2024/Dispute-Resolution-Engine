@@ -1,6 +1,7 @@
 package utilities_test
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -162,4 +163,43 @@ func TestLoggerWithFields(t *testing.T) {
     assert.Contains(t, output, `"message":"test message with fields"`)
     assert.Contains(t, output, `"field1":"value1"`)
     assert.Contains(t, output, `"field2":"value2"`)
+}
+
+func TestLoggerWithError(t *testing.T) {
+    // Backup the original stdout
+    originalStdout := os.Stdout
+    defer func() { os.Stdout = originalStdout }()
+
+    // Create a pipe to capture stdout
+    r, w, _ := os.Pipe()
+    os.Stdout = w
+
+    // Reinitialize the logger to capture the output
+    utilities.Log = logrus.New()
+    utilities.Log.SetFormatter(&logrus.JSONFormatter{
+        FieldMap: logrus.FieldMap{
+            logrus.FieldKeyTime:  "timestamp",
+            logrus.FieldKeyLevel: "level",
+            logrus.FieldKeyMsg:   "message",
+        },
+    })
+    utilities.Log.SetOutput(os.Stdout)
+    utilities.Log.SetLevel(logrus.InfoLevel)
+
+    // Create a new logger and log with an error
+    err := errors.New("test error")
+    logger := utilities.NewLogger().WithError(err)
+    logger.Error("test message with error")
+
+    // Close the writer and read the captured output
+    w.Close()
+    var buf [1024]byte
+    n, _ := r.Read(buf[:])
+    output := string(buf[:n])
+
+    // Check if the output contains the expected log fields
+    assert.Contains(t, output, `"timestamp":`)
+    assert.Contains(t, output, `"level":"error"`)
+    assert.Contains(t, output, `"message":"test message with error"`)
+    assert.Contains(t, output, `"error":"test error"`)
 }

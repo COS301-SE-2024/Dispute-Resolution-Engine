@@ -578,28 +578,29 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		}
 	}
 
-	validSortAttrs := map[string]bool{
-		"id":            true,
-		"case_date":     true,
-		"workflow":      true,
-		"status":        true,
-		"title":         true,
-		"description":   true,
-		"complainant":   true,
-		"respondant":    true,
-		"date_resolved": true,
+	if sort != nil {
+		validSortAttrs := map[string]bool{
+			"id":            true,
+			"case_date":     true,
+			"workflow":      true,
+			"status":        true,
+			"title":         true,
+			"description":   true,
+			"complainant":   true,
+			"respondant":    true,
+			"date_resolved": true,
+		}
+
+		if _, valid := validSortAttrs[sort.Attr]; !valid {
+			return disputes, 0, errors.New("invalid sort attribute")
+		}
+
+		if sort.Order != "asc" && sort.Order != "desc" {
+			sort.Order = "asc"
+		}
+
+		queryString.WriteString(" ORDER BY " + sort.Attr + " " + sort.Order)
 	}
-
-	if _, valid := validSortAttrs[sort.Attr]; !valid {
-		return disputes, 0, errors.New("invalid sort attribute")
-	}
-
-	if sort.Order != "asc" && sort.Order != "desc" {
-		sort.Order = "asc"
-	}
-
-	queryString.WriteString(" ORDER BY " + sort.Attr + " " + sort.Order)
-
 	if limit != nil {
 		queryString.WriteString(" LIMIT ?")
 		queryParams = append(queryParams, *limit)

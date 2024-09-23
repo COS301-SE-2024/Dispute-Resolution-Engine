@@ -6,7 +6,9 @@ import (
 	"api/utilities"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -117,6 +119,41 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 
 	if userRole == "admin" && c.Request.Method == "POST" {
 		var reqAdminDisputes models.AdminDisputesRequest
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			logger.WithError(err).Error("Error reading request body")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
+			return
+		}
+
+		// Reset the body so it can be read again by BindJSON
+		c.Request.Body = io.NopCloser(strings.NewReader(string(body)))
+
+		// Check if the body is valid JSON and not empty
+		var bodyMap map[string]interface{}
+		if err := json.Unmarshal(body, &bodyMap); err != nil {
+			logger.WithError(err).Error("Invalid JSON format")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
+			return
+		}
+
+		// If the body contains no key-value pairs, consider it empty
+		if len(bodyMap) == 0 {
+			disputes, count, err := h.Model.GetAdminDisputes(nil, nil, nil, nil, nil, nil)
+			if err != nil {
+				logger.WithError(err).Error("error retrieving disputes")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving disputes"})
+				return
+			}
+			if count == 0 {
+				logger.Info("No disputes found")
+				c.JSON(http.StatusOK, models.Response{Data: disputes, Total: 0})
+				return
+			}
+			c.JSON(http.StatusOK, models.Response{Data: disputes, Total: count})
+			return
+		}
+
 		if err := c.BindJSON(&reqAdminDisputes); err != nil {
 			logger.WithError(err).Error("Invalid request")
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})

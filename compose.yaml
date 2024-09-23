@@ -15,6 +15,7 @@ services:
     - "traefik.enable=true"
     - "traefik.http.routers.fe.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`) && !PathPrefix(`/grafana`)"
     - "traefik.http.routers.fe.entrypoints=${ENTRY_POINTS}"
+    - "${FE_CA}"
   admin-frontend: # --------------------------------------------------------- Admin Frontend
     build: ./admin-frontend
     ports:
@@ -30,8 +31,10 @@ services:
     labels:
     - "traefik.enable=true"
     - "traefik.http.routers.admin.rule=Host(`${DOMAIN}`) && PathPrefix(`/admin`)"
+    - "traefik.http.routers.admin.entrypoints=${ENTRY_POINTS}"
     - "traefik.http.middlewares.adminStrip.stripprefix.prefixes=/admin"
     - "traefik.http.routers.admin.middlewares=adminStrip@docker"
+    - "${ADMIN_CA}"
   traefik: # ------------------------------------------------------Traefik
     image: traefik:v3.1
     command: 
@@ -68,6 +71,8 @@ services:
     labels:
     - "traefik.enable=true"
     - "traefik.http.routers.grafana.rule=Host(`${DOMAIN}`) && PathPrefix(`/grafana`)"
+    - "traefik.http.routers.grafana.entrypoints=${ENTRY_POINTS}"
+    - "${GRAF_CA}"
   api: # ------------------------------------------------------------------API
     build: ./api
     ports:

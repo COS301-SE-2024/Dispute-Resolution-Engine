@@ -122,11 +122,11 @@ func (m *mockDisputeModel) GetDisputesByUser(userId int64) ([]models.Dispute, er
 	return []models.Dispute{}, nil
 }
 
-func (m *mockDisputeModel) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, error) {
+func (m *mockDisputeModel) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, int64, error) {
 	if m.throwErrors {
-		return nil, errors.ErrUnsupported
+		return nil, 0, errors.ErrUnsupported
 	}
-	return []models.AdminDisputeSummariesResponse{}, nil
+	return []models.AdminDisputeSummariesResponse{}, 0, nil
 }
 
 func (m *mockDisputeModel) GetDispute(disputeId int64) (models.Dispute, error) {

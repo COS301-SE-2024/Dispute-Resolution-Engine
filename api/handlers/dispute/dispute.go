@@ -151,13 +151,18 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 				dateFilter.Resolved = reqAdminDisputes.DateFilter.Resolved
 			}
 		}
-		disputes, err := h.Model.GetAdminDisputes(searchTerm, limit, offset, sort, filters, dateFilter)
+		disputes, count, err := h.Model.GetAdminDisputes(searchTerm, limit, offset, sort, filters, dateFilter)
 		if err != nil {
 			logger.WithError(err).Error("error retrieving disputes")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving disputes"})
 			return
 		}
-		c.JSON(http.StatusOK, models.Response{Data: disputes, Total: int64(len(disputes))})
+		if count == 0 {
+			logger.Info("No matching disputes found")
+			c.JSON(http.StatusOK, models.Response{Data: disputes, Total: 0})
+			return
+		}
+		c.JSON(http.StatusOK, models.Response{Data: disputes, Total: count})
 		return
 	}
 

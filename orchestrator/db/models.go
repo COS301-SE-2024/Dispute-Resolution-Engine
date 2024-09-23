@@ -17,7 +17,7 @@ type Workflowdb struct {
 }
 
 // LabelledWorkflows model
-type LabelledWorkflow struct {
+type WorkflowTags struct {
 	WorkflowID uint64     `gorm:"primaryKey;column:workflow_id"`
 	TagID      uint64     `gorm:"primaryKey;column:tag_id"`
 	Workflow   Workflowdb `gorm:"foreignKey:WorkflowID"`
@@ -26,7 +26,7 @@ type LabelledWorkflow struct {
 
 type ActiveWorkflows struct {
 	ID               int64           `gorm:"primaryKey;autoIncrement"`
-	Workflow         int64           `gorm:"not null"`               // Foreign Key to Workflow
+	Workflow         int64           `gorm:"not null"`                               // Foreign Key to Workflow
 	CurrentState     string          `gorm:"column:current_state;type:varchar(255)"` // Current State
 	DateSubmitted    time.Time       `gorm:"column:date_submitted;type:timestamp"`   // Date the workflow was submitted
 	StateDeadline    time.Time       `gorm:"column:state_deadline;type:timestamp"`   // Deadline for the current state
@@ -68,8 +68,8 @@ func (Workflowdb) TableName() string {
 	return "workflows"
 }
 
-func (LabelledWorkflow) TableName() string {
-	return "labelled_workflows"
+func (WorkflowTags) TableName() string {
+	return "workflow_tags"
 }
 
 func (User) TableName() string {

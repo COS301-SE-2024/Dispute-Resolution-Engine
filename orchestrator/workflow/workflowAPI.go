@@ -75,7 +75,7 @@ func (api *APIWorkflow) StoreWorkflow(name string, workflow Workflow, categories
 
 	//add associated tags
 	for _, category := range categories {
-		labelledWorkflow := &db.LabelledWorkflow{
+		labelledWorkflow := &db.WorkflowTags{
 			WorkflowID: workflowDbEntry.ID,
 			TagID:      uint64(category),
 		}
@@ -129,7 +129,7 @@ func (api *APIWorkflow) UpdateWorkflow(id int, name *string, workflow *Workflow,
 
 		// Insert new tags
 		for _, categoryID := range *categories {
-			labelledWorkflow := &db.LabelledWorkflow{
+			labelledWorkflow := &db.WorkflowTags{
 				WorkflowID: existingWorkflow.ID,
 				TagID:      uint64(categoryID),
 			}

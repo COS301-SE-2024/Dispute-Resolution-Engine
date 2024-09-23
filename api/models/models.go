@@ -74,15 +74,17 @@ type Dispute struct {
 }
 
 type Workflow struct {
-	ID                 uint64          `gorm:"primaryKey;autoIncrement"`
-	WorkflowDefinition json.RawMessage `gorm:"type:json"`
-	CreatedAt          time.Time       `gorm:"autoCreateTime"`
-	AuthorID           *int64          `gorm:"column:author" `
-	Author             *User           `gorm:"foreignKey:AuthorID", json:"author,omitempty"`
+	ID         uint64          `gorm:"primaryKey;autoIncrement"`
+	Name       string          `gorm:"type:varchar(100);not null"`
+	Definition json.RawMessage `gorm:"column:definition;type:jsonb"`
+	CreatedAt  time.Time       `gorm:"autoCreateTime"`
+
+	AuthorID int64 `gorm:"column:author"`
+	Author   *User `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
 }
 
 func (Workflow) TableName() string {
-	return "workflow"
+	return "workflows"
 }
 
 type Tag struct {
@@ -94,15 +96,15 @@ func (Tag) TableName() string {
 	return "tags"
 }
 
-type LabelledWorkflow struct {
+type WorkflowTags struct {
 	WorkflowID uint64   `gorm:"primaryKey;column:workflow_id"`
 	TagID      uint64   `gorm:"primaryKey;column:tag_id"`
 	Workflow   Workflow `gorm:"foreignKey:WorkflowID"`
 	Tag        Tag      `gorm:"foreignKey:TagID"`
 }
 
-func (LabelledWorkflow) TableName() string {
-	return "labelled_workflows"
+func (WorkflowTags) TableName() string {
+	return "workflow_tags"
 }
 
 type DisputeSummaries struct {
@@ -229,4 +231,17 @@ type ExpertObjection struct {
 
 func (ExpertObjection) TableName() string {
 	return "expert_objections"
+}
+
+type ActiveWorkflows struct {
+	ID               int64           `gorm:"primaryKey;autoIncrement"`
+	Workflow         int64           `gorm:"not null"`                               // Foreign Key to Workflow
+	CurrentState     string          `gorm:"column:current_state;type:varchar(255)"` // Current State
+	DateSubmitted    time.Time       `gorm:"column:date_submitted;type:timestamp"`   // Date the workflow was submitted
+	StateDeadline    time.Time       `gorm:"column:state_deadline;type:timestamp"`   // Deadline for the current state
+	WorkflowInstance json.RawMessage `gorm:"type:jsonb"`
+}
+
+func (ActiveWorkflows) TableName() string {
+	return "active_workflows"
 }

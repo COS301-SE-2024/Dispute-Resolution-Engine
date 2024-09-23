@@ -11,7 +11,7 @@ type DBQuery interface {
 	FetchUserQuery(id int64) (*db.User, error)
 	FetchTagsByID(id int64) (*db.Tag, error)
 	CreateWorkflows(workflow *db.Workflowdb) error
-	CreateLabbelledWorkflows(labelledWorkflow *db.LabelledWorkflow) error
+	CreateLabbelledWorkflows(labelledWorkflow *db.WorkflowTags) error
 	SaveWorkflowInstance(activeWorkflow *db.Workflowdb) error
 	DeleteLabelledWorkflowByWorkflowId(id uint64) error
 
@@ -69,7 +69,7 @@ func (wfq *WorkflowQuery) CreateWorkflows(workflow *db.Workflowdb) error {
 	return nil
 }
 
-func (wfq *WorkflowQuery) CreateLabbelledWorkflows(labelledWorkflow *db.LabelledWorkflow) error {
+func (wfq *WorkflowQuery) CreateLabbelledWorkflows(labelledWorkflow *db.WorkflowTags) error {
 	result := wfq.DB.Create(labelledWorkflow)
 	if result.Error != nil {
 		return result.Error
@@ -86,7 +86,7 @@ func (wfq *WorkflowQuery) SaveWorkflowInstance(workflow *db.Workflowdb) error {
 }
 
 func (wfq *WorkflowQuery) DeleteLabelledWorkflowByWorkflowId(id uint64) error {
-	err := wfq.DB.Where("workflow_id = ?", id).Delete(&db.LabelledWorkflow{}).Error
+	err := wfq.DB.Where("workflow_id = ?", id).Delete(&db.WorkflowTags{}).Error
 	if err != nil {
 		return err
 	}

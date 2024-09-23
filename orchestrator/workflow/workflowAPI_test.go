@@ -89,7 +89,7 @@ func (tdb *TestDbPositive) CreateWorkflows(workflow *db.Workflowdb) error {
 	return nil
 }
 
-func (tdb *TestDbPositive) CreateLabbelledWorkflows(labelledWorkflow *db.LabelledWorkflow) error {
+func (tdb *TestDbPositive) CreateLabbelledWorkflows(labelledWorkflow *db.WorkflowTags) error {
 	return nil
 }
 
@@ -154,7 +154,7 @@ func (tdb *TestDbNegative) DeleteLabelledWorkflowByWorkflowId(id uint64) error {
 	return errors.New("error")
 }
 
-func (tdb *TestDbNegative) CreateLabbelledWorkflows(labelledWorkflow *db.LabelledWorkflow) error {
+func (tdb *TestDbNegative) CreateLabbelledWorkflows(labelledWorkflow *db.WorkflowTags) error {
 	return errors.New("error")
 }
 

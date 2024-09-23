@@ -184,3 +184,30 @@ func TestStartWithMultipleTimers(t *testing.T) {
 
 	stop <- struct{}{}
 }
+func TestCheckTimers(t *testing.T) {
+	logger := utilities.NewLogger()
+	s := scheduler.NewWithLogger(time.Second, logger)
+
+	result := make(chan bool)
+
+	timerName := "timer1"
+	deadline := time.Now().Add(-time.Second) // Set deadline in the past to trigger immediately
+	event := func() {
+		result <- true
+	}
+
+	s.AddTimer(timerName, deadline, event)
+	s.CheckTimers(time.Now())
+
+	select {
+	case <-result:
+		// Timer event was triggered
+		s.Lock.RLock()
+		_, exists := s.Timers[timerName]
+		s.Lock.RUnlock()
+		assert.False(t, exists)
+	case <-time.After(2 * time.Second):
+		// Timer event was not triggered within the expected time
+		t.Fatal("Timer event was not triggered")
+	}
+}

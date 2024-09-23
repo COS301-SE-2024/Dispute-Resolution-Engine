@@ -81,7 +81,7 @@ func (s *Scheduler) Start(stop chan struct{}) {
 		for {
 			select {
 			case currentTime := <-ticker.C:
-				s.checkTimers(currentTime)
+				s.CheckTimers(currentTime)
 			case <-stop:
 				s.Logger.Info("Scheduler stopped")
 				return
@@ -91,7 +91,7 @@ func (s *Scheduler) Start(stop chan struct{}) {
 }
 
 // Triggers the callbacks of all expired timers
-func (s *Scheduler) checkTimers(currentTime time.Time) {
+func (s *Scheduler) CheckTimers(currentTime time.Time) {
 	s.Lock.RLock()
 	defer s.Lock.RUnlock()
 

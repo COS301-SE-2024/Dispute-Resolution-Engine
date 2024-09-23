@@ -74,3 +74,32 @@ func TestAddTimer(t *testing.T) {
 	assert.NotNil(t, timer.Event)
 	assert.False(t, eventTriggered)
 }
+func TestRemoveTimer(t *testing.T) {
+	logger := utilities.NewLogger()
+	s := scheduler.NewWithLogger(time.Second, logger)
+
+	timerName := "timer1"
+	deadline := time.Now().Add(time.Second)
+	event := func() {}
+
+	s.AddTimer(timerName, deadline, event)
+	removed := s.RemoveTimer(timerName)
+
+	assert.True(t, removed)
+
+	s.Lock.RLock()
+	_, exists := s.Timers[timerName]
+	s.Lock.RUnlock()
+
+	assert.False(t, exists)
+}
+
+func TestRemoveMissingTimer(t *testing.T) {
+	logger := utilities.NewLogger()
+	s := scheduler.NewWithLogger(time.Second, logger)
+
+	timerName := "nonexistent_timer"
+	removed := s.RemoveTimer(timerName)
+
+	assert.False(t, removed)
+}

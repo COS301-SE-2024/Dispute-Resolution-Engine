@@ -229,25 +229,30 @@ CREATE TABLE workflow_tags (
 
 ------------------------------------------------------------- TICKETING SYSTEM
 CREATE TYPE ticket_status_enum AS ENUM (
-	'Open',
-	'Closed',
-	'Solved',
-	'On Hold'
+    'Open',
+    'Closed',
+    'Solved',
+    'On Hold'
 );
 
 CREATE TABLE tickets (
-	id SERIAL PRIMARY KEY,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    subject VARCHAR(255) NOT NULL,
-    status ticket_status_enum NOT NULL
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  	-- Date the ticket was created
+    created_by BIGINT REFERENCES users(id) NOT NULL, 	-- User that created the ticket
+    dispute_id BIGINT REFERENCES disputes(id),       	-- Dispute the ticket is related to
+    subject VARCHAR(255) NOT NULL,                   	-- Subject to describe the ticket
+    status ticket_status_enum NOT NULL,              	-- Status of the ticket
+    initial_message TEXT                             	-- Body of the initial message of the ticket
 );
 
 CREATE TABLE ticket_messages (
-	id SERIAL PRIMARY KEY,
-    ticket BIGINT REFERENCES tickets(id) NOT NULL,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    contents TEXT NOT NULL
+    id SERIAL PRIMARY KEY,
+    ticket_id BIGINT REFERENCES tickets(id) NOT NULL,  	-- Reference to the ticket
+    user_id BIGINT REFERENCES users(id) NOT NULL,      	-- User who made the comment
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    	-- Date the comment was submitted
+    content TEXT NOT NULL                         		-- Body of the comment
 );
+
 
 ------------------------------------------------------------- TABLE CONTENTS
 INSERT INTO Countries (country_code, country_name) VALUES

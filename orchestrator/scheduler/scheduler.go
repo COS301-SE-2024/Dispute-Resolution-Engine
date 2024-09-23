@@ -27,6 +27,12 @@ func New(pollInterval time.Duration) *Scheduler {
 	}
 }
 
+func NewScheduler() *Scheduler {
+
+    return &Scheduler{}
+
+}
+
 func NewWithLogger(pollInterval time.Duration, logger *utilities.Logger) *Scheduler {
 	return &Scheduler{
 		timers:       make(map[string]Timer),

@@ -19,44 +19,44 @@ type IStateMachine interface {
 }
 
 type StateMachine struct {
-	Label         string
-	StateMachine *stateless.StateMachine
-	Workflow     workflow.Workflow
-	Scheduler    *scheduler.Scheduler
+	Label                 string
+	StatelessStateMachine *stateless.StateMachine
+	Workflow              workflow.Workflow
+	Scheduler             *scheduler.Scheduler
 }
 
 func NewStateMachine() IStateMachine {
 	return &StateMachine{}
 }
 
-func (s *StateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Scheduler) {
+func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.Scheduler) {
 	logger := utilities.NewLogger()
 	logger.Info("Initialising state machine")
 
 	// initState := wf.GetInitialState() // this whole sequence is a bit weird, but idk how else to do it
 	// initStatePtr := &initState        // without changing the workflow interface
-	s.StateMachine = stateless.NewStateMachine(wf.Initial)
+	s.StatelessStateMachine = stateless.NewStateMachine(wf.Initial)
 	s.Workflow = wf
 	s.Scheduler = sch // 1 second interval
 
 	// For every state in the workflow, add it to the state machine
 	for state_id, state := range wf.States {
 		// For every related transition from the state, configure the state with the transition
-		stateConfig := s.StateMachine.Configure(state_id)
+		stateConfig := s.StatelessStateMachine.Configure(state_id)
 
 		for trigger_id, trigger := range state.Triggers {
 			stateConfig.Permit(trigger_id, trigger.Next)
 		}
-		
+
 		// Configure timer states
 		if timer := state.Timer; timer != nil {
-			timerName := fmt.Sprintf("%s_%s",wf_id ,state_id)
+			timerName := fmt.Sprintf("%s_%s", wf_id, state_id)
 
 			// If the current state is the initial state, start the timer
 			if state_id == wf.Initial {
 				s.Scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()), func() {
 					logger.Info("Timer expired for state", state_id)
-					s.StateMachine.Fire(timer.OnExpire)
+					s.StatelessStateMachine.Fire(timer.OnExpire)
 				})
 			} else {
 				// When the state is entered, start the timer
@@ -64,7 +64,7 @@ func (s *StateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Sc
 					logger.Info("New state entered")
 					s.Scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()), func() {
 						logger.Info("Timer expired for state", state_id)
-						s.StateMachine.Fire(timer.OnExpire)
+						s.StatelessStateMachine.Fire(timer.OnExpire)
 					})
 					return nil
 				})
@@ -78,5 +78,5 @@ func (s *StateMachine) Init(wf_id string,wf workflow.Workflow, sch *scheduler.Sc
 			})
 		}
 	}
-	s.StateMachine.Fire(wf.Initial)
+	s.StatelessStateMachine.Fire(wf.Initial)
 }

@@ -2,11 +2,15 @@ export type SortOrder = "asc" | "desc";
 export type SortAttribute = "title" | "status" | "workflow" | "date_filed" | "date_resolved";
 
 export const DISPUTE_STATUS = [
-  "Awaiting respondent",
+  "Awaiting Respondant",
   "Active",
   "Review",
   "Settled",
   "Refused",
+  "Withdrawn",
+  "Transfer",
+  "Appeal",
+  "Other",
 ] as const;
 export type DisputeStatus = (typeof DISPUTE_STATUS)[number];
 

@@ -153,7 +153,7 @@ type CreateWorkflow struct {
 
 type UpdateWorkflow struct {
 	Name			   *string                 `json:"name,omitempty"`
-	WorkflowDefinition *map[string]interface{} `json:"workflow_definition,omitempty"`
+	WorkflowDefinition *map[string]interface{} `json:"definition,omitempty"`
 	Category           *[]int64                `json:"category,omitempty"`
 	Author             *int64                  `json:"author,omitempty"`
 }

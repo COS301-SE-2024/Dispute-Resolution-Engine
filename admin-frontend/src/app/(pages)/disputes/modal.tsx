@@ -10,7 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown";
-import { type UserDetails, type DisputeDetails, DisputeStatus } from "@/lib/types/dispute";
+import {
+  type UserDetails,
+  type DisputeDetails,
+  DisputeStatus,
+  DisputeDetailsResponse,
+} from "@/lib/types/dispute";
 import { changeDisputeStatus, deleteEvidence, getDisputeDetails } from "@/lib/api/dispute";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useState } from "react";
@@ -23,50 +28,60 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Download, EllipsisVertical, FileText, Trash } from "lucide-react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { unwrapResult } from "@/lib/utils";
 
 export default function DisputeDetails({ id: disputeId }: { id: string }) {
+  const { toast } = useToast();
+  const client = useQueryClient();
   const { data, error } = useQuery({
     queryKey: ["dispute"],
     queryFn: async () => unwrapResult(getDisputeDetails(disputeId)),
   });
 
-  const { toast } = useToast();
-
-  const [statusDisabled, setStatusDisabled] = useState(false);
-
-  async function changeStatus(status: DisputeStatus) {
-    setStatusDisabled(true);
-    const { data, error } = await changeDisputeStatus(disputeId, status);
-    setStatusDisabled(false);
-    if (data) {
+  const status = useMutation({
+    mutationFn: async (status: DisputeStatus) => {
+      await unwrapResult(changeDisputeStatus(disputeId, status));
+    },
+    onSuccess: (data, variables) => {
+      client.setQueryData(["dispute"], (old: DisputeDetailsResponse) => ({
+        ...old,
+        status: variables,
+      }));
       toast({
         title: "Status updated successfully",
       });
-    } else if (error) {
+    },
+    onError: (error) => {
       toast({
         variant: "error",
         title: "Something went wrong",
-        description: error,
+        description: error?.message,
       });
-    }
-  }
+    },
+  });
 
-  async function deleteEvi(id: string) {
-    const { data, error } = await deleteEvidence(disputeId, id);
-    if (data) {
+  const evidence = useMutation({
+    mutationFn: async (id: string) => {
+      await unwrapResult(deleteEvidence(disputeId, id));
+    },
+    onSuccess: (data, variables) => {
+      client.setQueryData(["dispute"], (old: DisputeDetailsResponse) => ({
+        ...old,
+        evidence: old.evidence.filter((evi) => evi.id !== variables),
+      }));
       toast({
         title: "Evidence removed",
       });
-    } else if (error) {
+    },
+    onError: (error) => {
       toast({
         variant: "error",
         title: "Something went wrong",
-        description: error,
+        description: error?.message,
       });
-    }
-  }
+    },
+  });
 
   return (
     data && (
@@ -81,7 +96,7 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
             </DialogClose>
           </div>
           <div className="flex gap-2 items-center">
-            <StatusDropdown onSelect={changeStatus} disabled={statusDisabled}>
+            <StatusDropdown onSelect={(val) => status.mutate(val)} disabled={status.isPending}>
               <StatusBadge variant="waiting" dropdown>
                 {data.status}
               </StatusBadge>
@@ -101,14 +116,14 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
               <h4 className="mb-1">Evidence</h4>
               <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
                 {data.evidence.length > 0 ? (
-                  data.evidence.map((evidence) => (
+                  data.evidence.map((evi) => (
                     <Evidence
-                      onDelete={deleteEvi}
-                      key={evidence.id}
-                      id={evidence.id}
-                      label={evidence.label}
+                      onDelete={evidence.mutate}
+                      key={evi.id}
+                      id={evi.id}
+                      label={evi.label}
                       url="https://google.com"
-                      date={evidence.submitted_at}
+                      date={evi.submitted_at}
                     />
                   ))
                 ) : (

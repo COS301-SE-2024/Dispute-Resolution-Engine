@@ -51,3 +51,26 @@ func TestNewWithLogger(t *testing.T) {
 	assert.NotNil(t, s.Timers)
 	assert.NotNil(t, s.Lock)
 }
+func TestAddTimer(t *testing.T) {
+	logger := utilities.NewLogger()
+	s := scheduler.NewWithLogger(time.Second, logger)
+	
+	timerName := "timer1"
+	deadline := time.Now().Add(time.Second)
+	eventTriggered := false
+	event := func() {
+		eventTriggered = true
+	}
+
+	s.AddTimer(timerName, deadline, event)
+
+	s.Lock.RLock()
+	timer, exists := s.Timers[timerName]
+	s.Lock.RUnlock()
+
+	assert.True(t, exists)
+	assert.Equal(t, timerName, timer.Name)
+	assert.Equal(t, deadline, timer.Deadline)
+	assert.NotNil(t, timer.Event)
+	assert.False(t, eventTriggered)
+}

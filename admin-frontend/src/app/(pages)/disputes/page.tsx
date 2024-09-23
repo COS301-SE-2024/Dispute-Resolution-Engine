@@ -1,5 +1,5 @@
 "use client";
-import { Filter, Search } from "lucide-react";
+import { FilterIcon, SearchIcon } from "lucide-react";
 import { z } from "zod";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -14,11 +14,12 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-import { type DisputeDetails } from "@/lib/types/dispute";
+import { type Filter, type DisputeDetails } from "@/lib/types";
 
 import Details from "./modal";
 import DisputeFilter from "./dispute-filter";
 import DisputeTable from "./table";
+import { useState } from "react";
 
 const searchSchema = z.object({
   id: z.string().optional(),
@@ -30,21 +31,9 @@ export default function Disputes({ searchParams }: { searchParams: unknown }) {
     throw new Error(JSON.stringify(searchError));
   }
 
-  // const { data, error } = await getDisputeList({});
-  // if (error) {
-  //   throw new Error(error);
-  // }
-
-  let details: DisputeDetails | undefined = undefined;
-  // if (params.id) {
-  //   const { data, error } = await getDisputeDetails(params.id);
-  //   if (error) {
-  //     throw new Error(error);
-  //   }
-  //   details = data;
-  // }
-
   const client = new QueryClient();
+
+  const [filter, setFilter] = useState<Filter[]>([]);
   return (
     <QueryClientProvider client={client}>
       {params.id && <Details id={params.id} />}
@@ -58,13 +47,13 @@ export default function Disputes({ searchParams }: { searchParams: unknown }) {
               placeholder="Search disputes..."
             />
             <div className="p-5 row-start-1 col-start-1 pointer-events-none">
-              <Search size={20} />
+              <SearchIcon size={20} />
             </div>
           </div>
 
-          <DisputeFilter>
+          <DisputeFilter onValueChange={setFilter}>
             <Button variant="ghost" className="gap-2">
-              <Filter />
+              <FilterIcon />
               <span>Filter by</span>
             </Button>
           </DisputeFilter>
@@ -72,7 +61,7 @@ export default function Disputes({ searchParams }: { searchParams: unknown }) {
         <main className="overflow-auto p-5 grow">
           <Card>
             <CardContent>
-              <DisputeTable />
+              <DisputeTable filters={filter} />
             </CardContent>
             <CardFooter>
               <Pagination className="w-full">

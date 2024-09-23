@@ -9,18 +9,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getDisputeList } from "@/lib/api/dispute";
-import { useQuery } from "@tanstack/react-query";
-import { type AdminDispute } from "@/lib/types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Filter, type AdminDispute } from "@/lib/types";
 
 import { StatusBadge } from "@/components/admin/status-dropdown";
 import { LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { unwrapResult } from "@/lib/utils";
 
-export default function DisputeTable() {
+export default function DisputeTable({ filters }: { filters?: Filter[] }) {
   const { data, error } = useQuery({
-    queryKey: ["disputeTable"],
-    queryFn: async () => unwrapResult(getDisputeList({})),
+    queryKey: ["disputeTable", filters],
+    queryFn: async () =>
+      unwrapResult(
+        getDisputeList({
+          filter: filters,
+        })
+      ),
   });
 
   return (

@@ -8,36 +8,46 @@ import {
   DisputeDetailsResponse,
   DisputeStatus,
 } from "@/lib/types";
+import { API_URL } from "../utils";
+import { getAuthToken } from "../jwt";
 
 export async function getDisputeList(
   req: AdminDisputesRequest
 ): Promise<Result<AdminDisputesResponse>> {
-  return new Promise((res) => {
-    setTimeout(
-      () =>
-        res({
-          data: MOCK_DATA,
-        }),
-      1000
-    );
-  });
+  const res = await fetch(`${API_URL}/disputes`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: JSON.stringify({
+      ...req,
+      limit: 10,
+    }),
+  })
+    .then(async (res) => res.json())
+    .catch((e: Error) => ({
+      error: e.message,
+    }));
+  console.log(res);
+  return res;
 }
 
 export async function getDisputeDetails(id: string): Promise<Result<DisputeDetailsResponse>> {
-  return new Promise((res) => {
-    setTimeout(() => {
-      const result = MOCK_DATA.find((d) => d.id === id);
-      if (!result) {
-        res({
-          error: "Dispute not found",
-        });
-      } else {
-        res({
-          data: result,
-        });
-      }
-    }, 1000);
-  });
+  const res = await fetch(`${API_URL}/disputes/${id}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  })
+    .then(async (res) => {
+      console.log(await res.clone().text());
+      return res.json();
+    })
+    .catch((e: Error) => ({
+      error: e.message,
+    }));
+  console.log(res);
+  return res;
 }
 
 export async function changeDisputeStatus(

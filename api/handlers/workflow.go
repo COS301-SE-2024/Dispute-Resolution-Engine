@@ -51,10 +51,10 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 
 		taggedWorkflow.Workflow = workflow
 		// Query for tags related to each workflow, explicitly selecting the fields
-		err := w.DB.Table("labelled_workflows").
+		err := w.DB.Table("workflow_tags").
 			Select("tags.id, tags.tag_name").
-			Joins("join tags on labelled_workflows.tag_id = tags.id").
-			Where("labelled_workflows.workflow_id = ?", workflow.ID).
+			Joins("join tags on workflow_tags.tag_id = tags.id").
+			Where("workflow_tags.workflow_id = ?", workflow.ID).
 			Scan(&taggedWorkflow.Tags).Error
 
 		if err != nil {
@@ -78,7 +78,7 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			logger.Warnf("Workflow with ID %s not found", id)
-			c.JSON(http.StatusOK, models.Response{Data: nil})
+			c.JSON(http.StatusOK, models.Response{Error: "Workflow not found"})
 		} else {
 			logger.Error(result.Error)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
@@ -88,10 +88,10 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 
 	// Fetch the tags associated with this workflow
 	var tags []models.Tag
-	err := w.DB.Table("labelled_workflows").
+	err := w.DB.Table("workflow_tags").
 		Select("tags.id, tags.tag_name").
-		Joins("join tags on labelled_workflows.tag_id = tags.id").
-		Where("labelled_workflows.workflow_id = ?", workflow.ID).
+		Joins("join tags on workflow_tags.tag_id = tags.id").
+		Where("workflow_tags.workflow_id = ?", workflow.ID).
 		Scan(&tags).Error
 
 	if err != nil {

@@ -53,8 +53,8 @@ type DisputeCreationResponse struct {
 }
 
 type WorkflowResp struct {
-	Id    int64  `gorm:"column:id"`
-	Title string `gorm:"column:name"`
+	Id    int64  `json:"id" gorm:"column:id"`
+	Title string `json:"title" gorm:"column:name"`
 }
 
 type AdminDisputeSummariesResponse struct {

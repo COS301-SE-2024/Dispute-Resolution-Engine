@@ -634,7 +634,8 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		disputeResp.DateFiled = dispute.CaseDate.Format("2006-01-02")
 		//get the workflow
 		var workflow models.WorkflowResp
-		err = m.db.Raw("SELECT id, name FROM workflows WHERE id = (SELECT workflow FROM disputes WHERE id = ?)", dispute.Id).First(&workflow).Error
+
+		err = m.db.Raw("SELECT wf.id, wf.name FROM disputes d JOIN active_workflows aw ON d.workflow = aw.id JOIN workflows wf ON wf.id = aw.workflow WHERE d.id = ?", dispute.Id).First(&workflow).Error
 		if err != nil {
 			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
 		}

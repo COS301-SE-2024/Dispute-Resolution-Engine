@@ -125,17 +125,23 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 	}
 
 	//comvert map[string] to raw json
-	workflowDefinition, err := json.Marshal(workflow.WorkflowDefinition)
+	workflowDefinition, err := json.Marshal(workflow.Definition)
 	if err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to process workflow definition"})
 		return
 	}
 
+	//check all fields present
+	if workflow.Name == "" || workflow.Author == nil || (workflow.Definition == nil || len(workflow.Definition) == 0) {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing required fields"})
+		return
+	}
 	//put into struct
 	res := &models.Workflow{
+		Name:       workflow.Name,
 		Definition: workflowDefinition,
-		AuthorID:   workflow.Author,
+		AuthorID:   *workflow.Author,
 	}
 
 	// Store the workflow in the database
@@ -188,6 +194,11 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 		return
 	}
 
+	// Update the Name if provided
+	if updateData.Name != nil {
+		existingWorkflow.Name = *updateData.Name
+	}
+
 	// Update the WorkflowDefinition if provided
 	if updateData.WorkflowDefinition != nil {
 		workflowDefinition, err := json.Marshal(*updateData.WorkflowDefinition)
@@ -201,7 +212,7 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 
 	// Update the AuthorID if provided
 	if updateData.Author != nil {
-		existingWorkflow.AuthorID = updateData.Author
+		existingWorkflow.AuthorID = *updateData.Author
 	}
 
 	// Save the updated workflow

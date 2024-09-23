@@ -2,7 +2,7 @@ services:
   frontend: # ---------------------------------------------------------Frontend
     build: ./frontend
     ports:
-      - "3000:3000"
+      - "3001:3000"
     env_file:
       - fe.env
     depends_on:
@@ -12,11 +12,15 @@ services:
         - action: rebuild
           path: ./frontend
     labels:
-      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+      - "traefik.http.routers.frontend.rule=Host(`capstone-dre.dns.net.za`) && !PathPrefix(`/admin`) && !PathPrefix(`/grafana`) && !PathPrefix(`/dashboard`)"
+      # - traefik.http.routers.frontend.rule=Host(`capstone-dre.dns.net.za`) && !PathPrefix(`/admin`, `/grafana`, `/dashboard`)
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.enable=true"
   admin-frontend: # --------------------------------------------------------- Admin Frontend
     build: ./admin-frontend
     ports:
-      - "3001:3000"
+      - "3002:3000"
     env_file:
       - fe.env
     depends_on:
@@ -25,6 +29,12 @@ services:
       watch:
         - action: rebuild
           path: ./admin-frontend
+    labels:
+      - "traefik.http.routers.admin.rule=Host(`capstone-dre.dns.net.za`) && PathPrefix(`/admin`)"
+      - "traefik.http.routers.admin.entrypoints=websecure"
+      - "traefik.http.routers.admin.priority=50"
+      - "traefik.http.routers.admin.tls.certresolver=myresolver"
+      - "traefik.enable=true"
   api: # ------------------------------------------------------------------API
     build: ./api
     ports:
@@ -85,15 +95,21 @@ services:
   grafana: # -------------------------------------------------------------Grafana
     image: docker.io/grafana/grafana-oss
     container_name: grafana
-    # env_file:
-    #   - graf.env
+    env_file:
+      - graf.env
     ports:
-      - "3001:3000" # Changed Grafana's port to avoid conflict with frontend
+      - "3000:3000" # Changed Grafana's port to avoid conflict with frontend
     volumes:
       - grafana-data:/var/lib/grafana
     restart: unless-stopped
     labels:
-      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana.rule=Host(`capstone-dre.dns.net.za`) && PathPrefix(`/grafana`)"
+      # - "traefik.http.services.grafana.loadbalancer.server.port: 3000"
+      - "traefik.http.routers.grafana.priority=50"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.entrypoints=web"
+      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+      - "traefik.enable=true"
   cadvisor: # -----------------------------------------------------------Cadvisor
     image: gcr.io/cadvisor/cadvisor
     container_name: cadvisor
@@ -137,12 +153,43 @@ services:
 
   reverse-proxy: # ------------------------------------------------------Traefik
     image: traefik:v3.1
-    command: --api.insecure=true --providers.docker
+    command: 
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--providers.docker"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.email=the.techtonic.team@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
+      - "443:443"
       - "8080:8080"
+    # networks:
+    #   - proxy
+    #   - default
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mydashboard.rule=Host(`capstone-dre.dns.net.za`) && PathPrefix(`/dashboard`)
+      - traefik.http.routers.mydashboard.service=api@internal
+      - traefik.http.routers.mydashboard.entrypoints=websecure
+      - traefik.http.routers.mydashboard.middlewares=myauth
+      # - traefik.http.middlewares.myauth.basicauth.users=test:$$apr1$$H6uskkkW$$IgXLP6ewTrSuBkTrqE8wj/
+# networks:
+#   proxy:
+#     external: true
+#   default:
+#     driver: bridge
 volumes: # ---------------------------------------------------------------Volumes
   pgdata:
   evi_files:

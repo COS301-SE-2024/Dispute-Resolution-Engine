@@ -12,16 +12,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 import { getDisputeDetails, getDisputeList } from "@/lib/api/dispute";
@@ -29,6 +19,7 @@ import { type DisputeDetails } from "@/lib/types/dispute";
 
 import Details from "./modal";
 import DisputeRow from "./row";
+import DisputeFilter from "./dispute-filter";
 
 const searchSchema = z.object({
   id: z.string().optional(),
@@ -70,25 +61,12 @@ export default async function Disputes({ searchParams }: { searchParams: unknown
               <Search size={20} />
             </div>
           </div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" className="gap-2">
-                <Filter />
-                <span>Filter by</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="grid gap-x-2 gap-y-3 grid-cols-[auto_1fr] items-center">
-              <strong className="col-span-2">Filter</strong>
-
-              <label>Status</label>
-              <StatusFilter />
-              <label>Workflow</label>
-              <StatusSelect />
-              <div className="col-span-2 flex flex-end">
-                <Button className="ml-auto">Apply</Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+          <DisputeFilter>
+            <Button variant="ghost" className="gap-2">
+              <Filter />
+              <span>Filter by</span>
+            </Button>
+          </DisputeFilter>
         </div>
         <main className="overflow-auto p-5 grow">
           <Card>
@@ -127,25 +105,5 @@ export default async function Disputes({ searchParams }: { searchParams: unknown
         </main>
       </div>
     </>
-  );
-}
-
-function StatusSelect() {
-  return (
-    <Select>
-      <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="Select a fruit" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>Fruits</SelectLabel>
-          <SelectItem value="apple">Apple</SelectItem>
-          <SelectItem value="banana">Banana</SelectItem>
-          <SelectItem value="blueberry">Blueberry</SelectItem>
-          <SelectItem value="grapes">Grapes</SelectItem>
-          <SelectItem value="pineapple">Pineapple</SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
   );
 }

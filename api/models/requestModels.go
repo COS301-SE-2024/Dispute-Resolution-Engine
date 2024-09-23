@@ -31,6 +31,7 @@ type ColumnValueComparison struct {
 	Column string `json:"column"`
 	Value  string `json:"value"`
 }
+
 type DateRange struct {
 	Column    string  `json:"column"`
 	StartDate *string `json:"startDate, omitempty"`
@@ -186,7 +187,7 @@ type ResolvedDate struct {
 }
 
 type Sort struct {
-	Attr string `json:"attr"`
+	Attr  string `json:"attr"`
 	Order string `json:"order,omitempty"`
 }
 

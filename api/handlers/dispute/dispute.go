@@ -313,7 +313,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	}
 	description := form.Value["description"][0]
 
-	if form.Value["respondent[full_name]"] == nil || len(form.Value["respondent[full_name]"]) == 0 {
+	if form.Value["respondent[full_name]"] == nil || len(form.Value["respondent[full_name]"]) < 2 {
 		logger.Error("missing field in form: respondent[full_name]")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: respondent[full_name]"})
 		return

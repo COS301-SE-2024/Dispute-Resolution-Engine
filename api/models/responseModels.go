@@ -5,6 +5,7 @@ import "time"
 type Response struct {
 	Data  interface{} `json:"data,omitempty"`
 	Error string      `json:"error,omitempty"`
+	Total int64       `json:"total,omitempty"`
 }
 
 type DisputeSummaryResponse struct {
@@ -49,4 +50,18 @@ type ArchiveSearchResponse struct {
 
 type DisputeCreationResponse struct {
 	DisputeID int64 `json:"id"`
+}
+
+type WorkflowResp struct {
+	Id    int64  `gorm:"column:id"`
+	Title string `gorm:"column:name"`
+}
+
+type AdminDisputeSummariesResponse struct {
+	Id           int64        `json:"id"`
+	Title        string       `json:"title"`
+	Status       string       `json:"status"`
+	Workflow     WorkflowResp `json:"workflow"`
+	DateFiled    string       `json:"date_filed"`
+	DateResolved *string      `json:"date_resolved,omitempty" gorm:"column:date_resolved"`
 }

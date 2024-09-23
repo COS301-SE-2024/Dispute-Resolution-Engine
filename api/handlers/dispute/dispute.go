@@ -24,6 +24,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/create", h.CreateDispute)
 	g.GET("/:id", h.GetDispute)
 
+	g.POST("", h.GetSummaryListOfDisputes)
 	g.POST("/:id/experts/reject", h.ExpertObjection)
 	g.POST("/:id/experts/review-rejection", h.ExpertObjectionsReview)
 	g.POST("/:id/evidence", h.UploadEvidence)
@@ -111,6 +112,59 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 	}
 
 	userID := jwtClaims.ID
+	userRole := jwtClaims.Role
+
+	if userRole == "admin" {
+		var reqAdminDisputes models.AdminDisputesRequest
+		if err := c.BindJSON(&reqAdminDisputes); err != nil {
+			logger.WithError(err).Error("Invalid request")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
+			return
+		}
+		var searchTerm *string
+		var limit *int
+		var offset *int
+		var sort *models.Sort
+		var filters *[]models.Filter
+		var dateFilter *models.DateFilter
+		if reqAdminDisputes.Search != nil {
+			searchTerm = reqAdminDisputes.Search
+		}
+		if reqAdminDisputes.Limit != nil {
+			limit = reqAdminDisputes.Limit
+		}
+		if reqAdminDisputes.Offset != nil {
+			offset = reqAdminDisputes.Offset
+		}
+		if reqAdminDisputes.Sort != nil {
+			sort = reqAdminDisputes.Sort
+		}
+		if reqAdminDisputes.Filter != nil {
+			filters = &reqAdminDisputes.Filter
+		}
+		if reqAdminDisputes.DateFilter != nil {
+			dateFilter = &models.DateFilter{}
+			if reqAdminDisputes.DateFilter.Filed != nil {
+				dateFilter.Filed = reqAdminDisputes.DateFilter.Filed
+			}
+			if reqAdminDisputes.DateFilter.Resolved != nil {
+				dateFilter.Resolved = reqAdminDisputes.DateFilter.Resolved
+			}
+		}
+		disputes, count, err := h.Model.GetAdminDisputes(searchTerm, limit, offset, sort, filters, dateFilter)
+		if err != nil {
+			logger.WithError(err).Error("error retrieving disputes")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving disputes"})
+			return
+		}
+		if count == 0 {
+			logger.Info("No matching disputes found")
+			c.JSON(http.StatusOK, models.Response{Data: disputes, Total: 0})
+			return
+		}
+		c.JSON(http.StatusOK, models.Response{Data: disputes, Total: count})
+		return
+	}
 
 	disputes, err := h.Model.GetDisputesByUser(userID)
 	if err != nil {

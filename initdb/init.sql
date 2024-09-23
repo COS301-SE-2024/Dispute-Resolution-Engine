@@ -81,7 +81,6 @@ CREATE TYPE dispute_status AS ENUM (
     'Awaiting Respondant',
     'Active',
     'Review',
-
     'Settled',
     'Refused',
     'Withdrawn',

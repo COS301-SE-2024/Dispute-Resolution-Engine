@@ -143,3 +143,65 @@ type RejectExpert struct {
 	DisputeId int64 `json:"dispute_id"`
 	ExpertId  int64 `json:"expert_id"`
 }
+
+type SortOrder string
+type SortAttributeAdmin string
+type FilterAttributeAdmin string
+
+const (
+	SortOrderAsc  SortOrder = "asc"
+	SortOrderDesc SortOrder = "desc"
+
+	SortAttributeTitle        SortAttributeAdmin = "title"
+	SortAttributeStatus       SortAttributeAdmin = "status"
+	SortAttributeWorkflow     SortAttributeAdmin = "workflow"
+	SortAttributeDateFiled    SortAttributeAdmin = "date_filed"
+	SortAttributeDateResolved SortAttributeAdmin = "date_resolved"
+
+	FilterAttributeStatus   FilterAttributeAdmin = "status"
+	FilterAttributeWorkflow FilterAttributeAdmin = "workflow"
+)
+
+type Filter struct {
+	// The attribute to filter by
+	Attr string `json:"attr"`
+
+	// The value to search for
+	Value string `json:"value"`
+}
+
+type DateFilter struct {
+	Filed    *FiledDate    `json:"filed,omitempty"`
+	Resolved *ResolvedDate `json:"resolved,omitempty"`
+}
+
+type FiledDate struct {
+	Before *string `json:"before,omitempty"`
+	After  *string `json:"after,omitempty"`
+}
+
+type ResolvedDate struct {
+	Before *string `json:"before,omitempty"`
+	After  *string `json:"after,omitempty"`
+}
+
+type Sort struct {
+	Attr string `json:"attr"`
+	Order string `json:"order,omitempty"`
+}
+
+type AdminDisputesRequest struct {
+	// Search term for the title of disputes
+	Search *string `json:"search,omitempty"`
+
+	// Pagination parameters
+	Limit  *int `json:"limit,omitempty"`
+	Offset *int `json:"offset,omitempty"`
+
+	Sort *Sort `json:"sort,omitempty"`
+
+	// The filters to apply to data
+	Filter []Filter `json:"filter,omitempty"`
+
+	DateFilter *DateFilter `json:"dateFilter,omitempty"`
+}

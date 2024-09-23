@@ -359,4 +359,46 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Databse updated and request to Activate workflow sent"})
 
 }
+
+
+func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
+
+	logger := utilities.NewLogger().LogWithCaller()
+
+	var resetActiveWorkflow models.ResetActiveWorkflow
+	err := c.BindJSON(&resetActiveWorkflow)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request payload"})
+		return
+	}
+
+	// find active workflow
+	var activeWorkflow models.ActiveWorkflows
+	result := w.DB.First(&activeWorkflow, resetActiveWorkflow.DisputeID)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			logger.Warnf("Active workflow with ID %d not found", resetActiveWorkflow.DisputeID)
+			c.JSON(http.StatusNotFound, models.Response{Error: "Active workflow not found"})
+		} else {
+			logger.Error(result.Error)
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		}
+		return
+	}
+
+	// Update the active workflow
+	activeWorkflow.CurrentState = resetActiveWorkflow.CurrentState
+	activeWorkflow.StateDeadline = resetActiveWorkflow.Deadline
+	result = w.DB.Save(&activeWorkflow)
+	if result.Error != nil {
+		logger.Error(result.Error)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	//send request to orchestrator to reset workflow
+
+	c.JSON(http.StatusOK, models.Response{Data: "Database updated and request to Reset workflow sent"})
+}
 	

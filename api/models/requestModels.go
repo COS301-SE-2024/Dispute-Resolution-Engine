@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type UpdateUser struct {
 	FirstName          string  `json:"first_name"`
 	Surname            string  `json:"surname"`
@@ -152,14 +154,19 @@ type CreateWorkflow struct {
 }
 
 type UpdateWorkflow struct {
-	Name			   *string                 `json:"name,omitempty"`
+	Name               *string                 `json:"name,omitempty"`
 	WorkflowDefinition *map[string]interface{} `json:"definition,omitempty"`
 	Category           *[]int64                `json:"category,omitempty"`
 	Author             *int64                  `json:"author,omitempty"`
 }
 
 type NewActiveWorkflow struct {
-	DisputeID int64  `json:"dispute_id"`
-	Workflow  int64  `json:"workflow_id"`
-	
+	DisputeID int64 `json:"dispute_id"`
+	Workflow  int64 `json:"workflow_id"`
+}
+
+type ResetActiveWorkflow struct {
+	DisputeID    int64    `json:"dispute_id"`
+	CurrentState string   `json:"current_state"`
+	Deadline     time.Time `json:"deadline"`
 }

@@ -103,3 +103,34 @@ func TestRemoveMissingTimer(t *testing.T) {
 
 	assert.False(t, removed)
 }
+
+func TestStart(t *testing.T) {
+	logger := utilities.NewLogger()
+	s := scheduler.NewWithLogger(time.Second, logger)
+
+	stop := make(chan struct{})
+	result := make(chan bool)
+
+	timerName := "timer1"
+	deadline := time.Now().Add(500 * time.Millisecond)
+	event := func() {
+		result <- true
+	}
+
+	s.AddTimer(timerName, deadline, event)
+	go s.Start(stop)
+
+	select {
+	case <-result:
+		// Timer event was triggered
+		s.Lock.RLock()
+		_, exists := s.Timers[timerName]
+		s.Lock.RUnlock()
+		assert.False(t, exists)
+	case <-time.After(2 * time.Second):
+		// Timer event was not triggered within the expected time
+		t.Fatal("Timer event was not triggered")
+	}
+
+	stop <- struct{}{}
+}

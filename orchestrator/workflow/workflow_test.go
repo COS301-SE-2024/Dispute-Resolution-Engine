@@ -119,3 +119,32 @@ func TestSetTimer(t *testing.T) {
 	assert.NotNil(t, state.Timer, "The state should have a timer set")
 	assert.Equal(t, timer, *state.Timer, "The state's timer should match the expected timer")
 }
+func TestNewTrigger(t *testing.T) {
+	label := "Trigger1"
+	nextState := "NextState"
+	trigger := workflow.NewTrigger(label, nextState)
+
+	assert.Equal(t, label, trigger.Label, "The trigger label should match the provided value")
+	assert.Equal(t, nextState, trigger.Next, "The next state should match the provided value")
+}
+
+func TestTriggerJSONMarshalling(t *testing.T) {
+	trigger := workflow.NewTrigger("Trigger1", "NextState")
+
+	marshaled, err := json.Marshal(trigger)
+	assert.NoError(t, err, "Marshaling the trigger should not return an error")
+
+	expectedJSON := `{"label":"Trigger1","next_state":"NextState"}`
+	assert.JSONEq(t, expectedJSON, string(marshaled), "The marshaled JSON should match the expected structure")
+}
+
+func TestTriggerJSONUnmarshalling(t *testing.T) {
+	jsonStr := `{"label":"Trigger1","next_state":"NextState"}`
+	var trigger workflow.Trigger
+
+	err := json.Unmarshal([]byte(jsonStr), &trigger)
+	assert.NoError(t, err, "Unmarshaling the trigger should not return an error")
+
+	assert.Equal(t, "Trigger1", trigger.Label, "The unmarshaled trigger should have the correct label")
+	assert.Equal(t, "NextState", trigger.Next, "The unmarshaled trigger should have the correct next state")
+}

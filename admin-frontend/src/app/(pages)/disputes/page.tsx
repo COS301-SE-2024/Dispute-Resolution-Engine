@@ -61,6 +61,7 @@ export default async function Disputes({ searchParams }: { searchParams: unknown
               <Search size={20} />
             </div>
           </div>
+
           <DisputeFilter>
             <Button variant="ghost" className="gap-2">
               <Filter />

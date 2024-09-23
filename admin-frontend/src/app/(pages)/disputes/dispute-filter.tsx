@@ -4,40 +4,15 @@ import StatusFilter from "@/components/dispute/status-filter";
 import WorkflowFilter from "@/components/dispute/workflow-filter";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { DisputeStatus, Filter } from "@/lib/types";
 import { ReactNode, useState } from "react";
-
-interface Filters {
-  filter?: Filter[];
-
-  dateFilter?: {
-    filed?: {
-      before?: string;
-      after?: string;
-    };
-
-    resolved?: {
-      before?: string;
-      after?: string;
-    };
-  };
-}
 
 export default function DisputeFilter({
   children,
   onValueChange = () => {},
 }: {
   children: ReactNode;
-  onValueChange?: (filter: Filters) => void;
+  onValueChange?: (filter: Filter[]) => void;
 }) {
   const [status, setStatus] = useState<DisputeStatus | undefined>(undefined);
   const [workflow, setWorkflow] = useState<string | undefined>(undefined);
@@ -56,7 +31,7 @@ export default function DisputeFilter({
         value: workflow,
       });
     }
-    onValueChange({ filter });
+    onValueChange(filter);
   }
 
   return (

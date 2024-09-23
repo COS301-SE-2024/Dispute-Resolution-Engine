@@ -12,10 +12,11 @@ services:
         - action: rebuild
           path: ./frontend
     labels:
-      - "traefik.http.routers.frontend.rule=Host(`capstone-dre.dns.net.za`) && !PathPrefix(`/admin`) && !PathPrefix(`/grafana`) && !PathPrefix(`/dashboard`)"
-      # - traefik.http.routers.frontend.rule=Host(`capstone-dre.dns.net.za`) && !PathPrefix(`/admin`, `/grafana`, `/dashboard`)
+      # - "traefik.http.routers.frontend.rule=Host(`capstone-dre.dns.net.za`) && !PathPrefix(`/admin`) && !PathPrefix(`/grafana`) && !PathPrefix(`/dashboard`)"
+      - "traefik.http.routers.frontend.rule=!PathPrefix(`/admin`) && !PathPrefix(`/grafana`) && !PathPrefix(`/dashboard`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
-      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      # - "traefik.http.routers.frontend.tls.certresolver=myresolver"
       - "traefik.enable=true"
   admin-frontend: # --------------------------------------------------------- Admin Frontend
     build: ./admin-frontend
@@ -30,10 +31,11 @@ services:
         - action: rebuild
           path: ./admin-frontend
     labels:
+      # - "traefik.http.routers.admin.rule=Host(`capstone-dre.dns.net.za`) && PathPrefix(`/admin`)"
       - "traefik.http.routers.admin.rule=Host(`capstone-dre.dns.net.za`) && PathPrefix(`/admin`)"
       - "traefik.http.routers.admin.entrypoints=websecure"
       - "traefik.http.routers.admin.priority=50"
-      - "traefik.http.routers.admin.tls.certresolver=myresolver"
+      # - "traefik.http.routers.admin.tls.certresolver=myresolver"
       - "traefik.enable=true"
   api: # ------------------------------------------------------------------API
     build: ./api
@@ -108,7 +110,7 @@ services:
       - "traefik.http.routers.grafana.priority=50"
       - "traefik.http.routers.grafana.entrypoints=websecure"
       - "traefik.http.routers.grafana.entrypoints=web"
-      - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+      # - "traefik.http.routers.grafana.tls.certresolver=myresolver"
       - "traefik.enable=true"
   cadvisor: # -----------------------------------------------------------Cadvisor
     image: gcr.io/cadvisor/cadvisor
@@ -163,11 +165,11 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--entryPoints.web.address=:80"
       - "--entryPoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myresolver.acme.email=the.techtonic.team@gmail.com"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      # - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      # - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      # - "--certificatesresolvers.myresolver.acme.email=the.techtonic.team@gmail.com"
+      # - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443"

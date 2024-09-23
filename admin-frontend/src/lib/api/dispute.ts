@@ -12,22 +12,32 @@ import {
 export async function getDisputeList(
   req: AdminDisputesRequest
 ): Promise<Result<AdminDisputesResponse>> {
-  return {
-    data: MOCK_DATA,
-  };
+  return new Promise((res) => {
+    setTimeout(
+      () =>
+        res({
+          data: MOCK_DATA,
+        }),
+      1000
+    );
+  });
 }
 
 export async function getDisputeDetails(id: string): Promise<Result<DisputeDetailsResponse>> {
-  const result = MOCK_DATA.find((d) => d.id === id);
-  if (!result) {
-    return {
-      error: "Dispute not found",
-    };
-  } else {
-    return {
-      data: result,
-    };
-  }
+  return new Promise((res) => {
+    setTimeout(() => {
+      const result = MOCK_DATA.find((d) => d.id === id);
+      if (!result) {
+        res({
+          error: "Dispute not found",
+        });
+      } else {
+        res({
+          data: result,
+        });
+      }
+    }, 1000);
+  });
 }
 
 export async function changeDisputeStatus(

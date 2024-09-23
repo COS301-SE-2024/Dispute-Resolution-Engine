@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown";
 import { type UserDetails, type DisputeDetails, DisputeStatus } from "@/lib/types/dispute";
-import { changeDisputeStatus, deleteEvidence } from "@/lib/api/dispute";
+import { changeDisputeStatus, deleteEvidence, getDisputeDetails } from "@/lib/api/dispute";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useState } from "react";
 
@@ -23,15 +23,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Download, EllipsisVertical, FileText, Trash } from "lucide-react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { unwrapResult } from "@/lib/utils";
 
-export default function DisputeDetails({ details }: { details?: DisputeDetails }) {
+export default function DisputeDetails({ id: disputeId }: { id: string }) {
+  const { data, error } = useQuery({
+    queryKey: ["dispute"],
+    queryFn: async () => unwrapResult(getDisputeDetails(disputeId)),
+  });
+
   const { toast } = useToast();
 
   const [statusDisabled, setStatusDisabled] = useState(false);
 
   async function changeStatus(status: DisputeStatus) {
     setStatusDisabled(true);
-    const { data, error } = await changeDisputeStatus(details!.id, status);
+    const { data, error } = await changeDisputeStatus(disputeId, status);
     setStatusDisabled(false);
     if (data) {
       toast({
@@ -47,7 +54,7 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
   }
 
   async function deleteEvi(id: string) {
-    const { data, error } = await deleteEvidence(details!.id, id);
+    const { data, error } = await deleteEvidence(disputeId, id);
     if (data) {
       toast({
         title: "Evidence removed",
@@ -62,10 +69,10 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
   }
 
   return (
-    details && (
+    data && (
       <Sidebar open className="p-6 md:pl-8 rounded-l-2xl flex flex-col">
         <DialogHeader className="grid grid-cols-[1fr_auto] gap-2 border-b pb-6 mb-6 border-primary-500/50 space-y-0 items-center">
-          <DialogTitle className="p-2">{details.title}</DialogTitle>
+          <DialogTitle className="p-2">{data.title}</DialogTitle>
           <div className="flex justify-end items-start">
             <DialogClose asChild>
               <Button variant="ghost" className="rounded-full aspect-square p-2 m-0">
@@ -76,25 +83,25 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
           <div className="flex gap-2 items-center">
             <StatusDropdown onSelect={changeStatus} disabled={statusDisabled}>
               <StatusBadge variant="waiting" dropdown>
-                {details.status}
+                {data.status}
               </StatusBadge>
             </StatusDropdown>
-            <span>{details.date_filed}</span>
+            <span>{data.date_filed}</span>
           </div>
 
-          <p>Case Number: {details.id}</p>
+          <p>Case Number: {data.id}</p>
         </DialogHeader>
         <div className="overflow-y-auto grow space-y-6 pr-3">
           <Card>
             <CardHeader>
               <CardTitle>Overview</CardTitle>
-              <CardDescription>{details.description}</CardDescription>
+              <CardDescription>{data.description}</CardDescription>
             </CardHeader>
             <CardContent>
               <h4 className="mb-1">Evidence</h4>
               <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
-                {details.evidence.length > 0 ? (
-                  details.evidence.map((evidence) => (
+                {data.evidence.length > 0 ? (
+                  data.evidence.map((evidence) => (
                     <Evidence
                       onDelete={deleteEvi}
                       key={evidence.id}
@@ -116,11 +123,11 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <section className="space-y-3">
                 <CardTitle>Complainant</CardTitle>
-                <UserDetails {...details.complainant} />
+                <UserDetails {...data.complainant} />
               </section>
               <section className="space-y-3">
                 <CardTitle>Respondent</CardTitle>
-                <UserDetails {...details.respondent} />
+                <UserDetails {...data.respondent} />
               </section>
             </CardContent>
           </Card>

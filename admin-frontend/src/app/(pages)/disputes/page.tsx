@@ -1,8 +1,9 @@
+"use client";
 import { Filter, Search } from "lucide-react";
 import { z } from "zod";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import PageHeader from "@/components/admin/page-header";
-import StatusFilter from "@/components/dispute/status-filter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
@@ -12,42 +13,41 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-import { getDisputeDetails, getDisputeList } from "@/lib/api/dispute";
 import { type DisputeDetails } from "@/lib/types/dispute";
 
 import Details from "./modal";
-import DisputeRow from "./row";
 import DisputeFilter from "./dispute-filter";
+import DisputeTable from "./table";
 
 const searchSchema = z.object({
   id: z.string().optional(),
 });
 
-export default async function Disputes({ searchParams }: { searchParams: unknown }) {
+export default function Disputes({ searchParams }: { searchParams: unknown }) {
   const { data: params, error: searchError } = searchSchema.safeParse(searchParams);
   if (!params) {
     throw new Error(JSON.stringify(searchError));
   }
 
-  const { data, error } = await getDisputeList({});
-  if (error) {
-    throw new Error(error);
-  }
+  // const { data, error } = await getDisputeList({});
+  // if (error) {
+  //   throw new Error(error);
+  // }
 
   let details: DisputeDetails | undefined = undefined;
-  if (params.id) {
-    const { data, error } = await getDisputeDetails(params.id);
-    if (error) {
-      throw new Error(error);
-    }
-    details = data;
-  }
+  // if (params.id) {
+  //   const { data, error } = await getDisputeDetails(params.id);
+  //   if (error) {
+  //     throw new Error(error);
+  //   }
+  //   details = data;
+  // }
 
+  const client = new QueryClient();
   return (
-    <>
-      <Details details={details} />
+    <QueryClientProvider client={client}>
+      {params.id && <Details id={params.id} />}
       <div className="flex flex-col">
         <PageHeader label="Disputes" />
         <div className="flex items-center px-5 gap-2 pr-2 border-b dark:border-primary-500/30 border-primary-500/20">
@@ -72,22 +72,7 @@ export default async function Disputes({ searchParams }: { searchParams: unknown
         <main className="overflow-auto p-5 grow">
           <Card>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="">Title</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Workflow</TableHead>
-                    <TableHead className="w-[150px] text-center">Date Filed</TableHead>
-                    <TableHead className="w-[150px] text-center">Date Resolved</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data!.map((dispute) => (
-                    <DisputeRow key={dispute.id} {...dispute} />
-                  ))}
-                </TableBody>
-              </Table>
+              <DisputeTable />
             </CardContent>
             <CardFooter>
               <Pagination className="w-full">
@@ -105,6 +90,6 @@ export default async function Disputes({ searchParams }: { searchParams: unknown
           </Card>
         </main>
       </div>
-    </>
+    </QueryClientProvider>
   );
 }

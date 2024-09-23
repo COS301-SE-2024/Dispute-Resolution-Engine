@@ -211,3 +211,69 @@ func TestCheckTimers(t *testing.T) {
 		t.Fatal("Timer event was not triggered")
 	}
 }
+
+func TestCheckTimersNoExpired(t *testing.T) {
+	logger := utilities.NewLogger()
+	s := scheduler.NewWithLogger(time.Second, logger)
+
+	timerName := "timer1"
+	deadline := time.Now().Add(time.Second) // Set deadline in the future
+	event := func() {}
+
+	s.AddTimer(timerName, deadline, event)
+	s.CheckTimers(time.Now())
+
+	s.Lock.RLock()
+	_, exists := s.Timers[timerName]
+	s.Lock.RUnlock()
+
+	assert.True(t, exists)
+}
+
+func TestCheckTimersMultiple(t *testing.T) {
+	logger := utilities.NewLogger()
+	s := scheduler.NewWithLogger(time.Second, logger)
+
+	result1 := make(chan bool)
+	result2 := make(chan bool)
+
+	timerName1 := "timer1"
+	deadline1 := time.Now().Add(-time.Second) // Set deadline in the past to trigger immediately
+	event1 := func() {
+		result1 <- true
+	}
+
+	timerName2 := "timer2"
+	deadline2 := time.Now().Add(-500 * time.Millisecond) // Set deadline in the past to trigger immediately
+	event2 := func() {
+		result2 <- true
+	}
+
+	s.AddTimer(timerName1, deadline1, event1)
+	s.AddTimer(timerName2, deadline2, event2)
+	s.CheckTimers(time.Now())
+
+	select {
+	case <-result1:
+		// Timer1 event was triggered
+		s.Lock.RLock()
+		_, exists := s.Timers[timerName1]
+		s.Lock.RUnlock()
+		assert.False(t, exists)
+	case <-time.After(2 * time.Second):
+		// Timer1 event was not triggered within the expected time
+		t.Fatal("Timer1 event was not triggered")
+	}
+
+	select {
+	case <-result2:
+		// Timer2 event was triggered
+		s.Lock.RLock()
+		_, exists := s.Timers[timerName2]
+		s.Lock.RUnlock()
+		assert.False(t, exists)
+	case <-time.After(2 * time.Second):
+		// Timer2 event was not triggered within the expected time
+		t.Fatal("Timer2 event was not triggered")
+	}
+}

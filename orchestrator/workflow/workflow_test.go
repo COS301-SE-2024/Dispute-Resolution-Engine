@@ -148,3 +148,48 @@ func TestTriggerJSONUnmarshalling(t *testing.T) {
 	assert.Equal(t, "Trigger1", trigger.Label, "The unmarshaled trigger should have the correct label")
 	assert.Equal(t, "NextState", trigger.Next, "The unmarshaled trigger should have the correct next state")
 }
+func TestCreateWorkflow(t *testing.T) {
+	initialState := workflow.CreateState("Initial", "Initial state description")
+	wf := workflow.CreateWorkflow("initial_state", initialState)
+
+	assert.Equal(t, "initial_state", wf.Initial, "The initial state ID should match the provided value")
+	assert.Contains(t, wf.States, "initial_state", "The workflow should contain the initial state")
+	assert.Equal(t, initialState, wf.States["initial_state"], "The initial state should match the provided state")
+}
+
+func TestGetInitialState(t *testing.T) {
+	initialState := workflow.CreateState("Initial", "Initial state description")
+	wf := workflow.CreateWorkflow("initial_state", initialState)
+
+	retrievedState := wf.GetInitialState()
+	assert.Equal(t, initialState, retrievedState, "The retrieved initial state should match the expected state")
+}
+
+func TestGetWorkflowString(t *testing.T) {
+	initialState := workflow.CreateState("Initial", "Initial state description")
+	wf := workflow.CreateWorkflow("initial_state", initialState)
+
+	state2 := workflow.CreateState("State2", "Second state description")
+	trigger := workflow.NewTrigger("to_state2", "state2")
+	initialState.AddTrigger(trigger)
+	wf.States["initial_state"] = initialState
+	wf.States["state2"] = state2
+
+	expectedString := `Initial State: initial_state
+
+State ID: initial_state
+  Label: Initial
+  Description: Initial state description
+  Triggers:
+    - ID: to_state2, Label: to_state2, Next State: state2
+  No Timer
+
+State ID: state2
+  Label: State2
+  Description: Second state description
+  No Triggers
+  No Timer
+`
+
+	assert.Equal(t, expectedString, wf.GetWorkflowString(), "The workflow string representation should match the expected structure")
+}

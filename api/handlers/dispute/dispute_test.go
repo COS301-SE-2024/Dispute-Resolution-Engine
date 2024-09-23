@@ -121,6 +121,14 @@ func (m *mockDisputeModel) GetDisputesByUser(userId int64) ([]models.Dispute, er
 	}
 	return []models.Dispute{}, nil
 }
+
+func (m *mockDisputeModel) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, int64, error) {
+	if m.throwErrors {
+		return nil, 0, errors.ErrUnsupported
+	}
+	return []models.AdminDisputeSummariesResponse{}, 0, nil
+}
+
 func (m *mockDisputeModel) GetDispute(disputeId int64) (models.Dispute, error) {
 	if m.throwErrors {
 		return models.Dispute{}, errors.ErrUnsupported
@@ -138,7 +146,7 @@ func (m *mockDisputeModel) GetUserByEmail(email string) (models.User, error) {
 	return models.User{
 		PhoneNumber:       new(string),
 		AddressID:         new(int64),
-		UpdatedAt:         new(time.Time),
+		LastUpdate:        new(time.Time),
 		LastLogin:         new(time.Time),
 		PreferredLanguage: new(string),
 		Timezone:          new(string),

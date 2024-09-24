@@ -64,17 +64,31 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 					s.StatelessStateMachine.Fire(timer.OnExpire)
 					// No need to update the database here, as the state is already the initial state
 					// We update it anyway for safety, explanations in next if block
+
+					//check if timer is nil
 					new_state := wf.States[state_id].Triggers[timer.OnExpire].Next
-					new_state_deadline := wf.States[new_state].Timer.GetDeadline()
-					wf_id_int, err := strconv.Atoi(wf_id)
-					if err != nil {
-						logger.Error("Error converting wf_id to int", err)
+					if wf.States[new_state].Timer != nil {
+						new_state_deadline := wf.States[new_state].Timer.GetDeadline()
+						wf_id_int, err := strconv.Atoi(wf_id)
+						if err != nil {
+							logger.Error("Error converting wf_id to int", err)
+						}
+						err = s.api.UpdateActiveWorkflow(wf_id_int, nil, &new_state, nil, &new_state_deadline, nil)
+						if err != nil {
+							logger.Error("Error updating active_workflow entry in database", err)
+						}
+						logger.Info("Sanity update of active_workflow entry in database", wf_id, new_state, new_state_deadline)
+					} else {
+						wf_id_int, err := strconv.Atoi(wf_id)
+						if err != nil {
+							logger.Error("Error converting wf_id to int", err)
+						}
+						err = s.api.UpdateActiveWorkflow(wf_id_int, nil, &new_state, nil, nil, nil)
+						if err != nil {
+							logger.Error("Error updating active_workflow entry in database", err)
+						}
+						logger.Info("Sanity update of active_workflow entry in database", wf_id, new_state)
 					}
-					err = s.api.UpdateActiveWorkflow(wf_id_int, nil, &new_state, nil, &new_state_deadline, nil)
-					if err != nil {
-						logger.Error("Error updating active_workflow entry in database", err)
-					}
-					logger.Info("Sanity update of active_workflow entry in database", wf_id, new_state, new_state_deadline)
 				})
 			} else {
 				// When the state is entered, start the timer
@@ -86,18 +100,32 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 						// Get the new state ID
 						new_state := wf.States[state_id].Triggers[timer.OnExpire].Next
 						// Get the deadline that will be set for the new state
-						new_state_deadline := wf.States[new_state].Timer.GetDeadline()
-						// Convert wf_id to int
-						wf_id_int, err := strconv.Atoi(wf_id)
-						if err != nil {
-							logger.Error("Error converting wf_id to int", err)
+						if wf.States[new_state].Timer != nil {
+							new_state_deadline := wf.States[new_state].Timer.GetDeadline()
+							// Convert wf_id to int
+							wf_id_int, err := strconv.Atoi(wf_id)
+							if err != nil {
+								logger.Error("Error converting wf_id to int", err)
+							}
+							// Update the active_workflow entry in the database
+							err = s.api.UpdateActiveWorkflow(wf_id_int, nil, &new_state, nil, &new_state_deadline, nil)
+							if err != nil {
+								logger.Error("Error updating active_workflow entry in database", err)
+							}
+							logger.Info("Updated active_workflow entry in database", wf_id, new_state, new_state_deadline)
+						} else {
+							// Convert wf_id to int
+							wf_id_int, err := strconv.Atoi(wf_id)
+							if err != nil {
+								logger.Error("Error converting wf_id to int", err)
+							}
+							// Update the active_workflow entry in the database
+							err = s.api.UpdateActiveWorkflow(wf_id_int, nil, &new_state, nil, nil, nil)
+							if err != nil {
+								logger.Error("Error updating active_workflow entry in database", err)
+							}
+							logger.Info("Updated active_workflow entry in database", wf_id, new_state)
 						}
-						// Update the active_workflow entry in the database
-						err = s.api.UpdateActiveWorkflow(wf_id_int, nil, &new_state, nil, &new_state_deadline, nil)
-						if err != nil {
-							logger.Error("Error updating active_workflow entry in database", err)
-						}
-						logger.Info("Updated active_workflow entry in database", wf_id, new_state, new_state_deadline)
 					})
 					return nil
 				})

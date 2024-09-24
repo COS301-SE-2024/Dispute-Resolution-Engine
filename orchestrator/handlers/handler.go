@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -132,7 +133,21 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 	wf.Initial = current_state
 
 	// Update the state deadline
-	wf.States[current_state].Timer.Duration.Duration = time.Until(state_deadline)
+	fmt.Println("State deadline: ", state_deadline)
+	fmt.Println("Current State: ", current_state)
+	fmt.Println("Current State Deadline: ", wf.States[current_state])
+	fmt.Println("Workflow: ", wf.GetWorkflowString())
+
+	//check if state deadline is in future
+	if time.Now().Before(state_deadline) {
+		// If the state deadline is in the future, update the timer duration
+		wf.States[current_state].Timer.Duration.Duration = time.Until(state_deadline)
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "State deadline is in the past",
+		})
+		return
+	}
 
 	// Register the state machine with the controller
 	active_wf_id_str := strconv.Itoa(active_wf_id)

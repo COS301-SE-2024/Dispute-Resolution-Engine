@@ -4,7 +4,6 @@ import (
 	"api/env"
 	"api/middleware"
 	"api/models"
-	"api/utilities"
 	"errors"
 	"strings"
 
@@ -12,7 +11,7 @@ import (
 )
 
 type TicketModel interface {
-	getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter)
+	getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
 }
 
 type Ticket struct {
@@ -34,10 +33,10 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 	}
 }
 
-func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) {
-	logger := utilities.NewLogger().LogWithCaller()
-	
-	var disputes []models.AdminDisputeSummariesResponse = []models.AdminDisputeSummariesResponse{}
+func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
+	// logger := utilities.NewLogger().LogWithCaller()
+
+	tickets := []models.TicketSummaryResponse{}
 	var queryString strings.Builder
 	var countString strings.Builder
 	var countParams []interface{}
@@ -73,11 +72,11 @@ func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, off
 	}
 
 	validSortAttrs := map[string]bool{
-		"status":        true,
+		"status": true,
 	}
 
 	if _, valid := validSortAttrs[sortAttr.Attr]; !valid {
-		return disputes, 0, errors.New("invalid sort attribute")
+		return tickets, 0, errors.New("invalid sort attribute")
 	}
 
 	if sortAttr.Order != "asc" && sortAttr.Order != "desc" {

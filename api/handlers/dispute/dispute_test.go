@@ -943,3 +943,30 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionInvalidRequestBody() {
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
 }
+
+//---------------------------------------------------------------- Update Dispute Status
+
+func (suite *DisputeErrorTestSuite) TestUpdateStatusInvalidRequestBody() {
+	req, _ := http.NewRequest("PUT", "/dispute/status", bytes.NewBuffer([]byte("invalid body")))
+	req.Header.Add("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusBadRequest, w.Code)
+	var result models.Response
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("Invalid request body", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestUpdateStatusUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("PUT", "/dispute/status", bytes.NewBuffer([]byte(`{"dispute_id": 1, "status": "Resolved"}`)))
+	req.Header.Add("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	var result models.Response
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("Unauthorized", result.Error)
+}

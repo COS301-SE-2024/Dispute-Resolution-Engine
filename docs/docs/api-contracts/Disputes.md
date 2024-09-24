@@ -170,3 +170,16 @@ interface ExpertRejectRequest {
   accepted: boolean;
 }
 ```
+
+## Viewing Expert rejections
+- **Endpoint:** `POST /disputes/experts/rejections`
+- **Headers:**
+  - `Authorization: Bearer <JWT>`
+
+```ts
+interface ViewRejections {
+  expert_id: int; //optional filter
+  dispute_id: int;  //optional filter
+  limit: int; //optional filter
+  offset: int; //optional filter
+}

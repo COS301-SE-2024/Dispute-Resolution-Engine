@@ -206,3 +206,11 @@ type AdminDisputesRequest struct {
 
 	DateFilter *DateFilter `json:"dateFilter,omitempty"`
 }
+
+
+type ViewExpetRejectionsRequest struct {
+	Expert_id *int64 `json:"expert_id,omitempty"`
+	Dispute_id *int64 `json:"dispute_id,omitempty"`
+	Limits *int `json:"limits,omitempty"`
+	Offset *int `json:"offset,omitempty"`
+}

@@ -556,3 +556,6 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.Response{Data: "Expert objections reviewed successfully"})
 }
+
+func (h Dispute) ViewExpertRejections (c *gin.Context) {
+}

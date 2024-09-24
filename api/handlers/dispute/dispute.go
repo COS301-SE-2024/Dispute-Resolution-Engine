@@ -558,4 +558,15 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 }
 
 func (h Dispute) ViewExpertRejections (c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// get body of post
+	var req models.ViewExpetRejectionsRequest
+	if err := c.BindJSON(&req); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "invalid Body"})
+		return
+	}
+
+	
 }

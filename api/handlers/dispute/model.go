@@ -649,3 +649,43 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 
 	return disputes, countRows, err
 }
+
+func (m *disputeModelReal) GetExpertRejections(expertID *int64, disputeID *int64, limit *int, offset *int) ([]models.ExpertObjection, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var rejections []models.ExpertObjection = []models.ExpertObjection{}
+	var queryString strings.Builder
+	var queryParams []interface{}
+
+	queryString.WriteString("SELECT * FROM expert_objections")
+	if expertID != nil || disputeID != nil {
+		queryString.WriteString(" WHERE ")
+		if expertID != nil {
+			queryString.WriteString("expert_id = ?")
+			queryParams = append(queryParams, *expertID)
+		}
+		if disputeID != nil {
+			if expertID != nil {
+				queryString.WriteString(" AND ")
+			}
+			queryString.WriteString("dispute_id = ?")
+			queryParams = append(queryParams, *disputeID)
+		}
+	}
+
+	if limit != nil {
+		queryString.WriteString(" LIMIT ?")
+		queryParams = append(queryParams, *limit)
+	}
+	if offset != nil {
+		queryString.WriteString(" OFFSET ?")
+		queryParams = append(queryParams, *offset)
+	}
+
+	err := m.db.Raw(queryString.String(), queryParams...).Scan(&rejections).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving expert rejections")
+		return rejections, err
+	}
+
+	return rejections, err
+}

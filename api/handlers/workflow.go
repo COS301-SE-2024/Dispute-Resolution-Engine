@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"api/env"
 	"api/models"
 	"api/utilities"
 	"bytes"
@@ -8,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -292,6 +294,10 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Workflow and associated tags deleted"})
 }
 
+type OrchestratorRequest struct {
+	ID int64 `json:"id"`
+}
+
 func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
@@ -365,9 +371,41 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 
 	//send request to orchestrator to activate workflow
 
+	// Get the environment variables
+	url, err := w.EnvReader.Get("ORCH_URL")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	port, err := w.EnvReader.Get("ORCH_PORT")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	startEndpoint, err := w.EnvReader.Get("ORCH_START")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	// Send the request to the orchestrator
+	payload := OrchestratorRequest{ID: activeWorkflow.ID}
+
+	_, err = w.MakeRequestToOrchestrator(fmt.Sprintf("%s:%s%s", url, port, startEndpoint), payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusOK, models.Response{Data: "Databse updated and request to Activate workflow sent"})
 
 }
+
 
 
 func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
@@ -412,8 +450,36 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 		return
 	}
 
-	//send request to orchestrator to reset workflow
+	//get Environment variables
+	url, err := w.EnvReader.Get("ORCH_URL")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
 
+	port, err := w.EnvReader.Get("ORCH_PORT")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	resetEndpoint, err := w.EnvReader.Get("ORCH_RESET")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	// Send the request to the orchestrator
+	payload := OrchestratorRequest{ID: activeWorkflow.ID}
+
+	_, err = w.MakeRequestToOrchestrator(fmt.Sprintf("%s:%s%s", url, port, resetEndpoint), payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, models.Response{Data: "Database updated and request to Reset workflow sent"})
 }
 

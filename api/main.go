@@ -45,6 +45,12 @@ var requiredEnvVariables = []string{
 	"JWT_SECRET",
 	"OPENAI_KEY",
 	"ORCHESTRATOR_KEY",
+
+	// Orchestrator-related variables
+	"ORCH_URL",
+	"ORCH_PORT",
+	"ORCH_RESET",
+	"ORCH_START",
 }
 
 // @title Dispute Resolution Engine - v1

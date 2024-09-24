@@ -17,7 +17,7 @@ func main() {
 	controller.Start()
 
 	// Create a new handler instance
-	queryEngine:= workflow.CreateWorkflowQuery()
+	queryEngine := workflow.CreateWorkflowQuery()
 	apiHandler := workflow.CreateAPIWorkflow(queryEngine)
 
 	handlers := handlers.NewHandler(controller, &apiHandler)

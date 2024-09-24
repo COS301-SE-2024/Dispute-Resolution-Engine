@@ -9,11 +9,16 @@ import { ReactNode, useState } from "react";
 
 export default function DisputeFilter({
   children,
+  value = [],
   onValueChange = () => {},
 }: {
   children: ReactNode;
   onValueChange?: (filter: Filter[]) => void;
+  value?: Filter[];
 }) {
+  const statusFilter = value.find((f) => f.attr == "status")?.value as DisputeStatus;
+  const workflowFilter = value.find((f) => f.attr == "workflow")?.value;
+
   const [status, setStatus] = useState<DisputeStatus | undefined>(undefined);
   const [workflow, setWorkflow] = useState<string | undefined>(undefined);
 
@@ -41,9 +46,9 @@ export default function DisputeFilter({
         <strong className="col-span-2">Filter</strong>
 
         <label>Status</label>
-        <StatusFilter onValueChange={setStatus} />
+        <StatusFilter initialValue={statusFilter} onValueChange={setStatus} />
         <label>Workflow</label>
-        <WorkflowFilter onValueChange={setWorkflow} />
+        <WorkflowFilter initialValue={workflowFilter} onValueChange={setWorkflow} />
         <div className="col-span-2 flex flex-end">
           <Button className="ml-auto" onClick={applyFilter}>
             Apply

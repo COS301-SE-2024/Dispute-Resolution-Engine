@@ -11,13 +11,15 @@ import {
 } from "@/components/ui/select";
 
 export default function WorkflowFilter({
+  initialValue,
   onValueChange = () => {},
 }: {
   onValueChange?: (id: string | undefined) => void;
+  initialValue?: string;
 }) {
   return (
     <Select
-      defaultValue="none"
+      defaultValue={initialValue ?? "none"}
       onValueChange={(val) => onValueChange(val === "none" ? undefined : val)}
     >
       <SelectTrigger className="w-[180px]">

@@ -54,6 +54,7 @@ export default function Disputes({ searchParams }: { searchParams: unknown }) {
           </div>
 
           <DisputeFilter
+            value={filter}
             onValueChange={(f) => {
               setFilter(f);
               setPage(0);

@@ -26,10 +26,10 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 10;
 
 export function DisputeTable({ filters, page = 0 }: { filters?: Filter[]; page: number }) {
-  const { data, error } = useQuery({
+  const { data, error, isPending } = useQuery({
     queryKey: ["disputeTable", filters, page],
     queryFn: () =>
       unwrapResult(
@@ -64,9 +64,13 @@ export function DisputeTable({ filters, page = 0 }: { filters?: Filter[]; page: 
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data?.disputes.map((dispute) => (
-          <DisputeRow key={dispute.id} {...dispute} />
-        ))}
+        {(data?.total ?? 0) > 0
+          ? data?.disputes.map((dispute) => <DisputeRow key={dispute.id} {...dispute} />)
+          : !isPending && (
+              <TableRow>
+                <TableCell>No results</TableCell>
+              </TableRow>
+            )}
       </TableBody>
     </Table>
   );
@@ -119,7 +123,7 @@ export function DisputePager({
     if (!query.data) {
       setTotal(0);
     } else {
-      setTotal(Math.floor(query.data.total / PAGE_SIZE));
+      setTotal(Math.ceil(query.data.total / PAGE_SIZE));
     }
   }, [query.data]);
 

@@ -39,6 +39,10 @@ type Archive struct {
 	Handler
 }
 
+type Ticket struct {
+	Handler
+}
+
 func new(db *gorm.DB) Handler {
 	envReader := env.NewEnvLoader()
 	return Handler{DB: db, EnvReader: envReader, Jwt: middleware.NewJwtMiddleware(), DisputeProceedingsLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader)}
@@ -66,4 +70,8 @@ func NewExpertHandler(db *gorm.DB) Expert {
 
 func NewArchiveHandler(db *gorm.DB) Archive {
 	return Archive{new(db)}
+}
+
+func NewTicketHandler(db *gorm.DB) Ticket {
+	return Ticket{new(db)}
 }

@@ -197,3 +197,21 @@ type ExpertObjection struct {
 func (ExpertObjection) TableName() string {
 	return "expert_objections"
 }
+
+type Ticket struct {
+	ID             int64     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
+	CreatedAt      time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
+	CreatedBy      int64     `gorm:"not null;column:created_by" json:"created_by"`
+	DisputeID      int64     `gorm:"not null;column:dispute_id" json:"dispute_id"`
+	Subject        string    `gorm:"not null;type:varchar(255);column:subject" json:"subject"`
+	Status         string    `gorm:"not null;type:ticket_status_enum;column:status" json:"status"`
+	InitialMessage string    `gorm:"type:text;column:status:initial_message" json:"initial_message"`
+}
+
+type TicketMessages struct {
+	ID        int64     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
+	TicketID  int64     `gorm:"not null;column:ticket_id" json:"ticket_id"`
+	UserID    int64     `gorm:"not null;column:user_id" json:"user_id"`
+	CreatedAt time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
+	Content   string    `gorm:"type:text;not null;column:content" json:"content"`
+}

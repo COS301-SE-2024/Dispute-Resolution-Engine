@@ -65,3 +65,16 @@ type AdminDisputeSummariesResponse struct {
 	DateFiled    string       `json:"date_filed"`
 	DateResolved *string      `json:"date_resolved,omitempty" gorm:"column:date_resolved"`
 }
+
+type user struct {
+	ID       int64  `json:"id"`
+	FullName string `json:"full_name"`
+}
+
+type TicketSummaryResponse struct {
+	ID          int64  `json:"id"`
+	User        user   `json:"user"`
+	DateCreated string `json:"date_created"`
+	Subject     string `json:"subject"`
+	Status      string `json:"status"`
+}

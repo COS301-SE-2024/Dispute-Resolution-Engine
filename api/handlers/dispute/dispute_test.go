@@ -73,40 +73,7 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 func TestDisputeErrors(t *testing.T) {
 	suite.Run(t, new(DisputeErrorTestSuite))
 }
-func (suite *DisputeErrorTestSuite) TestCreateDisputeUnauthorized() {
-	suite.jwtMock.throwErrors = true
-	req, _ := http.NewRequest("POST", "/create", nil)
-	w := httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
-	suite.Equal(http.StatusUnauthorized, w.Code)
-	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-	suite.NotEmpty(result.Error)
-	suite.Equal("Unauthorized", result.Error)
-}
-
-func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingTitle() {
-	data := bytes.NewBuffer([]byte{})
-	form := multipart.NewWriter(data)
-	form.CreateFormField("description")
-	form.CreateFormField("respondent[full_name]")
-	form.CreateFormField("respondent[email]")
-	form.Close()
-
-	req, _ := http.NewRequest("POST", "/create", data)
-	req.Header.Add("Authorization", "Bearer mock")
-	req.Header.Add("Content-Type", form.FormDataContentType())
-
-	w := httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
-
-	var result models.Response
-	suite.Equal(http.StatusBadRequest, w.Code)
-	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-	suite.NotEmpty(result.Error)
-	suite.Equal("missing field in form: title", result.Error)
-}
 // ---------------------------------------------------------------- UTILITY FUNCTIONS
 
 // Creates and writes to a form field with the specified value
@@ -1033,4 +1000,83 @@ func (suite *DisputeErrorTestSuite) TestUpdateStatusSuccess() {
 }
 
 // ---------------------------------------------------------------- Create Dispute
+
+func (suite *DisputeErrorTestSuite) TestCreateDisputeUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("POST", "/create", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingTitle() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormField("description")
+	form.CreateFormField("respondent[full_name]")
+	form.CreateFormField("respondent[email]")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("missing field in form: title", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingDescription() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormField("title")
+	form.CreateFormField("respondent[full_name]")
+	form.CreateFormField("respondent[email]")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("missing field in form: description", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingRespondentFullName() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormField("title")
+	form.CreateFormField("description")
+	form.CreateFormField("respondent[email]")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("missing field in form: respondent[full_name]", result.Error)
+}
 

@@ -530,8 +530,8 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 
 	// Get info from token
 	claims, err := h.JWT.GetClaims(c)
-	if err == nil {
-		logger.WithError(err).Error("Unauthorized access attempt")
+	if err != nil {
+		logger.WithError(err).Error("Unauthorized access attempt", claims, err)
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}

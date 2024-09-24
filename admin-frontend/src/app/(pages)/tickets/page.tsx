@@ -1,9 +1,22 @@
 import PageHeader from "@/components/admin/page-header";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { TicketTable } from "./table";
 import { z } from "zod";
 import TicketDetails from "./details";
 import { Ticket } from "@/lib/types/tickets";
+import SearchBar from "@/components/admin/search";
+import { Button } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination";
+import { TableHeader, TableRow, TableHead, TableBody } from "@/components/ui/table";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { FilterIcon, Table } from "lucide-react";
+import DisputeRow from "../disputes/row";
 
 const searchSchema = z.object({
   id: z.string().optional(),
@@ -37,11 +50,40 @@ export default function Tickets({ searchParams }: { searchParams: unknown }) {
       {params.id && <TicketDetails details={ticket} />}
       <div className="flex flex-col">
         <PageHeader label="Tickets" />
-        <Card>
-          <CardContent>
-            <TicketTable />
-          </CardContent>
-        </Card>
+        <div className="flex items-center px-5 gap-2 pr-2 border-b dark:border-primary-500/30 border-primary-500/20">
+          <SearchBar placeholder="Search tickets..." />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" className="gap-2">
+                <FilterIcon />
+                <span>Filter by</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="grid gap-x-2 gap-y-3 grid-cols-[auto_1fr] items-center">
+              <strong className="col-span-2">Filter</strong>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <main className="overflow-auto p-5 grow">
+          <Card>
+            <CardContent>
+              <TicketTable />
+            </CardContent>
+            <CardFooter>
+              <Pagination className="w-full">
+                <PaginationContent className="w-full">
+                  <PaginationItem>
+                    <PaginationPrevious href="#" />
+                  </PaginationItem>
+                  <div className="grow" />
+                  <PaginationItem>
+                    <PaginationNext href="#" />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </CardFooter>
+          </Card>
+        </main>
       </div>
     </>
   );

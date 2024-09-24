@@ -41,6 +41,7 @@ type DisputeModel interface {
 
 	ObjectExpert(userId, disputeId, expertId int64, reason string) error
 	ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error
+	GetExpertRejections(expertID *int64, disputeID *int64, limit *int, offset *int) ([]models.ExpertObjectionsView, error)
 
 	CreateDefaultUser(email string, fullName string, pass string) error
 	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
@@ -650,13 +651,13 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	return disputes, countRows, err
 }
 
-func (m *disputeModelReal) GetExpertRejections(expertID *int64, disputeID *int64, limit *int, offset *int) ([]models.ExpertObjection, error) {
+func (m *disputeModelReal) GetExpertRejections(expertID *int64, disputeID *int64, limit *int, offset *int) ([]models.ExpertObjectionsView, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	var rejections []models.ExpertObjection = []models.ExpertObjection{}
+	var rejections []models.ExpertObjectionsView = []models.ExpertObjectionsView{}
 	var queryString strings.Builder
 	var queryParams []interface{}
 
-	queryString.WriteString("SELECT * FROM expert_objections")
+	queryString.WriteString("SELECT * FROM expert_objections_view")
 	if expertID != nil || disputeID != nil {
 		queryString.WriteString(" WHERE ")
 		if expertID != nil {

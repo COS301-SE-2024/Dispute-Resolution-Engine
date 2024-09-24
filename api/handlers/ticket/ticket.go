@@ -1,4 +1,4 @@
-package handlers
+package ticket
 
 import (
 	"api/middleware"
@@ -12,12 +12,12 @@ import (
 func SetupTicketRoutes(g *gin.RouterGroup, h Ticket) {
 	jwt := middleware.NewJwtMiddleware()
 	g.Use(jwt.JWTMiddleware)
-	g.POST(", h.getTicketList")
+	g.POST("", h.getTicketList)
 }
 
 func (h Ticket) getTicketList(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	claims, err := h.Jwt.GetClaims()
+	claims, err := h.JWT.GetClaims(c)
 
 	if err != nil {
 		logger.Error("Unauthorized access attempt")

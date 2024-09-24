@@ -30,7 +30,7 @@ services:
           path: ./admin-frontend
     labels:
     - "traefik.enable=true"
-    - "traefik.http.routers.admin.rule=Host(`${DOMAIN}`) && PathPrefix(`/admin`)"
+    - "traefik.http.routers.admin.rule=Host(`${DOMAIN}`) && (PathPrefix(`/admin`) || HeaderRegexp(`Referer`, `http.*${DOMAIN}/admin/.*`))"
     - "traefik.http.routers.admin.entrypoints=${ENTRY_POINTS}"
     - "traefik.http.middlewares.adminStrip.stripprefix.prefixes=/admin"
     - "traefik.http.routers.admin.middlewares=adminStrip@docker"

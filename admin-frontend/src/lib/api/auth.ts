@@ -8,6 +8,8 @@ import { cookies } from "next/headers";
 import { JWT_KEY, setAuthToken } from "@/lib/jwt";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { jwtDecode } from "jwt-decode";
+import { UserJwt } from "../types/auth";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required"),
@@ -35,6 +37,12 @@ export async function login(_initialState: any, formData: FormData): Promise<Res
   // Handle errors
   if (res.error) {
     return res;
+  }
+  const jwt = jwtDecode(res.data!) as UserJwt;
+  if (jwt.user.role != "admin") {
+    return {
+      error: "Unauthorized. You are not an admin",
+    };
   }
 
   setAuthToken(res.data!);

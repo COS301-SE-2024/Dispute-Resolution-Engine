@@ -60,7 +60,7 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 			// If the current state is the initial state, start the timer
 			if state_id == wf.Initial {
 				s.Scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()), func() {
-					logger.Info("Timer expired for state", state_id)
+					logger.Debug("Timer expired for state", state_id)
 					s.StatelessStateMachine.Fire(timer.OnExpire)
 					// No need to update the database here, as the state is already the initial state
 					// We update it anyway for safety, explanations in next if block
@@ -74,14 +74,14 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 					if err != nil {
 						logger.Error("Error updating active_workflow entry in database", err)
 					}
-					logger.Info("Updated active_workflow entry in database", wf_id, new_state, new_state_deadline)
+					logger.Info("Sanity update of active_workflow entry in database", wf_id, new_state, new_state_deadline)
 				})
 			} else {
 				// When the state is entered, start the timer
 				stateConfig.OnEntry(func(_ context.Context, args ...any) error {
-					logger.Info("New state entered")
+					logger.Debug("New state entered")
 					s.Scheduler.AddTimer(timerName, time.Now().Add(timer.GetDuration()), func() {
-						logger.Info("Timer expired for state", state_id)
+						logger.Debug("Timer expired for state", state_id)
 						s.StatelessStateMachine.Fire(timer.OnExpire)
 						// Get the new state ID
 						new_state := wf.States[state_id].Triggers[timer.OnExpire].Next

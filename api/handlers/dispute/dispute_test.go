@@ -58,6 +58,7 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock}
 	gin.SetMode("release")
 	router := gin.Default()
+	router.Use(suite.jwtMock.JWTMiddleware)
 	router.POST("/:id/evidence", handler.UploadEvidence)
 	router.POST("/create", handler.CreateDispute)
 	router.GET("/:id", handler.GetDispute)
@@ -74,7 +75,8 @@ func TestDisputeErrors(t *testing.T) {
 }
 func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewUnauthorized() {
 	suite.jwtMock.throwErrors = true
-	req, _ := http.NewRequest("POST", "dispute/1/experts/review-rejection", nil)
+	req, _ := http.NewRequest("POST", "/1/experts/review-rejection", nil)
+	
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
@@ -273,7 +275,14 @@ func (m *mockJwtModel) GetJWT(email string) (string, error) {
 	}
 	return "", nil
 }
-func (m *mockJwtModel) JWTMiddleware(c *gin.Context) {}
+func (m *mockJwtModel) JWTMiddleware(c *gin.Context) {
+	if m.throwErrors {
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		c.Abort()
+		return 
+	}
+	c.Next()
+}
 
 func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 	if m.throwErrors {
@@ -325,6 +334,7 @@ func (suite *DisputeErrorTestSuite) TestGetSummaryListUnauthorized() {
 
 	var result models.Response
 	suite.Equal(http.StatusUnauthorized, w.Code)
+	fmt.Println("THIS BODY:", w.Body.String())
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
 	suite.Equal("Unauthorized", result.Error)

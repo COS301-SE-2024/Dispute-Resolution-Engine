@@ -61,28 +61,6 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
     },
   });
 
-  const evidence = useMutation({
-    mutationFn: async (id: string) => {
-      await unwrapResult(deleteEvidence(disputeId, id));
-    },
-    onSuccess: (data, variables) => {
-      client.setQueryData(["dispute"], (old: DisputeDetailsResponse) => ({
-        ...old,
-        evidence: old.evidence.filter((evi) => evi.id !== variables),
-      }));
-      toast({
-        title: "Evidence removed",
-      });
-    },
-    onError: (error) => {
-      toast({
-        variant: "error",
-        title: "Something went wrong",
-        description: error?.message,
-      });
-    },
-  });
-
   return (
     data && (
       <Sidebar open className="p-6 md:pl-8 rounded-l-2xl flex flex-col">
@@ -120,7 +98,6 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
                 {data.evidence.length > 0 ? (
                   data.evidence.map((evi) => (
                     <Evidence
-                      onDelete={evidence.mutate}
                       key={evi.id}
                       id={evi.id}
                       label={evi.label}
@@ -179,13 +156,11 @@ function Evidence({
   label,
   url,
   date,
-  onDelete,
 }: {
   id: string;
   label: string;
   url: string;
   date: string;
-  onDelete: (id: string) => void;
 }) {
   return (
     <li className="grid grid-cols-[auto_1fr_auto] gap-2 items-center px-3 py-2 border border-primary-500/30 rounded-md">
@@ -206,10 +181,6 @@ function Evidence({
               <Download className="mr-2" />
               <span>Download file</span>
             </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="text-red-500" onSelect={() => onDelete(id)}>
-            <Trash className="mr-2" />
-            <span>Delete evidence</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

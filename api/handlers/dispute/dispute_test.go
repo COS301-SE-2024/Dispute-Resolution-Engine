@@ -970,3 +970,33 @@ func (suite *DisputeErrorTestSuite) TestUpdateStatusUnauthorized() {
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.Equal("Unauthorized", result.Error)
 }
+
+func (suite *DisputeErrorTestSuite) TestUpdateStatusInternalError() {
+	suite.jwtMock.throwErrors = false
+	suite.disputeMock.throwErrors = true
+	req, _ := http.NewRequest("PUT", "/dispute/status", bytes.NewBuffer([]byte(`{"dispute_id": 1, "status": "Resolved"}`)))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer mock")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	var result models.Response
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("Something went wrong", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestUpdateStatusSuccess() {
+	suite.jwtMock.throwErrors = false
+	suite.disputeMock.throwErrors = false
+	req, _ := http.NewRequest("PUT", "/dispute/status", bytes.NewBuffer([]byte(`{"dispute_id": 1, "status": "Resolved"}`)))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer mock")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusOK, w.Code)
+	var result models.Response
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("Dispute status update successful", result.Data)
+}

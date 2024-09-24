@@ -3,7 +3,10 @@ package handlers
 import (
 	"api/models"
 	"api/utilities"
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -413,4 +416,45 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.Response{Data: "Database updated and request to Reset workflow sent"})
 }
+
+func (w Workflow) MakeRequestToOrchestrator(endpoint string, payload interface{}) (string, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Marshal the payload to JSON
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		logger.Error("marshal error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+
+	// Send the POST request to the orchestrator
+	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		logger.Error("post error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+	defer resp.Body.Close()
+
+	// Check for a successful status code (200 OK)
+	if resp.StatusCode != http.StatusOK {
+		logger.Error("status code error: ", resp.StatusCode)
+		return "", fmt.Errorf("internal server error")
+	}
+
+	// Read the response body
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("read body error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+
+	// Convert the response body to a string
+	responseBody := string(bodyBytes)
+
+	// Log the response body for debugging
+	logger.Info("Response Body: ", responseBody)
+
+	return responseBody, nil
+}
+	
 	

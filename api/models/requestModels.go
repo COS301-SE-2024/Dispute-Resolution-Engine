@@ -161,12 +161,12 @@ type UpdateWorkflow struct {
 }
 
 type NewActiveWorkflow struct {
-	DisputeID int64 `json:"dispute_id"`
-	Workflow  int64 `json:"workflow_id"`
+	DisputeID *int64 `json:"dispute_id,omitempty"`
+	Workflow  *int64 `json:"workflow_id,omitempty"`
 }
 
 type ResetActiveWorkflow struct {
-	DisputeID    int64    `json:"dispute_id"`
-	CurrentState string   `json:"current_state"`
-	Deadline     time.Time `json:"deadline"`
+	DisputeID    *int64    `json:"dispute_id,omitempty"`
+	CurrentState *string   `json:"current_state,omitempty"`
+	Deadline     *time.Time `json:"deadline,omitempty"`
 }

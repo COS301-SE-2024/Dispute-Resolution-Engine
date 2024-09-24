@@ -300,6 +300,12 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 		return
 	}
 
+	// Check if all fields are present
+	if newActiveWorkflow.DisputeID == nil || newActiveWorkflow.Workflow == nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing required fields"})
+		return
+	}
+
 	// Find the dispute
 	var dispute models.Dispute
 	result := w.DB.First(&dispute, newActiveWorkflow.DisputeID)
@@ -373,6 +379,12 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 		return
 	}
 
+	// check if all fields are present
+	if resetActiveWorkflow.DisputeID == nil || resetActiveWorkflow.CurrentState == nil || resetActiveWorkflow.Deadline == nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing required fields"})
+		return
+	}
+
 	// find active workflow
 	var activeWorkflow models.ActiveWorkflows
 	result := w.DB.First(&activeWorkflow, resetActiveWorkflow.DisputeID)
@@ -388,8 +400,8 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	}
 
 	// Update the active workflow
-	activeWorkflow.CurrentState = resetActiveWorkflow.CurrentState
-	activeWorkflow.StateDeadline = resetActiveWorkflow.Deadline
+	activeWorkflow.CurrentState = *resetActiveWorkflow.CurrentState
+	activeWorkflow.StateDeadline = *resetActiveWorkflow.Deadline
 	result = w.DB.Save(&activeWorkflow)
 	if result.Error != nil {
 		logger.Error(result.Error)

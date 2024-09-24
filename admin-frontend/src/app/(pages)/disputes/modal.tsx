@@ -96,10 +96,12 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
             </DialogClose>
           </div>
           <div className="flex gap-2 items-center">
-            <StatusDropdown onSelect={(val) => status.mutate(val)} disabled={status.isPending}>
-              <StatusBadge variant="waiting" dropdown>
-                {data.status}
-              </StatusBadge>
+            <StatusDropdown
+              initialValue={data.status}
+              onSelect={(val) => status.mutate(val)}
+              disabled={status.isPending}
+            >
+              <StatusBadge dropdown value={data.status} />
             </StatusDropdown>
             <span>{data.date_filed}</span>
           </div>

@@ -6,15 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PageHeader from "@/components/admin/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 
-import { type Filter, type DisputeDetails } from "@/lib/types";
+import { type Filter } from "@/lib/types";
 
 import Details from "./modal";
 import DisputeFilter from "./dispute-filter";

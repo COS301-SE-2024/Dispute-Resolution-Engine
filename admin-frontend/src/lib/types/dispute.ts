@@ -66,7 +66,7 @@ export interface AdminDisputesRequest {
 export interface AdminDispute {
   id: string;
   title: string;
-  status: string;
+  status: DisputeStatus;
 
   // The workflow that the dispute follows
   workflow: {

@@ -83,7 +83,7 @@ function DisputeRow(props: AdminDispute) {
         <Link href={{ pathname: "/disputes", query: { id: props.id } }}>{props.title}</Link>
       </TableCell>
       <TableCell>
-        <StatusBadge variant="active">{props.status}</StatusBadge>
+        <StatusBadge value={props.status} />
       </TableCell>
       <TableCell>
         <Link

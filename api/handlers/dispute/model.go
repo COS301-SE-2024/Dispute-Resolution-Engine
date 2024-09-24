@@ -681,7 +681,7 @@ func (m *disputeModelReal) GetExpertRejections(expertID, disputeID *int64, limit
 		queryString.WriteString(" OFFSET ?")
 		queryParams = append(queryParams, *offset)
 	}
-
+	fmt.Println(queryString.String())
 	err := m.db.Raw(queryString.String(), queryParams...).Scan(&rejections).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving expert rejections")

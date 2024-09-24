@@ -570,7 +570,7 @@ func (h Dispute) ViewExpertRejections (c *gin.Context) {
 	}
 
 	//query the database
-	rejections, err := h.Model.GetExpertRejections(req.Dispute_id, req.Expert_id, req.Limits, req.Offset)
+	rejections, err := h.Model.GetExpertRejections(req.Expert_id, req.Dispute_id, req.Limits, req.Offset)
 	if err != nil {
 		logger.WithError(err).Error("Failed to retrieve expert rejections")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})

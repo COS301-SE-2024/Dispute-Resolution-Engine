@@ -73,47 +73,6 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 func TestDisputeErrors(t *testing.T) {
 	suite.Run(t, new(DisputeErrorTestSuite))
 }
-func (suite *DisputeErrorTestSuite) TestExpertObjectionUnauthorized() {
-	suite.jwtMock.throwErrors = true
-	req, _ := http.NewRequest("POST", "/1/experts/reject", nil)
-	w := httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
-
-	var result models.Response
-	suite.Equal(http.StatusUnauthorized, w.Code)
-	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-	suite.NotEmpty(result.Error)
-	suite.Equal("Unauthorized", result.Error)
-}
-
-func (suite *DisputeErrorTestSuite) TestExpertObjectionInvalidDisputeID() {
-	req, _ := http.NewRequest("POST", "/invalid/experts/reject", nil)
-	req.Header.Add("Authorization", "Bearer mock")
-
-	w := httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
-
-	var result models.Response
-	suite.Equal(http.StatusBadRequest, w.Code)
-	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-	suite.NotEmpty(result.Error)
-	suite.Equal("Invalid Dispute ID", result.Error)
-}
-
-func (suite *DisputeErrorTestSuite) TestExpertObjectionInvalidRequestBody() {
-	req, _ := http.NewRequest("POST", "/1/experts/reject", bytes.NewBuffer([]byte("invalid body")))
-	req.Header.Add("Authorization", "Bearer mock")
-	req.Header.Add("Content-Type", "application/json")
-
-	w := httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
-
-	var result models.Response
-	suite.Equal(http.StatusBadRequest, w.Code)
-	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-	suite.NotEmpty(result.Error)
-}
-
 
 // ---------------------------------------------------------------- UTILITY FUNCTIONS
 
@@ -905,4 +864,82 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewSuccess() {
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.Empty(result.Error)
 	suite.Equal("Expert objections reviewed successfully", result.Data)
+}
+
+
+//---------------------------------------------------------------- Expert Objection
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionErrorDuringObjection() {
+	reqBody := `{"expert_id": 1, "reason": "Conflict of interest"}`
+	req, _ := http.NewRequest("POST", "/1/experts/reject", bytes.NewBuffer([]byte(reqBody)))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	suite.disputeMock.throwErrors = true
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Something went wrong", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionSuccess() {
+	reqBody := `{"expert_id": 1, "reason": "Conflict of interest"}`
+	req, _ := http.NewRequest("POST", "/1/experts/reject", bytes.NewBuffer([]byte(reqBody)))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Empty(result.Error)
+	suite.Equal("objection filed successfully", result.Data)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("POST", "/1/experts/reject", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionInvalidDisputeID() {
+	req, _ := http.NewRequest("POST", "/invalid/experts/reject", nil)
+	req.Header.Add("Authorization", "Bearer mock")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Invalid Dispute ID", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionInvalidRequestBody() {
+	req, _ := http.NewRequest("POST", "/1/experts/reject", bytes.NewBuffer([]byte("invalid body")))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
 }

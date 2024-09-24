@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"api/env"
 	"api/models"
 	"api/utilities"
 	"bytes"
@@ -9,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +21,11 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 	g.POST("", h.StoreWorkflow)
 	g.PUT("/:id", h.UpdateWorkflow)
 	g.DELETE("/:id", h.DeleteWorkflow)
+
+	//manage active workflows
+	g.POST("/activate", h.NewActiveWorkflow)
+	g.POST("/reset", h.ResetActiveWorkflow)
+	// g.POST("/complete", h.CompleteActiveWorkflow)
 }
 
 type WorkflowResult struct {
@@ -482,6 +485,8 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, models.Response{Data: "Database updated and request to Reset workflow sent"})
 }
+
+//helper funciton to complete active workflow
 
 func (w Workflow) MakeRequestToOrchestrator(endpoint string, payload interface{}) (string, error) {
 	logger := utilities.NewLogger().LogWithCaller()

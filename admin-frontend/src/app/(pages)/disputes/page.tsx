@@ -18,7 +18,7 @@ import { type Filter, type DisputeDetails } from "@/lib/types";
 
 import Details from "./modal";
 import DisputeFilter from "./dispute-filter";
-import DisputeTable from "./table";
+import { DisputePager, DisputeTable } from "./table";
 import { useState } from "react";
 
 const searchSchema = z.object({
@@ -34,6 +34,8 @@ export default function Disputes({ searchParams }: { searchParams: unknown }) {
   const client = new QueryClient();
 
   const [filter, setFilter] = useState<Filter[]>([]);
+  const [page, setPage] = useState<number>(0);
+
   return (
     <QueryClientProvider client={client}>
       {params.id && <Details id={params.id} />}
@@ -51,7 +53,12 @@ export default function Disputes({ searchParams }: { searchParams: unknown }) {
             </div>
           </div>
 
-          <DisputeFilter onValueChange={setFilter}>
+          <DisputeFilter
+            onValueChange={(f) => {
+              setFilter(f);
+              setPage(0);
+            }}
+          >
             <Button variant="ghost" className="gap-2">
               <FilterIcon />
               <span>Filter by</span>
@@ -61,20 +68,10 @@ export default function Disputes({ searchParams }: { searchParams: unknown }) {
         <main className="overflow-auto p-5 grow">
           <Card>
             <CardContent>
-              <DisputeTable filters={filter} />
+              <DisputeTable page={page} filters={filter} />
             </CardContent>
             <CardFooter>
-              <Pagination className="w-full">
-                <PaginationContent className="w-full">
-                  <PaginationItem>
-                    <PaginationPrevious href="#" />
-                  </PaginationItem>
-                  <div className="grow" />
-                  <PaginationItem>
-                    <PaginationNext href="#" />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+              <DisputePager page={page} filters={filter} onValueChange={setPage} />
             </CardFooter>
           </Card>
         </main>

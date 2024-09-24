@@ -21,7 +21,6 @@ export async function getDisputeList(
     },
     body: JSON.stringify({
       ...req,
-      limit: 10,
     }),
   })
     .then(async (res) => res.json())

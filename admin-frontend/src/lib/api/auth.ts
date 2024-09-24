@@ -2,7 +2,7 @@
 
 import { Result } from "@/lib/types";
 
-import { API_URL } from "@/lib/utils";
+import { API_URL, resultify, sf } from "@/lib/utils";
 import { cookies } from "next/headers";
 
 import { JWT_KEY, setAuthToken } from "@/lib/jwt";
@@ -26,13 +26,15 @@ export async function login(_initialState: any, formData: FormData): Promise<Res
     };
   }
 
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    body: JSON.stringify({
-      email: data.email,
-      password: data.password,
-    }),
-  }).then((res) => res.json());
+  const res = await resultify(
+    sf<string>(`${API_URL}/auth/login`, {
+      method: "POST",
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+      }),
+    })
+  );
 
   // Handle errors
   if (res.error) {

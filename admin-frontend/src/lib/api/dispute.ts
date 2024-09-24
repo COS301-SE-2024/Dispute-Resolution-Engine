@@ -4,48 +4,39 @@ import { Result } from "@/lib/types";
 import {
   AdminDisputesRequest,
   AdminDisputesResponse,
-  DisputeDetails,
   DisputeDetailsResponse,
   DisputeStatus,
 } from "@/lib/types";
-import { API_URL } from "../utils";
+import { API_URL, resultify, sf } from "../utils";
 import { getAuthToken } from "../jwt";
 
 export async function getDisputeList(
   req: AdminDisputesRequest
 ): Promise<Result<AdminDisputesResponse>> {
-  const res = await fetch(`${API_URL}/disputes`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${getAuthToken()}`,
-    },
-    body: JSON.stringify({
-      ...req,
-    }),
-  })
-    .then(async (res) => res.json())
-    .catch((e: Error) => ({
-      error: e.message,
-    }));
+  const res = await resultify(
+    sf<AdminDisputesResponse>(`${API_URL}/disputes`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: JSON.stringify({
+        ...req,
+      }),
+    })
+  );
   console.log(res);
   return res;
 }
 
 export async function getDisputeDetails(id: string): Promise<Result<DisputeDetailsResponse>> {
-  const res = await fetch(`${API_URL}/disputes/${id}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${getAuthToken()}`,
-    },
-  })
-    .then(async (res) => {
-      console.log(await res.clone().text());
-      return res.json();
+  const res = await resultify(
+    sf<DisputeDetailsResponse>(`${API_URL}/disputes/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
     })
-    .catch((e: Error) => ({
-      error: e.message,
-    }));
-  console.log(res);
+  );
   return res;
 }
 
@@ -53,22 +44,17 @@ export async function changeDisputeStatus(
   id: string,
   status: DisputeStatus
 ): Promise<Result<string>> {
-  const res = await fetch(`${API_URL}/disputes/${id}/status`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${getAuthToken()}`,
-    },
-    body: JSON.stringify({
-      status,
-    }),
-  })
-    .then(async (res) => {
-      console.log(await res.clone().text());
-      return res.json();
+  const res = await resultify(
+    sf<string>(`${API_URL}/disputes/${id}/status`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: JSON.stringify({
+        status,
+      }),
     })
-    .catch((e: Error) => ({
-      error: e.message,
-    }));
+  );
   return res;
 }
 export async function deleteEvidence(

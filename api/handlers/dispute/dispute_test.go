@@ -152,6 +152,14 @@ func (m *mockDisputeModel) GetUserByEmail(email string) (models.User, error) {
 		Timezone:          new(string),
 	}, nil
 }
+
+func (m *mockDisputeModel) GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error) {
+	if m.throwErrors {
+		return nil, errors.ErrUnsupported
+	}
+	return []models.ExpertObjectionsView{}, nil
+}
+
 func (m *mockDisputeModel) CreateDispute(dispute models.Dispute) (int64, error) {
 	if m.throwErrors {
 		return 0, errors.ErrUnsupported

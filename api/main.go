@@ -86,7 +86,7 @@ func main() {
 	userHandler := handlers.NewUserHandler(DB)
 	disputeHandler := dispute.NewHandler(DB, envLoader)
 	archiveHandler := handlers.NewArchiveHandler(DB)
-	expertHandler := handlers.NewExpertHandler(DB)
+	// expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
 
 	router := gin.Default()
@@ -119,8 +119,8 @@ func main() {
 	archiveGroup := router.Group("/archive")
 	handlers.SetupArchiveRoutes(archiveGroup, archiveHandler)
 
-	expertGroup := router.Group("/experts")
-	handlers.SetupExpertRoutes(expertGroup, expertHandler)
+	// expertGroup := router.Group("/experts")
+	// handlers.SetupExpertRoutes(expertGroup, expertHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

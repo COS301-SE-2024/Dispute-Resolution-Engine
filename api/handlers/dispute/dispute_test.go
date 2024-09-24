@@ -158,7 +158,19 @@ func (m *mockDisputeModel) GetExpertRejections(expertID, disputeID *int64, limit
 	if m.throwErrors {
 		return nil, errors.ErrUnsupported
 	}
-	return []models.ExpertObjectionsView{}, nil
+	return []models.ExpertObjectionsView{
+		{
+			ObjectionID: 1,
+			ExpertID: 1,
+			ExpertFullName: "name",
+			DisputeID: 1,
+			DisputeTitle: "title",
+			Reason:   "reason",
+			UserID:  1,
+			UserFullName: "name",
+			ObjectionStatus: "status",
+		},
+	}, nil
 }
 
 func (m *mockDisputeModel) CreateDispute(dispute models.Dispute) (int64, error) {
@@ -810,4 +822,46 @@ func (suite *DisputeErrorTestSuite) TestViewExpertRejectionsErrorRetrieving() {
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
 	suite.Equal("Internal Server Error", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestViewExpertRejectionsSuccess() {
+    suite.disputeMock.throwErrors = false
+    body := `{"Expert_id": 1, "Dispute_id": 1, "Limits": 10, "Offset": 0}`
+    req, _ := http.NewRequest("POST", "/experts/rejections", bytes.NewBuffer([]byte(body)))
+    req.Header.Add("Authorization", "Bearer mock")
+    req.Header.Add("Content-Type", "application/json")
+
+    w := httptest.NewRecorder()
+    suite.router.ServeHTTP(w, req)
+
+    // Parse the response into a structured result object
+    var result models.Response
+    suite.Equal(http.StatusOK, w.Code)
+    suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+    suite.Empty(result.Error)
+    suite.NotEmpty(result.Data)
+
+    var resultData []models.ExpertObjectionsView
+    dataBytes, _ := json.Marshal(result.Data) 
+    json.Unmarshal(dataBytes, &resultData)    
+
+    fmt.Println("BODY: ", w.Body.String())
+
+    // Expected result
+    expected := []models.ExpertObjectionsView{
+        {
+            ObjectionID: 1,
+            ExpertID: 1,
+            ExpertFullName: "name",
+            DisputeID: 1,
+            DisputeTitle: "title",
+            Reason:   "reason",
+            UserID:  1,
+            UserFullName: "name",
+            ObjectionStatus: "status",
+        },
+    }
+
+    // Assert the result matches the expected value
+    suite.Equal(expected, resultData)
 }

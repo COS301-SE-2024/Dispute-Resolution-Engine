@@ -53,13 +53,23 @@ export async function changeDisputeStatus(
   id: string,
   status: DisputeStatus
 ): Promise<Result<string>> {
-  return delayResolve(
-    {
-      data: "Status changed",
-      // error: "Big bad error things",
+  const res = await fetch(`${API_URL}/disputes/${id}/status`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
     },
-    1000
-  );
+    body: JSON.stringify({
+      status,
+    }),
+  })
+    .then(async (res) => {
+      console.log(await res.clone().text());
+      return res.json();
+    })
+    .catch((e: Error) => ({
+      error: e.message,
+    }));
+  return res;
 }
 export async function deleteEvidence(
   disputeId: string,

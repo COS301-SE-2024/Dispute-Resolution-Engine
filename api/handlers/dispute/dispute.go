@@ -31,7 +31,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/:id/experts/reject", h.ExpertObjection)
 	g.POST("/:id/experts/review-rejection", h.ExpertObjectionsReview)
 	g.POST("/:id/evidence", h.UploadEvidence)
-	g.PUT("/dispute/status", h.UpdateStatus)
+	g.PUT("/:id/status", h.UpdateStatus)
 
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
@@ -486,17 +486,24 @@ func (h Dispute) UpdateStatus(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	if err := c.BindJSON(&disputeStatus); err != nil {
 		logger.WithError(err).Error("Invalid request body")
-		c.JSON(http.StatusBadRequest, "Invalid request body")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
 		return
 	}
 
-	err := h.Model.UpdateDisputeStatus(disputeStatus.DisputeID, disputeStatus.Status)
+	disputeId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.WithError(err).Error("Invalid Dispute ID")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+
+	err = h.Model.UpdateDisputeStatus(int64(disputeId), disputeStatus.Status)
 	if err != nil {
 		logger.WithError(err).Error("failed to update dispute status")
 		utilities.InternalError(c)
 		return
 	}
-	go h.Email.NotifyDisputeStateChanged(c, disputeStatus.DisputeID, disputeStatus.Status)
+	go h.Email.NotifyDisputeStateChanged(c, int64(disputeId), disputeStatus.Status)
 
 	logger.Info("Dispute status updated successfully")
 

@@ -147,10 +147,16 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 			}
 			if count == 0 {
 				logger.Info("No disputes found")
-				c.JSON(http.StatusOK, models.Response{Data: disputes, Total: 0})
+				c.JSON(http.StatusOK, models.Response{Data: gin.H{
+					"disputes": disputes,
+					"total":    count,
+				}})
 				return
 			}
-			c.JSON(http.StatusOK, models.Response{Data: disputes, Total: count})
+			c.JSON(http.StatusOK, models.Response{Data: gin.H{
+				"disputes": disputes,
+				"total":    count,
+			}})
 			return
 		}
 
@@ -197,10 +203,16 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 		}
 		if count == 0 {
 			logger.Info("No matching disputes found")
-			c.JSON(http.StatusOK, models.Response{Data: disputes, Total: 0})
+			c.JSON(http.StatusOK, models.Response{Data: gin.H{
+				"disputes": disputes,
+				"total":    0,
+			}})
 			return
 		}
-		c.JSON(http.StatusOK, models.Response{Data: disputes, Total: count})
+		c.JSON(http.StatusOK, models.Response{Data: gin.H{
+			"disputes": disputes,
+			"total":    count,
+		}})
 		return
 	}
 

@@ -5,7 +5,6 @@ import "time"
 type Response struct {
 	Data  interface{} `json:"data,omitempty"`
 	Error string      `json:"error,omitempty"`
-	Total int64       `json:"total,omitempty"`
 }
 
 type DisputeSummaryResponse struct {

@@ -6,23 +6,16 @@
 
 ```ts
 type SortOrder = "asc" | "desc";
-type SortAttribute =
-    | "title" 
-    | "status" 
-    | "workflow" 
-    | "date_filed" 
-    | "date_resolved";
+type SortAttribute = "title" | "status" | "workflow" | "date_filed" | "date_resolved";
 
-type FilterAttribute =
-    | "status"
-    | "workflow";
+type FilterAttribute = "status" | "workflow";
 
 interface Filter {
-      // The attribute to filter by
-      attr: FilterAttribute;
+  // The attribute to filter by
+  attr: FilterAttribute;
 
-      // The value to search for.
-      value: string;
+  // The value to search for.
+  value: string;
 }
 
 interface AdminDisputesRequest {
@@ -35,7 +28,7 @@ interface AdminDisputesRequest {
 
   sort?: {
     // The attribute to sort by
-    attr: SortAttribute,
+    attr: SortAttribute;
 
     // Sort order defaults to 'asc' if unspecified
     order?: SortOrder;
@@ -46,12 +39,12 @@ interface AdminDisputesRequest {
 
   dateFilter?: {
     filed?: {
-       // Filter all disputes filed before the passed-in value (inclusive)
-       before?: string
+      // Filter all disputes filed before the passed-in value (inclusive)
+      before?: string;
 
-       // Filter all disputes filed after the passed-in value (inclusive)
-       after?: string;
-    }
+      // Filter all disputes filed after the passed-in value (inclusive)
+      after?: string;
+    };
 
     // Specifying this filter would eliminate all unresolved disputes
     resolved?: {
@@ -60,12 +53,13 @@ interface AdminDisputesRequest {
 
       // Filter all disputes resolved before the passed-in value (inclusive)
       after?: string;
-    }
-  }
+    };
+  };
 }
 ```
 
 The response will be an array of disputes:
+
 ```ts
 type AdminDisputes = Array<{
   id: string;
@@ -76,7 +70,7 @@ type AdminDisputes = Array<{
   workflow: {
     id: string;
     title: string;
-  },
+  };
 
   date_filed: string;
 
@@ -85,9 +79,7 @@ type AdminDisputes = Array<{
 }>;
 
 type AdminDisputesResponse = {
-  data: AdminDisputes;
-  total?: int;
-}
-
+  disputes: AdminDisputes;
+  total?: number;
+};
 ```
-

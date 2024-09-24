@@ -61,6 +61,7 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 	router.POST("/:id/evidence", handler.UploadEvidence)
 	router.POST("/create", handler.CreateDispute)
 	router.GET("/:id", handler.GetDispute)
+	router.POST("/experts/rejections", handler.ViewExpertRejections)
 
 	suite.router = router
 }
@@ -776,4 +777,37 @@ func (suite *DisputeErrorTestSuite) TestGetLoggerInitializationError() {
 	suite.Equal(http.StatusOK, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Data)
+}
+
+func (suite *DisputeErrorTestSuite) TestViewExpertRejectionsInvalidBody() {
+	req, _ := http.NewRequest("POST", "/experts/rejections", bytes.NewBuffer([]byte("invalid body")))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Invalid Body", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestViewExpertRejectionsErrorRetrieving() {
+	suite.disputeMock.throwErrors = true
+
+	body := `{"Expert_id": 1, "Dispute_id": 1, "Limits": 10, "Offset": 0}`
+	req, _ := http.NewRequest("POST", "/experts/rejections", bytes.NewBuffer([]byte(body)))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Internal Server Error", result.Error)
 }

@@ -44,7 +44,6 @@ var requiredEnvVariables = []string{
 	"FRONTEND_BASE_URL",
 	"JWT_SECRET",
 	"OPENAI_KEY",
-	"ORCHESTRATOR_KEY",
 
 	// Orchestrator-related variables
 	"ORCH_URL",

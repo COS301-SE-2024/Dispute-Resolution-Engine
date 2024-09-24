@@ -346,18 +346,9 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 		return
 	}
 
-	// Update the dispute with the new workflow
-	workflowID := int64(workflow.ID)
-	dispute.Workflow = &workflowID
-	result = w.DB.Save(&dispute)
-	if result.Error != nil {
-		logger.Error(result.Error)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
-	}
-
 	//add entry to active Workflows
 	timeNow := time.Now()
+	workflowID := int64(workflow.ID)
 	activeWorkflow := models.ActiveWorkflows{
 		ID:           *dispute.ID,
 		Workflow:     workflowID,
@@ -366,7 +357,11 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	}
 
 	result = w.DB.Create(&activeWorkflow)
-	if result.Error != nil {
+	if result.Error != nil && result.Error != gorm.ErrDuplicatedKey {
+		logger.Error(result.Error)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Request already exists"})
+		return
+	}else if result.Error != nil {
 		logger.Error(result.Error)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
@@ -399,9 +394,11 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	// Send the request to the orchestrator
 	payload := OrchestratorRequest{ID: activeWorkflow.ID}
 
-	_, err = w.MakeRequestToOrchestrator(fmt.Sprintf("%s:%s%s", url, port, startEndpoint), payload)
+	_, err = w.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, startEndpoint), payload)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+		//delete the active workflow from table
+		w.DB.Delete(&activeWorkflow)
 		return
 	}
 
@@ -478,7 +475,7 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	// Send the request to the orchestrator
 	payload := OrchestratorRequest{ID: activeWorkflow.ID}
 
-	_, err = w.MakeRequestToOrchestrator(fmt.Sprintf("%s:%s%s", url, port, resetEndpoint), payload)
+	_, err = w.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, resetEndpoint), payload)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		return
@@ -488,7 +485,7 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 
 //helper funciton to complete active workflow
 
-func (w Workflow) MakeRequestToOrchestrator(endpoint string, payload interface{}) (string, error) {
+func (w Workflow) MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	// Marshal the payload to JSON
@@ -497,6 +494,7 @@ func (w Workflow) MakeRequestToOrchestrator(endpoint string, payload interface{}
 		logger.Error("marshal error: ", err)
 		return "", fmt.Errorf("internal server error")
 	}
+	logger.Info("Payload: ", string(payloadBytes))
 
 	// Send the POST request to the orchestrator
 	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(payloadBytes))
@@ -507,6 +505,11 @@ func (w Workflow) MakeRequestToOrchestrator(endpoint string, payload interface{}
 	defer resp.Body.Close()
 
 	// Check for a successful status code (200 OK)
+
+	if resp.StatusCode  == http.StatusInternalServerError {
+		logger.Error("status code error: ", resp.StatusCode)
+		return "", fmt.Errorf("Check theat you gave the correct state name if resetting")
+	}
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("status code error: ", resp.StatusCode)
 		return "", fmt.Errorf("internal server error")

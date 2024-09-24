@@ -14,7 +14,7 @@ import (
 )
 
 type Response struct {
-	ID string `json:"id"`
+	ID int64 `json:"id"`
 }
 
 type Handler struct {
@@ -43,16 +43,7 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 		})
 		return
 	}
-	active_wf_id_str := Res.ID
-	// Convert the workflow ID to an integer
-	active_wf_id, err := strconv.Atoi(active_wf_id_str)
-	if err != nil {
-		h.logger.Error("Invalid workflow ID")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid workflow ID",
-		})
-		return
-	}
+	active_wf_id := int(Res.ID)
 	// Fetch the workflow definition from the database
 	active_wf_record, err := h.api.FetchActiveWorkflow(active_wf_id)
 	if err != nil {
@@ -74,6 +65,7 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 	}
 
 	// Register the state machine with the controller
+	active_wf_id_str := strconv.Itoa(active_wf_id)
 	h.controller.RegisterStateMachine(active_wf_id_str, wf)
 
 	// Update the active workflow in the database
@@ -109,17 +101,7 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 		})
 		return
 	}
-	active_wf_id_str := Res.ID
-	
-	// Convert the workflow ID to an integer
-	active_wf_id, err := strconv.Atoi(active_wf_id_str)
-	if err != nil {
-		h.logger.Error("Invalid workflow ID")
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Invalid workflow ID",
-		})
-		return
-	}
+	active_wf_id := int(Res.ID)
 
 	// Fetch the workflow definition from the database
 	active_wf_record, err := h.api.FetchActiveWorkflow(active_wf_id)
@@ -153,6 +135,7 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 	wf.States[current_state].Timer.Duration.Duration = time.Until(state_deadline)
 
 	// Register the state machine with the controller
+	active_wf_id_str := strconv.Itoa(active_wf_id)
 	h.controller.RegisterStateMachine(active_wf_id_str, wf)
 
 	c.JSON(http.StatusOK, gin.H{

@@ -47,13 +47,13 @@ export interface TicketMessage {
 }
 
 // ---------------------------------------------------------------------------- REQUEST BODIES
-type SortAttribute =
+export type TicketSort = Sort<
   | "date_created" // The date is was created
   | "subject" // The subject of the ticket
   | "status" // The status of the ticket
-  | "user"; // The full name of the user;
-
-type FilterAttribute = "status";
+  | "user" // The full name of the user;
+>;
+export type TicketFilter = Filter<"status">;
 
 export interface TicketListRequest {
   // Search term for the title of disputes
@@ -63,10 +63,10 @@ export interface TicketListRequest {
   limit?: number;
   offset?: number;
 
-  sort?: Sort<SortAttribute>;
+  sort?: TicketSort;
 
   // The filters to apply to data
-  filter?: Filter<FilterAttribute>[];
+  filter?: TicketFilter[];
 }
 
 export interface TicketListResponse {

@@ -437,7 +437,7 @@ func (h Dispute) UpdateStatus(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	if err := c.BindJSON(&disputeStatus); err != nil {
 		logger.WithError(err).Error("Invalid request body")
-		c.JSON(http.StatusBadRequest, "Invalid request body")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
 		return
 	}
 

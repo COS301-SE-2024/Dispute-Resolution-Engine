@@ -259,7 +259,6 @@ func (suite *DisputeErrorTestSuite) TestGetSummaryListUnauthorized() {
 
 	var result models.Response
 	suite.Equal(http.StatusUnauthorized, w.Code)
-	fmt.Println("THIS BODY:", w.Body.String())
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
 	suite.Equal("Unauthorized", result.Error)
@@ -859,7 +858,6 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewSuccess() {
 	suite.router.ServeHTTP(w, req)
 
 	var result models.Response
-	fmt.Println("BODY:", w.Body.String())
 	suite.Equal(http.StatusOK, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.Empty(result.Error)

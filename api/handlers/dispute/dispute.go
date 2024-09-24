@@ -313,6 +313,13 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 		return
 	}
 	description := form.Value["description"][0]
+	
+	if form.Value["respondent[email]"] == nil || len(form.Value["respondent[email]"]) == 0 {
+		logger.Error("missing field in form: respondent[email]")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: respondent[email]"})
+		return
+	}
+	email := form.Value["respondent[email]"][0]
 
 	if form.Value["respondent[full_name]"] == nil || len(form.Value["respondent[full_name]"]) == 0 || len(strings.Split(form.Value["respondent[full_name]"][0], " ")) < 2 {
 		logger.Error("missing field in form: respondent[full_name]")
@@ -321,12 +328,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	}
 	fullName := form.Value["respondent[full_name]"][0]
 
-	if form.Value["respondent[email]"] == nil || len(form.Value["respondent[email]"]) == 0 {
-		logger.Error("missing field in form: respondent[email]")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: respondent[email]"})
-		return
-	}
-	email := form.Value["respondent[email]"][0]
+
 	// telephone := form.Value["respondent[telephone]"][0]
 
 	//get complainants id

@@ -1080,3 +1080,24 @@ func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingRespondentFullName()
 	suite.Equal("missing field in form: respondent[full_name]", result.Error)
 }
 
+func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingRespondentEmail() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormField("title")
+	form.CreateFormField("description")
+	form.CreateFormField("respondent[full_name]")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("missing field in form: respondent[email]", result.Error) // This should match now
+}

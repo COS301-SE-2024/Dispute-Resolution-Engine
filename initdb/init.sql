@@ -196,7 +196,7 @@ SELECT
     eo.expert_id,
     expert.first_name || ' ' || expert.surname AS expert_full_name,
     eo.user_id,
-    user.first_name || ' ' || user.surname AS user_full_name,
+    "user".first_name || ' ' || "user".surname AS user_full_name,
     eo.reason,
     eo.status AS objection_status
 FROM 
@@ -206,7 +206,8 @@ JOIN
 JOIN 
     users expert ON eo.expert_id = expert.id
 JOIN 
-    users user ON eo.user_id = user.id;
+    users "user" ON eo.user_id = "user".id;
+
 
 ------------------------------------------------------------- EVENT LOG
 CREATE TYPE event_types AS ENUM (

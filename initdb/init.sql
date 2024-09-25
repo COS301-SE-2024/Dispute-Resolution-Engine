@@ -184,6 +184,29 @@ CREATE TRIGGER check_valid_objection
     FOR EACH ROW
     EXECUTE FUNCTION check_valid_objection();
 
+
+CREATE VIEW expert_objections_view AS
+SELECT 
+    eo.id AS objection_id,
+    eo.created_at AS objection_created_at,
+    eo.dispute_id,
+    d.title AS dispute_title,
+    eo.expert_id,
+    expert.first_name || ' ' || expert.surname AS expert_full_name,
+    eo.user_id,
+    "user".first_name || ' ' || "user".surname AS user_full_name,
+    eo.reason,
+    eo.status AS objection_status
+FROM 
+    expert_objections eo
+JOIN 
+    disputes d ON eo.dispute_id = d.id
+JOIN 
+    users expert ON eo.expert_id = expert.id
+JOIN 
+    users "user" ON eo.user_id = "user".id;
+
+
 ------------------------------------------------------------- EVENT LOG
 CREATE TYPE event_types AS ENUM (
 	'NOTIFICATION',

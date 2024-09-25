@@ -28,6 +28,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("", h.GetSummaryListOfDisputes)
 	g.POST("/:id/experts/reject", h.ExpertObjection)
 	g.POST("/:id/experts/review-rejection", h.ExpertObjectionsReview)
+	g.POST("/experts/rejections", h.ViewExpertRejections)
 	g.POST("/:id/evidence", h.UploadEvidence)
 	g.PUT("/dispute/status", h.UpdateStatus)
 
@@ -555,4 +556,27 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Expert objections reviewed successfully"})
 
 	c.JSON(http.StatusOK, models.Response{Data: "Expert objections reviewed successfully"})
+}
+
+func (h Dispute) ViewExpertRejections (c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// get body of post
+	var req models.ViewExpetRejectionsRequest
+	if err := c.BindJSON(&req); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Body"})
+		return
+	}
+
+	//query the database
+	rejections, err := h.Model.GetExpertRejections(req.Expert_id, req.Dispute_id, req.Limits, req.Offset)
+	if err != nil {
+		logger.WithError(err).Error("Failed to retrieve expert rejections")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	logger.Info("Expert rejections retrieved successfully")
+	c.JSON(http.StatusOK, models.Response{Data: rejections})
 }

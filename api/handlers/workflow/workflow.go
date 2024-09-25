@@ -1,4 +1,4 @@
-package handlers
+package workflow
 
 import (
 	"api/models"
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -38,10 +39,27 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	var workflows []models.Workflow
 
-	// Fetch workflows with tags, limiting to 10 results
-	result := w.DB.Limit(10).Find(&workflows)
-	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
-		logger.Error(result.Error)
+	//get parameters
+	limit := c.DefaultQuery("limit", "10")
+	offset := c.DefaultQuery("offset", "0")
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid limit parameter"})
+		return
+	}
+
+	offsetInt, err := strconv.Atoi(offset)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid offset parameter"})
+		return
+	}
+
+	workflows, err = w.DB.GetWorkflowsWithLimitOffset(&limitInt, &offsetInt)
+	if err != nil {
+		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}

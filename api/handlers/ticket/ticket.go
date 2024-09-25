@@ -25,10 +25,10 @@ func (h Ticket) getTicketList(c *gin.Context) {
 		return
 	}
 
-	if claims.Role != "admin" {
-		logger.Error("Unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized access"})
-		return
+	userRole := claims.Role
+
+	if userRole == "admin" && c.Request.Method == "POST" {
+		var reqAdminTickets models.Tick
 	}
 
 }

@@ -36,23 +36,23 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 
 func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *models.Filter) ([]models.TicketSummaryResponse, int64, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-
+	logger.Info("Ticket func start")
 	tickets := []models.TicketSummaryResponse{}
 	var queryString strings.Builder
 	var countString strings.Builder
 	var countParams []interface{}
 	var queryParams []interface{}
 
-	queryString.WriteString("SELECT SELECT t.id, t.created_at, t.subject, t.status, u.id AS user_id, u.first_name, u.surname FROM tickets t JOIN users u ON t.created_by = u.id")
-	countString.WriteString("SELECT COUNT(*) FROM disputes")
+	queryString.WriteString("SELECT t.id, t.created_at, t.subject, t.status, u.id AS user_id, u.first_name, u.surname FROM tickets t JOIN users u ON t.created_by = u.id")
+	countString.WriteString("SELECT COUNT(*) FROM tickets")
 	if searchTerm != nil {
-		queryString.WriteString(" WHERE disputes.title LIKE ?")
-		countString.WriteString(" WHERE disputes.title LIKE ?")
+		queryString.WriteString(" WHERE t.subject LIKE ?")
+		countString.WriteString(" WHERE t.subject LIKE ?")
 		queryParams = append(queryParams, "%"+*searchTerm+"%")
 		countParams = append(countParams, "%"+*searchTerm+"%")
 	}
 
-	if filters != nil  {
+	if filters != nil {
 		if searchTerm != nil {
 			queryString.WriteString(" AND ")
 			countString.WriteString(" AND ")
@@ -60,6 +60,7 @@ func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, off
 			queryString.WriteString(" WHERE ")
 			countString.WriteString(" WHERE ")
 		}
+		// Add filter conditions here
 	}
 
 	validSortAttrs := map[string]bool{
@@ -69,15 +70,17 @@ func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, off
 		"status":       true,
 	}
 
-	if _, valid := validSortAttrs[sortAttr.Attr]; !valid {
-		return tickets, 0, errors.New("invalid sort attribute")
-	}
+	if sortAttr != nil {
+		if _, valid := validSortAttrs[sortAttr.Attr]; !valid {
+			return tickets, 0, errors.New("invalid sort attribute")
+		}
 
-	if sortAttr.Order != "asc" && sortAttr.Order != "desc" {
-		sortAttr.Order = "asc"
-	}
+		if sortAttr.Order != "asc" && sortAttr.Order != "desc" {
+			sortAttr.Order = "asc"
+		}
 
-	queryString.WriteString(" ORDER BY " + sortAttr.Attr + " " + sortAttr.Order)
+		queryString.WriteString(" ORDER BY " + sortAttr.Attr + " " + sortAttr.Order)
+	}
 
 	if limit != nil {
 		queryString.WriteString(" LIMIT ?")
@@ -89,7 +92,7 @@ func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, off
 	}
 
 	ticketsIntermediate := []models.TicketIntermediate{}
-	err := t.db.Raw(queryString.String(), queryParams...).Scan(ticketsIntermediate).Error
+	err := t.db.Raw(queryString.String(), queryParams...).Scan(&ticketsIntermediate).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving tickets")
 		return tickets, 0, err

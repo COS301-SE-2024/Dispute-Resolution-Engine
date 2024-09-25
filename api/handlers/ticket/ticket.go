@@ -52,10 +52,11 @@ func (h Ticket) getTicketList(c *gin.Context) {
 
 		// If the body contains no key-value pairs, consider it empty
 		if len(bodyMap) == 0 {
+			logger.Info("Empty request body")
 			tickets, count, err := h.Model.getAdminTicketList(nil, nil, nil, nil, nil)
 			if err != nil {
-				logger.WithError(err).Error("error retrieving disputes")
-				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving disputes"})
+				logger.WithError(err).Error("error retrieving tickets")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving tickets"})
 				return
 			}
 			if count == 0 {

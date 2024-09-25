@@ -12,14 +12,17 @@ import (
 type WorkflowDBModel interface {
 	GetWorkflowsWithLimitOffset(limit, offset *int) ([]models.Workflow, error)
 	GetWorkflowByID(id uint64) (*models.Workflow, error)
+	GetActiveWorkflowByWorkflowID(workflowID uint64) (*models.ActiveWorkflows, error)
 	QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error)
 	FindDipsuteByID(id uint64) (*models.Dispute, error)
+
 
 	CreateWorkflow(workflow *models.Workflow) error
 	CreateWokrflowTag(tag *models.WorkflowTags) error
 	CreateActiveWorkflow(workflow *models.ActiveWorkflows) error
 
 	UpdateWorkflow(workflow *models.Workflow) error
+	UpdateActiveWorkflow(workflow *models.ActiveWorkflows) error
 
 	DeleteTagsByWorkflowID(workflowID uint64) error
 	DeleteWorkflow(wf *models.Workflow) error
@@ -186,3 +189,22 @@ func (wfmr *workflowModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkf
 
 	return nil
 }
+
+func (wfmr *workflowModelReal) GetActiveWorkflowByWorkflowID(workflowID uint64) (*models.ActiveWorkflows, error) {
+	var activeWorkflow models.ActiveWorkflows
+
+	query := wfmr.DB.First(&activeWorkflow, workflowID)
+
+	return &activeWorkflow, query.Error
+}
+
+func (wfmr *workflowModelReal) UpdateActiveWorkflow(workflow *models.ActiveWorkflows) error {
+	result := wfmr.DB.Save(workflow)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+	

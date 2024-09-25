@@ -24,9 +24,9 @@ import { TicketFilter, TicketListResponse, TicketSummary } from "@/lib/types/tic
 import { getTicketSummaries } from "@/lib/api/tickets";
 import { cn } from "@/lib/utils";
 import { useErrorToast } from "@/lib/hooks/use-query-toast";
+import { TICKET_LIST_KEY } from "@/lib/constants";
 
 const PAGE_SIZE = 3;
-const TICKET_KEY = "ticketsTable";
 
 export interface TicketFilters {
   search?: string;
@@ -40,7 +40,7 @@ export const TicketProvider = TicketContext.Provider;
 export function TicketTable() {
   const filters = useContext(TicketContext);
   const { data, error, isPending } = useQuery({
-    queryKey: [TICKET_KEY, filters],
+    queryKey: [TICKET_LIST_KEY, filters],
     queryFn: () =>
       getTicketSummaries({
         search: filters.search,
@@ -98,7 +98,7 @@ export function TicketsPager({
 }) {
   const filters = useContext(TicketContext);
   const query = useQuery<TicketListResponse>({
-    queryKey: [TICKET_KEY, filters],
+    queryKey: [TICKET_LIST_KEY, filters],
   });
 
   const [current, setCurrent] = useState(filters.page);

@@ -20,12 +20,11 @@ import { useErrorToast } from "@/lib/hooks/use-query-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FormEvent } from "react";
-
-const DETAILS_KEY = "ticketDetails";
+import { TICKET_DETAILS_KEY, TICKET_LIST_KEY } from "@/lib/constants";
 
 export default function TicketDetails({ ticketId }: { ticketId: string }) {
   const { data, error } = useQuery({
-    queryKey: [DETAILS_KEY, ticketId],
+    queryKey: [TICKET_DETAILS_KEY, ticketId],
     queryFn: async () => getTicketDetails(ticketId),
   });
   useErrorToast(error, "Failed to fetch ticket details");
@@ -35,7 +34,8 @@ export default function TicketDetails({ ticketId }: { ticketId: string }) {
   const status = useMutation({
     mutationFn: (status: TicketStatus) => changeTicketStatus(ticketId, status),
     onSuccess: (data, variables) => {
-      client.setQueryData([DETAILS_KEY, ticketId], (old: Ticket) => ({
+      client.refetchQueries({ queryKey: [TICKET_LIST_KEY] });
+      client.setQueryData([TICKET_DETAILS_KEY, ticketId], (old: Ticket) => ({
         ...old,
         status: variables,
       }));
@@ -54,8 +54,9 @@ export default function TicketDetails({ ticketId }: { ticketId: string }) {
 
   const message = useMutation({
     mutationFn: (message: string) => addTicketMessage(ticketId, message),
-    onSuccess: (data, variables) => {
-      client.setQueryData([DETAILS_KEY, ticketId], (old: Ticket) => ({
+    onSuccess: async (data, variables) => {
+      client.invalidateQueries({ queryKey: [TICKET_LIST_KEY] });
+      client.setQueryData([TICKET_DETAILS_KEY, ticketId], (old: Ticket) => ({
         ...old,
         messages: [...old.messages, data],
       }));

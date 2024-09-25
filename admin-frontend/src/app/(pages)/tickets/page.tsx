@@ -18,7 +18,7 @@ import {
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { FilterIcon } from "lucide-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createContext } from "vm";
 
 const searchSchema = z.object({
@@ -48,8 +48,7 @@ export default function Tickets({ searchParams }: { searchParams: unknown }) {
     throw new Error(JSON.stringify(searchError));
   }
 
-  const client = new QueryClient();
-
+  const [client] = useState(new QueryClient());
   const [filter, setFilter] = useState<TicketFilter[]>([]);
   const [page, setPage] = useState<number>(0);
   const [search, setSearch] = useState<string | undefined>();

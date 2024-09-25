@@ -82,7 +82,7 @@ func (h Ticket) getTicketList(c *gin.Context) {
 		var limit *int
 		var offset *int
 		var sort *models.Sort
-		var filters *models.Filter
+		var filters *[]models.Filter
 		if reqAdminTickets.Search != nil {
 			searchTerm = reqAdminTickets.Search
 		}
@@ -96,7 +96,7 @@ func (h Ticket) getTicketList(c *gin.Context) {
 			sort = reqAdminTickets.Sort
 		}
 		if reqAdminTickets.Filter != nil {
-			filters = reqAdminTickets.Filter
+			filters = &reqAdminTickets.Filter
 		}
 		tickets, count, err := h.Model.getAdminTicketList(searchTerm, limit, offset, sort, filters)
 		if err != nil {

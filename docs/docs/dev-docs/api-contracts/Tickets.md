@@ -1,6 +1,6 @@
 # Tickets
 
-The followoing types are used to describe tickets:
+The following types are used to describe tickets:
 
 ```ts
 interface TicketSummary {
@@ -60,7 +60,17 @@ type SortAttribute =
   | "status" // The status of the ticket
   | "user"; // The full name of the user;
 
-type FilterAttribute = "status";
+type TicketStatus = 
+  'Open'   |
+  'Closed' |
+  'Solved' |
+  'On Hold'
+
+
+type FilterAttribute = {
+  "attr": "status"
+  "value": TicketStatus
+}
 
 interface TicketListRequest {
   // Search term for the title of disputes

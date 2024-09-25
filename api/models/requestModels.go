@@ -218,5 +218,5 @@ type TicketsRequest struct {
 	Sort *Sort `json:"sort,omitempty"`
 
 	// The filters to apply to data
-	Filter *Filter `json:"filter,omitempty"`
+	Filter []Filter `json:"filter,omitempty"`
 }

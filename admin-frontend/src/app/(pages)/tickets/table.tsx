@@ -26,6 +26,7 @@ import { Ticket, TicketFilter, TicketListResponse, TicketSummary } from "@/lib/t
 import { getTicketSummaries } from "@/lib/api/tickets";
 import { useToast } from "@/lib/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useErrorToast } from "@/lib/hooks/use-query-toast";
 
 const PAGE_SIZE = 3;
 const TICKET_KEY = "ticketsTable";
@@ -52,16 +53,8 @@ export function TicketTable() {
       }),
   });
 
-  const { toast } = useToast();
-  useEffect(() => {
-    if (error) {
-      toast({
-        variant: "error",
-        title: "Failed to fetch dispute list",
-        description: error?.message,
-      });
-    }
-  });
+  useErrorToast(error, "Failed to fetch ticket list");
+
   return (
     <Table>
       <TableHeader>

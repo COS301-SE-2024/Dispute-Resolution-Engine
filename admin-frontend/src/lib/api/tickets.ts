@@ -23,6 +23,14 @@ export async function getTicketSummaries(req: TicketListRequest): Promise<{
   };
 }
 
+export async function getTicketDetails(id: string): Promise<Ticket> {
+  const ticket = MOCK_TICKETS.find((t) => t.id === id);
+  if (!ticket) {
+    throw new Error("Ticket not found");
+  }
+  return ticket;
+}
+
 const MOCK_TICKETS: Ticket[] = [
   {
     id: "0",

@@ -65,7 +65,7 @@ export default function Tickets({ searchParams }: { searchParams: unknown }) {
 
   return (
     <QueryClientProvider client={client}>
-      {params.id && <TicketDetails details={ticket} />}
+      {params.id && <TicketDetails ticketId={params.id} />}
       <TicketProvider value={{ filters: filter, page, search }}>
         <div className="flex flex-col">
           <PageHeader label="Tickets" />

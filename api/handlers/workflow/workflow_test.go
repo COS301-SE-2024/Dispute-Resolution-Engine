@@ -6,6 +6,7 @@ import (
 	"api/models"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -285,6 +286,79 @@ func (suite *WorkflowTestSuite) TestGetWorkflows_InvalidLimit() {
 	suite.Equal("Invalid limit parameter", response.Error)
 }
 
+func (suite *WorkflowTestSuite) TestGetWorkflows_InvalidOffset() {
+	// Arrange
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("GET", "/?limit=10&offset=invalid", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	// Act
+	w.GetWorkflows(c)
+
+	// Assert
+	suite.Equal(http.StatusBadRequest, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Invalid offset parameter", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestGetWorkflows_DBError() {
+	// Arrange
+	suite.mockDB.throwError = true
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("GET", "/?limit=10&offset=0", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	// Act
+	w.GetWorkflows(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestGetWorkflows_QueryTagsError() {
+	// Arrange
+	suite.mockDB.throwError = false
+	suite.mockDB.ReturnWorkflowArray = []models.Workflow{
+		{ID: 1, Name: "Workflow 1"},
+	}
+	suite.mockDB.throwError = true
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("GET", "/?limit=10&offset=0", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	// Act
+	w.GetWorkflows(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
 
 
 

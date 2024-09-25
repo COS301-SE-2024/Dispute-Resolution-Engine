@@ -89,6 +89,11 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 		response = append(response, taggedWorkflow)
 	}
 
+	if len(response) == 0 {
+		c.JSON(http.StatusOK, models.Response{Data: []models.Workflow{}})
+		return
+	}
+
 	c.JSON(http.StatusOK, models.Response{Data: response})
 }
 

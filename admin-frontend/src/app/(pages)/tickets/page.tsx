@@ -54,6 +54,15 @@ export default function Tickets({ searchParams }: { searchParams: unknown }) {
   const [page, setPage] = useState<number>(0);
   const [search, setSearch] = useState<string | undefined>();
 
+  function changeSearch(search: string | undefined) {
+    setSearch(search);
+    setPage(0);
+  }
+  function changeFilter(filters: TicketFilter[]) {
+    setFilter(filters);
+    setPage(0);
+  }
+
   return (
     <QueryClientProvider client={client}>
       {params.id && <TicketDetails details={ticket} />}
@@ -61,7 +70,7 @@ export default function Tickets({ searchParams }: { searchParams: unknown }) {
         <div className="flex flex-col">
           <PageHeader label="Tickets" />
           <div className="flex items-center px-5 gap-2 pr-2 border-b dark:border-primary-500/30 border-primary-500/20">
-            <SearchBar placeholder="Search tickets..." onValueChange={setSearch} />
+            <SearchBar placeholder="Search tickets..." onValueChange={changeSearch} timeout={500} />
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="ghost" className="gap-2">

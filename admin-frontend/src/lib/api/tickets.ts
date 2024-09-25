@@ -14,8 +14,11 @@ export async function getTicketSummaries(req: TicketListRequest): Promise<{
     });
   }
 
+  const total = data.length;
+  data = data.slice(req.offset ?? 0, req.limit ? (req.offset ?? 0) + req.limit : undefined);
+
   return {
-    total: MOCK_TICKETS.length,
+    total: total,
     tickets: data,
   };
 }

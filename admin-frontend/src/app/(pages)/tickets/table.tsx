@@ -25,8 +25,10 @@ import {
 import { Ticket, TicketFilter, TicketListResponse, TicketSummary } from "@/lib/types/tickets";
 import { getTicketSummaries } from "@/lib/api/tickets";
 import { useToast } from "@/lib/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 3;
+const TICKET_KEY = "ticketsTable";
 
 export interface TicketFilters {
   search?: string;
@@ -40,7 +42,7 @@ export const TicketProvider = TicketContext.Provider;
 export function TicketTable() {
   const filters = useContext(TicketContext);
   const { data, error, isPending } = useQuery({
-    queryKey: ["ticketTable", filters],
+    queryKey: [TICKET_KEY, filters],
     queryFn: () =>
       getTicketSummaries({
         search: filters.search,
@@ -105,7 +107,7 @@ export function TicketsPager({
 }) {
   const filters = useContext(TicketContext);
   const query = useQuery<TicketListResponse>({
-    queryKey: ["ticketsTable", filters],
+    queryKey: [TICKET_KEY, filters],
   });
 
   const [current, setCurrent] = useState(filters.page);
@@ -129,20 +131,18 @@ export function TicketsPager({
   }
 
   return (
-    query.isSuccess && (
-      <Pagination className="w-full">
-        <PaginationContent className="w-full">
-          <PaginationItem>
-            <PaginationPrevious disabled={current == 0} onClick={() => navigate(current - 1)} />
-          </PaginationItem>
-          <div className="grow flex justify-center items-center">
-            {current + 1}/{total}
-          </div>
-          <PaginationItem>
-            <PaginationNext disabled={current >= total - 1} onClick={() => navigate(current + 1)} />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
-    )
+    <Pagination className={cn("w-full", query.isPending && "opacity-50")}>
+      <PaginationContent className="w-full">
+        <PaginationItem>
+          <PaginationPrevious disabled={current == 0} onClick={() => navigate(current - 1)} />
+        </PaginationItem>
+        <div className="grow flex justify-center items-center">
+          {current + 1}/{total}
+        </div>
+        <PaginationItem>
+          <PaginationNext disabled={current >= total - 1} onClick={() => navigate(current + 1)} />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   );
 }

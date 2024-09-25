@@ -307,7 +307,88 @@ func (suite *WorkflowTestSuite) TestDeleteWorkflow_NotFound() {
 	suite.Equal("Workflow not found", response.Error)
 }
 
+func (suite *WorkflowTestSuite) TestDeleteWorkflow_DBError() {
+	// Arrange
+	suite.mockDB.throwError = true
 
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("DELETE", "/1", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+	// Act
+	w.DeleteWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestDeleteWorkflow_FailedToDeleteTags() {
+	// Arrange
+	suite.mockDB.throwError = false
+	suite.mockDB.ReturnWorkflow = &models.Workflow{ID: 1, Name: "Workflow 1"}
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	// Simulate error when deleting tags
+	suite.mockDB.throwError = true
+
+	req, _ := http.NewRequest("DELETE", "/1", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+	// Act
+	w.DeleteWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestDeleteWorkflow_FailedToDeleteWorkflow() {
+	// Arrange
+	suite.mockDB.throwError = false
+	suite.mockDB.ReturnWorkflow = &models.Workflow{ID: 1, Name: "Workflow 1"}
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	// Simulate error when deleting workflow
+	suite.mockDB.throwError = true
+
+	req, _ := http.NewRequest("DELETE", "/1", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+	// Act
+	w.DeleteWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
 
 func (suite *WorkflowTestSuite) TestStoreWorkflow_Success() {
 	// Arrange

@@ -34,9 +34,13 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 	}
 }
 
+func (t *ticketModelReal) getTicketsByUserID(int64 userID) ([]models.Ticket, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+}
+
 func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	logger.Info("Ticket func start")
 	tickets := []models.TicketSummaryResponse{}
 	var queryString strings.Builder
 	var countString strings.Builder

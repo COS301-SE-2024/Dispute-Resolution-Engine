@@ -101,3 +101,7 @@ type TicketIntermediate struct {
 	FirstName string    `gorm:"column:first_name"`
 	Surname   string    `gorm:"column:surname"`
 }
+
+type TicketMessage struct {
+	ID 
+}

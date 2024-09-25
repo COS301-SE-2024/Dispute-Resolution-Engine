@@ -78,3 +78,7 @@ type TicketSummaryResponse struct {
 	Subject     string     `json:"subject"`
 	Status      string     `json:"status"`
 }
+
+type TicketsByUserStruct struct {
+	TicketSummaryResponse
+}

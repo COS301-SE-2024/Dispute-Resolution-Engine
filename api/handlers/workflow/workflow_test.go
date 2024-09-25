@@ -231,6 +231,84 @@ func (suite *WorkflowTestSuite) SetupTest() {
 func TestWorkflowTestSuite(t *testing.T) {
 	suite.Run(t, new(WorkflowTestSuite))
 }
+
+func (suite *WorkflowTestSuite) TestDeleteWorkflow_Success() {
+	// Arrange
+	suite.mockDB.throwError = false
+	suite.mockDB.ReturnWorkflow = &models.Workflow{ID: 1, Name: "Workflow 1"}
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("DELETE", "/1", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+	// Act
+	w.DeleteWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusOK, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Workflow and associated tags deleted", response.Data)
+}
+
+func (suite *WorkflowTestSuite) TestDeleteWorkflow_InvalidID() {
+	// Arrange
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("DELETE", "/invalid", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "invalid"}}
+
+	// Act
+	w.DeleteWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusBadRequest, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Invalid ID parameter", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestDeleteWorkflow_NotFound() {
+	// Arrange
+	suite.mockDB.throwError = true
+	suite.mockDB.Error = gorm.ErrRecordNotFound
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("DELETE", "/1", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+	// Act
+	w.DeleteWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusNotFound, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Workflow not found", response.Error)
+}
+
+
+
 func (suite *WorkflowTestSuite) TestStoreWorkflow_Success() {
 	// Arrange
 	suite.mockDB.throwError = false

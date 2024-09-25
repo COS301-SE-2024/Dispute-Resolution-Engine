@@ -4,6 +4,7 @@ import (
 	"api/env"
 	"api/handlers/workflow"
 	"api/models"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -233,6 +234,77 @@ func (suite *WorkflowTestSuite) SetupTest() {
 func TestWorkflowTestSuite(t *testing.T) {
 	suite.Run(t, new(WorkflowTestSuite))
 }
+
+	func (suite *WorkflowTestSuite) TestUpdateWorkflow_Success() {
+		// Arrange
+		suite.mockDB.throwError = false
+		suite.mockDB.ReturnWorkflow = &models.Workflow{ID: 1, Name: "Old Workflow"}
+		suite.mockDB.ReturnTagArray = []models.Tag{
+			{ID: 1, TagName: "Tag 1"},
+			{ID: 2, TagName: "Tag 2"},
+		}
+
+		w := workflow.Workflow{
+			DB: suite.mockDB,
+		}
+
+		authorID := int64(1)
+
+		updateData := models.UpdateWorkflow{
+			Name: new(string),
+			WorkflowDefinition: &map[string]interface{}{
+				"key": "new value",
+			},
+			Author:   &authorID,
+			Category: &[]int64{1, 2},
+		}
+		*updateData.Name = "Updated Workflow"
+		*updateData.Author = 2
+
+		body, _ := json.Marshal(updateData)
+		req, _ := http.NewRequest("PUT", "/1", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		wr := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(wr)
+		c.Request = req
+		c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+		// Act
+		w.UpdateWorkflow(c)
+
+		// Assert
+		suite.Equal(http.StatusOK, wr.Code)
+		var response models.Response
+		err := json.Unmarshal(wr.Body.Bytes(), &response)
+		suite.NoError(err)
+		suite.Equal("Workflow updated", response.Data)
+	}
+
+	func (suite *WorkflowTestSuite) TestUpdateWorkflow_InvalidID() {
+		// Arrange
+		w := workflow.Workflow{
+			DB: suite.mockDB,
+		}
+
+		req, _ := http.NewRequest("PUT", "/invalid", nil)
+		wr := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(wr)
+		c.Request = req
+		c.Params = gin.Params{gin.Param{Key: "id", Value: "invalid"}}
+
+		// Act
+		w.UpdateWorkflow(c)
+
+		// Assert
+		suite.Equal(http.StatusBadRequest, wr.Code)
+		var response models.Response
+		err := json.Unmarshal(wr.Body.Bytes(), &response)
+		suite.NoError(err)
+		suite.Equal("Invalid ID parameter", response.Error)
+	}
+
+
+
 
 func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_Success() {
 	// Arrange

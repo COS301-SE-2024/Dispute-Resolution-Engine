@@ -6,6 +6,7 @@ import (
 	"api/models"
 	"api/utilities"
 	"errors"
+	"strconv"
 	"strings"
 
 	"gorm.io/gorm"
@@ -14,6 +15,7 @@ import (
 type TicketModel interface {
 	getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
 	getTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
+	getUserTicketDetails(ticketID int64) ([]models.TicketsByUser, error)
 }
 
 type Ticket struct {
@@ -33,6 +35,35 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 		JWT:   middleware.NewJwtMiddleware(),
 		Env:   envReader,
 	}
+}
+
+func (t *ticketModelReal) getUserTicketDetails(ticketID int64) ([]models.TicketsByUser, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	tickets := []models.TicketsByUser{}
+	var IntermediateTick = models.TicketIntermediate{}
+	err := t.db.Raw("SELECT t.id, t.created_at, t.subject, t.status, t.initial_message, u.id AS user_id, u.first_name, u.surname FROM tickets t JOIN users u ON t.created_by = u.id WHERE t.id = ?", ticketID).Scan(&IntermediateTick).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving ticket")
+		return tickets, err
+	}
+	var ticketMessages = []models.TicketMessages{}
+	err = t.db.Raw("SELECT tm.id, tm.content, tm.user_id, u.id AS user_id, u.first_name, u.surname FROM ticket_messages tm JOIN users u ON tm.user_id = u.id WHERE tm.ticket_id = ?", ticketID).Scan(&ticketMessages).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving ticket messages")
+		return tickets, err
+	}
+	tickets = append(tickets, models.TicketsByUser{
+		TicketSummaryResponse: models.TicketSummaryResponse{
+			ID:          strconv.Itoa(int(IntermediateTick.Id)),
+			User:        models.TicketUser{ID: strconv.Itoa(int(IntermediateTick.UserID)), FullName: IntermediateTick.FirstName + " " + IntermediateTick.Surname},
+			DateCreated: IntermediateTick.CreatedAt.Format("2006-01-02"),
+			Subject:     IntermediateTick.Subject,
+			Status:      IntermediateTick.Status,
+		},
+		Body:     *IntermediateTick.InitialMessage,
+		Messages: ticketMessages,
+	})
+	return tickets, err
 }
 
 func (t *ticketModelReal) getTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
@@ -120,12 +151,12 @@ func (t *ticketModelReal) getTicketsByUserID(uid int64, searchTerm *string, limi
 
 	for _, ticket := range ticketsIntermediate {
 		var ticketResp models.TicketSummaryResponse
-		ticketResp.ID = ticket.Id
+		ticketResp.ID = strconv.Itoa(int(ticket.Id))
 		ticketResp.DateCreated = ticket.CreatedAt.Format("2006-01-02")
 		ticketResp.Subject = ticket.Subject
 		ticketResp.Status = ticket.Status
 		ticketResp.User = models.TicketUser{
-			ID:       ticket.UserID,
+			ID:       strconv.Itoa(int(ticket.UserID)),
 			FullName: ticket.FirstName + " " + ticket.Surname,
 		}
 		tickets = append(tickets, ticketResp)
@@ -216,12 +247,12 @@ func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, off
 
 	for _, ticket := range ticketsIntermediate {
 		var ticketResp models.TicketSummaryResponse
-		ticketResp.ID = ticket.Id
+		ticketResp.ID = strconv.Itoa(int(ticket.Id))
 		ticketResp.DateCreated = ticket.CreatedAt.Format("2006-01-02")
 		ticketResp.Subject = ticket.Subject
 		ticketResp.Status = ticket.Status
 		ticketResp.User = models.TicketUser{
-			ID:       ticket.UserID,
+			ID:       strconv.Itoa(int(ticket.UserID)),
 			FullName: ticket.FirstName + " " + ticket.Surname,
 		}
 		tickets = append(tickets, ticketResp)

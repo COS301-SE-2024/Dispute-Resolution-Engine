@@ -23,6 +23,8 @@ It is worth noting that _concerned parties_ only refer to complainants and respo
 
 > As a Concerned Party, I want to view the events of previously resolved dispute to get a better sense of the flow of a dispute.
 
+> As a Concerned Party, I want to create a ticket so that I can communicate the administrators of a dispute
+
 ### Complainant
 
 > As a Complainant I want to initiate a dispute so that I can begin resolving the dispute

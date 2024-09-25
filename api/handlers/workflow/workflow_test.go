@@ -287,7 +287,105 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_InvalidPayload() {
 	suite.Equal("Invalid request payload", response.Error)
 }
 
+func (suite *WorkflowTestSuite) TestStoreWorkflow_MissingFields() {
+	// Arrange
+	workflows := models.CreateWorkflow{
+		Name:       "",
+		Author:     nil,
+		Definition: nil,
+	}
 
+	body, _ := json.Marshal(workflows)
+	req, _ := http.NewRequest("POST", "/", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	// Act
+	w.StoreWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusBadRequest, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Missing required fields", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestStoreWorkflow_DBError() {
+	// Arrange
+	suite.mockDB.throwError = true
+	authorID := int64(1)
+	workflows := models.CreateWorkflow{
+		Name:       "New Workflow",
+		Author:     &authorID,
+		Definition: map[string]interface{}{"key": "value"},
+		Category:   []int64{1, 2},
+	}
+
+	body, _ := json.Marshal(workflows)
+	req, _ := http.NewRequest("POST", "/", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	// Act
+	w.StoreWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestStoreWorkflow_FailedToLinkTags() {
+	// Arrange
+	suite.mockDB.throwError = false
+	authorID := int64(1)
+	workflows := models.CreateWorkflow{
+		Name:       "New Workflow",
+		Author:     &authorID,
+		Definition: map[string]interface{}{"key": "value"},
+		Category:   []int64{1, 2},
+	}
+
+	body, _ := json.Marshal(workflows)
+	req, _ := http.NewRequest("POST", "/", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	// Simulate error when linking tags
+	suite.mockDB.throwError = true
+
+	// Act
+	w.StoreWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
 func (suite *WorkflowTestSuite) TestUpdateWorkflow_Success() {
 	// Arrange
 	suite.mockDB.throwError = false

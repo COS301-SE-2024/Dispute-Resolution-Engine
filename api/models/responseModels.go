@@ -57,7 +57,7 @@ type WorkflowResp struct {
 }
 
 type AdminDisputeSummariesResponse struct {
-	Id           int64        `json:"id"`
+	Id           string       `json:"id"`
 	Title        string       `json:"title"`
 	Status       string       `json:"status"`
 	Workflow     WorkflowResp `json:"workflow"`

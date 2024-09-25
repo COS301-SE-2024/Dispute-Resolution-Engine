@@ -628,7 +628,7 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	//take the intermediate disputes and fill in the admin response information
 	for _, dispute := range intermediateDisputes {
 		var disputeResp models.AdminDisputeSummariesResponse
-		disputeResp.Id = dispute.Id
+		disputeResp.Id = strconv.Itoa(int(dispute.Id))
 		disputeResp.Title = dispute.Title
 		disputeResp.Status = dispute.Status
 		disputeResp.DateFiled = dispute.CaseDate.Format("2006-01-02")

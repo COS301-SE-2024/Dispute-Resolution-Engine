@@ -20,6 +20,10 @@ export async function getTicketSummaries(req: TicketListRequest): Promise<{
     });
   }
 
+  (req.filter! ?? []).forEach((filter) => {
+    data = data.filter((t) => t[filter.attr] === filter.value);
+  });
+
   const total = data.length;
   data = data.slice(req.offset ?? 0, req.limit ? (req.offset ?? 0) + req.limit : undefined);
 

@@ -8,11 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useQuery } from "@tanstack/react-query";
-import { AdminDisputesResponse, Filter } from "@/lib/types";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { TicketStatusBadge } from "@/components/admin/status-badge";
-import { LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { createContext, useContext, useEffect, useState } from "react";
 import {
@@ -22,14 +20,11 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
-import { Ticket, TicketFilter, TicketListResponse, TicketSummary } from "@/lib/types/tickets";
+import { TicketFilter, TicketListResponse, TicketSummary } from "@/lib/types/tickets";
 import { getTicketSummaries } from "@/lib/api/tickets";
-import { useToast } from "@/lib/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useErrorToast } from "@/lib/hooks/use-query-toast";
-
-const PAGE_SIZE = 3;
-const TICKET_KEY = "ticketsTable";
+import { PAGE_SIZE, TICKET_LIST_KEY } from "@/lib/constants";
 
 export interface TicketFilters {
   search?: string;
@@ -43,7 +38,7 @@ export const TicketProvider = TicketContext.Provider;
 export function TicketTable() {
   const filters = useContext(TicketContext);
   const { data, error, isPending } = useQuery({
-    queryKey: [TICKET_KEY, filters],
+    queryKey: [TICKET_LIST_KEY, filters],
     queryFn: () =>
       getTicketSummaries({
         search: filters.search,
@@ -51,6 +46,7 @@ export function TicketTable() {
         limit: PAGE_SIZE,
         offset: PAGE_SIZE * filters.page,
       }),
+    placeholderData: keepPreviousData,
   });
 
   useErrorToast(error, "Failed to fetch ticket list");
@@ -81,10 +77,10 @@ export function TicketTable() {
 function TicketRow(props: TicketSummary) {
   return (
     <TableRow className="text-nowrap truncate">
-      <TableCell className="font-medium">
+      <TableCell className="font-medium hover:underline">
         <Link href={{ pathname: "/tickets", query: { id: props.id } }}>{props.subject}</Link>
       </TableCell>
-      <TableCell className="font-medium">{props.user.full_name}</TableCell>
+      <TableCell>{props.user.full_name}</TableCell>
       <TableCell>
         <TicketStatusBadge variant={props.status}>{props.status}</TicketStatusBadge>
       </TableCell>
@@ -100,7 +96,7 @@ export function TicketsPager({
 }) {
   const filters = useContext(TicketContext);
   const query = useQuery<TicketListResponse>({
-    queryKey: [TICKET_KEY, filters],
+    queryKey: [TICKET_LIST_KEY, filters],
   });
 
   const [current, setCurrent] = useState(filters.page);

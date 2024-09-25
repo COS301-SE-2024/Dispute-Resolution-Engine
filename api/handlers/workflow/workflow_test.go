@@ -53,35 +53,35 @@ func (m *mockDB) GetWorkflowsWithLimitOffset(limit, offset *int) ([]models.Workf
 	if m.throwError {
 		return nil, m.Error
 	}
-	return []models.Workflow{}, nil
+	return m.ReturnWorkflowArray, nil
 }
 
 func (m *mockDB) GetWorkflowByID(id uint64) (*models.Workflow, error) {
 	if m.throwError {
 		return nil, m.Error
 	}
-	return &models.Workflow{}, nil
+	return m.ReturnWorkflow, nil
 }
 
 func (m *mockDB) GetActiveWorkflowByWorkflowID(workflowID uint64) (*models.ActiveWorkflows, error) {
 	if m.throwError {
 		return nil, m.Error
 	}
-	return &models.ActiveWorkflows{}, nil
+	return m.ReturnActiveWorkflow, nil
 }
 
 func (m *mockDB) QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error) {
 	if m.throwError {
 		return nil, m.Error
 	}
-	return []models.Tag{}, nil
+	return m.ReturnTagArray, nil
 }
 
 func (m *mockDB) FindDisputeByID(id uint64) (*models.Dispute, error) {
 	if m.throwError {
 		return nil, m.Error
 	}
-	return &models.Dispute{}, nil
+	return m.ReturnDispute, nil
 }
 
 func (m *mockDB) CreateWorkflow(workflow *models.Workflow) error {

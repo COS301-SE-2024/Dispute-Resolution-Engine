@@ -1,6 +1,6 @@
 "use server";
 
-import { TicketListRequest, type Ticket, type TicketSummary } from "../types/tickets";
+import { TicketListRequest, TicketStatus, type Ticket, type TicketSummary } from "../types/tickets";
 
 export async function getTicketSummaries(req: TicketListRequest): Promise<{
   total: number;
@@ -31,7 +31,20 @@ export async function getTicketDetails(id: string): Promise<Ticket> {
   return ticket;
 }
 
-const MOCK_TICKETS: Ticket[] = [
+export async function changeTicketStatus(id: string, status: TicketStatus): Promise<void> {
+  MOCK_TICKETS = MOCK_TICKETS.map((ticket) => {
+    if (ticket.id === id) {
+      return {
+        ...ticket,
+        status: status,
+      };
+    } else {
+      return ticket;
+    }
+  });
+}
+
+let MOCK_TICKETS: Ticket[] = [
   {
     id: "0",
     user: { id: "0", full_name: "John Doe" },

@@ -1,61 +1,53 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-
-import { DialogClose, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X } from "lucide-react";
 import Sidebar from "@/components/admin/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { TicketStatusBadge } from "@/components/admin/status-badge";
-import { Ticket } from "@/lib/types/tickets";
+import { Ticket, TicketStatus } from "@/lib/types/tickets";
 import SidebarHeader from "@/components/sidebar/header";
 import { TicketStatusDropdown } from "@/components/admin/status-dropdown";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getTicketDetails } from "@/lib/api/tickets";
+import { changeTicketStatus, getTicketDetails } from "@/lib/api/tickets";
 import { useErrorToast } from "@/lib/hooks/use-query-toast";
-import { useEffect } from "react";
+
+const DETAILS_KEY = "ticketDetails";
 
 export default function TicketDetails({ ticketId }: { ticketId: string }) {
-  // const { toast } = useToast();
-  // const client = useQueryClient();
   const { data, error } = useQuery({
-    queryKey: ["ticket"],
+    queryKey: [DETAILS_KEY, ticketId],
     queryFn: async () => getTicketDetails(ticketId),
   });
   useErrorToast(error, "Failed to fetch ticket details");
 
-  // const status = useMutation({
-  //   mutationFn: async (status: DisputeStatus) => {
-  //     await unwrapResult(changeDisputeStatus(disputeId, status));
-  //   },
-  //   onSuccess: (data, variables) => {
-  //     client.setQueryData(["dispute"], (old: DisputeDetailsResponse) => ({
-  //       ...old,
-  //       status: variables,
-  //     }));
-  //     toast({
-  //       title: "Status updated successfully",
-  //     });
-  //   },
-  //   onError: (error) => {
-  //     toast({
-  //       variant: "error",
-  //       title: "Something went wrong",
-  //       description: error?.message,
-  //     });
-  //   },
-  // });
+  const client = useQueryClient();
+  const { toast } = useToast();
+  const status = useMutation({
+    mutationFn: (status: TicketStatus) => changeTicketStatus(ticketId, status),
+    onSuccess: (data, variables) => {
+      client.setQueryData([DETAILS_KEY, ticketId], (old: Ticket) => ({
+        ...old,
+        status: variables,
+      }));
+      toast({
+        title: "Status updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "error",
+        title: "Status update failed",
+        description: error?.message,
+      });
+    },
+  });
 
   return (
     <Sidebar open className="p-6 md:pl-8 rounded-l-2xl flex flex-col">
       {data && (
         <>
           <SidebarHeader title={data.subject} className="flex gap-2 items-center">
-            <TicketStatusDropdown>
+            <TicketStatusDropdown onSelect={status.mutate}>
               <TicketStatusBadge variant={data.status} dropdown>
                 {data.status}
               </TicketStatusBadge>

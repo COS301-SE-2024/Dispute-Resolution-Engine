@@ -63,8 +63,27 @@ It is worth noting that *concerned parties* only refer to complainants and respo
 
 > As an organisation owner I want to see all ongonig disputes so that I am well informed of them
 
-
 ## Admin
+> As an administrator, I want to be able to change the state of a workflow so that I can accommodate for exceptional circumstances
+
+> As an administrator, I want to be able to change the deadline of a workflow state so that I can allow for leniency in time frames
+
+> As an administrator, I want to be able to create workflows so that I can cater for different dispute resolution methods.
+
+> As an administrator, I want to be able to review expert objections so that I can determine whether they are substantive
+
+> As an administrator, I want to be able to see all created disputes so that I can get an overview of what disputes are being filed
+
+> As an administrator, I want to be able to see all open tickets so that I can have an overview of what tickets are getting opened.
+
+> As an administrator, I want to be able to respond to an open ticket to communicate with the user that filed the ticket
+
+> As an administrator, I want to be able to manually change the tags of a dispute so that I can ensure that the tags are correctly assigned
+
+> As an administrator, I want to be able to see a monthly report of disputes filed so that I can get insights into the dispute resolution process over time.
+
+> As an administrator, I want to be able to see all workflow definitions in the system so that I can view them and possibly edit them.
+
 > As an admin I want to see the available mediators at any given point so that I can manage the active mediators
 
 > As an admin I want to manage expert pools so that I can mediators are correctly assigned

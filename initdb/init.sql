@@ -130,8 +130,6 @@ CREATE TABLE dispute_experts (
 	PRIMARY KEY (dispute, "user")
 );
 
-
-
 CREATE TYPE exp_obj_status AS ENUM ('Review','Sustained','Overruled');
 
 CREATE TABLE expert_objections (
@@ -226,7 +224,6 @@ CREATE TABLE workflow_tags (
 	PRIMARY KEY (workflow_id, tag_id)
 );
 
-
 ------------------------------------------------------------- TICKETING SYSTEM
 CREATE TYPE ticket_status_enum AS ENUM (
     'Open',
@@ -253,7 +250,15 @@ CREATE TABLE ticket_messages (
     content TEXT NOT NULL                         		-- Body of the comment
 );
 
-
+------------------------------------------------------------- DISPUTE DECISIONS
+CREATE TABLE dispute_decisions (
+    id SERIAL PRIMARY KEY,
+    dispute_id BIGINT REFERENCES disputes(id),  					-- Reference to the dispute
+    expert_id BIGINT REFERENCES users(id),      					-- Expert submitting the decision
+    writeup_file_id BIGINT REFERENCES files(id),                  	-- Reference to the writeup file
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,             	-- Date the writeup was submitted
+    UNIQUE (dispute_id)                                			  	-- One decision per dispute, regardless of who submitted it
+);
 ------------------------------------------------------------- TABLE CONTENTS
 INSERT INTO Countries (country_code, country_name) VALUES
 ('AF', 'Afghanistan'),

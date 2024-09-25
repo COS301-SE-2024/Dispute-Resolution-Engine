@@ -6,6 +6,7 @@ import (
 	"api/handlers/notifications"
 	"api/middleware"
 	"api/models"
+
 	"gorm.io/gorm"
 )
 
@@ -14,11 +15,10 @@ type WorkflowDBModel interface {
 	GetWorkflowByID(id uint64) (*models.Workflow, error)
 	GetActiveWorkflowByWorkflowID(workflowID uint64) (*models.ActiveWorkflows, error)
 	QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error)
-	FindDipsuteByID(id uint64) (*models.Dispute, error)
-
+	FindDisputeByID(id uint64) (*models.Dispute, error)
 
 	CreateWorkflow(workflow *models.Workflow) error
-	CreateWokrflowTag(tag *models.WorkflowTags) error
+	CreateWorkflowTag(tag *models.WorkflowTags) error
 	CreateActiveWorkflow(workflow *models.ActiveWorkflows) error
 
 	UpdateWorkflow(workflow *models.Workflow) error
@@ -38,46 +38,45 @@ type Workflow struct {
 }
 
 type workflowModelReal struct {
-	DB *gorm.DB
+	DB  *gorm.DB
 	env env.Env
 }
 
 func NewWorkflowHandler(db *gorm.DB, envReader env.Env) Workflow {
 	return Workflow{
 		DB:                       &workflowModelReal{DB: db, env: envReader},
-		Emailer: 				 notifications.NewHandler(db),
+		Emailer:                  notifications.NewHandler(db),
 		EnvReader:                env.NewEnvLoader(),
 		Jwt:                      middleware.NewJwtMiddleware(),
 		DisputeProceedingsLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader),
 	}
 }
 
-
-func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset( limit, offset *int) ([]models.Workflow, error) {
+func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int) ([]models.Workflow, error) {
 	var workflows []models.Workflow
 
-    // Create a query object
-    query := wfmr.DB.Model(&models.Workflow{})
+	// Create a query object
+	query := wfmr.DB.Model(&models.Workflow{})
 
-    // If limit is provided, apply it
-    if limit != nil {
-        query = query.Limit(*limit)
-    }
+	// If limit is provided, apply it
+	if limit != nil {
+		query = query.Limit(*limit)
+	}
 
-    // If offset is provided, apply it
-    if offset != nil {
-        query = query.Offset(*offset)
-    }
+	// If offset is provided, apply it
+	if offset != nil {
+		query = query.Offset(*offset)
+	}
 
-    // Execute the query
-    result := query.Find(&workflows)
+	// Execute the query
+	result := query.Find(&workflows)
 
-    // Handle any errors
-    if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
-        return nil, result.Error
-    }
+	// Handle any errors
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		return nil, result.Error
+	}
 
-    return workflows, nil
+	return workflows, nil
 }
 
 func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.Workflow, error) {
@@ -93,7 +92,7 @@ func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.Workflow, err
 	return &workflow, result.Error
 }
 
-func (wfmr *workflowModelReal) FindDipsuteByID(id uint64) (*models.Dispute, error) {
+func (wfmr *workflowModelReal) FindDisputeByID(id uint64) (*models.Dispute, error) {
 	var dispute models.Dispute
 
 	// Create a query object
@@ -132,7 +131,7 @@ func (wfmr *workflowModelReal) CreateWorkflow(workflow *models.Workflow) error {
 	return nil
 }
 
-func (wfmr *workflowModelReal) CreateWokrflowTag(tag *models.WorkflowTags) error {
+func (wfmr *workflowModelReal) CreateWorkflowTag(tag *models.WorkflowTags) error {
 	result := wfmr.DB.Create(tag)
 
 	if result.Error != nil {
@@ -207,4 +206,3 @@ func (wfmr *workflowModelReal) UpdateActiveWorkflow(workflow *models.ActiveWorkf
 
 	return nil
 }
-	

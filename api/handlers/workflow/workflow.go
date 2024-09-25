@@ -180,7 +180,7 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 			WorkflowID: res.ID,
 			TagID:      uint64(tagID),
 		}
-		if err := w.DB.CreateWokrflowTag(&labelledWorkflow); err != nil {
+		if err := w.DB.CreateWorkflowTag(&labelledWorkflow); err != nil {
 			logger.Error(err)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to link workflow with tags"})
 			return
@@ -268,7 +268,7 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 				WorkflowID: existingWorkflow.ID,
 				TagID:      uint64(categoryID),
 			}
-			err = w.DB.CreateWokrflowTag(&labelledWorkflow)
+			err = w.DB.CreateWorkflowTag(&labelledWorkflow)
 			if err != nil {
 				logger.Error(err)
 				c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
@@ -346,7 +346,7 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 
 	// Find the dispute
 	disputeID := uint64(*(newActiveWorkflow).DisputeID)
-	dispute, result := w.DB.FindDipsuteByID(disputeID)
+	dispute, result := w.DB.FindDisputeByID(disputeID)
 	if result != nil {
 		if result == gorm.ErrRecordNotFound {
 			logger.Warnf("Dispute with ID %d not found", newActiveWorkflow.DisputeID)
@@ -375,10 +375,10 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	timeNow := time.Now()
 	workflowID := int64(workflow.ID)
 	activeWorkflow := models.ActiveWorkflows{
-		ID:           *dispute.ID,
-		Workflow:     workflowID,
+		ID:               *dispute.ID,
+		Workflow:         workflowID,
 		WorkflowInstance: workflow.Definition,
-		DateSubmitted: timeNow,
+		DateSubmitted:    timeNow,
 	}
 
 	result = w.DB.CreateActiveWorkflow(&activeWorkflow)
@@ -386,7 +386,7 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 		logger.Error(result)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Request already exists"})
 		return
-	}else if result != nil {
+	} else if result != nil {
 		logger.Error(result)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
@@ -430,8 +430,6 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Databse updated and request to Activate workflow sent"})
 
 }
-
-
 
 func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 
@@ -534,7 +532,7 @@ func (w Workflow) MakeRequestToOrchestrator(endpoint string, payload Orchestrato
 
 	// Check for a successful status code (200 OK)
 
-	if resp.StatusCode  == http.StatusInternalServerError {
+	if resp.StatusCode == http.StatusInternalServerError {
 		logger.Error("status code error: ", resp.StatusCode)
 		return "", fmt.Errorf("Check theat you gave the correct state name if resetting")
 	}
@@ -564,5 +562,3 @@ func (w Workflow) MakeRequestToOrchestrator(endpoint string, payload Orchestrato
 
 	return responseBody, nil
 }
-	
-	

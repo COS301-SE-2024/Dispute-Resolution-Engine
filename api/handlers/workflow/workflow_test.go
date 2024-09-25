@@ -6,7 +6,6 @@ import (
 	"api/models"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
+	"gorm.io/gorm"
 )
 
 //------------------------------------------------------------------------- Mocks
@@ -22,6 +22,7 @@ import (
 
 type mockDB struct {
 	throwError bool
+	Error error
 	ReturnWorkflowArray []models.Workflow
 	ReturnWorkflow *models.Workflow
 	ReturnDispute *models.Dispute
@@ -32,91 +33,91 @@ type mockDB struct {
 
 func (m *mockDB) GetWorkflowsWithLimitOffset(limit, offset *int) ([]models.Workflow, error) {
 	if m.throwError {
-		return nil, errors.New("error")
+		return nil, m.Error
 	}
 	return []models.Workflow{}, nil
 }
 
 func (m *mockDB) GetWorkflowByID(id uint64) (*models.Workflow, error) {
 	if m.throwError {
-		return nil, errors.New("error")
+		return nil, m.Error
 	}
 	return &models.Workflow{}, nil
 }
 
 func (m *mockDB) GetActiveWorkflowByWorkflowID(workflowID uint64) (*models.ActiveWorkflows, error) {
 	if m.throwError {
-		return nil, errors.New("error")
+		return nil, m.Error
 	}
 	return &models.ActiveWorkflows{}, nil
 }
 
 func (m *mockDB) QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error) {
 	if m.throwError {
-		return nil, errors.New("error")
+		return nil, m.Error
 	}
 	return []models.Tag{}, nil
 }
 
-func (m *mockDB) FindDisputeByID(id uint64) (*models.Dispute, error) {  // Fixed typo: FindDipsuteByID
+func (m *mockDB) FindDisputeByID(id uint64) (*models.Dispute, error) {
 	if m.throwError {
-		return nil, errors.New("error")
+		return nil, m.Error
 	}
 	return &models.Dispute{}, nil
 }
 
 func (m *mockDB) CreateWorkflow(workflow *models.Workflow) error {
 	if m.throwError {
-		return errors.New("error")
+		return m.Error
 	}
 	return nil
 }
 
 func (m *mockDB) CreateWorkflowTag(tag *models.WorkflowTags) error {
 	if m.throwError {
-		return errors.New("error")
+		return m.Error
 	}
 	return nil
 }
 
 func (m *mockDB) CreateActiveWorkflow(workflow *models.ActiveWorkflows) error {
 	if m.throwError {
-		return errors.New("error")
+		return m.Error
 	}
 	return nil
 }
 
 func (m *mockDB) UpdateWorkflow(workflow *models.Workflow) error {
 	if m.throwError {
-		return errors.New("error")
+		return m.Error
 	}
 	return nil
 }
 
-func (m *mockDB) UpdateActiveWorkflow(workflow *models.ActiveWorkflows) error {  // Fixed signature
+func (m *mockDB) UpdateActiveWorkflow(workflow *models.ActiveWorkflows) error {
 	if m.throwError {
-		return errors.New("error")
+		return m.Error
 	}
 	return nil
 }
 
 func (m *mockDB) DeleteTagsByWorkflowID(workflowID uint64) error {
 	if m.throwError {
-		return errors.New("error")
+		return m.Error
 	}
 	return nil
 }
 
 func (m *mockDB) DeleteWorkflow(wf *models.Workflow) error {
 	if m.throwError {
-		return errors.New("error")
+		return m.Error
 	}
 	return nil
 }
 
-func (m *mockDB) DeleteActiveWorkflow(wf *models.ActiveWorkflows) error {  // Fixed signature
+func (m *mockDB) DeleteActiveWorkflow(wf *models.ActiveWorkflows) error {
 	if m.throwError {
-		return errors.New("error")
+		return m.Error
 	}
 	return nil
 }
@@ -205,7 +206,7 @@ type WorkflowTestSuite struct {
 
 
 func (suite *WorkflowTestSuite) SetupTest() {
-	suite.mockDB = &mockDB{}
+	suite.mockDB = &mockDB{Error: errors.New("Test error")}
 	suite.mockJwtModel = &mockJwtModel{}
 	suite.mockEmailModel = &mockEmailModel{}
 	suite.mockAuditLogger = &mockAuditLogger{}
@@ -232,6 +233,61 @@ func (suite *WorkflowTestSuite) SetupTest() {
 func TestWorkflowTestSuite(t *testing.T) {
 	suite.Run(t, new(WorkflowTestSuite))
 }
+
+func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_Success() {
+	// Arrange
+	suite.mockDB.throwError = false
+	suite.mockDB.ReturnWorkflow = &models.Workflow{ID: 1, Name: "Workflow 1"}
+	suite.mockDB.ReturnTagArray = []models.Tag{
+		{ID: 1, TagName: "Tag 1"},
+		{ID: 2, TagName: "Tag 2"},
+	}
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("GET", "/1", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+	// Act
+	w.GetIndividualWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusOK, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.NotNil(response.Data)
+}
+
+func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_InvalidID() {
+	// Arrange
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("GET", "/invalid", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "invalid"}}
+
+	// Act
+	w.GetIndividualWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusBadRequest, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Invalid ID parameter", response.Error)
+}
+
+
 func (suite *WorkflowTestSuite) TestGetWorkflows_Success() {
 	// Arrange
 	suite.mockDB.throwError = false

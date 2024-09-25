@@ -116,7 +116,7 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 	}
 	if err != nil {
 		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Here Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}
 
@@ -136,7 +136,7 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 		Workflow: *workflow,
 		Tags:     tags,
 	}
-
+	fmt.Println("here")
 	c.JSON(http.StatusOK, models.Response{Data: response})
 }
 

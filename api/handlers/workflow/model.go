@@ -6,6 +6,12 @@ import (
 	"api/handlers/notifications"
 	"api/middleware"
 	"api/models"
+	"api/utilities"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 
 	"gorm.io/gorm"
 )
@@ -35,6 +41,7 @@ type Workflow struct {
 	Emailer                  notifications.EmailSystem
 	Jwt                      middleware.Jwt
 	DisputeProceedingsLogger auditLogger.DisputeProceedingsLoggerInterface
+	WorkflowOrchestrator     WorkflowOrchestrator
 }
 
 type workflowModelReal struct {
@@ -49,6 +56,7 @@ func NewWorkflowHandler(db *gorm.DB, envReader env.Env) Workflow {
 		EnvReader:                env.NewEnvLoader(),
 		Jwt:                      middleware.NewJwtMiddleware(),
 		DisputeProceedingsLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader),
+		WorkflowOrchestrator:     OrchestratorReal{},
 	}
 }
 
@@ -206,3 +214,68 @@ func (wfmr *workflowModelReal) UpdateActiveWorkflow(workflow *models.ActiveWorkf
 
 	return nil
 }
+
+
+//Orchestrator for the workflow
+
+type WorkflowOrchestrator interface {
+ MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
+}
+
+type OrchestratorReal struct {
+}
+
+func (w OrchestratorReal) MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Marshal the payload to JSON
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		logger.Error("marshal error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+	logger.Info("Payload: ", string(payloadBytes))
+
+	// Send the POST request to the orchestrator
+	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		logger.Error("post error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+	defer resp.Body.Close()
+
+	// Check for a successful status code (200 OK)
+
+	if resp.StatusCode == http.StatusInternalServerError {
+		logger.Error("status code error: ", resp.StatusCode)
+		return "", fmt.Errorf("Check theat you gave the correct state name if resetting")
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Error("status code error: ", resp.StatusCode)
+		rsponseBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Error("read body error: ", err)
+			return "", fmt.Errorf("internal server error")
+		}
+
+		return string(rsponseBody), fmt.Errorf("internal server error")
+	}
+
+	// Read the response body
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("read body error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+
+	// Convert the response body to a string
+	responseBody := string(bodyBytes)
+
+	// Log the response body for debugging
+	logger.Info("Response Body: ", responseBody)
+
+	return responseBody, nil
+}
+
+
+

@@ -3,10 +3,8 @@ package workflow
 import (
 	"api/models"
 	"api/utilities"
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -426,7 +424,7 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	// Send the request to the orchestrator
 	payload := OrchestratorRequest{ID: activeWorkflow.ID}
 
-	_, err = w.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, startEndpoint), payload)
+	_, err = w.WorkflowOrchestrator.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, startEndpoint), payload)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		//delete the active workflow from table
@@ -504,7 +502,7 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	// Send the request to the orchestrator
 	payload := OrchestratorRequest{ID: activeWorkflow.ID}
 
-	body, err := w.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, resetEndpoint), payload)
+	body, err := w.WorkflowOrchestrator.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, resetEndpoint), payload)
 	if err != nil {
 		if strings.Contains(body, "deadline") {
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid deadline specified"})
@@ -516,56 +514,4 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Database updated and request to Reset workflow sent"})
 }
 
-//helper funciton to complete active workflow
 
-func (w Workflow) MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error) {
-	logger := utilities.NewLogger().LogWithCaller()
-
-	// Marshal the payload to JSON
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		logger.Error("marshal error: ", err)
-		return "", fmt.Errorf("internal server error")
-	}
-	logger.Info("Payload: ", string(payloadBytes))
-
-	// Send the POST request to the orchestrator
-	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(payloadBytes))
-	if err != nil {
-		logger.Error("post error: ", err)
-		return "", fmt.Errorf("internal server error")
-	}
-	defer resp.Body.Close()
-
-	// Check for a successful status code (200 OK)
-
-	if resp.StatusCode == http.StatusInternalServerError {
-		logger.Error("status code error: ", resp.StatusCode)
-		return "", fmt.Errorf("Check theat you gave the correct state name if resetting")
-	}
-	if resp.StatusCode != http.StatusOK {
-		logger.Error("status code error: ", resp.StatusCode)
-		rsponseBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			logger.Error("read body error: ", err)
-			return "", fmt.Errorf("internal server error")
-		}
-
-		return string(rsponseBody), fmt.Errorf("internal server error")
-	}
-
-	// Read the response body
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		logger.Error("read body error: ", err)
-		return "", fmt.Errorf("internal server error")
-	}
-
-	// Convert the response body to a string
-	responseBody := string(bodyBytes)
-
-	// Log the response body for debugging
-	logger.Info("Response Body: ", responseBody)
-
-	return responseBody, nil
-}

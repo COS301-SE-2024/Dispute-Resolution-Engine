@@ -16,7 +16,7 @@ services:
   admin-frontend: # --------------------------------------------------------- Admin Frontend
     build: ./admin-frontend
     ports:
-      - "3001:3000"
+      - "3002:3000"
     env_file:
       - fe.env
     depends_on:

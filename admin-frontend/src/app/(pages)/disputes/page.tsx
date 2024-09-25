@@ -106,11 +106,11 @@ export default async function Disputes({ searchParams }: { searchParams: unknown
               <Pagination className="w-full">
                 <PaginationContent className="w-full">
                   <PaginationItem>
-                    <PaginationPrevious href="#" />
+                    {/* <PaginationPrevious href="#" /> */}
                   </PaginationItem>
                   <div className="grow" />
                   <PaginationItem>
-                    <PaginationNext href="#" />
+                    {/* <PaginationNext href="#" /> */}
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>

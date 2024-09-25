@@ -18,6 +18,9 @@ type WorkflowDBModel interface {
 	CreateWokrflowTag(tag *models.WorkflowTags) error
 
 	UpdateWorkflow(workflow *models.Workflow) error
+
+	DeleteTagsByWorkflowID(workflowID uint64) error
+	DeleteWorkflow(wf *models.Workflow) error
 }
 
 type Workflow struct {
@@ -128,6 +131,25 @@ func (wfmr *workflowModelReal) CreateWokrflowTag(tag *models.WorkflowTags) error
 func (wfmr *workflowModelReal) UpdateWorkflow(workflow *models.Workflow) error {
 	result := wfmr.DB.Save(workflow)
 
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (wfmr *workflowModelReal) DeleteTagsByWorkflowID(workflowID uint64) error {
+	result := wfmr.DB.Where("workflow_id = ?", workflowID).Delete(&models.WorkflowTags{})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (wfmr *workflowModelReal) DeleteWorkflow(wf *models.Workflow) error {
+	result := wfmr.DB.Delete(wf)
 	if result.Error != nil {
 		return result.Error
 	}

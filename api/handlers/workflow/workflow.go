@@ -254,7 +254,7 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 	// Manage categories (tags) in labelled_workflow if provided
 	if updateData.Category != nil {
 		// Remove existing tags
-		err = w.DB.Where("workflow_id = ?", existingWorkflow.ID).Delete(&models.WorkflowTags{}).Error
+		err = w.DB.DeleteTagsByWorkflowID(existingWorkflow.ID)
 		if err != nil {
 			logger.Error(err)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
@@ -267,7 +267,7 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 				WorkflowID: existingWorkflow.ID,
 				TagID:      uint64(categoryID),
 			}
-			err = w.DB.Create(&labelledWorkflow).Error
+			err = w.DB.CreateWokrflowTag(&labelledWorkflow)
 			if err != nil {
 				logger.Error(err)
 				c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
@@ -282,23 +282,29 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 func (w Workflow) DeleteWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid ID parameter"})
+		return
+	}
 
 	// Find the workflow record
-	var workflow models.Workflow
-	result := w.DB.First(&workflow, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
+	var workflow *models.Workflow
+	workflow, result := w.DB.GetWorkflowByID(uint64(idInt))
+	if result != nil {
+		if result == gorm.ErrRecordNotFound {
 			logger.Warnf("Workflow with ID %s not found", id)
 			c.JSON(http.StatusNotFound, models.Response{Error: "Workflow not found"})
 		} else {
-			logger.Error(result.Error)
+			logger.Error(result)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		}
 		return
 	}
 
 	// Delete the tags associated with the workflow
-	err := w.DB.Where("workflow_id = ?", workflow.ID).Delete(&models.WorkflowTags{}).Error
+	err = w.DB.DeleteTagsByWorkflowID(workflow.ID)
 	if err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to delete associated tags"})
@@ -306,7 +312,7 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 	}
 
 	// Delete the workflow record itself
-	result = w.DB.Delete(&workflow)
+	result = w.DB.DeleteWorkflow(workflow)
 	if result.Error != nil {
 		logger.Error(result.Error)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to delete workflow"})

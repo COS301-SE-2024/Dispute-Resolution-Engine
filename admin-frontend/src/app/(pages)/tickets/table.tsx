@@ -77,10 +77,10 @@ export function TicketTable() {
 function TicketRow(props: TicketSummary) {
   return (
     <TableRow className="text-nowrap truncate">
-      <TableCell className="font-medium">
+      <TableCell className="font-medium hover:underline">
         <Link href={{ pathname: "/tickets", query: { id: props.id } }}>{props.subject}</Link>
       </TableCell>
-      <TableCell className="font-medium">{props.user.full_name}</TableCell>
+      <TableCell>{props.user.full_name}</TableCell>
       <TableCell>
         <TicketStatusBadge variant={props.status}>{props.status}</TicketStatusBadge>
       </TableCell>

@@ -18,13 +18,26 @@ describe("Navigation", () => {
     /**
      * Searching
      */
-    cy.get('input[placeholder="Search tickets..."]').type('account{enter}');
+    cy.get('input[placeholder="Search tickets..."]').type('e{enter}');
     /**
      * Pagination
      */
-    cy.get('ul').contains('Next').should('be.visible');
-    cy.get('button').contains('Next').click();
+    cy.get('input[placeholder="Search tickets..."]').clear();
+    cy.viewport(1920, 2000)
+    cy.get('button').contains('Next').should('be.visible');
     cy.get('table').should('be.visible');
+    /**
+     * Filtering
+     */
+    cy.get('button').contains('Filter by').click()
+    cy.get('button').contains('No filter').parent().click()
+    cy.get('span').contains('Open').parent().click()
+    cy.get('button').contains('Apply').click()
+
+    // cy.get('button').contains('Filter by').click()
+    cy.get('button').contains('Open').parent().click()
+    cy.get('span').contains('No filter').parent().click()
+    cy.get('button').contains('Apply').click()
     /**
      * Checks Drawer
      */
@@ -35,9 +48,7 @@ describe("Navigation", () => {
       cy.get('h2').contains(firstSubject)
       cy.get('textarea').type("New Ticket{enter}")
       cy.get('button').contains('Send').click()
-      // cy.get('div').contains("New Ticket")
+      cy.get('div').contains("New Ticket")
     })
-    // cy.get('button').contains('Filter by').click();
-    // cy.get('[role="dialog"]').contains('Filter').should('be.visible');
   });
 });

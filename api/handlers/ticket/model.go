@@ -12,7 +12,7 @@ import (
 )
 
 type TicketModel interface {
-	getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
+	getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *models.Filter) ([]models.TicketSummaryResponse, int64, error)
 }
 
 type Ticket struct {
@@ -34,7 +34,7 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 	}
 }
 
-func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
+func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *models.Filter) ([]models.TicketSummaryResponse, int64, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	tickets := []models.TicketSummaryResponse{}
@@ -52,23 +52,13 @@ func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, off
 		countParams = append(countParams, "%"+*searchTerm+"%")
 	}
 
-	if filters != nil && len(*filters) > 0 {
+	if filters != nil  {
 		if searchTerm != nil {
 			queryString.WriteString(" AND ")
 			countString.WriteString(" AND ")
 		} else {
 			queryString.WriteString(" WHERE ")
 			countString.WriteString(" WHERE ")
-		}
-		for i, filter := range *filters {
-			queryString.WriteString(filter.Attr + " = ?")
-			countString.WriteString(filter.Attr + " = ?")
-			queryParams = append(queryParams, filter.Value)
-			countParams = append(countParams, filter.Value)
-			if i < len(*filters)-1 {
-				queryString.WriteString(" AND ")
-				countString.WriteString(" AND ")
-			}
 		}
 	}
 

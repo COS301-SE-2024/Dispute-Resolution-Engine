@@ -4,7 +4,10 @@ import (
 	"api/middleware"
 	"api/models"
 	"api/utilities"
+	"encoding/json"
+	"io"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,6 +32,46 @@ func (h Ticket) getTicketList(c *gin.Context) {
 
 	if userRole == "admin" && c.Request.Method == "POST" {
 		var reqAdminTickets models.TicketsRequest
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			logger.WithError(err).Error("Error reading request body")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
+			return
+		}
+
+		// Reset the body so it can be read again by BindJSON
+		c.Request.Body = io.NopCloser(strings.NewReader(string(body)))
+
+		// Check if the body is valid JSON and not empty
+		var bodyMap map[string]interface{}
+		if err := json.Unmarshal(body, &bodyMap); err != nil {
+			logger.WithError(err).Error("Invalid JSON format")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
+			return
+		}
+
+		// If the body contains no key-value pairs, consider it empty
+		if len(bodyMap) == 0 {
+			tickets, count, err := h.Model.getAdminTicketList(nil, nil, nil, nil, nil)
+			if err != nil {
+				logger.WithError(err).Error("error retrieving disputes")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving disputes"})
+				return
+			}
+			if count == 0 {
+				logger.Info("No disputes found")
+				c.JSON(http.StatusOK, models.Response{Data: gin.H{
+					"tickets": tickets,
+					"total":   count,
+				}})
+				return
+			}
+			c.JSON(http.StatusOK, models.Response{Data: gin.H{
+				"tickets": tickets,
+				"total":   count,
+			}})
+			return
+		}
 		if err := c.BindJSON(&reqAdminTickets); err != nil {
 			logger.WithError(err).Error("Invalid request")
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
@@ -54,8 +97,24 @@ func (h Ticket) getTicketList(c *gin.Context) {
 		if reqAdminTickets.Filter != nil {
 			filters = reqAdminTickets.Filter
 		}
-
-		tickets, count
-
+		tickets, count, err := h.Model.getAdminTicketList(searchTerm, limit, offset, sort, filters)
+		if err != nil {
+			logger.WithError(err).Error("error retrieving tickets")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving tickets"})
+			return
+		}
+		if count == 0 {
+			logger.Info("No tickets found")
+			c.JSON(http.StatusOK, models.Response{Data: gin.H{
+				"tickets": tickets,
+				"total":   count,
+			}})
+			return
+		}
+		c.JSON(http.StatusOK, models.Response{Data: gin.H{
+			"tickets": tickets,
+			"total":   count,
+		}})
+		return
 	}
 }

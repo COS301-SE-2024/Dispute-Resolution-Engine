@@ -67,18 +67,27 @@ type AdminDisputeSummariesResponse struct {
 }
 
 type TicketUser struct {
-	ID       int64  `json:"id"`
+	ID       string `json:"id"`
 	FullName string `json:"full_name"`
 }
 
 type TicketSummaryResponse struct {
-	ID          int64      `json:"id"`
+	ID          string     `json:"id"`
 	User        TicketUser `json:"user"`
 	DateCreated string     `json:"date_created"`
 	Subject     string     `json:"subject"`
 	Status      string     `json:"status"`
 }
 
-type TicketsByUserStruct struct {
+type TicketMessage struct {
+	ID       string     `json:"id"`
+	User     TicketUser `json:"user"`
+	DateSent string     `json:"date_sent"`
+	Message  string     `json:"message"`
+}
+
+type TicketsByUser struct {
 	TicketSummaryResponse
+	Body     string           `json:"body"`
+	Messages []TicketMessages `json:"messages"`
 }

@@ -144,5 +144,5 @@ interface TicketCreateRequest {
   body: string;
 }
 
-type TicketPostResponse = TicketMessage;
+type TicketCreateResponse = TicketSummary;
 ```

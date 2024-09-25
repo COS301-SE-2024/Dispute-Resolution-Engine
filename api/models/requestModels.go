@@ -207,4 +207,16 @@ type AdminDisputesRequest struct {
 	DateFilter *DateFilter `json:"dateFilter,omitempty"`
 }
 
+type TicketsRequest struct {
+	// Search term for the title of disputes
+	Search *string `json:"search,omitempty"`
 
+	// Pagination parameters
+	Limit  *int `json:"limit,omitempty"`
+	Offset *int `json:"offset,omitempty"`
+
+	Sort *Sort `json:"sort,omitempty"`
+
+	// The filters to apply to data
+	Filter *Filter `json:"filter,omitempty"`
+}

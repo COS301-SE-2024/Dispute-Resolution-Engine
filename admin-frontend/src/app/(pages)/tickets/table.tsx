@@ -11,7 +11,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { AdminDisputesResponse, Filter } from "@/lib/types";
 
-import { StatusBadge } from "@/components/admin/status-dropdown";
+import { TicketStatusBadge } from "@/components/admin/status-badge";
 import { LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -253,7 +253,7 @@ function TicketRow(props: TicketSummary) {
       </TableCell>
       <TableCell className="font-medium">{props.user.full_name}</TableCell>
       <TableCell>
-        <StatusBadge variant="active">{props.status}</StatusBadge>
+        <TicketStatusBadge variant={props.status}>{props.status}</TicketStatusBadge>
       </TableCell>
       <TableCell className="text-center">{props.date_created}</TableCell>
     </TableRow>

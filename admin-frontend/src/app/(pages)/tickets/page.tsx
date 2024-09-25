@@ -13,10 +13,8 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
-import { TableHeader, TableRow, TableHead, TableBody } from "@/components/ui/table";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { FilterIcon, Table } from "lucide-react";
-import DisputeRow from "../disputes/row";
+import { FilterIcon } from "lucide-react";
 
 const searchSchema = z.object({
   id: z.string().optional(),

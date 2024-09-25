@@ -11,6 +11,7 @@ import (
 
 type WorkflowDBModel interface {
 	GetWorkflowsWithLimitOffset(limit, offset *int) ([]models.Workflow, error)
+	QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error)
 }
 
 type Workflow struct {
@@ -62,4 +63,26 @@ func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int) (
     }
 
     return workflows, nil
+}
+
+
+func (wfmr *workflowModelReal) QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error) {
+	var tags []models.Tag
+
+	// Create a query object
+	query := wfmr.DB.Model(&models.Tag{})
+
+	// If limit is provided, apply it
+	query = query.Joins("JOIN workflow_tags ON tags.id = workflow_tags.tag_id")
+	query = query.Where("workflow_tags.workflow_id = ?", workflowID)
+
+	// Execute the query
+	result := query.Find(&tags)
+
+	// Handle any errors
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		return nil, result.Error
+	}
+
+	return tags, nil
 }

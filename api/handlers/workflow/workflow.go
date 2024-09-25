@@ -78,12 +78,7 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 
 		taggedWorkflow.Workflow = workflow
 		// Query for tags related to each workflow, explicitly selecting the fields
-		err := w.DB.Table("workflow_tags").
-			Select("tags.id, tags.tag_name").
-			Joins("join tags on workflow_tags.tag_id = tags.id").
-			Where("workflow_tags.workflow_id = ?", workflow.ID).
-			Scan(&taggedWorkflow.Tags).Error
-
+		taggedWorkflow.Tags, err = w.DB.QueryTagsToRelatedWorkflow(workflow.ID)
 		if err != nil {
 			logger.Error(err)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})

@@ -57,7 +57,7 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 		return
 	}
 
-	workflows, err = w.DB.GetWorkflowsWithLimitOffset(nil, &limitInt, &offsetInt)
+	workflows, err = w.DB.GetWorkflowsWithLimitOffset(&limitInt, &offsetInt)
 	if err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
@@ -101,8 +101,13 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 		return
 	}
 
-	var workflow []models.Workflow
-	workflow, err = w.DB.GetWorkflowsWithLimitOffset(&idInt, nil, nil)
+	var workflow *models.Workflow
+	workflow, err = w.DB.GetWorkflowByID(uint64(idInt))
+	if err != nil && err != gorm.ErrRecordNotFound {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Record not found"})
+		return
+	}
 	if err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
@@ -118,12 +123,11 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 		return
 	}
 
-	// Create the response structure
 	response := struct {
 		models.Workflow
 		Tags []models.Tag `json:"tags"`
 	}{
-		Workflow: workflow[0],
+		Workflow: *workflow,
 		Tags:     tags,
 	}
 
@@ -188,16 +192,22 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 func (w Workflow) UpdateWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid ID parameter"})
+		return
+	}
 
 	// Find the existing workflow
-	var existingWorkflow models.Workflow
-	result := w.DB.First(&existingWorkflow, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
+	var existingWorkflow *models.Workflow
+	existingWorkflow, err = w.DB.GetWorkflowByID(uint64(idInt))
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
 			logger.Warnf("Workflow with ID %s not found", id)
 			c.JSON(http.StatusNotFound, models.Response{Error: "Workflow not found"})
 		} else {
-			logger.Error(result.Error)
+			logger.Error(err)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		}
 		return
@@ -205,7 +215,7 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 
 	// Bind the request payload to the UpdateWorkflow struct
 	var updateData models.UpdateWorkflow
-	err := c.BindJSON(&updateData)
+	err = c.BindJSON(&updateData)
 	if err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request payload"})
@@ -234,9 +244,9 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 	}
 
 	// Save the updated workflow
-	result = w.DB.Save(&existingWorkflow)
-	if result.Error != nil {
-		logger.Error(result.Error)
+	err = w.DB.UpdateWorkflow(existingWorkflow)
+	if err != nil {
+		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}

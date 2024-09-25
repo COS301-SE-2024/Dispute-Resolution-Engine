@@ -10,10 +10,14 @@ import (
 )
 
 type WorkflowDBModel interface {
-	GetWorkflowsWithLimitOffset(id, limit, offset *int) ([]models.Workflow, error)
+	GetWorkflowsWithLimitOffset(limit, offset *int) ([]models.Workflow, error)
+	GetWorkflowByID(id uint64) (*models.Workflow, error)
 	QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error)
+
 	CreateWorkflow(workflow *models.Workflow) error
 	CreateWokrflowTag(tag *models.WorkflowTags) error
+
+	UpdateWorkflow(workflow *models.Workflow) error
 }
 
 type Workflow struct {
@@ -40,16 +44,11 @@ func NewWorkflowHandler(db *gorm.DB, envReader env.Env) Workflow {
 }
 
 
-func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(id, limit, offset *int) ([]models.Workflow, error) {
+func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset( limit, offset *int) ([]models.Workflow, error) {
 	var workflows []models.Workflow
 
     // Create a query object
     query := wfmr.DB.Model(&models.Workflow{})
-
-	// If id is provided, apply it
-	if id != nil {
-		query = query.Where("id = ?", *id)
-	}
 
     // If limit is provided, apply it
     if limit != nil {
@@ -72,6 +71,18 @@ func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(id, limit, offset *in
     return workflows, nil
 }
 
+func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.Workflow, error) {
+	var workflow models.Workflow
+
+	// Create a query object
+	query := wfmr.DB.Model(&models.Workflow{})
+	query = query.Where("id = ?", id)
+
+	// Execute the query
+	result := query.First(&workflow)
+
+	return &workflow, result.Error
+}
 
 func (wfmr *workflowModelReal) QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error) {
 	var tags []models.Tag
@@ -106,6 +117,16 @@ func (wfmr *workflowModelReal) CreateWorkflow(workflow *models.Workflow) error {
 
 func (wfmr *workflowModelReal) CreateWokrflowTag(tag *models.WorkflowTags) error {
 	result := wfmr.DB.Create(tag)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (wfmr *workflowModelReal) UpdateWorkflow(workflow *models.Workflow) error {
+	result := wfmr.DB.Save(workflow)
 
 	if result.Error != nil {
 		return result.Error

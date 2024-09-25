@@ -10,7 +10,7 @@ import (
 )
 
 type WorkflowDBModel interface {
-	GetWorkflowsWithLimitOffset(limit, offset *int) ([]models.Workflow, error)
+	GetWorkflowsWithLimitOffset(id, limit, offset *int) ([]models.Workflow, error)
 	QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error)
 }
 
@@ -38,11 +38,16 @@ func NewWorkflowHandler(db *gorm.DB, envReader env.Env) Workflow {
 }
 
 
-func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int) ([]models.Workflow, error) {
+func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(id, limit, offset *int) ([]models.Workflow, error) {
 	var workflows []models.Workflow
 
     // Create a query object
     query := wfmr.DB.Model(&models.Workflow{})
+
+	// If id is provided, apply it
+	if id != nil {
+		query = query.Where("id = ?", *id)
+	}
 
     // If limit is provided, apply it
     if limit != nil {

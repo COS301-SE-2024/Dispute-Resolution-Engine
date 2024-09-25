@@ -57,7 +57,7 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 		return
 	}
 
-	workflows, err = w.DB.GetWorkflowsWithLimitOffset(&limitInt, &offsetInt)
+	workflows, err = w.DB.GetWorkflowsWithLimitOffset(nil, &limitInt, &offsetInt)
 	if err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
@@ -94,28 +94,24 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	id := c.Param("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid ID parameter"})
+		return
+	}
 
-	var workflow models.Workflow
-	result := w.DB.First(&workflow, id)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			logger.Warnf("Workflow with ID %s not found", id)
-			c.JSON(http.StatusOK, models.Response{Error: "Workflow not found"})
-		} else {
-			logger.Error(result.Error)
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		}
+	var workflow []models.Workflow
+	workflow, err = w.DB.GetWorkflowsWithLimitOffset(&idInt, nil, nil)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}
 
 	// Fetch the tags associated with this workflow
 	var tags []models.Tag
-	err := w.DB.Table("workflow_tags").
-		Select("tags.id, tags.tag_name").
-		Joins("join tags on workflow_tags.tag_id = tags.id").
-		Where("workflow_tags.workflow_id = ?", workflow.ID).
-		Scan(&tags).Error
-
+	tags, err = w.DB.QueryTagsToRelatedWorkflow(uint64(idInt))
 	if err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
@@ -127,7 +123,7 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 		models.Workflow
 		Tags []models.Tag `json:"tags"`
 	}{
-		Workflow: workflow,
+		Workflow: workflow[0],
 		Tags:     tags,
 	}
 

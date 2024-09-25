@@ -287,6 +287,83 @@ func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_InvalidID() {
 	suite.Equal("Invalid ID parameter", response.Error)
 }
 
+func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_NotFound() {
+	// Arrange
+	suite.mockDB.throwError = true
+	suite.mockDB.Error = gorm.ErrRecordNotFound
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("GET", "/1", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+	// Act
+	w.GetIndividualWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusOK, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Record not found", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_DBError() {
+	// Arrange
+	suite.mockDB.throwError = true
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("GET", "/1", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+	// Act
+	w.GetIndividualWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_QueryTagsError() {
+	// Arrange
+	suite.mockDB.throwError = false
+	suite.mockDB.ReturnWorkflow = &models.Workflow{ID: 1, Name: "Workflow 1"}
+	suite.mockDB.throwError = true
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("GET", "/1", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+	c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+	// Act
+	w.GetIndividualWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
 
 func (suite *WorkflowTestSuite) TestGetWorkflows_Success() {
 	// Arrange

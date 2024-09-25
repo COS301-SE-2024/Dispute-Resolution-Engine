@@ -136,7 +136,6 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 		Workflow: *workflow,
 		Tags:     tags,
 	}
-	fmt.Println("here")
 	c.JSON(http.StatusOK, models.Response{Data: response})
 }
 
@@ -237,6 +236,7 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 	if updateData.WorkflowDefinition != nil {
 		workflowDefinition, err := json.Marshal(*updateData.WorkflowDefinition)
 		if err != nil {
+
 			logger.Error(err)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to process workflow definition"})
 			return
@@ -262,6 +262,8 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 		// Remove existing tags
 		err = w.DB.DeleteTagsByWorkflowID(existingWorkflow.ID)
 		if err != nil {
+		fmt.Println("here")
+
 			logger.Error(err)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
 			return

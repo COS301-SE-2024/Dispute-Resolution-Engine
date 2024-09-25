@@ -361,7 +361,78 @@ func TestWorkflowTestSuite(t *testing.T) {
 		suite.Equal("Invalid request payload", response.Error)
 	}
 
+	func (suite *WorkflowTestSuite) TestUpdateWorkflow_DBError() {
+		// Arrange
+		suite.mockDB.throwError = true
 
+		w := workflow.Workflow{
+			DB: suite.mockDB,
+		}
+
+		updateData := models.UpdateWorkflow{
+			Name: new(string),
+		}
+		*updateData.Name = "Updated Workflow"
+
+		body, _ := json.Marshal(updateData)
+		req, _ := http.NewRequest("PUT", "/1", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		wr := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(wr)
+		c.Request = req
+		c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+		// Act
+		w.UpdateWorkflow(c)
+
+		// Assert
+		suite.Equal(http.StatusInternalServerError, wr.Code)
+		var response models.Response
+		err := json.Unmarshal(wr.Body.Bytes(), &response)
+		suite.NoError(err)
+		suite.Equal("Internal Server Error", response.Error)
+	}
+
+	func (suite *WorkflowTestSuite) TestUpdateWorkflow_FailedToUpdateCategories() {
+		// Arrange
+		suite.mockDB.throwError = false
+		suite.mockDB.ReturnWorkflow = &models.Workflow{ID: 1, Name: "Old Workflow"}
+		suite.mockDB.ReturnTagArray = []models.Tag{
+			{ID: 1, TagName: "Tag 1"},
+			{ID: 2, TagName: "Tag 2"},
+		}
+
+		w := workflow.Workflow{
+			DB: suite.mockDB,
+		}
+
+		updateData := models.UpdateWorkflow{
+			Name: new(string),
+			Category: &[]int64{1, 2},
+		}
+		*updateData.Name = "Updated Workflow"
+
+		body, _ := json.Marshal(updateData)
+		req, _ := http.NewRequest("PUT", "/1", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		wr := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(wr)
+		c.Request = req
+		c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+		// Simulate error when updating categories
+		suite.mockDB.throwError = true
+
+		// Act
+		w.UpdateWorkflow(c)
+
+		// Assert
+		suite.Equal(http.StatusInternalServerError, wr.Code)
+		var response models.Response
+		err := json.Unmarshal(wr.Body.Bytes(), &response)
+		suite.NoError(err)
+		suite.Equal("Internal Server Error", response.Error)
+	}
 
 func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_Success() {
 	// Arrange

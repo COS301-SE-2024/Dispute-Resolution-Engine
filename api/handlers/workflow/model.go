@@ -12,6 +12,8 @@ import (
 type WorkflowDBModel interface {
 	GetWorkflowsWithLimitOffset(id, limit, offset *int) ([]models.Workflow, error)
 	QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error)
+	CreateWorkflow(workflow *models.Workflow) error
+	CreateWokrflowTag(tag *models.WorkflowTags) error
 }
 
 type Workflow struct {
@@ -90,4 +92,24 @@ func (wfmr *workflowModelReal) QueryTagsToRelatedWorkflow(workflowID uint64) ([]
 	}
 
 	return tags, nil
+}
+
+func (wfmr *workflowModelReal) CreateWorkflow(workflow *models.Workflow) error {
+	result := wfmr.DB.Create(workflow)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (wfmr *workflowModelReal) CreateWokrflowTag(tag *models.WorkflowTags) error {
+	result := wfmr.DB.Create(tag)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }

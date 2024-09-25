@@ -163,9 +163,9 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 	}
 
 	// Store the workflow in the database
-	result := w.DB.Create(res)
-	if result.Error != nil {
-		logger.Error(result.Error)
+	result := w.DB.CreateWorkflow(res)
+	if result != nil {
+		logger.Error(result)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}
@@ -175,7 +175,7 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 			WorkflowID: res.ID,
 			TagID:      uint64(tagID),
 		}
-		if err := w.DB.Create(&labelledWorkflow).Error; err != nil {
+		if err := w.DB.CreateWokrflowTag(&labelledWorkflow); err != nil {
 			logger.Error(err)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to link workflow with tags"})
 			return

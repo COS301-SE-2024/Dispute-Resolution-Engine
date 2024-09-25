@@ -12,14 +12,17 @@ import { Label } from "@/components/ui/label";
 import { TicketStatusBadge } from "@/components/admin/status-badge";
 import { Ticket } from "@/lib/types/tickets";
 import SidebarHeader from "@/components/sidebar/header";
+import { TicketStatusDropdown } from "@/components/admin/status-dropdown";
 
 export default function TicketDetails({ details }: { details: Ticket }) {
   return (
     <Sidebar open className="p-6 md:pl-8 rounded-l-2xl flex flex-col">
       <SidebarHeader title={details.subject} className="flex gap-2 items-center">
-        <TicketStatusBadge variant={details.status} dropdown>
-          {details.status}
-        </TicketStatusBadge>
+        <TicketStatusDropdown>
+          <TicketStatusBadge variant={details.status} dropdown>
+            {details.status}
+          </TicketStatusBadge>
+        </TicketStatusDropdown>
         <span>{details.date_created}</span>
       </SidebarHeader>
       <div className="overflow-y-auto grow space-y-6 pr-3">

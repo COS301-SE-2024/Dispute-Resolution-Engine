@@ -26,7 +26,7 @@ const statusVariants = cva("", {
       ],
       neutral: [
         "hover:bg-primary-500/30 border-primary-500/50 bg-primary-500/20 text-primary-700",
-        "dark:hover:bg-primary-500/30 dark:border-primary-500/70 dark:bg-primary-500/20 dark:text-primary-400",
+        "dark:hover:bg-primary-400/30 dark:border-primary-400/70 dark:bg-primary-400/20 dark:text-primary-300",
       ],
     },
   },

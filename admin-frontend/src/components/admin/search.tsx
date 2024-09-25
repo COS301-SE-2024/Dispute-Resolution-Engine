@@ -6,18 +6,22 @@ import { useEffect, useState } from "react";
 export default function SearchBar({
   placeholder,
   timeout = 1000,
-  onUpdate = () => {},
+  onValueChange = () => {},
 }: {
   placeholder: string;
-  onUpdate?: (value: string) => void;
+  onValueChange?: (value: string | undefined) => void;
   timeout?: number;
 }) {
   const [value, setValue] = useState("");
 
   useEffect(() => {
     const cancel = setTimeout(() => {
-      onUpdate(value);
-      console.log(value);
+      const trimmed = value.trim();
+      if (trimmed.length === 0) {
+        onValueChange(undefined);
+      } else {
+        onValueChange(trimmed);
+      }
     }, timeout);
     return () => clearTimeout(cancel);
     // eslint-disable-next-line react-hooks/exhaustive-deps

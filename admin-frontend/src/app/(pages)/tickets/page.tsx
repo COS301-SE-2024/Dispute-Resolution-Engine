@@ -1,9 +1,11 @@
+"use client";
+
 import PageHeader from "@/components/admin/page-header";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { TicketTable } from "./table";
+import { TicketsPager, TicketTable } from "./table";
 import { z } from "zod";
 import TicketDetails from "./details";
-import { Ticket } from "@/lib/types/tickets";
+import { Ticket, TicketFilter } from "@/lib/types/tickets";
 import SearchBar from "@/components/admin/search";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +17,8 @@ import {
 } from "@/components/ui/pagination";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { FilterIcon } from "lucide-react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 
 const searchSchema = z.object({
   id: z.string().optional(),
@@ -43,13 +47,19 @@ export default function Tickets({ searchParams }: { searchParams: unknown }) {
     throw new Error(JSON.stringify(searchError));
   }
 
+  const client = new QueryClient();
+
+  const [filter, setFilter] = useState<TicketFilter[]>([]);
+  const [page, setPage] = useState<number>(0);
+  const [search, setSearch] = useState<string | undefined>();
+
   return (
-    <>
+    <QueryClientProvider client={client}>
       {params.id && <TicketDetails details={ticket} />}
       <div className="flex flex-col">
         <PageHeader label="Tickets" />
         <div className="flex items-center px-5 gap-2 pr-2 border-b dark:border-primary-500/30 border-primary-500/20">
-          <SearchBar placeholder="Search tickets..." />
+          <SearchBar placeholder="Search tickets..." onValueChange={setSearch} />
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" className="gap-2">
@@ -65,24 +75,14 @@ export default function Tickets({ searchParams }: { searchParams: unknown }) {
         <main className="overflow-auto p-5 grow">
           <Card>
             <CardContent>
-              <TicketTable />
+              <TicketTable filters={filter} search={search} page={page} />
             </CardContent>
             <CardFooter>
-              <Pagination className="w-full">
-                <PaginationContent className="w-full">
-                  <PaginationItem>
-                    <PaginationPrevious href="#" />
-                  </PaginationItem>
-                  <div className="grow" />
-                  <PaginationItem>
-                    <PaginationNext href="#" />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+              <TicketsPager onValueChange={setPage} search={search} filters={filter} page={page} />
             </CardFooter>
           </Card>
         </main>
       </div>
-    </>
+    </QueryClientProvider>
   );
 }

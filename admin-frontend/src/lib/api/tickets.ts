@@ -1,18 +1,26 @@
 "use server";
 
-import { type Ticket, type TicketSummary } from "../types/tickets";
+import { TicketListRequest, type Ticket, type TicketSummary } from "../types/tickets";
 
-export async function getTicketSummaries(): Promise<{
+export async function getTicketSummaries(req: TicketListRequest): Promise<{
   total: number;
   tickets: TicketSummary[];
 }> {
+  let data = MOCK_TICKETS;
+  if (req.search) {
+    data = data.filter((t) => {
+      const combined = [t.subject, t.user.full_name].join(" ").toLowerCase();
+      return combined.includes(req.search!.toLowerCase());
+    });
+  }
+
   return {
     total: MOCK_TICKETS.length,
-    tickets: MOCK_TICKETS,
+    tickets: data,
   };
 }
 
-export const MOCK_TICKETS: Ticket[] = [
+const MOCK_TICKETS: Ticket[] = [
   {
     id: "0",
     user: { id: "0", full_name: "John Doe" },

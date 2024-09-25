@@ -6,6 +6,7 @@ import (
 	"api/env"
 	"api/handlers"
 	"api/handlers/dispute"
+	"api/handlers/workflow"
 	"api/middleware"
 	"api/redisDB"
 	"api/utilities"
@@ -94,7 +95,7 @@ func main() {
 	archiveHandler := handlers.NewArchiveHandler(DB)
 	expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
-	workflowHandler := handlers.NewWorkflowHandler(DB)
+	workflowHandler := workflow.NewWorkflowHandler(DB, envLoader)
 
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -131,7 +132,7 @@ func main() {
 
 	workflowGroup := router.Group("/workflows")
 	workflowGroup.Use(jwt.JWTMiddleware)
-	handlers.SetupWorkflowRoutes(workflowGroup,workflowHandler)
+	workflow.SetupWorkflowRoutes(workflowGroup,workflowHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

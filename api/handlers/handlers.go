@@ -39,10 +39,6 @@ type Archive struct {
 	Handler
 }
 
-type Workflow struct {
-	Handler
-}
-
 func new(db *gorm.DB) Handler {
 	envReader := env.NewEnvLoader()
 	return Handler{DB: db, EnvReader: envReader, Jwt: middleware.NewJwtMiddleware(), DisputeProceedingsLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader)}
@@ -62,10 +58,6 @@ func NewUtilitiesHandler(db *gorm.DB) Utility {
 
 func NewNotificationHandler(db *gorm.DB) Notification {
 	return Notification{new(db)}
-}
-
-func NewWorkflowHandler(db *gorm.DB) Workflow {
-	return Workflow{new(db)}
 }
 
 func NewExpertHandler(db *gorm.DB) Expert {

@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -103,14 +104,14 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 
 	var workflow *models.Workflow
 	workflow, err = w.DB.GetWorkflowByID(uint64(idInt))
-	if err != nil && err != gorm.ErrRecordNotFound {
+	if err != nil && err == gorm.ErrRecordNotFound {
 		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Record not found"})
+		c.JSON(http.StatusOK, models.Response{Error: "Record not found"})
 		return
 	}
 	if err != nil {
 		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Here Internal Server Error"})
 		return
 	}
 
@@ -313,8 +314,8 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 
 	// Delete the workflow record itself
 	result = w.DB.DeleteWorkflow(workflow)
-	if result.Error != nil {
-		logger.Error(result.Error)
+	if result != nil {
+		logger.Error(result)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to delete workflow"})
 		return
 	}
@@ -385,7 +386,7 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 		logger.Error(result)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Request already exists"})
 		return
-	}else if result.Error != nil {
+	}else if result != nil {
 		logger.Error(result)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
@@ -498,9 +499,13 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	// Send the request to the orchestrator
 	payload := OrchestratorRequest{ID: activeWorkflow.ID}
 
-	_, err = w.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, resetEndpoint), payload)
+	body, err := w.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, resetEndpoint), payload)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+		if strings.Contains(body, "deadline") {
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid deadline specified"})
+		} else {
+			c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+		}
 		return
 	}
 	c.JSON(http.StatusOK, models.Response{Data: "Database updated and request to Reset workflow sent"})
@@ -535,7 +540,13 @@ func (w Workflow) MakeRequestToOrchestrator(endpoint string, payload Orchestrato
 	}
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("status code error: ", resp.StatusCode)
-		return "", fmt.Errorf("internal server error")
+		rsponseBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Error("read body error: ", err)
+			return "", fmt.Errorf("internal server error")
+		}
+
+		return string(rsponseBody), fmt.Errorf("internal server error")
 	}
 
 	// Read the response body

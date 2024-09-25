@@ -260,7 +260,7 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 		// Remove existing tags
 		err = w.DB.DeleteTagsByWorkflowID(existingWorkflow.ID)
 		if err != nil {
-		fmt.Println("here")
+			fmt.Println("here")
 
 			logger.Error(err)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
@@ -328,9 +328,7 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Workflow and associated tags deleted"})
 }
 
-type OrchestratorRequest struct {
-	ID int64 `json:"id"`
-}
+
 
 func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
@@ -424,7 +422,7 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	// Send the request to the orchestrator
 	payload := OrchestratorRequest{ID: activeWorkflow.ID}
 
-	_, err = w.WorkflowOrchestrator.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, startEndpoint), payload)
+	_, err = w.OrchestratorEntity.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, startEndpoint), payload)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		//delete the active workflow from table
@@ -502,7 +500,7 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	// Send the request to the orchestrator
 	payload := OrchestratorRequest{ID: activeWorkflow.ID}
 
-	body, err := w.WorkflowOrchestrator.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, resetEndpoint), payload)
+	body, err := w.OrchestratorEntity.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, resetEndpoint), payload)
 	if err != nil {
 		if strings.Contains(body, "deadline") {
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid deadline specified"})
@@ -513,5 +511,3 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, models.Response{Data: "Database updated and request to Reset workflow sent"})
 }
-
-

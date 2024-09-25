@@ -26,8 +26,7 @@ type OrchestratorMock struct {
 	Error      error
 	ReturnString string
 }
-
-func (o *OrchestratorMock) MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error) {
+func (o *OrchestratorMock) MakeRequestToOrchestrator(endpoint string, payload workflow.OrchestratorRequest) (string, error) {
 	if o.throwError {
 		return "", o.Error
 	}
@@ -218,6 +217,7 @@ type WorkflowTestSuite struct {
 	mockJwtModel    *mockJwtModel
 	mockEmailModel  *mockEmailModel
 	mockAuditLogger *mockAuditLogger
+	mockOrchestrator *OrchestratorMock
 	router          *gin.Engine
 }
 
@@ -226,6 +226,7 @@ func (suite *WorkflowTestSuite) SetupTest() {
 	suite.mockJwtModel = &mockJwtModel{}
 	suite.mockEmailModel = &mockEmailModel{}
 	suite.mockAuditLogger = &mockAuditLogger{}
+	suite.mockOrchestrator = &OrchestratorMock{}
 
 	handler := workflow.Workflow{
 		DB:                       suite.mockDB,
@@ -233,6 +234,7 @@ func (suite *WorkflowTestSuite) SetupTest() {
 		Jwt:                      suite.mockJwtModel,
 		Emailer:                  suite.mockEmailModel,
 		DisputeProceedingsLogger: suite.mockAuditLogger,
+		OrchestratorEntity: suite.mockOrchestrator,
 	}
 
 	gin.SetMode("release")

@@ -41,7 +41,7 @@ type Workflow struct {
 	Emailer                  notifications.EmailSystem
 	Jwt                      middleware.Jwt
 	DisputeProceedingsLogger auditLogger.DisputeProceedingsLoggerInterface
-	WorkflowOrchestrator     WorkflowOrchestrator
+	OrchestratorEntity       WorkflowOrchestrator
 }
 
 type workflowModelReal struct {
@@ -56,7 +56,7 @@ func NewWorkflowHandler(db *gorm.DB, envReader env.Env) Workflow {
 		EnvReader:                env.NewEnvLoader(),
 		Jwt:                      middleware.NewJwtMiddleware(),
 		DisputeProceedingsLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader),
-		WorkflowOrchestrator:     OrchestratorReal{},
+		OrchestratorEntity:       OrchestratorReal{},
 	}
 }
 
@@ -215,11 +215,12 @@ func (wfmr *workflowModelReal) UpdateActiveWorkflow(workflow *models.ActiveWorkf
 	return nil
 }
 
-
 //Orchestrator for the workflow
-
+type OrchestratorRequest struct {
+	ID int64 `json:"id"`
+}
 type WorkflowOrchestrator interface {
- MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
+	MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
 }
 
 type OrchestratorReal struct {
@@ -276,6 +277,3 @@ func (w OrchestratorReal) MakeRequestToOrchestrator(endpoint string, payload Orc
 
 	return responseBody, nil
 }
-
-
-

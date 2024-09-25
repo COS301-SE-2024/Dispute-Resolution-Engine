@@ -24,9 +24,7 @@ import { TicketFilter, TicketListResponse, TicketSummary } from "@/lib/types/tic
 import { getTicketSummaries } from "@/lib/api/tickets";
 import { cn } from "@/lib/utils";
 import { useErrorToast } from "@/lib/hooks/use-query-toast";
-import { TICKET_LIST_KEY } from "@/lib/constants";
-
-const PAGE_SIZE = 3;
+import { PAGE_SIZE, TICKET_LIST_KEY } from "@/lib/constants";
 
 export interface TicketFilters {
   search?: string;

@@ -75,7 +75,7 @@ function StatusFilter({
       <SelectContent>
         <SelectGroup>
           <SelectLabel>Ticket status</SelectLabel>
-          <SelectItem value={"none"}>No status</SelectItem>
+          <SelectItem value={"none"}>No filter</SelectItem>
           {TICKET_STATUS.map((status) => (
             <SelectItem key={status} value={status}>
               {status}

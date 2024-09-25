@@ -4,7 +4,10 @@ import (
 	"api/env"
 	"api/handlers/workflow"
 	"api/models"
+	"encoding/json"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -227,6 +230,59 @@ func (suite *WorkflowTestSuite) SetupTest() {
 
 func TestWorkflowTestSuite(t *testing.T) {
 	suite.Run(t, new(WorkflowTestSuite))
+}
+func (suite *WorkflowTestSuite) TestGetWorkflows_Success() {
+	// Arrange
+	suite.mockDB.throwError = false
+	suite.mockDB.ReturnWorkflowArray = []models.Workflow{
+		{ID: 1, Name: "Workflow 1"},
+		{ID: 2, Name: "Workflow 2"},
+	}
+	suite.mockDB.ReturnTagArray = []models.Tag{
+		{ID: 1, TagName: "Tag 1"},
+		{ID: 2, TagName: "Tag 2"},
+	}
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("GET", "/?limit=10&offset=0", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	// Act
+	w.GetWorkflows(c)
+
+	// Assert
+	suite.Equal(http.StatusOK, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.NotNil(response.Data)
+}
+
+func (suite *WorkflowTestSuite) TestGetWorkflows_InvalidLimit() {
+	// Arrange
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	req, _ := http.NewRequest("GET", "/?limit=invalid&offset=0", nil)
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	// Act
+	w.GetWorkflows(c)
+
+	// Assert
+	suite.Equal(http.StatusBadRequest, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Invalid limit parameter", response.Error)
 }
 
 

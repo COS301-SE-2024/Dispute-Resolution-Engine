@@ -352,7 +352,7 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 			logger.Warnf("Dispute with ID %d not found", newActiveWorkflow.DisputeID)
 			c.JSON(http.StatusNotFound, models.Response{Error: "Dispute not found"})
 		} else {
-			logger.Error(result.Error)
+			logger.Error(result)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		}
 		return
@@ -365,7 +365,7 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 			logger.Warnf("Workflow with ID %d not found", newActiveWorkflow.Workflow)
 			c.JSON(http.StatusNotFound, models.Response{Error: "Workflow not found"})
 		} else {
-			logger.Error(result.Error)
+			logger.Error(result)
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		}
 		return

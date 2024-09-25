@@ -73,7 +73,10 @@ func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, off
 	}
 
 	validSortAttrs := map[string]bool{
-		"status": true,
+		"date_created": true,
+		"subject":      true,
+		"user":         true,
+		"status":       true,
 	}
 
 	if _, valid := validSortAttrs[sortAttr.Attr]; !valid {

@@ -28,7 +28,34 @@ func (h Ticket) getTicketList(c *gin.Context) {
 	userRole := claims.Role
 
 	if userRole == "admin" && c.Request.Method == "POST" {
-		var reqAdminTickets models.Tick
-	}
+		var reqAdminTickets models.TicketsRequest
+		if err := c.BindJSON(&reqAdminTickets); err != nil {
+			logger.WithError(err).Error("Invalid request")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
+			return
+		}
+		var searchTerm *string
+		var limit *int
+		var offset *int
+		var sort *models.Sort
+		var filters *models.Filter
+		if reqAdminTickets.Search != nil {
+			searchTerm = reqAdminTickets.Search
+		}
+		if reqAdminTickets.Limit != nil {
+			limit = reqAdminTickets.Limit
+		}
+		if reqAdminTickets.Offset != nil {
+			offset = reqAdminTickets.Offset
+		}
+		if reqAdminTickets.Sort != nil {
+			sort = reqAdminTickets.Sort
+		}
+		if reqAdminTickets.Filter != nil {
+			filters = reqAdminTickets.Filter
+		}
 
+		tickets, count
+
+	}
 }

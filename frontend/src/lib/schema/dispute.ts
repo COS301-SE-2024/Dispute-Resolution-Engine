@@ -25,7 +25,9 @@ export type ExpertRejectError = z.ZodFormattedError<ExpertRejectData>;
 
 export const disputeDecisionSchema = z.object({
   dispute_id: z.string(),
-  decision: z.enum(DISPUTE_DECISION),
+  decision: z.enum(DISPUTE_DECISION, {
+    message: "Invalid dispute decision",
+  }),
 
   // Dummy variable to make RHF happy
   writeup: z.any(),

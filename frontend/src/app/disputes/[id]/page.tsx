@@ -70,7 +70,7 @@ function DisputeHeader({
         {/*TODO: Figure out the conditions for displaying expert rejection */}
         {role == "expert" && <ExpertRejectForm expertId={user} disputeId={id} />}
         {role == "expert" && (
-          <DisputeDecisionForm disputeId={id}>
+          <DisputeDecisionForm disputeId={id} asChild>
             <Button>Render decision</Button>
           </DisputeDecisionForm>
         )}

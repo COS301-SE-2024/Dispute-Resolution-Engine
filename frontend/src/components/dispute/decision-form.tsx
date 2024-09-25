@@ -7,13 +7,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "../ui/button";
 import { Form, FormMessage, FormField, FormSubmit } from "../ui/form-server";
 import { DisputeDecisionData } from "@/lib/schema/dispute";
-import { rejectExpert } from "@/lib/actions/dispute";
+import { rejectExpert, uploadDecision } from "@/lib/actions/dispute";
 import { ReactNode, useId } from "react";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { Input } from "../ui/input";
+import { SelectProps } from "@radix-ui/react-select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+
+import { DISPUTE_DECISION } from "@/lib/interfaces/dispute";
 
 const DecisionForm = Form<DisputeDecisionData>;
 const DecisionMessage = FormMessage<DisputeDecisionData>;
@@ -40,10 +50,10 @@ export default function DisputeDecisionForm({
           <DialogTitle>Render a decision for a dispute</DialogTitle>
           <DialogDescription>This will close a dispute, based on your decision</DialogDescription>
         </DialogHeader>
-        <DecisionForm action={rejectExpert} className="space-y-2 w-full">
+        <DecisionForm action={uploadDecision} className="space-y-2 w-full">
           <input type="hidden" name="dispute_id" value={disputeId} />
           <DecisionField id={decisionId} name="decision" label="Decision" className="col-span-2">
-            <p>To be inserted</p>
+            <DecisionSelect id={decisionId} name="decision" />
           </DecisionField>
           <DecisionField id={writeupId} name="writeup" label="Writeup" className="col-span-2">
             <Input type="file" id={writeupId} name="writeup" />
@@ -55,5 +65,29 @@ export default function DisputeDecisionForm({
         </DecisionForm>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function DecisionSelect({
+  id,
+  ...props
+}: SelectProps & {
+  id: string;
+}) {
+  return (
+    <Select {...props}>
+      <SelectTrigger>
+        <SelectValue id={id} placeholder="Select a decision" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          {DISPUTE_DECISION.map((gen) => (
+            <SelectItem key={gen} value={gen}>
+              {gen}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 }

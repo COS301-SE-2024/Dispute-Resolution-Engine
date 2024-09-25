@@ -2,6 +2,7 @@
 
 import {
   DisputeCreateData,
+  DisputeDecisionError,
   ExpertRejectData,
   ExpertRejectError,
   disputeCreateSchema,
@@ -123,17 +124,31 @@ export async function uploadEvidence(
   return res;
 }
 
-export async function uploadDecision(_initial: unknown, data: FormData): Promise<Result<null>> {
+export async function uploadDecision(
+  _initial: unknown,
+  data: FormData
+): Promise<Result<string, DisputeDecisionError>> {
   const { data: parsed, error: parseErr } = disputeDecisionSchema.safeParse(
     Object.fromEntries(data)
   );
   if (parseErr) {
     return {
-      error: parseErr.issues[0].message,
+      error: parseErr.format(),
+    };
+  }
+
+  if (!(data.get("writeup") instanceof File)) {
+    return {
+      error: {
+        _errors: [],
+        writeup: {
+          _errors: ["Missing writeup"],
+        },
+      },
     };
   }
 
   return {
-    data: null,
+    data: "",
   };
 }

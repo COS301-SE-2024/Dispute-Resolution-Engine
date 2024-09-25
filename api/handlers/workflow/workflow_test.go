@@ -304,6 +304,63 @@ func TestWorkflowTestSuite(t *testing.T) {
 	}
 
 
+	func (suite *WorkflowTestSuite) TestUpdateWorkflow_NotFound() {
+		// Arrange
+		suite.mockDB.throwError = true
+		suite.mockDB.Error = gorm.ErrRecordNotFound
+
+		w := workflow.Workflow{
+			DB: suite.mockDB,
+		}
+
+		updateData := models.UpdateWorkflow{
+			Name: new(string),
+		}
+		*updateData.Name = "Updated Workflow"
+
+		body, _ := json.Marshal(updateData)
+		req, _ := http.NewRequest("PUT", "/1", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		wr := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(wr)
+		c.Request = req
+		c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+		// Act
+		w.UpdateWorkflow(c)
+
+		// Assert
+		suite.Equal(http.StatusNotFound, wr.Code)
+		var response models.Response
+		err := json.Unmarshal(wr.Body.Bytes(), &response)
+		suite.NoError(err)
+		suite.Equal("Workflow not found", response.Error)
+	}
+
+	func (suite *WorkflowTestSuite) TestUpdateWorkflow_InvalidPayload() {
+		// Arrange
+		w := workflow.Workflow{
+			DB: suite.mockDB,
+		}
+
+		req, _ := http.NewRequest("PUT", "/1", bytes.NewBuffer([]byte("invalid payload")))
+		req.Header.Set("Content-Type", "application/json")
+		wr := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(wr)
+		c.Request = req
+		c.Params = gin.Params{gin.Param{Key: "id", Value: "1"}}
+
+		// Act
+		w.UpdateWorkflow(c)
+
+		// Assert
+		suite.Equal(http.StatusBadRequest, wr.Code)
+		var response models.Response
+		err := json.Unmarshal(wr.Body.Bytes(), &response)
+		suite.NoError(err)
+		suite.Equal("Invalid request payload", response.Error)
+	}
+
 
 
 func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_Success() {

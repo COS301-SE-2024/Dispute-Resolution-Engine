@@ -10,6 +10,8 @@ import ExpertRejectForm from "@/components/dispute/expert-reject-form";
 import { getAuthToken } from "@/lib/util/jwt";
 
 import { jwtDecode } from "jwt-decode";
+import DisputeDecisionForm from "@/components/dispute/decision-form";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   params: { id: string };
@@ -67,6 +69,11 @@ function DisputeHeader({
         <p className="mb-4">Started: {startDate}</p>
         {/*TODO: Figure out the conditions for displaying expert rejection */}
         {role == "expert" && <ExpertRejectForm expertId={user} disputeId={id} />}
+        {role == "expert" && (
+          <DisputeDecisionForm disputeId={id}>
+            <Button>Render decision</Button>
+          </DisputeDecisionForm>
+        )}
       </div>
 
       <dl className="grid grid-cols-2 gap-2">

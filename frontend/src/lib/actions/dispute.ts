@@ -5,6 +5,7 @@ import {
   ExpertRejectData,
   ExpertRejectError,
   disputeCreateSchema,
+  disputeDecisionSchema,
   expertRejectSchema,
 } from "../schema/dispute";
 import { Result } from "../types";
@@ -45,7 +46,7 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
         Authorization: `Bearer ${getAuthToken()}`,
       },
       body: formData,
-    },
+    }
   );
   if (res.error) {
     return {
@@ -61,7 +62,7 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
 
 export async function rejectExpert(
   _initial: unknown,
-  data: FormData,
+  data: FormData
 ): Promise<Result<string, ExpertRejectError>> {
   const { data: parsed, error: parseErr } = expertRejectSchema.safeParse(Object.fromEntries(data));
   if (parseErr) {
@@ -82,7 +83,7 @@ export async function rejectExpert(
         expert_id: parseInt(parsed.expert_id),
         reason: parsed.reason,
       }),
-    },
+    }
   );
 
   if (!res.error) {
@@ -93,7 +94,7 @@ export async function rejectExpert(
 
 export async function uploadEvidence(
   _initial: unknown,
-  data: FormData,
+  data: FormData
 ): Promise<Result<DisputeEvidenceUploadResponse>> {
   const disputeId = data.get("dispute_id");
   const formData = new FormData();
@@ -120,4 +121,19 @@ export async function uploadEvidence(
   }
 
   return res;
+}
+
+export async function uploadDecision(_initial: unknown, data: FormData): Promise<Result<null>> {
+  const { data: parsed, error: parseErr } = disputeDecisionSchema.safeParse(
+    Object.fromEntries(data)
+  );
+  if (parseErr) {
+    return {
+      error: parseErr.issues[0].message,
+    };
+  }
+
+  return {
+    data: null,
+  };
 }

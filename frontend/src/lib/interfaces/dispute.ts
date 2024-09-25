@@ -1,10 +1,22 @@
 export type Role = "Complainant" | "Respondent";
 
+export const DISPUTE_STATUS = [
+  "Awaiting respondent",
+  "Active",
+  "Review",
+  "Settled",
+  "Refused",
+] as const;
+export type DisputeStatus = (typeof DISPUTE_STATUS)[number];
+
+export const DISPUTE_DECISION = ["Settled", "Refused"] as const;
+export type DisputeDecision = (typeof DISPUTE_DECISION)[number];
+
 export type DisputeSummary = {
   id: string;
   title: string;
   description: string;
-  status: string;
+  status: DisputeStatus;
   role: Role;
 };
 

@@ -2,7 +2,7 @@
 
 import PageHeader from "@/components/admin/page-header";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { TicketsPager, TicketTable } from "./table";
+import { TicketProvider, TicketsPager, TicketTable } from "./table";
 import { z } from "zod";
 import TicketDetails from "./details";
 import { Ticket, TicketFilter } from "@/lib/types/tickets";
@@ -19,6 +19,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { FilterIcon } from "lucide-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { createContext } from "vm";
 
 const searchSchema = z.object({
   id: z.string().optional(),
@@ -56,33 +57,35 @@ export default function Tickets({ searchParams }: { searchParams: unknown }) {
   return (
     <QueryClientProvider client={client}>
       {params.id && <TicketDetails details={ticket} />}
-      <div className="flex flex-col">
-        <PageHeader label="Tickets" />
-        <div className="flex items-center px-5 gap-2 pr-2 border-b dark:border-primary-500/30 border-primary-500/20">
-          <SearchBar placeholder="Search tickets..." onValueChange={setSearch} />
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" className="gap-2">
-                <FilterIcon />
-                <span>Filter by</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="grid gap-x-2 gap-y-3 grid-cols-[auto_1fr] items-center">
-              <strong className="col-span-2">Filter</strong>
-            </PopoverContent>
-          </Popover>
+      <TicketProvider value={{ filters: filter, page, search }}>
+        <div className="flex flex-col">
+          <PageHeader label="Tickets" />
+          <div className="flex items-center px-5 gap-2 pr-2 border-b dark:border-primary-500/30 border-primary-500/20">
+            <SearchBar placeholder="Search tickets..." onValueChange={setSearch} />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" className="gap-2">
+                  <FilterIcon />
+                  <span>Filter by</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="grid gap-x-2 gap-y-3 grid-cols-[auto_1fr] items-center">
+                <strong className="col-span-2">Filter</strong>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <main className="overflow-auto p-5 grow">
+            <Card>
+              <CardContent>
+                <TicketTable />
+              </CardContent>
+              <CardFooter>
+                <TicketsPager onValueChange={setPage} />
+              </CardFooter>
+            </Card>
+          </main>
         </div>
-        <main className="overflow-auto p-5 grow">
-          <Card>
-            <CardContent>
-              <TicketTable filters={filter} search={search} page={page} />
-            </CardContent>
-            <CardFooter>
-              <TicketsPager onValueChange={setPage} search={search} filters={filter} page={page} />
-            </CardFooter>
-          </Card>
-        </main>
-      </div>
+      </TicketProvider>
     </QueryClientProvider>
   );
 }

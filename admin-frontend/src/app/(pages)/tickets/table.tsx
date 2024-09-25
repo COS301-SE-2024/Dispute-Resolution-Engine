@@ -14,7 +14,7 @@ import { AdminDisputesResponse, Filter } from "@/lib/types";
 import { TicketStatusBadge } from "@/components/admin/status-badge";
 import { LinkIcon } from "lucide-react";
 import Link from "next/link";
-import { createContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -28,23 +28,25 @@ import { useToast } from "@/lib/hooks/use-toast";
 
 const PAGE_SIZE = 10;
 
-export function TicketTable({
-  filters,
-  page = 0,
-  search,
-}: {
-  filters: TicketFilter[];
-  page?: number;
+export interface TicketFilters {
   search?: string;
-}) {
+  page: number;
+  filters: TicketFilter[];
+}
+
+const TicketContext = createContext<TicketFilters>({ filters: [], page: 0 });
+export const TicketProvider = TicketContext.Provider;
+
+export function TicketTable() {
+  const filters = useContext(TicketContext);
   const { data, error, isPending } = useQuery({
-    queryKey: ["ticketTable", filters, page, search],
+    queryKey: ["ticketTable", filters],
     queryFn: () =>
       getTicketSummaries({
-        search: search,
-        filter: filters,
+        search: filters.search,
+        filter: filters.filters,
         limit: PAGE_SIZE,
-        offset: PAGE_SIZE * page,
+        offset: PAGE_SIZE * filters.page,
       }),
   });
 
@@ -98,25 +100,21 @@ function TicketRow(props: TicketSummary) {
 
 export function TicketsPager({
   onValueChange = () => {},
-  filters,
-  page = 0,
-  search,
 }: {
   onValueChange?: (page: number) => void;
-  filters?: TicketFilter[];
-  page?: number;
-  search?: string;
 }) {
+  const filters = useContext(TicketContext);
   const query = useQuery<TicketListResponse>({
-    queryKey: ["ticketsTable", filters, page, search],
+    queryKey: ["ticketsTable", filters],
   });
 
-  const [current, setCurrent] = useState(page);
+  const [current, setCurrent] = useState(filters.page);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    setCurrent(page);
-  }, [page]);
+    setCurrent(filters.page);
+  }, [filters.page]);
+
   useEffect(() => {
     if (!query.data) {
       setTotal(0);

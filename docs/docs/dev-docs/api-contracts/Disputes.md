@@ -25,14 +25,16 @@ type Expert = {
   role: string;
 };
 ```
+
 # Utility Functions
+
 - **Endpoint:** `GET /utils/dispute_statuses`
 - **Headers:**
   - None expected
 - Will return a list of all possible states a dispute can be in:
 
 ```ts
-  type DisputeStatusesResponse = string[];
+type DisputeStatusesResponse = string[];
 ```
 
 # Dispute Summaries
@@ -88,9 +90,9 @@ type DisputeCreateRequest = {
 The response will return the ID of the newly-created dispute:
 
 ```ts
-type DisputeCreateResponse  = {
+type DisputeCreateResponse = {
   id: number;
-}
+};
 ```
 
 # Dispute Evidence upload
@@ -170,3 +172,19 @@ interface ExpertRejectRequest {
   accepted: boolean;
 }
 ```
+
+# Dispute decision
+
+- **Endpoint:** `POST /disputes/{id}/decision`
+- **Headers:**
+  - `Authorization: Bearer <JWT>`
+- **Note:** The endpoint uses `multipart/form-data` instead of JSON, so the interface below serves only as a guideline
+
+```ts
+interface DisputeDecisionRequest {
+  decision: DisputeDecision;
+  writeup: File;
+}
+```
+
+Respond with an HTTP code 204 (no content).

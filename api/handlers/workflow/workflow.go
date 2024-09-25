@@ -344,10 +344,10 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	}
 
 	// Find the dispute
-	var dispute models.Dispute
-	result := w.DB.First(&dispute, newActiveWorkflow.DisputeID)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
+	disputeID := uint64(*(newActiveWorkflow).DisputeID)
+	dispute, result := w.DB.FindDipsuteByID(disputeID)
+	if result != nil {
+		if result == gorm.ErrRecordNotFound {
 			logger.Warnf("Dispute with ID %d not found", newActiveWorkflow.DisputeID)
 			c.JSON(http.StatusNotFound, models.Response{Error: "Dispute not found"})
 		} else {
@@ -358,10 +358,9 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	}
 
 	// Find the workflow
-	var workflow models.Workflow
-	result = w.DB.First(&workflow, newActiveWorkflow.Workflow)
-	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
+	workflow, result := w.DB.GetWorkflowByID(uint64(*newActiveWorkflow.Workflow))
+	if result != nil {
+		if result == gorm.ErrRecordNotFound {
 			logger.Warnf("Workflow with ID %d not found", newActiveWorkflow.Workflow)
 			c.JSON(http.StatusNotFound, models.Response{Error: "Workflow not found"})
 		} else {
@@ -381,13 +380,13 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 		DateSubmitted: timeNow,
 	}
 
-	result = w.DB.Create(&activeWorkflow)
-	if result.Error != nil && result.Error != gorm.ErrDuplicatedKey {
-		logger.Error(result.Error)
+	result = w.DB.CreateActiveWorkflow(&activeWorkflow)
+	if result != nil && result != gorm.ErrDuplicatedKey {
+		logger.Error(result)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Request already exists"})
 		return
 	}else if result.Error != nil {
-		logger.Error(result.Error)
+		logger.Error(result)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}
@@ -423,7 +422,7 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
 		//delete the active workflow from table
-		w.DB.Delete(&activeWorkflow)
+		w.DB.DeleteActiveWorkflow(&activeWorkflow)
 		return
 	}
 

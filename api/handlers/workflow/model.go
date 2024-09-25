@@ -13,14 +13,17 @@ type WorkflowDBModel interface {
 	GetWorkflowsWithLimitOffset(limit, offset *int) ([]models.Workflow, error)
 	GetWorkflowByID(id uint64) (*models.Workflow, error)
 	QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error)
+	FindDipsuteByID(id uint64) (*models.Dispute, error)
 
 	CreateWorkflow(workflow *models.Workflow) error
 	CreateWokrflowTag(tag *models.WorkflowTags) error
+	CreateActiveWorkflow(workflow *models.ActiveWorkflows) error
 
 	UpdateWorkflow(workflow *models.Workflow) error
 
 	DeleteTagsByWorkflowID(workflowID uint64) error
 	DeleteWorkflow(wf *models.Workflow) error
+	DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error
 }
 
 type Workflow struct {
@@ -87,6 +90,14 @@ func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.Workflow, err
 	return &workflow, result.Error
 }
 
+func (wfmr *workflowModelReal) FindDipsuteByID(id uint64) (*models.Dispute, error) {
+	var dispute models.Dispute
+
+	// Create a query object
+	results := wfmr.DB.First(&dispute, id)
+	return &dispute, results.Error
+}
+
 func (wfmr *workflowModelReal) QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error) {
 	var tags []models.Tag
 
@@ -150,6 +161,25 @@ func (wfmr *workflowModelReal) DeleteTagsByWorkflowID(workflowID uint64) error {
 
 func (wfmr *workflowModelReal) DeleteWorkflow(wf *models.Workflow) error {
 	result := wfmr.DB.Delete(wf)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (wfmr *workflowModelReal) CreateActiveWorkflow(workflow *models.ActiveWorkflows) error {
+	result := wfmr.DB.Create(workflow)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (wfmr *workflowModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {
+	result := wfmr.DB.Delete(workflow)
 	if result.Error != nil {
 		return result.Error
 	}

@@ -210,8 +210,9 @@ type Ticket struct {
 
 type TicketMessages struct {
 	ID        int64     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
-	TicketID  int64     `gorm:"not null;column:ticket_id" json:"ticket_id"`
 	UserID    int64     `gorm:"not null;column:user_id" json:"user_id"`
 	CreatedAt time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
 	Content   string    `gorm:"type:text;not null;column:content" json:"content"`
+	FirstName string    `gorm:"type:varchar(50);column:first_name" json:"first_name"`
+	Surname   string    `gorm:"type:varchar(50);column:surname" json:"surname"`
 }

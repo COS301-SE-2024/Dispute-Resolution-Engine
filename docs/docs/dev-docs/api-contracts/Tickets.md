@@ -94,6 +94,17 @@ interface TicketListResponse {
 }
 ```
 
+## Ticket List (User)
+- **Endpoint:** `POST /tickets`
+- **Headers**
+  - `Authorization: Bearer <JWT>`
+
+
+```ts
+Request = TicketListRequest;
+Response = TicketListResponse;
+```
+
 ## Ticket Details
 
 - **Endpoint:** `GET /tickets/{id}`

@@ -8,11 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useQuery } from "@tanstack/react-query";
-import { AdminDisputesResponse, Filter } from "@/lib/types";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { TicketStatusBadge } from "@/components/admin/status-badge";
-import { LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { createContext, useContext, useEffect, useState } from "react";
 import {
@@ -22,9 +20,8 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
-import { Ticket, TicketFilter, TicketListResponse, TicketSummary } from "@/lib/types/tickets";
+import { TicketFilter, TicketListResponse, TicketSummary } from "@/lib/types/tickets";
 import { getTicketSummaries } from "@/lib/api/tickets";
-import { useToast } from "@/lib/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useErrorToast } from "@/lib/hooks/use-query-toast";
 
@@ -51,6 +48,7 @@ export function TicketTable() {
         limit: PAGE_SIZE,
         offset: PAGE_SIZE * filters.page,
       }),
+    placeholderData: keepPreviousData,
   });
 
   useErrorToast(error, "Failed to fetch ticket list");

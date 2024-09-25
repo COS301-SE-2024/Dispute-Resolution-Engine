@@ -6,3 +6,5 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const API_URL = process.env.API_URL;
+
+export function graphToWorkflow();

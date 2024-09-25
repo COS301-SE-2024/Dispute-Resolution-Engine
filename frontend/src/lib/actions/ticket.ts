@@ -1,7 +1,9 @@
 "use server";
 
-import { CreateTicketErrors, createTicketSchema } from "../schema/ticket";
+import { CreateTicketData, CreateTicketErrors, createTicketSchema } from "../schema/ticket";
 import { Result } from "../types";
+import { getAuthToken } from "../util/jwt";
+import { API_URL, formFetch } from "../utils";
 
 export async function createTicket(
   _initial: unknown,
@@ -14,25 +16,26 @@ export async function createTicket(
     };
   }
 
-  //   const res = await formFetch<CreateTicketData, string>(
-  //     `${API_URL}/disputes/${parsed.dispute_id}/experts/reject`,
-  //     {
-  //       method: "POST",
-  //       headers: {
-  //         // Sub this for the proper getAuthToken thing
-  //         Authorization: `Bearer ${getAuthToken()}`,
-  //       },
-  //       body: JSON.stringify({
-  //         expert_id: parseInt(parsed.expert_id),
-  //         reason: parsed.reason,
-  //       }),
-  //     }
-  //   );
-
-  //   if (!res.error) {
-  //     revalidatePath(`/disputes/${parsed.dispute_id}`);
-  //   }
+  const res = await formFetch<CreateTicketData, string>(
+    `${API_URL}/disputes/${parsed.dispute}/tickets`,
+    {
+      method: "POST",
+      headers: {
+        // Sub this for the proper getAuthToken thing
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: JSON.stringify({
+        subject: parsed.subject,
+        body: parsed.body,
+      }),
+    }
+  );
+  if (res.error) {
+    return {
+      error: res.error,
+    };
+  }
   return {
-    data: "cool",
+    data: "Ticket created",
   };
 }

@@ -19,6 +19,24 @@ import (
 
 //------------------------------------------------------------------------- Mocks
 
+//Orchestrator mock
+
+type OrchestratorMock struct {
+	throwError bool
+	Error      error
+	ReturnString string
+}
+
+func (o *OrchestratorMock) MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error) {
+	if o.throwError {
+		return "", o.Error
+	}
+	return o.ReturnString, nil
+}
+
+
+
+
 //DB Model
 
 type mockDB struct {

@@ -1,6 +1,12 @@
 "use server";
 
-import { TicketListRequest, TicketStatus, type Ticket, type TicketSummary } from "../types/tickets";
+import {
+  TicketListRequest,
+  TicketMessage,
+  TicketStatus,
+  type Ticket,
+  type TicketSummary,
+} from "../types/tickets";
 
 export async function getTicketSummaries(req: TicketListRequest): Promise<{
   total: number;
@@ -42,6 +48,23 @@ export async function changeTicketStatus(id: string, status: TicketStatus): Prom
       return ticket;
     }
   });
+}
+export async function addTicketMessage(id: string, message: string): Promise<TicketMessage> {
+  return {
+    id: "",
+
+    // The user that submitted the message
+    user: {
+      id: "",
+      full_name: "The manager",
+    },
+
+    // The timestamp when the user submitted the ticket
+    date_sent: "today",
+
+    // The message in the ticket
+    message: message,
+  };
 }
 
 let MOCK_TICKETS: Ticket[] = [

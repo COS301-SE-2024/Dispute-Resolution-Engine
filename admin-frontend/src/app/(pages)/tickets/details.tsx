@@ -1,15 +1,25 @@
 "use client";
 
 import Sidebar from "@/components/admin/sidebar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { TicketStatusBadge } from "@/components/admin/status-badge";
-import { Ticket, TicketStatus } from "@/lib/types/tickets";
+import { Ticket, TicketMessage, TicketStatus } from "@/lib/types/tickets";
 import SidebarHeader from "@/components/sidebar/header";
 import { TicketStatusDropdown } from "@/components/admin/status-dropdown";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { changeTicketStatus, getTicketDetails } from "@/lib/api/tickets";
+import { addTicketMessage, changeTicketStatus, getTicketDetails } from "@/lib/api/tickets";
 import { useErrorToast } from "@/lib/hooks/use-query-toast";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { FormEvent } from "react";
 
 const DETAILS_KEY = "ticketDetails";
 
@@ -42,6 +52,30 @@ export default function TicketDetails({ ticketId }: { ticketId: string }) {
     },
   });
 
+  const message = useMutation({
+    mutationFn: (message: string) => addTicketMessage(ticketId, message),
+    onSuccess: (data, variables) => {
+      client.setQueryData([DETAILS_KEY, ticketId], (old: Ticket) => ({
+        ...old,
+        messages: [...old.messages, data],
+      }));
+    },
+    onError: (error) => {
+      toast({
+        variant: "error",
+        title: "Failed to send message",
+        description: error?.message,
+      });
+    },
+  });
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formdata = new FormData(e.currentTarget!);
+    const data = formdata.get("message")! as string;
+    message.mutate(data);
+  }
+
   return (
     <Sidebar open className="p-6 md:pl-8 rounded-l-2xl flex flex-col">
       {data && (
@@ -59,17 +93,37 @@ export default function TicketDetails({ ticketId }: { ticketId: string }) {
               <CardContent>{data.body}</CardContent>
             </Card>
             {data.messages.map((msg) => (
-              <Card key={msg.id}>
-                <CardHeader>
-                  <CardTitle>{msg.user.full_name}</CardTitle>
-                  <CardDescription>Sent at {msg.date_sent}</CardDescription>
-                </CardHeader>
-                <CardContent>{msg.message}</CardContent>
-              </Card>
+              <TicketMessageCard key={msg.id} {...msg} />
             ))}
+            <Card asChild>
+              <form onSubmit={onSubmit}>
+                <CardHeader>
+                  <CardTitle>Send a message</CardTitle>
+                  <CardDescription>Enter a message to reply to the ticket</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Textarea name="message" />
+                </CardContent>
+                <CardFooter>
+                  <Button>Send</Button>
+                </CardFooter>
+              </form>
+            </Card>
           </div>
         </>
       )}
     </Sidebar>
+  );
+}
+
+function TicketMessageCard(msg: TicketMessage) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{msg.user.full_name}</CardTitle>
+        <CardDescription>Sent at {msg.date_sent}</CardDescription>
+      </CardHeader>
+      <CardContent>{msg.message}</CardContent>
+    </Card>
   );
 }

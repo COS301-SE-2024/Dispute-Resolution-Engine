@@ -12,7 +12,7 @@ import (
 )
 
 type TicketModel interface {
-	getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *models.Filter) ([]models.TicketSummaryResponse, int64, error)
+	getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
 }
 
 type Ticket struct {
@@ -34,7 +34,7 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 	}
 }
 
-func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *models.Filter) ([]models.TicketSummaryResponse, int64, error) {
+func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	logger.Info("Ticket func start")
 	tickets := []models.TicketSummaryResponse{}
@@ -43,8 +43,8 @@ func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, off
 	var countParams []interface{}
 	var queryParams []interface{}
 
-	queryString.WriteString("SELECT t.id, t.created_at, t.subject, t.status, u.id AS user_id, u.first_name, u.surname FROM tickets t JOIN users u ON t.created_by = u.id")
-	countString.WriteString("SELECT COUNT(*) FROM tickets")
+	queryString.WriteString("SELECT t.id , t.created_at, t.subject, t.status AS status, u.id AS user_id, u.first_name, u.surname FROM tickets t JOIN users u ON t.created_by = u.id")
+	countString.WriteString("SELECT COUNT(*) FROM tickets t JOIN users u ON t.created_by = u.id")
 	if searchTerm != nil {
 		queryString.WriteString(" WHERE t.subject LIKE ?")
 		countString.WriteString(" WHERE t.subject LIKE ?")
@@ -52,7 +52,7 @@ func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, off
 		countParams = append(countParams, "%"+*searchTerm+"%")
 	}
 
-	if filters != nil {
+	if filters != nil && len(*filters) > 0 {
 		if searchTerm != nil {
 			queryString.WriteString(" AND ")
 			countString.WriteString(" AND ")
@@ -60,7 +60,16 @@ func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, off
 			queryString.WriteString(" WHERE ")
 			countString.WriteString(" WHERE ")
 		}
-		// Add filter conditions here
+		for i, filter := range *filters {
+			queryString.WriteString("t." + filter.Attr + " = ?")
+			countString.WriteString("t." + filter.Attr + " = ?")
+			queryParams = append(queryParams, filter.Value)
+			countParams = append(countParams, filter.Value)
+			if i < len(*filters)-1 {
+				queryString.WriteString(" AND ")
+				countString.WriteString(" AND ")
+			}
+		}
 	}
 
 	validSortAttrs := map[string]bool{

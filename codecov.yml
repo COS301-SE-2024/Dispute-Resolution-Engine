@@ -8,3 +8,6 @@ coverage:
       default:
         target: 50%
         threshold: 5%
+ignore:
+  - "api/handlers/dispute/model.go"
+  - "api/handlers/workflow/model.go"

@@ -67,7 +67,7 @@ interface AdminDisputesRequest {
 
 The response will be an array of disputes:
 ```ts
-type AdminDisputesResponse = Array<{
+type AdminDisputes = Array<{
   id: string;
   title: string;
   status: string;
@@ -83,5 +83,11 @@ type AdminDisputesResponse = Array<{
   // Optional because dispute may still be active (i.e. no resolved date)
   date_resolved?: string;
 }>;
+
+type AdminDisputesResponse = {
+  data: AdminDisputes;
+  total?: int;
+}
+
 ```
 

@@ -98,8 +98,8 @@ func (j *JwtMiddleware) GetJWT(userEmail string) (string, error) {
 }
 
 func (j *JwtMiddleware) JWTMiddleware(c *gin.Context) {
-	logger := utilities.NewLogger().LogWithCaller()
-	envLoader := env.NewEnvLoader()
+	logger := j.Logger
+	envLoader := j.EnvLoader
 
 	authorizationHeader := c.GetHeader("Authorization")
 	if authorizationHeader == "" {
@@ -108,14 +108,12 @@ func (j *JwtMiddleware) JWTMiddleware(c *gin.Context) {
 		return
 	}
 
-	// Check if the Authorization header starts with "Bearer "
 	if !strings.HasPrefix(authorizationHeader, "Bearer ") {
 		logger.Error("Invalid Authorization header")
 		c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
 
-	// Extract token from "Bearer <token>"
 	tokenString := strings.TrimPrefix(authorizationHeader, "Bearer ")
 	if tokenString == "" {
 		logger.Error("No token")
@@ -123,19 +121,14 @@ func (j *JwtMiddleware) JWTMiddleware(c *gin.Context) {
 		return
 	}
 
-	// Get JWT secret key
-	var jwtSecretKey []byte
-	{
-		secret, err := envLoader.Get("JWT_SECRET")
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
-		}
-		jwtSecretKey = []byte(secret)
+	jwtSecretKey, err := envLoader.Get("JWT_SECRET")
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
+		return
 	}
 
-	// Parse token
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return jwtSecretKey, nil
+		return []byte(jwtSecretKey), nil
 	})
 	if err != nil {
 		logger.WithError(err).Error("Error parsing token")
@@ -143,9 +136,7 @@ func (j *JwtMiddleware) JWTMiddleware(c *gin.Context) {
 		return
 	}
 
-	// Validate token
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		//ctx := context.WithValue(r.Context(), "user", claims)
 		userEmail := claims.Email
 		jwtFromDB, err := j.GetJWT(userEmail)
 		if err != nil {
@@ -165,6 +156,7 @@ func (j *JwtMiddleware) JWTMiddleware(c *gin.Context) {
 		return
 	}
 }
+
 
 // return claims
 func (j *JwtMiddleware) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {

@@ -6,7 +6,11 @@ import (
 	"api/env"
 	"api/handlers"
 	"api/handlers/dispute"
+
 	"api/handlers/ticket"
+
+	"api/handlers/workflow"
+
 	"api/middleware"
 	"api/redisDB"
 	"api/utilities"
@@ -45,6 +49,12 @@ var requiredEnvVariables = []string{
 	"FRONTEND_BASE_URL",
 	"JWT_SECRET",
 	"OPENAI_KEY",
+
+	// Orchestrator-related variables
+	"ORCH_URL",
+	"ORCH_PORT",
+	"ORCH_RESET",
+	"ORCH_START",
 }
 
 // @title Dispute Resolution Engine - v1
@@ -87,9 +97,13 @@ func main() {
 	userHandler := handlers.NewUserHandler(DB)
 	disputeHandler := dispute.NewHandler(DB, envLoader)
 	archiveHandler := handlers.NewArchiveHandler(DB)
-	expertHandler := handlers.NewExpertHandler(DB)
+	// expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
+
 	ticketHandler := ticket.NewHandler(DB, envLoader)
+
+	workflowHandler := workflow.NewWorkflowHandler(DB, envLoader)
+
 
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -121,8 +135,12 @@ func main() {
 	archiveGroup := router.Group("/archive")
 	handlers.SetupArchiveRoutes(archiveGroup, archiveHandler)
 
-	expertGroup := router.Group("/experts")
-	handlers.SetupExpertRoutes(expertGroup, expertHandler)
+	// expertGroup := router.Group("/experts")
+	// handlers.SetupExpertRoutes(expertGroup, expertHandler)
+
+	workflowGroup := router.Group("/workflows")
+	workflowGroup.Use(jwt.JWTMiddleware)
+	workflow.SetupWorkflowRoutes(workflowGroup,workflowHandler)
 
 	ticketGroup := router.Group("/tickets")
 	ticket.SetupTicketRoutes(ticketGroup, ticketHandler)

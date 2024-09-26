@@ -56,8 +56,6 @@ CREATE TRIGGER update_user_timestamp
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_user_last_update();
-
-
 ------------------------------------------------------------- WORKFLOWS
 CREATE TABLE workflows (
 	id SERIAL PRIMARY KEY NOT NULL,
@@ -70,9 +68,10 @@ CREATE TABLE workflows (
 
 CREATE TABLE active_workflows (
 	id SERIAL PRIMARY KEY NOT NULL,
-    workflow BIGINT REFERENCES workflows(id) NOT NULL,
-    current_state VARCHAR(255) NOT NULL,
-    state_deadline TIMESTAMP,
+	workflow BIGINT REFERENCES workflows(id) NOT NULL,
+	current_state VARCHAR(255),
+	date_submitted TIMESTAMPTZ,  -- Includes timezone information
+	state_deadline TIMESTAMPTZ,  -- Includes timezone information
 	workflow_instance JSONB NOT NULL
 );
 
@@ -130,8 +129,6 @@ CREATE TABLE dispute_experts (
 	PRIMARY KEY (dispute, "user")
 );
 
-
-
 CREATE TYPE exp_obj_status AS ENUM ('Review','Sustained','Overruled');
 
 CREATE TABLE expert_objections (
@@ -186,6 +183,29 @@ CREATE TRIGGER check_valid_objection
     FOR EACH ROW
     EXECUTE FUNCTION check_valid_objection();
 
+
+CREATE VIEW expert_objections_view AS
+SELECT 
+    eo.id AS objection_id,
+    eo.created_at AS objection_created_at,
+    eo.dispute_id,
+    d.title AS dispute_title,
+    eo.expert_id,
+    expert.first_name || ' ' || expert.surname AS expert_full_name,
+    eo.user_id,
+    "user".first_name || ' ' || "user".surname AS user_full_name,
+    eo.reason,
+    eo.status AS objection_status
+FROM 
+    expert_objections eo
+JOIN 
+    disputes d ON eo.dispute_id = d.id
+JOIN 
+    users expert ON eo.expert_id = expert.id
+JOIN 
+    users "user" ON eo.user_id = "user".id;
+
+
 ------------------------------------------------------------- EVENT LOG
 CREATE TYPE event_types AS ENUM (
 	'NOTIFICATION',
@@ -193,7 +213,7 @@ CREATE TYPE event_types AS ENUM (
 	'USER',
 	'EXPERT',
 	'WORKFLOW'
-	);
+);
 
 CREATE TABLE event_log (
 	id SERIAL PRIMARY KEY,
@@ -201,6 +221,7 @@ CREATE TABLE event_log (
 	event_type event_types,
 	event_data JSON
 );
+
 
 ------------------------------------------------------------- TAGS
 CREATE TABLE tags (
@@ -225,7 +246,6 @@ CREATE TABLE workflow_tags (
 	tag_id BIGINT REFERENCES tags(id),
 	PRIMARY KEY (workflow_id, tag_id)
 );
-
 
 ------------------------------------------------------------- TICKETING SYSTEM
 CREATE TYPE ticket_status_enum AS ENUM (
@@ -253,7 +273,15 @@ CREATE TABLE ticket_messages (
     content TEXT NOT NULL                         		-- Body of the comment
 );
 
-
+------------------------------------------------------------- DISPUTE DECISIONS
+CREATE TABLE dispute_decisions (
+    id SERIAL PRIMARY KEY,
+    dispute_id BIGINT REFERENCES disputes(id),  					-- Reference to the dispute
+    expert_id BIGINT REFERENCES users(id),      					-- Expert submitting the decision
+    writeup_file_id BIGINT REFERENCES files(id),                  	-- Reference to the writeup file
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,             	-- Date the writeup was submitted
+    UNIQUE (dispute_id)                                			  	-- One decision per dispute, regardless of who submitted it
+);
 ------------------------------------------------------------- TABLE CONTENTS
 INSERT INTO Countries (country_code, country_name) VALUES
 ('AF', 'Afghanistan'),

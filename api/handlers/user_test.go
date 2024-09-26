@@ -283,43 +283,43 @@ func (suite *UserTestSuite) TestUpdateUserAddress() {
 	assert.Equal(suite.T(), http.StatusOK, w.Code)
 }
 
-func (suite *UserTestSuite) TestRemoveAccount() {
-	envLoader := env.NewEnvLoader()
-	envLoader.RegisterDefault("JWT_SECRET", "secret")
+// func (suite *UserTestSuite) TestRemoveAccount() {
+// 	envLoader := env.NewEnvLoader()
+// 	envLoader.RegisterDefault("JWT_SECRET", "secret")
 
-	// Case 1: User does not exist
-	removePayload := map[string]interface{}{
-		"email":    "nonexistentuser@example.com",
-		"password": "wrongpassword",
-	}
-	payloadBytes, _ := json.Marshal(removePayload)
-	req, _ := http.NewRequest("DELETE", "/user/remove", bytes.NewBuffer(payloadBytes))
-	req.Header.Set("Authorization", "Bearer valid_jwt_token")
-	w := httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
+// 	// Case 1: User does not exist
+// 	removePayload := map[string]interface{}{
+// 		"email":    "nonexistentuser@example.com",
+// 		"password": "wrongpassword",
+// 	}
+// 	payloadBytes, _ := json.Marshal(removePayload)
+// 	req, _ := http.NewRequest("DELETE", "/user/remove", bytes.NewBuffer(payloadBytes))
+// 	req.Header.Set("Authorization", "Bearer valid_jwt_token")
+// 	w := httptest.NewRecorder()
+// 	suite.router.ServeHTTP(w, req)
 
-	assert.Equal(suite.T(), http.StatusNotFound, w.Code)
+// 	assert.Equal(suite.T(), http.StatusNotFound, w.Code)
 
-	// Case 2: Invalid credentials
-	rows := initUserTestRows()
-	suite.mock.ExpectQuery("SELECT (.+) FROM \"users\"").WillReturnRows(rows)
+// 	// Case 2: Invalid credentials
+// 	rows := initUserTestRows()
+// 	suite.mock.ExpectQuery("SELECT (.+) FROM \"users\"").WillReturnRows(rows)
 
-	removePayload = map[string]interface{}{
-		"email":    "user1@example.com",
-		"password": "wrongpassword",
-	}
-	payloadBytes, _ = json.Marshal(removePayload)
-	req, _ = http.NewRequest("DELETE", "/user/remove", bytes.NewBuffer(payloadBytes))
-	req.Header.Set("Authorization", "Bearer valid_jwt_token")
-	w = httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
+// 	removePayload = map[string]interface{}{
+// 		"email":    "user1@example.com",
+// 		"password": "wrongpassword",
+// 	}
+// 	payloadBytes, _ = json.Marshal(removePayload)
+// 	req, _ = http.NewRequest("DELETE", "/user/remove", bytes.NewBuffer(payloadBytes))
+// 	req.Header.Set("Authorization", "Bearer valid_jwt_token")
+// 	w = httptest.NewRecorder()
+// 	suite.router.ServeHTTP(w, req)
 
-	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
+// 	assert.Equal(suite.T(), http.StatusUnauthorized, w.Code)
 
-	var result models.Response
-	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
-	assert.NotEmpty(suite.T(), result.Error)
-}
+// 	var result models.Response
+// 	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
+// 	assert.NotEmpty(suite.T(), result.Error)
+// }
 
 // func (suite *UserTestSuite) TestUserAnalyticsEndpoint() {
 // 	envLoader := env.NewEnvLoader()

@@ -19,7 +19,7 @@ import (
 
 type WorkflowDBModel interface {
 	GetWorkflowRecordByID(id uint64) (*models.Workflow, error)
-	GetWorkflowsWithLimitOffset(limit, offset *int, search *string) ([]models.GetWorkflowResponse, error)
+	GetWorkflowsWithLimitOffset(limit, offset *int, search *string) (int64, []models.GetWorkflowResponse, error)
 	GetWorkflowByID(id uint64) (*models.DetailedWorkflowResponse, error)
 	GetActiveWorkflowByWorkflowID(workflowID uint64) (*models.ActiveWorkflows, error)
 	QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error)
@@ -62,15 +62,18 @@ func NewWorkflowHandler(db *gorm.DB, envReader env.Env) Workflow {
 	}
 }
 
-func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int, search *string) ([]models.GetWorkflowResponse, error) {
+func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int, search *string) (int64, []models.GetWorkflowResponse, error) {
 	var workflows []models.Workflow
+	var total int64
 
 	// Create a query object
 	query := wfmr.DB.Model(&models.Workflow{})
+	countQuery := wfmr.DB.Model(&models.Workflow{})
 
 	// If search is provided, apply it (search by name)
 	if search != nil {
 		query = query.Where("name LIKE ?", "%"+*search+"%")
+		countQuery = countQuery.Where("name LIKE ?", "%"+*search+"%")
 	}
 
 	// If limit is provided, apply it
@@ -88,7 +91,14 @@ func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int, s
 
 	// Handle any errors
 	if result.Error != nil {
-		return nil, result.Error
+		return 0, nil, result.Error
+	}
+
+	resultCount := countQuery.Count(&total)
+
+	// Handle any errors
+	if resultCount.Error != nil {
+		return 0, nil, result.Error
 	}
 
 	response := make([]models.GetWorkflowResponse, len(workflows))
@@ -98,7 +108,7 @@ func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int, s
 		var author models.User
 		result := wfmr.DB.First(&author, workflow.AuthorID)
 		if result.Error != nil {
-			return nil, result.Error
+			return 0, nil, result.Error
 		}
 
 		response[i] = models.GetWorkflowResponse{
@@ -113,7 +123,7 @@ func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int, s
 		}
 
 	}
-	return response, nil
+	return total, response, nil
 }
 
 func (wfmr *workflowModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
@@ -133,7 +143,6 @@ func (wfmr *workflowModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflo
 
 	return &workflow, nil
 }
-
 
 func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.DetailedWorkflowResponse, error) {
 	var workflow models.Workflow

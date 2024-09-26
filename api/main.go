@@ -6,6 +6,7 @@ import (
 	"api/env"
 	"api/handlers"
 	"api/handlers/dispute"
+	"api/handlers/workflow"
 	"api/middleware"
 	"api/redisDB"
 	"api/utilities"
@@ -44,6 +45,12 @@ var requiredEnvVariables = []string{
 	"FRONTEND_BASE_URL",
 	"JWT_SECRET",
 	"OPENAI_KEY",
+
+	// Orchestrator-related variables
+	"ORCH_URL",
+	"ORCH_PORT",
+	"ORCH_RESET",
+	"ORCH_START",
 }
 
 // @title Dispute Resolution Engine - v1
@@ -88,6 +95,7 @@ func main() {
 	archiveHandler := handlers.NewArchiveHandler(DB)
 	// expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
+	workflowHandler := workflow.NewWorkflowHandler(DB, envLoader)
 
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
@@ -121,6 +129,10 @@ func main() {
 
 	// expertGroup := router.Group("/experts")
 	// handlers.SetupExpertRoutes(expertGroup, expertHandler)
+
+	workflowGroup := router.Group("/workflows")
+	workflowGroup.Use(jwt.JWTMiddleware)
+	workflow.SetupWorkflowRoutes(workflowGroup,workflowHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

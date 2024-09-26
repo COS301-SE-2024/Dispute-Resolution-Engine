@@ -18,6 +18,16 @@ interface Workflow extends WorkflowSummary {
   definition: WorkflowDefinition;
 }
 
+interface ActiveWorkflow extends Workflow {
+  current_state: {
+    // The ID of the current state
+    id: string;
+
+    // The deadline of the current state (if any)
+    deadline?: string;
+  };
+}
+
 interface WorkflowDefinition {
   initial: string;
   states: {
@@ -132,3 +142,19 @@ type WorkflowUpdateResponse = Workflow;
 - **Note:** Should only be accessible by an administrator
 
 The endpoint does not accept any body. On success it will return a HTTP 204 (no content) message.
+
+# Active Workflows
+
+## Viewing all active workflows
+
+## Viewing a particular workflow
+
+Displays the full workflow details, along with the current state and timer
+
+```ts
+type ActiveWorkflowResponse = ActiveWorkflow;
+```
+
+## Patching an active workflow
+
+Should be able to adjust the current state and optionally the timer

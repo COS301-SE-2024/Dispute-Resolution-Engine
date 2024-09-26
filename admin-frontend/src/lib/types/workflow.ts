@@ -13,16 +13,6 @@ export interface Workflow extends WorkflowSummary {
   definition: WorkflowDefinition;
 }
 
-export interface ActiveWorkflow extends Workflow {
-  current_state: {
-    // The ID of the current state
-    id: string;
-
-    // The deadline of the current state (if any)
-    deadline?: string;
-  };
-}
-
 export interface WorkflowDefinition {
   initial: string;
   states: {
@@ -49,6 +39,16 @@ export interface Event {
   next_state: string;
 }
 
+export interface ActiveWorkflow extends Workflow {
+  current_state: {
+    // The ID of the current state
+    id: string;
+
+    // The deadline of the current state (if any)
+    deadline?: string;
+  };
+}
+
 export interface WorkflowListRequest {
   // Search term for the title of disputes
   search?: string;
@@ -71,7 +71,7 @@ export interface WorkflowUpdateRequest {
   name?: string;
 
   // Updates the tags assigned to the workflow (will overwrite existing tags)
-  tags?: string[];
+  // tags?: string[];
 
   // Updates the workflow definition
   definition?: WorkflowDefinition;

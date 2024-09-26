@@ -314,7 +314,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 		return
 	}
 	description := form.Value["description"][0]
-	
+
 	if form.Value["respondent[email]"] == nil || len(form.Value["respondent[email]"]) == 0 {
 		logger.Error("missing field in form: respondent[email]")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: respondent[email]"})
@@ -328,7 +328,6 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 		return
 	}
 	fullName := form.Value["respondent[full_name]"][0]
-
 
 	// telephone := form.Value["respondent[telephone]"][0]
 
@@ -560,7 +559,7 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: "Expert objections reviewed successfully"})
 }
 
-func (h Dispute) ViewExpertRejections (c *gin.Context) {
+func (h Dispute) ViewExpertRejections(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	// get body of post

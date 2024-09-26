@@ -1,0 +1,298 @@
+{
+	"label": "Domain Dispute",
+	"initial": "dispute_created",
+	"states": {
+		"dispute_created": {
+			"label": "Dispute Created",
+			"description": "The dispute has been created and is awaiting further action.",
+			"triggers": {
+				"complaint_not_compliant": {
+					"label": "Complaint not compliant",
+					"next_state": "complaint_rectification"
+				},
+				"fee_not_paid": {
+					"label": "Fee not paid",
+					"next_state": "dispute_fee_due"
+				}
+			},
+			"timer": {
+				"duration": "10s",
+				"on_expire": "complaint_not_compliant"
+			}
+		},
+		"suspended": {
+			"label": "Dispute Suspended",
+			"description": "The dispute has been suspended and is awaiting further action."
+		},
+		"complaint_rectification": {
+			"label": "Complaint Rectification",
+			"description": "The complainant has been notified that the complaint is not compliant and has 5 days to rectify the complaint.",
+			"triggers": {
+				"complaint_not_compliant": {
+					"label": "Complaint not compliant",
+					"next_state": "suspended"
+				},
+				"complaint_compliant": {
+					"label": "Complaint compliant",
+					"next_state": "dispute_fee_due"
+				}
+			},
+			"timer": {
+				"duration": "120h",
+				"on_expire": "complaint_not_compliant"
+			}
+		},
+		"dispute_fee_due": {
+			"label": "Dispute Fee Due",
+			"description": "The dispute fee is due and is awaiting further action.",
+			"triggers": {
+				"fee_not_paid": {
+					"label": "Fee not paid",
+					"next_state": "suspended"
+				},
+				"fee_paid": {
+					"label": "Fee paid",
+					"next_state": "response_due"
+				}
+			},
+			"timer": {
+				"duration": "240h",
+				"on_expire": "fee_not_paid"
+			}
+		},
+		"response_due": {
+			"label": "Response Due",
+			"description": "The response is due and is awaiting further action.",
+			"triggers": {
+				"timed_out": {
+					"label": "Response not received",
+					"next_state": "suspended"
+				},
+				"response_received": {
+					"label": "Response received",
+					"next_state": "response_communique"
+				}
+			},
+			"timer": {
+				"duration": "480h",
+				"on_expire": "timed_out"
+			}
+		},
+		"response_communique": {
+			"label": "Response Communique",
+			"description": "The response communique is due and is awaiting further action.",
+			"triggers": {
+				"timed_out": {
+					"label": "Response not received",
+					"next_state": "suspended"
+				},
+				"response_received": {
+					"label": "Response received",
+					"next_state": "reply_due"
+				}
+			},
+			"timer": {
+				"duration": "120h",
+				"on_expire": "timed_out"
+			}
+		},
+		"reply_due": {
+			"label": "Reply Due",
+			"description": "The reply is due and is awaiting further action.",
+			"triggers": {
+				"timed_out": {
+					"label": "Reply not received",
+					"next_state": "suspended"
+				},
+				"response_received": {
+					"label": "Reply received",
+					"next_state": "appoint_adjudicator"
+				}
+			},
+			"timer": {
+				"duration": "48h",
+				"on_expire": "timed_out"
+			}
+		},
+		"appoint_adjudicator": {
+			"label": "Appoint Adjudicator",
+			"description": "The dispute has been escalated and is awaiting further action.",
+			"triggers": {
+				"timed_out": {
+					"label": "Adjudicator not appointed",
+					"next_state": "suspended"
+				},
+				"adjudicator_assigned": {
+					"label": "Adjudicator appointed",
+					"next_state": "decision_due"
+				}
+			},
+			"timer": {
+				"duration": "48h",
+				"on_expire": "timed_out"
+			}
+		},
+		"decision_due": {
+			"label": "Decision Due",
+			"description": "The decision is due and is awaiting further action.",
+			"triggers": {
+				"timed_out": {
+					"label": "Decision not made",
+					"next_state": "suspended"
+				},
+				"decision_made": {
+					"label": "Decision made",
+					"next_state": "decision_communique"
+				}
+			},
+			"timer": {
+				"duration": "72h",
+				"on_expire": "timed_out"
+			}
+		},
+		"decision_communique": {
+			"label": "Decision Communique",
+			"description": "The decision communique is due and is awaiting further action.",
+			"triggers": {
+				"no_appeal": {
+					"label": "No appeal",
+					"next_state": "final_decision_communique"
+				},
+				"appeal_submitted": {
+					"label": "Appeal submitted",
+					"next_state": "appeal_submitted"
+				}
+			},
+			"timer": {
+				"duration": "120h",
+				"on_expire": "no_appeal"
+			}
+		},
+		"final_decision_communique": {
+			"label": "Final Decision Communique",
+			"description": "The final decision communique is due and is awaiting further action.",
+			"triggers": {
+				"timed_out": {
+					"label": "Final decision not made",
+					"next_state": "dispute_archived"
+				}
+			},
+			"timer": {
+				"duration": "120h",
+				"on_expire": "timed_out"
+			}
+		},
+		"dispute_archived": {
+			"label": "Dispute Archived",
+			"description": "The dispute has been archived and is awaiting further action."
+		},
+		"appeal_submitted": {
+			"label": "Appeal Submitted",
+			"description": "The appeal has been submitted and is awaiting further action.",
+			"triggers": {
+				"appeal_omission": {
+					"label": "Appeal not submitted",
+					"next_state": "final_decision_communique"
+				},
+				"appeal_valid": {
+					"label": "Appeal submitted",
+					"next_state": "appeal_notice_and_fee"
+				}
+			},
+			"timer": {
+				"duration": "240h",
+				"on_expire": "appeal_omission"
+			}
+		},
+		"appeal_notice_and_fee": {
+			"label": "Appeal Notice and Fee",
+			"description": "The appeal notice and fee is due and is awaiting further action.",
+			"triggers": {
+				"appeal_fee_not_paid": {
+					"label": "Appeal fee not paid",
+					"next_state": "final_decision_communique"
+				},
+				"fee_paid": {
+					"label": "Fee paid",
+					"next_state": "appeal_communique"
+				}
+			},
+			"timer": {
+				"duration": "72h",
+				"on_expire": "appeal_fee_not_paid"
+			}
+		},
+		"appeal_communique": {
+			"label": "Appeal Communique",
+			"description": "The appeal communique is due and is awaiting further action.",
+			"triggers": {
+				"timed_out": {
+					"label": "Appeal not submitted",
+					"next_state": "final_decision_communique"
+				},
+				"response_received": {
+					"label": "Appeal submitted",
+					"next_state": "appeal_reply_due"
+				}
+			},
+			"timer": {
+				"duration": "360h",
+				"on_expire": "timed_out"
+			}
+		},
+		"appeal_reply_due": {
+			"label": "Appeal Reply Due",
+			"description": "The appeal reply is due and is awaiting further action.",
+			"triggers": {
+				"timed_out": {
+					"label": "Reply not received",
+					"next_state": "final_decision_communique"
+				},
+				"response_received": {
+					"label": "Reply received",
+					"next_state": "appoint_appeal_panel"
+				}
+			},
+			"timer": {
+				"duration": "72h",
+				"on_expire": "timed_out"
+			}
+		},
+		"appoint_appeal_panel": {
+			"label": "Appoint Appeal Panel",
+			"description": "The appeal has been escalated and is awaiting further action.",
+			"triggers": {
+				"timed_out": {
+					"label": "No panel appointed",
+					"next_state": "final_decision_communique"
+				},
+				"panel_appointed": {
+					"label": "Panel appointed",
+					"next_state": "appeal_decision_due"
+				}
+			},
+			"timer": {
+				"duration": "480h",
+				"on_expire": "timed_out"
+			}
+		},
+		"appeal_decision_due": {
+			"label": "Appeal Decision Due",
+			"description": "The appeal decision is due and is awaiting further action.",
+			"triggers": {
+				"timed_out": {
+					"label": "trigger_label",
+					"next_state": "final_decision_communique"
+				},
+				"decision_made": {
+					"label": "Decision made",
+					"next_state": "final_decision_communique"
+				}
+			},
+			"timer": {
+				"duration": "120h",
+				"on_expire": "timed_out"
+			}
+		}
+	}
+}

@@ -46,6 +46,10 @@ type DisputeModel interface {
 	CreateDefaultUser(email string, fullName string, pass string) error
 	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
 
+	GetWorkflowRecordByID(id uint64) (*models.Workflow, error)
+	CreateActiverWorkflow(workflow *models.ActiveWorkflows) error
+	DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error
+
 	GenerateAISummary(disputeID int64, disputeDesc string, apiKey string)
 }
 
@@ -134,6 +138,37 @@ func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 		AuditLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader),
 		OrchestratorEntity: OrchestratorReal{},
 	}
+}
+
+func (m *disputeModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	workflow := models.Workflow{}
+	err := m.db.Where("id = ?", id).First(&workflow).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving workflow record")
+		return nil, err
+	}
+	return &workflow, nil
+}
+
+func (m *disputeModelReal) CreateActiverWorkflow(workflow *models.ActiveWorkflows) error {
+	result := m.db.Create(workflow)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (m *disputeModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {
+	result := m.db.Delete(workflow)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }
 
 func (m *disputeModelReal) UploadEvidence(userId, disputeId int64, path string, file io.Reader) (uint, error) {

@@ -94,6 +94,29 @@ func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes
 	return nil
 }
 
+func (m *mockDisputeModel) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
+	if m.throwErrors {
+		return nil, errors.ErrUnsupported
+	}
+	return &models.Workflow{
+	}, nil
+
+}
+
+func (m *mockDisputeModel) CreateActiverWorkflow(workflow *models.ActiveWorkflows) error {
+	if m.throwErrors {
+		return errors.ErrUnsupported
+	}
+	return nil
+}
+
+func (m *mockDisputeModel) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {
+	if m.throwErrors {
+		return errors.ErrUnsupported
+	}
+	return nil
+}
+
 // mock model dispute
 func (m *mockDisputeModel) UploadEvidence(userId, disputeId int64, path string, file io.Reader) (uint, error) {
 	if m.throwErrors {

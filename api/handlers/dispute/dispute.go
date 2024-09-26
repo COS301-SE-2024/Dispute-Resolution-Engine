@@ -329,6 +329,19 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	}
 	fullName := form.Value["respondent[full_name]"][0]
 
+	if form.Value["respondent[workflow]"] == nil || len(form.Value["respondent[workflow]"]) == 0 {
+		logger.Error("missing field in form: respondent[workflow]")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: respondent[workflow]"})
+		return
+	}
+	workflow := form.Value["respondent[workflow]"][0]
+	workflwIdInt, err := strconv.Atoi(workflow)
+	if err != nil {
+		logger.WithError(err).Error("Cannot convert workflow ID to integer")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Workflow ID"})
+		return
+	}
+
 	// telephone := form.Value["respondent[telephone]"][0]
 
 	//get complainants id
@@ -378,6 +391,58 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 		}
 	}
 	respondantID = &respondent.ID
+
+	//get The workflow by id
+	workflowData, err := h.Model.GetWorkflowRecordByID(uint64(workflwIdInt))
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving workflow")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving workflow"})
+		return
+	}
+
+	//create active workflow entry
+	activeWorkflow := &models.ActiveWorkflows{
+		Workflow: int64(workflowData.ID),
+		DateSubmitted: time.Now(),
+		WorkflowInstance: workflowData.Definition,
+	}
+	err = h.Model.CreateActiverWorkflow(activeWorkflow)
+	if err != nil {
+		logger.WithError(err).Error("Error creating active workflow")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating active workflow"})
+		return
+	}
+	// Get the environment variables
+	url, err := h.Env.Get("ORCH_URL")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	port, err := h.Env.Get("ORCH_PORT")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	startEndpoint, err := h.Env.Get("ORCH_START")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	// Send the request to the orchestrator
+	payload := OrchestratorRequest{ID: activeWorkflow.ID}
+	_, err = h.OrchestratorEntity.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, startEndpoint), payload)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+		//delete the active workflow from table
+		h.Model.DeleteActiveWorkflow(activeWorkflow)
+		return
+	}
 
 	//create entry into the dispute table
 	disputeId, err := h.Model.CreateDispute(models.Dispute{

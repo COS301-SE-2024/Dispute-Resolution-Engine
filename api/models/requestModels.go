@@ -218,16 +218,15 @@ type ViewExpetRejectionsRequest struct {
 
 type CreateWorkflow struct {
 	Name       string                 `json:"name,omitempty"`
-	Definition map[string]interface{} `json:"definition,omitempty"`
-	Category   []int64                `json:"category,omitempty"`
-	Author     *int64                 `json:"author,omitempty"`
+	Definition WorkflowOrchestrator `json:"definition,omitempty"`
+	// Category   []int64                `json:"category,omitempty"`
 }
 
 type UpdateWorkflow struct {
 	Name               *string                 `json:"name,omitempty"`
-	WorkflowDefinition *map[string]interface{} `json:"definition,omitempty"`
-	Category           *[]int64                `json:"category,omitempty"`
-	Author             *int64                  `json:"author,omitempty"`
+	WorkflowDefinition *WorkflowOrchestrator `json:"definition,omitempty"`
+	// Category           *[]int64                `json:"category,omitempty"`
+	// Author             *int64                  `json:"author,omitempty"`
 }
 
 type NewActiveWorkflow struct {
@@ -239,4 +238,10 @@ type ResetActiveWorkflow struct {
 	DisputeID    *int64    `json:"dispute_id,omitempty"`
 	CurrentState *string   `json:"current_state,omitempty"`
 	Deadline     *time.Time `json:"deadline,omitempty"`
+}
+
+type GetWorkflow struct {
+	Search *string `json:"search,omitempty"`
+	Limit  *int    `json:"limit,omitempty"`
+	Offset *int    `json:"offset,omitempty"`
 }

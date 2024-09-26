@@ -586,18 +586,18 @@ func (suite *WorkflowTestSuite) TestUpdateWorkflow_Success() {
 		DB: suite.mockDB,
 	}
 
-	authorID := int64(1)
+	// authorID := int64(1)
 
 	updateData := models.UpdateWorkflow{
 		Name: new(string),
 		WorkflowDefinition: &map[string]interface{}{
 			"key": "new value",
 		},
-		Author:   &authorID,
-		Category: &[]int64{1, 2},
+		// Author:   &authorID,
+		// Category: &[]int64{1, 2},
 	}
 	*updateData.Name = "Updated Workflow"
-	*updateData.Author = 2
+	// *updateData.Author = 2
 
 	body, _ := json.Marshal(updateData)
 	req, _ := http.NewRequest("PUT", "/1", bytes.NewBuffer(body))
@@ -745,7 +745,7 @@ func (suite *WorkflowTestSuite) TestUpdateWorkflow_FailedToUpdateCategories() {
 
 	updateData := models.UpdateWorkflow{
 		Name:     new(string),
-		Category: &[]int64{1, 2},
+		// Category: &[]int64{1, 2},
 	}
 	*updateData.Name = "Updated Workflow"
 

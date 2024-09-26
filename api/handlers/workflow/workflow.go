@@ -19,7 +19,7 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 	g.POST("", h.GetWorkflows)
 	g.GET("/:id", h.GetIndividualWorkflow)
 	g.POST("/create", h.StoreWorkflow)
-	g.PUT("/:id", h.UpdateWorkflow)
+	g.PATCH("/:id", h.UpdateWorkflow)
 	g.DELETE("/:id", h.DeleteWorkflow)
 
 	//manage active workflows
@@ -243,10 +243,10 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 		existingWorkflow.Definition = workflowDefinition
 	}
 
-	// Update the AuthorID if provided
-	if updateData.Author != nil {
-		existingWorkflow.AuthorID = *updateData.Author
-	}
+	// // Update the AuthorID if provided
+	// if updateData.Author != nil {
+	// 	existingWorkflow.AuthorID = *updateData.Author
+	// }
 
 	// Save the updated workflow
 	err = w.DB.UpdateWorkflow(existingWorkflow)
@@ -256,32 +256,32 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 		return
 	}
 
-	// Manage categories (tags) in labelled_workflow if provided
-	if updateData.Category != nil {
-		// Remove existing tags
-		err = w.DB.DeleteTagsByWorkflowID(existingWorkflow.ID)
-		if err != nil {
-			fmt.Println("here")
+	// // Manage categories (tags) in labelled_workflow if provided
+	// if updateData.Category != nil {
+	// 	// Remove existing tags
+	// 	err = w.DB.DeleteTagsByWorkflowID(existingWorkflow.ID)
+	// 	if err != nil {
+	// 		fmt.Println("here")
 
-			logger.Error(err)
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
-			return
-		}
+	// 		logger.Error(err)
+	// 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
+	// 		return
+	// 	}
 
-		// Insert new tags
-		for _, categoryID := range *updateData.Category {
-			labelledWorkflow := models.WorkflowTags{
-				WorkflowID: existingWorkflow.ID,
-				TagID:      uint64(categoryID),
-			}
-			err = w.DB.CreateWorkflowTag(&labelledWorkflow)
-			if err != nil {
-				logger.Error(err)
-				c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
-				return
-			}
-		}
-	}
+	// 	// Insert new tags
+	// 	for _, categoryID := range *updateData.Category {
+	// 		labelledWorkflow := models.WorkflowTags{
+	// 			WorkflowID: existingWorkflow.ID,
+	// 			TagID:      uint64(categoryID),
+	// 		}
+	// 		err = w.DB.CreateWorkflowTag(&labelledWorkflow)
+	// 		if err != nil {
+	// 			logger.Error(err)
+	// 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to update categories"})
+	// 			return
+	// 		}
+	// 	}
+	// }
 
 	c.JSON(http.StatusOK, models.Response{Data: "Workflow updated"})
 }

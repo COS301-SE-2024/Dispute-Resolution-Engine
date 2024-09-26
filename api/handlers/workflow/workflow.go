@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
 	// "time"
 
 	"github.com/gin-gonic/gin"
@@ -46,7 +47,7 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 		return
 	}
 
-	response, err := w.DB.GetWorkflowsWithLimitOffset(body.Limit, body.Offset, body.Search)
+	total, response, err := w.DB.GetWorkflowsWithLimitOffset(body.Limit, body.Offset, body.Search)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusOK, models.Response{Data: []models.Workflow{}})
@@ -83,11 +84,12 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 	// }
 
 	if len(response) == 0 {
-		c.JSON(http.StatusOK, models.Response{Data: []models.Workflow{}})
+
+		c.JSON(http.StatusOK, models.Response{Data: models.WorkflowResult{Total: 0, Workflows: []models.GetWorkflowResponse{}}})
 		return
 	}
 
-	c.JSON(http.StatusOK, models.Response{Data: models.WorkflowResult{Total: len(response), Workflows: response}})
+	c.JSON(http.StatusOK, models.Response{Data: models.WorkflowResult{Total: int(total), Workflows: response}})
 }
 
 func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
@@ -247,7 +249,6 @@ func ValidateWorkflowDefinition(definition models.WorkflowOrchestrator) error {
 	return nil
 }
 
-
 func (w Workflow) UpdateWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	id := c.Param("id")
@@ -294,7 +295,6 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 			return
 		}
-
 
 		workflowDefinition, err := json.Marshal(*updateData.WorkflowDefinition)
 		if err != nil {
@@ -391,8 +391,6 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.Response{Data: "Workflow and associated tags deleted"})
 }
-
-
 
 // func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 // 	logger := utilities.NewLogger().LogWithCaller()

@@ -23,10 +23,11 @@ import (
 //Orchestrator mock
 
 type OrchestratorMock struct {
-	throwError bool
-	Error      error
+	throwError   bool
+	Error        error
 	ReturnString string
 }
+
 func (o *OrchestratorMock) MakeRequestToOrchestrator(endpoint string, payload workflow.OrchestratorRequest) (string, error) {
 	if o.throwError {
 		return "", o.Error
@@ -34,28 +35,25 @@ func (o *OrchestratorMock) MakeRequestToOrchestrator(endpoint string, payload wo
 	return o.ReturnString, nil
 }
 
-
-
-
 //DB Model
 
 type mockDB struct {
-	throwError           bool
-	Error                error
-	ReturnWorkflowArray  []models.GetWorkflowResponse
+	throwError             bool
+	Error                  error
+	ReturnWorkflowArray    []models.GetWorkflowResponse
 	ReturnDetailedWorkflow *models.DetailedWorkflowResponse
-	ReturnWorkflow       *models.Workflow
-	ReturnDispute        *models.Dispute
-	ReturnTagArray       []models.Tag
-	ReturnTag            *models.Tag
-	ReturnActiveWorkflow *models.ActiveWorkflows
+	ReturnWorkflow         *models.Workflow
+	ReturnDispute          *models.Dispute
+	ReturnTagArray         []models.Tag
+	ReturnTag              *models.Tag
+	ReturnActiveWorkflow   *models.ActiveWorkflows
 }
 
-func (m *mockDB) GetWorkflowsWithLimitOffset(limit, offset *int, name *string) ([]models.GetWorkflowResponse, error) {
+func (m *mockDB) GetWorkflowsWithLimitOffset(limit, offset *int, name *string) (int64, []models.GetWorkflowResponse, error) {
 	if m.throwError {
-		return nil, m.Error
+		return 0, nil, m.Error
 	}
-	return m.ReturnWorkflowArray, nil
+	return int64(len(m.ReturnWorkflowArray)), m.ReturnWorkflowArray, nil
 }
 
 func (m *mockDB) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
@@ -233,25 +231,24 @@ func (m *mockEnvReader) Register(key string) {
 func (m *mockEnvReader) RegisterDefault(key, fallback string) {
 }
 
-func (m * mockEnvReader) Get(key string) (string, error) {
+func (m *mockEnvReader) Get(key string) (string, error) {
 	if m.throwError {
 		return "", m.Error
 	}
 	return "mock", nil
 }
 
-
 //------------------------------------------------------------------------- Test Suite
 
 type WorkflowTestSuite struct {
 	suite.Suite
-	mockDB          *mockDB
-	mockEnvReader   *mockEnvReader
-	mockJwtModel    *mockJwtModel
-	mockEmailModel  *mockEmailModel
-	mockAuditLogger *mockAuditLogger
+	mockDB           *mockDB
+	mockEnvReader    *mockEnvReader
+	mockJwtModel     *mockJwtModel
+	mockEmailModel   *mockEmailModel
+	mockAuditLogger  *mockAuditLogger
 	mockOrchestrator *OrchestratorMock
-	router          *gin.Engine
+	router           *gin.Engine
 }
 
 func (suite *WorkflowTestSuite) SetupTest() {
@@ -268,7 +265,7 @@ func (suite *WorkflowTestSuite) SetupTest() {
 		Jwt:                      suite.mockJwtModel,
 		Emailer:                  suite.mockEmailModel,
 		DisputeProceedingsLogger: suite.mockAuditLogger,
-		OrchestratorEntity: suite.mockOrchestrator,
+		OrchestratorEntity:       suite.mockOrchestrator,
 	}
 
 	gin.SetMode("release")
@@ -470,7 +467,7 @@ func (suite *WorkflowTestSuite) TestValidateWorkflowDefinition_NonExistentTimerT
 }
 
 func (suite *WorkflowTestSuite) TestResetActiveWorkflow_Success() {
-	
+
 	// Arrange
 	suite.mockDB.throwError = false
 	suite.mockOrchestrator.throwError = false
@@ -496,8 +493,8 @@ func (suite *WorkflowTestSuite) TestResetActiveWorkflow_Success() {
 	c.Request = req
 
 	w := workflow.Workflow{
-		DB:            suite.mockDB,
-		EnvReader:     suite.mockEnvReader,
+		DB:                 suite.mockDB,
+		EnvReader:          suite.mockEnvReader,
 		OrchestratorEntity: suite.mockOrchestrator,
 	}
 
@@ -661,8 +658,8 @@ func (suite *WorkflowTestSuite) TestResetActiveWorkflow_OrchestratorError() {
 	c.Request = req
 
 	w := workflow.Workflow{
-		DB:            suite.mockDB,
-		EnvReader:     env.NewEnvLoader(),
+		DB:                 suite.mockDB,
+		EnvReader:          env.NewEnvLoader(),
 		OrchestratorEntity: suite.mockOrchestrator,
 	}
 
@@ -840,7 +837,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_Success() {
 	suite.mockJwtModel.throwErrors = false
 	// authorID := int64(1)
 	workflows := models.CreateWorkflow{
-		Name:       "New Workflow",
+		Name: "New Workflow",
 		// Author:     &authorID,
 		Definition: models.WorkflowOrchestrator{
 			Initial: "initial",
@@ -862,7 +859,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_Success() {
 	c.Request = req
 
 	w := workflow.Workflow{
-		DB: suite.mockDB,
+		DB:  suite.mockDB,
 		Jwt: suite.mockJwtModel,
 	}
 
@@ -902,8 +899,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_InvalidPayload() {
 
 func (suite *WorkflowTestSuite) TestStoreWorkflow_MissingFields() {
 	// Arrange
-	workflows := models.CreateWorkflow{
-	}
+	workflows := models.CreateWorkflow{}
 
 	body, _ := json.Marshal(workflows)
 	req, _ := http.NewRequest("POST", "/", bytes.NewBuffer(body))
@@ -913,7 +909,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_MissingFields() {
 	c.Request = req
 
 	w := workflow.Workflow{
-		DB: suite.mockDB,
+		DB:  suite.mockDB,
 		Jwt: suite.mockJwtModel,
 	}
 
@@ -933,7 +929,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_DBError() {
 	suite.mockDB.throwError = true
 	// authorID := int64(1)
 	workflows := models.CreateWorkflow{
-		Name:       "New Workflow",
+		Name: "New Workflow",
 		// Author:     &authorID,
 		Definition: models.WorkflowOrchestrator{
 			Initial: "initial",
@@ -955,7 +951,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_DBError() {
 	c.Request = req
 
 	w := workflow.Workflow{
-		DB: suite.mockDB,
+		DB:  suite.mockDB,
 		Jwt: suite.mockJwtModel,
 	}
 
@@ -980,7 +976,7 @@ func (suite *WorkflowTestSuite) TestUpdateWorkflow_Success() {
 	}
 
 	// authorID := int64(1)
-	updated:= models.WorkflowOrchestrator{
+	updated := models.WorkflowOrchestrator{
 		Initial: "initial",
 		States: map[string]models.State{
 			"initial": {
@@ -991,7 +987,7 @@ func (suite *WorkflowTestSuite) TestUpdateWorkflow_Success() {
 	}
 
 	updateData := models.UpdateWorkflow{
-		Name: new(string),
+		Name:               new(string),
 		WorkflowDefinition: &updated,
 		// Author:   &authorID,
 		// Category: &[]int64{1, 2},
@@ -1144,7 +1140,7 @@ func (suite *WorkflowTestSuite) TestUpdateWorkflow_FailedToUpdateCategories() {
 	}
 
 	updateData := models.UpdateWorkflow{
-		Name:     new(string),
+		Name: new(string),
 		// Category: &[]int64{1, 2},
 	}
 	*updateData.Name = "Updated Workflow"

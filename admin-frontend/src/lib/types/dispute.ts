@@ -1,5 +1,4 @@
-export type SortOrder = "asc" | "desc";
-export type SortAttribute = "title" | "status" | "workflow" | "date_filed" | "date_resolved";
+import { Filter, Sort } from ".";
 
 export const DISPUTE_STATUS = [
   "Awaiting respondent",
@@ -10,15 +9,8 @@ export const DISPUTE_STATUS = [
 ] as const;
 export type DisputeStatus = (typeof DISPUTE_STATUS)[number];
 
-export type FilterAttribute = "status" | "workflow";
-
-export interface Filter {
-  // The attribute to filter by
-  attr: FilterAttribute;
-
-  // The value to search for.
-  value: string;
-}
+type FilterAttribute = "status" | "workflow";
+type SortAttribute = "title" | "status" | "workflow" | "date_filed" | "date_resolved";
 
 export interface AdminDisputesRequest {
   // Search term for the title of disputes
@@ -28,16 +20,10 @@ export interface AdminDisputesRequest {
   limit?: number;
   offset?: number;
 
-  sort?: {
-    // The attribute to sort by
-    attr: SortAttribute;
-
-    // Sort order defaults to 'asc' if unspecified
-    order?: SortOrder;
-  };
+  sort?: Sort<SortAttribute>;
 
   // The filters to apply to data
-  filter?: Filter[];
+  filter?: Filter<FilterAttribute>[];
 
   dateFilter?: {
     filed?: {

@@ -56,22 +56,23 @@ CREATE TRIGGER update_user_timestamp
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_user_last_update();
-
-
 ------------------------------------------------------------- WORKFLOWS
 CREATE TABLE workflows (
 	id SERIAL PRIMARY KEY NOT NULL,
     name VARCHAR(255) NOT NULL,
     definition JSONB NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	author BIGINT REFERENCES users(id) NOT NULL
 );
 
 CREATE TABLE active_workflows (
 	id SERIAL PRIMARY KEY NOT NULL,
-    workflow BIGINT REFERENCES workflows(id) NOT NULL,
-    current_state VARCHAR(255) NOT NULL,
-    state_deadline TIMESTAMP
+	workflow BIGINT REFERENCES workflows(id) NOT NULL,
+	current_state VARCHAR(255),
+	date_submitted TIMESTAMPTZ,  -- Includes timezone information
+	state_deadline TIMESTAMPTZ,  -- Includes timezone information
+	workflow_instance JSONB NOT NULL
 );
 
 ------------------------------------------------------------- TABLE DEFINITIONS
@@ -79,7 +80,6 @@ CREATE TYPE dispute_status AS ENUM (
     'Awaiting Respondant',
     'Active',
     'Review',
-
     'Settled',
     'Refused',
     'Withdrawn',
@@ -96,7 +96,8 @@ CREATE TABLE disputes (
 	title VARCHAR(255) NOT NULL,
 	description TEXT,
 	complainant BIGINT REFERENCES users(id),
-	respondant BIGINT REFERENCES users(id)
+	respondant BIGINT REFERENCES users(id),
+    date_resolved DATE DEFAULT NULL
 );
 
 CREATE TABLE dispute_summaries (
@@ -127,8 +128,6 @@ CREATE TABLE dispute_experts (
 	"user" BIGINT REFERENCES users(id),
 	PRIMARY KEY (dispute, "user")
 );
-
-
 
 CREATE TYPE exp_obj_status AS ENUM ('Review','Sustained','Overruled');
 
@@ -161,6 +160,52 @@ CREATE VIEW dispute_experts_view AS
     END)
     AS status FROM dispute_experts;
 
+
+CREATE FUNCTION check_valid_objection()
+RETURNS trigger AS 
+    $$
+    DECLARE
+        count integer;
+    BEGIN
+        SELECT COUNT(*) FROM dispute_experts de
+            WHERE de.dispute = NEW.dispute_id AND de."user" = NEW.expert_id INTO count;
+
+        IF count = 0 THEN
+            RAISE EXCEPTION 'Expert (ID = %) is not assigned to dispute (ID = %)', NEW.dispute_id, NEW.expert_id;
+        END IF;
+
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_valid_objection
+    BEFORE INSERT OR UPDATE ON expert_objections
+    FOR EACH ROW
+    EXECUTE FUNCTION check_valid_objection();
+
+
+CREATE VIEW expert_objections_view AS
+SELECT 
+    eo.id AS objection_id,
+    eo.created_at AS objection_created_at,
+    eo.dispute_id,
+    d.title AS dispute_title,
+    eo.expert_id,
+    expert.first_name || ' ' || expert.surname AS expert_full_name,
+    eo.user_id,
+    "user".first_name || ' ' || "user".surname AS user_full_name,
+    eo.reason,
+    eo.status AS objection_status
+FROM 
+    expert_objections eo
+JOIN 
+    disputes d ON eo.dispute_id = d.id
+JOIN 
+    users expert ON eo.expert_id = expert.id
+JOIN 
+    users "user" ON eo.user_id = "user".id;
+
+
 ------------------------------------------------------------- EVENT LOG
 CREATE TYPE event_types AS ENUM (
 	'NOTIFICATION',
@@ -168,7 +213,7 @@ CREATE TYPE event_types AS ENUM (
 	'USER',
 	'EXPERT',
 	'WORKFLOW'
-	);
+);
 
 CREATE TABLE event_log (
 	id SERIAL PRIMARY KEY,
@@ -176,6 +221,7 @@ CREATE TABLE event_log (
 	event_type event_types,
 	event_data JSON
 );
+
 
 ------------------------------------------------------------- TAGS
 CREATE TABLE tags (
@@ -201,29 +247,41 @@ CREATE TABLE workflow_tags (
 	PRIMARY KEY (workflow_id, tag_id)
 );
 
-
 ------------------------------------------------------------- TICKETING SYSTEM
 CREATE TYPE ticket_status_enum AS ENUM (
-	'Open',
-	'Closed',
-	'Solved',
-	'On Hold'
+    'Open',
+    'Closed',
+    'Solved',
+    'On Hold'
 );
 
 CREATE TABLE tickets (
-	id SERIAL PRIMARY KEY,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    subject VARCHAR(255) NOT NULL,
-    status ticket_status_enum NOT NULL
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  	-- Date the ticket was created
+    created_by BIGINT REFERENCES users(id) NOT NULL, 	-- User that created the ticket
+    dispute_id BIGINT REFERENCES disputes(id),       	-- Dispute the ticket is related to
+    subject VARCHAR(255) NOT NULL,                   	-- Subject to describe the ticket
+    status ticket_status_enum NOT NULL,              	-- Status of the ticket
+    initial_message TEXT                             	-- Body of the initial message of the ticket
 );
 
 CREATE TABLE ticket_messages (
-	id SERIAL PRIMARY KEY,
-    ticket BIGINT REFERENCES tickets(id) NOT NULL,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    contents TEXT NOT NULL
+    id SERIAL PRIMARY KEY,
+    ticket_id BIGINT REFERENCES tickets(id) NOT NULL,  	-- Reference to the ticket
+    user_id BIGINT REFERENCES users(id) NOT NULL,      	-- User who made the comment
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    	-- Date the comment was submitted
+    content TEXT NOT NULL                         		-- Body of the comment
 );
 
+------------------------------------------------------------- DISPUTE DECISIONS
+CREATE TABLE dispute_decisions (
+    id SERIAL PRIMARY KEY,
+    dispute_id BIGINT REFERENCES disputes(id),  					-- Reference to the dispute
+    expert_id BIGINT REFERENCES users(id),      					-- Expert submitting the decision
+    writeup_file_id BIGINT REFERENCES files(id),                  	-- Reference to the writeup file
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,             	-- Date the writeup was submitted
+    UNIQUE (dispute_id)                                			  	-- One decision per dispute, regardless of who submitted it
+);
 ------------------------------------------------------------- TABLE CONTENTS
 INSERT INTO Countries (country_code, country_name) VALUES
 ('AF', 'Afghanistan'),

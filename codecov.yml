@@ -10,3 +10,4 @@ coverage:
         threshold: 5%
 ignore:
   - "api/handlers/dispute/model.go"
+  - "api/handlers/workflow/model.go"

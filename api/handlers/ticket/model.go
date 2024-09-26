@@ -6,6 +6,7 @@ import (
 	"api/models"
 	"api/utilities"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -175,7 +176,7 @@ func (t *ticketModelReal) getAdminTicketDetails(ticketID int64) ([]models.Ticket
 			Subject:     IntermediateTick.Subject,
 			Status:      IntermediateTick.Status,
 		},
-		Body:     *IntermediateTick.InitialMessage,
+		Body:     IntermediateTick.InitialMessage,
 		Messages: ticketMessages,
 	})
 	return tickets, err
@@ -196,6 +197,11 @@ func (t *ticketModelReal) getTicketDetails(ticketID int64, userID int64) ([]mode
 		logger.WithError(err).Error("Error retrieving ticket messages")
 		return tickets, err
 	}
+	if ticketMessages == nil {
+		ticketMessages = []models.TicketMessages{}
+	}
+	fmt.Println("BRUH: ", IntermediateTick)
+
 	tickets = append(tickets, models.TicketsByUser{
 		TicketSummaryResponse: models.TicketSummaryResponse{
 			ID:          strconv.Itoa(int(IntermediateTick.Id)),
@@ -204,7 +210,7 @@ func (t *ticketModelReal) getTicketDetails(ticketID int64, userID int64) ([]mode
 			Subject:     IntermediateTick.Subject,
 			Status:      IntermediateTick.Status,
 		},
-		Body:     *IntermediateTick.InitialMessage,
+		Body:     IntermediateTick.InitialMessage,
 		Messages: ticketMessages,
 	})
 

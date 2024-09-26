@@ -100,7 +100,7 @@ type TicketIntermediate struct {
 	UserID         int64     `gorm:"column:user_id"`
 	FirstName      string    `gorm:"column:first_name"`
 	Surname        string    `gorm:"column:surname"`
-	InitialMessage *string   `gorm:"column:initial_message"`
+	InitialMessage string    `gorm:"column:initial_message"`
 }
 
 // type TicketMessage struct {

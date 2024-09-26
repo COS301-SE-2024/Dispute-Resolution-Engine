@@ -9,4 +9,4 @@ coverage:
         target: 50%
         threshold: 5%
 ignore:
-  - "*module.go"
+  - "**/*module.go"

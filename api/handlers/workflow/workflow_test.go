@@ -190,7 +190,7 @@ func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 		return models.UserInfoJWT{}, errors.ErrUnsupported
 	}
 	return models.UserInfoJWT{
-		ID:                0,
+		ID:                1,
 		FirstName:         "",
 		Surname:           "",
 		Birthdate:         time.Now(),
@@ -247,10 +247,11 @@ func (suite *WorkflowTestSuite) SetupTest() {
 
 	gin.SetMode("release")
 	suite.router = gin.Default()
+	suite.router.Use(handler.Jwt.JWTMiddleware)
 	suite.router.GET("", handler.GetWorkflows)
 	suite.router.GET("/:id", handler.GetIndividualWorkflow)
-	suite.router.POST("", handler.StoreWorkflow)
-	suite.router.PUT("/:id", handler.UpdateWorkflow)
+	suite.router.POST("/create", handler.StoreWorkflow)
+	suite.router.PATCH("/:id", handler.UpdateWorkflow)
 	suite.router.DELETE("/:id", handler.DeleteWorkflow)
 	suite.router.POST("/active", handler.NewActiveWorkflow)
 	suite.router.GET("/reset", handler.ResetActiveWorkflow)
@@ -421,11 +422,20 @@ func (suite *WorkflowTestSuite) TestDeleteWorkflow_FailedToDeleteWorkflow() {
 func (suite *WorkflowTestSuite) TestStoreWorkflow_Success() {
 	// Arrange
 	suite.mockDB.throwError = false
+	suite.mockJwtModel.throwErrors = false
 	// authorID := int64(1)
 	workflows := models.CreateWorkflow{
 		Name:       "New Workflow",
 		// Author:     &authorID,
-		Definition: models.WorkflowOrchestrator{},
+		Definition: models.WorkflowOrchestrator{
+			Initial: "initial",
+			States: map[string]models.State{
+				"initial": {
+					Label:       "State 1",
+					Description: "Description 1",
+				},
+			},
+		},
 		// Category:   []int64{1, 2},
 	}
 
@@ -438,6 +448,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_Success() {
 
 	w := workflow.Workflow{
 		DB: suite.mockDB,
+		Jwt: suite.mockJwtModel,
 	}
 
 	// Act
@@ -488,6 +499,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_MissingFields() {
 
 	w := workflow.Workflow{
 		DB: suite.mockDB,
+		Jwt: suite.mockJwtModel,
 	}
 
 	// Act
@@ -498,7 +510,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_MissingFields() {
 	var response models.Response
 	err := json.Unmarshal(wr.Body.Bytes(), &response)
 	suite.NoError(err)
-	suite.Equal("Missing required fields", response.Error)
+	suite.Equal("initial state '' does not exist in states", response.Error)
 }
 
 func (suite *WorkflowTestSuite) TestStoreWorkflow_DBError() {
@@ -508,7 +520,15 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_DBError() {
 	workflows := models.CreateWorkflow{
 		Name:       "New Workflow",
 		// Author:     &authorID,
-		Definition: models.WorkflowOrchestrator{},
+		Definition: models.WorkflowOrchestrator{
+			Initial: "initial",
+			States: map[string]models.State{
+				"initial": {
+					Label:       "State 1",
+					Description: "Description 1",
+				},
+			},
+		},
 		// Category:   []int64{1, 2},
 	}
 
@@ -521,6 +541,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_DBError() {
 
 	w := workflow.Workflow{
 		DB: suite.mockDB,
+		Jwt: suite.mockJwtModel,
 	}
 
 	// Act
@@ -534,42 +555,6 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_DBError() {
 	suite.Equal("Internal Server Error", response.Error)
 }
 
-func (suite *WorkflowTestSuite) TestStoreWorkflow_FailedToLinkTags() {
-	// Arrange
-	suite.mockDB.throwError = false
-	// authorID := int64(1)
-	workflows := models.CreateWorkflow{
-		Name:       "New Workflow",
-		// Author:     &authorID,
-		Definition: models.WorkflowOrchestrator{},
-		// Category:   []int64{1, 2},
-	}
-
-	body, _ := json.Marshal(workflows)
-	req, _ := http.NewRequest("POST", "/", bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-	wr := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(wr)
-	c.Request = req
-
-
-	w := workflow.Workflow{
-		DB: suite.mockDB,
-	}
-
-	// Simulate error when linking tags
-	suite.mockDB.throwError = true
-
-	// Act
-	w.StoreWorkflow(c)
-
-	// Assert
-	suite.Equal(http.StatusInternalServerError, wr.Code)
-	var response models.Response
-	err := json.Unmarshal(wr.Body.Bytes(), &response)
-	suite.NoError(err)
-	suite.Equal("Internal Server Error", response.Error)
-}
 func (suite *WorkflowTestSuite) TestUpdateWorkflow_Success() {
 	// Arrange
 	suite.mockDB.throwError = false
@@ -774,11 +759,7 @@ func (suite *WorkflowTestSuite) TestUpdateWorkflow_FailedToUpdateCategories() {
 func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_Success() {
 	// Arrange
 	suite.mockDB.throwError = false
-	suite.mockDB.ReturnWorkflow = &models.Workflow{ID: 1, Name: "Workflow 1"}
-	suite.mockDB.ReturnTagArray = []models.Tag{
-		{ID: 1, TagName: "Tag 1"},
-		{ID: 2, TagName: "Tag 2"},
-	}
+	suite.mockDB.ReturnDetailedWorkflow = &models.DetailedWorkflowResponse{GetWorkflowResponse: models.GetWorkflowResponse{ID: 1, Name: "Workflow 1"}}
 
 	w := workflow.Workflow{
 		DB: suite.mockDB,
@@ -806,7 +787,7 @@ func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_InvalidID() {
 	w := workflow.Workflow{
 		DB: suite.mockDB,
 	}
-
+	suite.mockDB.ReturnDetailedWorkflow = &models.DetailedWorkflowResponse{GetWorkflowResponse: models.GetWorkflowResponse{ID: 1, Name: "Workflow 1"}}
 	req, _ := http.NewRequest("GET", "/invalid", nil)
 	wr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(wr)
@@ -913,8 +894,10 @@ func (suite *WorkflowTestSuite) TestGetWorkflows_Success() {
 	w := workflow.Workflow{
 		DB: suite.mockDB,
 	}
+	//empty json body
+	body, _ := json.Marshal(models.GetWorkflow{})
 
-	req, _ := http.NewRequest("GET", "/?limit=10&offset=0", nil)
+	req, _ := http.NewRequest("POST", "/", bytes.NewBuffer(body))
 	wr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(wr)
 	c.Request = req
@@ -949,7 +932,7 @@ func (suite *WorkflowTestSuite) TestGetWorkflows_InvalidLimit() {
 	var response models.Response
 	err := json.Unmarshal(wr.Body.Bytes(), &response)
 	suite.NoError(err)
-	suite.Equal("Invalid limit parameter", response.Error)
+	suite.Equal("Invalid request payload", response.Error)
 }
 
 func (suite *WorkflowTestSuite) TestGetWorkflows_InvalidOffset() {
@@ -958,7 +941,10 @@ func (suite *WorkflowTestSuite) TestGetWorkflows_InvalidOffset() {
 		DB: suite.mockDB,
 	}
 
-	req, _ := http.NewRequest("GET", "/?limit=10&offset=invalid", nil)
+	//body with invalid offset
+	body, _ := json.Marshal(map[string]interface{}{"offset": "invalid"})
+
+	req, _ := http.NewRequest("POST", "/", bytes.NewBuffer(body))
 	wr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(wr)
 	c.Request = req
@@ -971,7 +957,7 @@ func (suite *WorkflowTestSuite) TestGetWorkflows_InvalidOffset() {
 	var response models.Response
 	err := json.Unmarshal(wr.Body.Bytes(), &response)
 	suite.NoError(err)
-	suite.Equal("Invalid offset parameter", response.Error)
+	suite.Equal("Invalid request payload", response.Error)
 }
 
 func (suite *WorkflowTestSuite) TestGetWorkflows_DBError() {
@@ -982,35 +968,10 @@ func (suite *WorkflowTestSuite) TestGetWorkflows_DBError() {
 		DB: suite.mockDB,
 	}
 
-	req, _ := http.NewRequest("GET", "/?limit=10&offset=0", nil)
-	wr := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(wr)
-	c.Request = req
+	//empty json body
+	body, _ := json.Marshal(models.GetWorkflow{})
 
-	// Act
-	w.GetWorkflows(c)
-
-	// Assert
-	suite.Equal(http.StatusInternalServerError, wr.Code)
-	var response models.Response
-	err := json.Unmarshal(wr.Body.Bytes(), &response)
-	suite.NoError(err)
-	suite.Equal("Internal Server Error", response.Error)
-}
-
-func (suite *WorkflowTestSuite) TestGetWorkflows_QueryTagsError() {
-	// Arrange
-	suite.mockDB.throwError = false
-	suite.mockDB.ReturnWorkflowArray = []models.GetWorkflowResponse{
-		{ID: 1, Name: "Workflow 1"},
-	}
-	suite.mockDB.throwError = true
-
-	w := workflow.Workflow{
-		DB: suite.mockDB,
-	}
-
-	req, _ := http.NewRequest("GET", "/?limit=10&offset=0", nil)
+	req, _ := http.NewRequest("POST", "", bytes.NewBuffer(body))
 	wr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(wr)
 	c.Request = req

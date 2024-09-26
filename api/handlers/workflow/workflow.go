@@ -23,7 +23,7 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 	g.DELETE("/:id", h.DeleteWorkflow)
 
 	//manage active workflows
-	g.POST("/activate", h.NewActiveWorkflow)
+	// g.POST("/activate", h.NewActiveWorkflow)
 	g.POST("/reset", h.ResetActiveWorkflow)
 	// g.POST("/complete", h.CompleteActiveWorkflow)
 }
@@ -159,7 +159,7 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 	}
 
 	//check all fields present
-	if workflow.Name == "" || (workflow.Definition == nil || len(workflow.Definition) == 0) {
+	if workflow.Name == "" {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing required fields"})
 		return
 	}

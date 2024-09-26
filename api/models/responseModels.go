@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Response struct {
 	Data  interface{} `json:"data,omitempty"`
@@ -129,4 +132,22 @@ type Timer struct {
 
 type DurationWrapper struct {
 	time.Duration
+}
+
+func (d DurationWrapper) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d.String())
+}
+
+func (d *DurationWrapper) UnmarshalJSON(b []byte) error {
+	var value string
+	if err := json.Unmarshal(b, &value); err != nil {
+		return err
+	}
+
+	dur, err := time.ParseDuration(value)
+	if err != nil {
+		return err
+	}
+	d.Duration = dur
+	return nil
 }

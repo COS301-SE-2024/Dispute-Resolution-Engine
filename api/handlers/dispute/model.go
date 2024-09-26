@@ -55,7 +55,71 @@ type Dispute struct {
 	JWT         middleware.Jwt
 	Env         env.Env
 	AuditLogger auditLogger.DisputeProceedingsLoggerInterface
+	OrchestratorEntity WorkflowOrchestrator
 }
+
+type OrchestratorRequest struct {
+	ID int64 `json:"id"`
+}
+type WorkflowOrchestrator interface {
+	MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
+}
+
+type OrchestratorReal struct {
+}
+
+func (w OrchestratorReal) MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Marshal the payload to JSON
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		logger.Error("marshal error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+	logger.Info("Payload: ", string(payloadBytes))
+
+	// Send the POST request to the orchestrator
+	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		logger.Error("post error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+	defer resp.Body.Close()
+
+	// Check for a successful status code (200 OK)
+
+	if resp.StatusCode == http.StatusInternalServerError {
+		logger.Error("status code error: ", resp.StatusCode)
+		return "", fmt.Errorf("Check theat you gave the correct state name if resetting")
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Error("status code error: ", resp.StatusCode)
+		rsponseBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Error("read body error: ", err)
+			return "", fmt.Errorf("internal server error")
+		}
+
+		return string(rsponseBody), fmt.Errorf("internal server error")
+	}
+
+	// Read the response body
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("read body error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+
+	// Convert the response body to a string
+	responseBody := string(bodyBytes)
+
+	// Log the response body for debugging
+	logger.Info("Response Body: ", responseBody)
+
+	return responseBody, nil
+}
+
 type disputeModelReal struct {
 	db  *gorm.DB
 	env env.Env
@@ -68,6 +132,7 @@ func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 		Env:         env.NewEnvLoader(),
 		Model:       &disputeModelReal{db: db, env: env.NewEnvLoader()},
 		AuditLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader),
+		OrchestratorEntity: OrchestratorReal{},
 	}
 }
 

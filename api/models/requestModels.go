@@ -228,3 +228,8 @@ type PatchTicketStatus struct {
 type TicketMessageCreate struct {
 	Message string `json:"message"`
 }
+
+type TicketCreate struct {
+	Subject string `json:"subject"`
+	Body    string `json:"body"`
+}

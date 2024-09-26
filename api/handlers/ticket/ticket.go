@@ -20,26 +20,80 @@ func SetupTicketRoutes(g *gin.RouterGroup, h Ticket) {
 	g.GET("/:id", h.getUserTicketDetails)
 	g.PATCH("/:id", h.patchTicketStatus)
 	g.POST("/:id/messages", h.createTicketMessage)
+	g.POST("/disputes/:id/ticket", h.createTicket)
+}
+
+func (h Ticket) createTicket(c *gin.Context) {
+	createReq := models.TicketCreate{}
+	logger := utilities.NewLogger().LogWithCaller()
+	if err := c.BindJSON(&createReq); err != nil {
+		logger.WithError(err).Error("Invalid request")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
+		return
+	}
+
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized access"})
+		return
+	}
+
+	userRole := claims.Role
+	//admins may not create tickets
+	if userRole == "admin" {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized access"})
+		return
+	}
+
+	disputeID := c.Param("id")
+	if disputeID == "" {
+		logger.Error("No dispute ID provided")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "No dispute ID provided"})
+		return
+	}
+
+	disputeIntID, err := strconv.Atoi(disputeID)
+	if err != nil {
+		logger.WithError(err).Error("Invalid dispute ID")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid dispute ID"})
+		return
+	}
+
+	err = h.Model.createTicket(claims.ID, int64(disputeIntID), createReq.Subject, createReq.Body)
+	if err != nil {
+		logger.WithError(err).Error("Error creating ticket")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating ticket"})
+		return
+	}
+	
+
 }
 
 func (h Ticket) createTicketMessage(c *gin.Context) {
 	tickReq := models.TicketMessageCreate{}
+	logger := utilities.NewLogger().LogWithCaller()
 	if err := c.BindJSON(&tickReq); err != nil {
+		logger.WithError(err).Error("Invalid request")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
 		return
 	}
 	claims, err := h.JWT.GetClaims(c)
 	if err != nil {
+		logger.Error("Unauthorized access attempt")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized access"})
 		return
 	}
 	ticketID := c.Param("id")
 	if ticketID == "" {
+		logger.Error("No ticket ID provided")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "No ticket ID provided"})
 		return
 	}
 	ticketIDInt, err := strconv.Atoi(ticketID)
 	if err != nil {
+		logger.WithError(err).Error("Invalid ticket ID")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid ticket ID"})
 		return
 	}
@@ -47,6 +101,7 @@ func (h Ticket) createTicketMessage(c *gin.Context) {
 	if userRole == "admin" {
 		err = h.Model.addAdminTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
 		if err != nil {
+			logger.WithError(err).Error("Error adding ticket message")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error adding ticket message"})
 			return
 		}
@@ -55,6 +110,7 @@ func (h Ticket) createTicketMessage(c *gin.Context) {
 	}
 	err = h.Model.addUserTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
 	if err != nil {
+		logger.WithError(err).Error("Error adding ticket message")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error adding ticket message"})
 		return
 	}

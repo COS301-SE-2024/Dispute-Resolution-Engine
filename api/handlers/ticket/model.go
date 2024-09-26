@@ -21,6 +21,7 @@ type TicketModel interface {
 	patchTicketStatus(status string, ticketID int64) error
 	addUserTicketMessage(ticketID int64, userID int64, message string) error
 	addAdminTicketMessage(ticketID int64, userID int64, message string) error
+	createTicket(userID int64, dispute int64, subject string, message string) error
 }
 
 type Ticket struct {
@@ -40,6 +41,37 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 		JWT:   middleware.NewJwtMiddleware(),
 		Env:   envReader,
 	}
+}
+
+func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject string, message string) error {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	//check if the user is part of the dispute
+	disputeModel := models.Dispute{}
+	err := t.db.Where("id = ?", dispute).
+		Where("complainant = ? OR respondent = ?", userID, userID).
+		First(&disputeModel).Error
+	if err != nil {
+		logger.WithError(err).Error("Unauthorized attempt to create ticket")
+		return err
+	}
+
+	ticket := models.Ticket{
+		CreatedAt:      time.Now(),
+		CreatedBy:      userID,
+		Subject:        subject,
+		DisputeID:      dispute,
+		Status:         "Open",
+		InitialMessage: message,
+	}
+
+	err = t.db.Create(&ticket).Error
+	if err != nil {
+		logger.WithError(err).Error("Error creating ticket")
+		return err
+	}
+
+	return nil
 }
 
 func (t *ticketModelReal) addUserTicketMessage(ticketID int64, userID int64, message string) error {

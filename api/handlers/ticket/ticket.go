@@ -187,7 +187,7 @@ func (h Ticket) getUserTicketDetails(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusOK, models.Response{Data: ticketDetails[0]})
+		c.JSON(http.StatusOK, models.Response{Data: ticketDetails})
 		return
 	}
 
@@ -205,7 +205,7 @@ func (h Ticket) getUserTicketDetails(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, models.Response{Data: ticketDetails[0]})
+	c.JSON(http.StatusOK, models.Response{Data: ticketDetails})
 
 }
 

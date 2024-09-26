@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -217,11 +218,35 @@ func (m *mockEmailModel) SendDefaultUserEmail(c *gin.Context, email string, pass
 func (m *mockEmailModel) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string) {
 }
 
+// mock env reader
+type mockEnvReader struct {
+	throwError bool
+	Error      error
+}
+
+func (m *mockEnvReader) LoadFromFile(files ...string) {
+}
+
+func (m *mockEnvReader) Register(key string) {
+}
+
+func (m *mockEnvReader) RegisterDefault(key, fallback string) {
+}
+
+func (m * mockEnvReader) Get(key string) (string, error) {
+	if m.throwError {
+		return "", m.Error
+	}
+	return "mock", nil
+}
+
+
 //------------------------------------------------------------------------- Test Suite
 
 type WorkflowTestSuite struct {
 	suite.Suite
 	mockDB          *mockDB
+	mockEnvReader   *mockEnvReader
 	mockJwtModel    *mockJwtModel
 	mockEmailModel  *mockEmailModel
 	mockAuditLogger *mockAuditLogger
@@ -235,10 +260,11 @@ func (suite *WorkflowTestSuite) SetupTest() {
 	suite.mockEmailModel = &mockEmailModel{}
 	suite.mockAuditLogger = &mockAuditLogger{}
 	suite.mockOrchestrator = &OrchestratorMock{}
+	suite.mockEnvReader = &mockEnvReader{}
 
 	handler := workflow.Workflow{
 		DB:                       suite.mockDB,
-		EnvReader:                env.NewEnvLoader(),
+		EnvReader:                suite.mockEnvReader,
 		Jwt:                      suite.mockJwtModel,
 		Emailer:                  suite.mockEmailModel,
 		DisputeProceedingsLogger: suite.mockAuditLogger,
@@ -443,7 +469,213 @@ func (suite *WorkflowTestSuite) TestValidateWorkflowDefinition_NonExistentTimerT
 	suite.EqualError(err, "timer in state 'start' points to a non-existent trigger 'nonexistent'")
 }
 
+func (suite *WorkflowTestSuite) TestResetActiveWorkflow_Success() {
+	
+	// Arrange
+	suite.mockDB.throwError = false
+	suite.mockOrchestrator.throwError = false
+	suite.mockDB.ReturnActiveWorkflow = &models.ActiveWorkflows{
+		ID:           1,
+		CurrentState: "initial",
+	}
 
+	resetRequest := models.ResetActiveWorkflow{
+		DisputeID:    new(int64),
+		CurrentState: new(string),
+		Deadline:     new(time.Time),
+	}
+	*resetRequest.DisputeID = 1
+	*resetRequest.CurrentState = "new_state"
+	*resetRequest.Deadline = time.Now().Add(24 * time.Hour)
+
+	body, _ := json.Marshal(resetRequest)
+	req, _ := http.NewRequest("POST", "/reset", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	w := workflow.Workflow{
+		DB:            suite.mockDB,
+		EnvReader:     suite.mockEnvReader,
+		OrchestratorEntity: suite.mockOrchestrator,
+	}
+
+	// Act
+	w.ResetActiveWorkflow(c)
+	//print body of request
+
+	fmt.Println("Body of request: ", body)
+
+	// Assert
+	suite.Equal(http.StatusOK, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Database updated and request to Reset workflow sent", response.Data)
+}
+
+func (suite *WorkflowTestSuite) TestResetActiveWorkflow_InvalidPayload() {
+	// Arrange
+	req, _ := http.NewRequest("POST", "/reset", bytes.NewBuffer([]byte("invalid payload")))
+	req.Header.Set("Content-Type", "application/json")
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	// Act
+	w.ResetActiveWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusBadRequest, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Invalid request payload", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestResetActiveWorkflow_MissingFields() {
+	// Arrange
+	resetRequest := models.ResetActiveWorkflow{}
+	body, _ := json.Marshal(resetRequest)
+	req, _ := http.NewRequest("POST", "/reset", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	// Act
+	w.ResetActiveWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusBadRequest, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Missing required fields", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestResetActiveWorkflow_NotFound() {
+	// Arrange
+	suite.mockDB.throwError = true
+	suite.mockDB.Error = gorm.ErrRecordNotFound
+
+	resetRequest := models.ResetActiveWorkflow{
+		DisputeID:    new(int64),
+		CurrentState: new(string),
+		Deadline:     new(time.Time),
+	}
+	*resetRequest.DisputeID = 1
+	*resetRequest.CurrentState = "new_state"
+	*resetRequest.Deadline = time.Now().Add(24 * time.Hour)
+
+	body, _ := json.Marshal(resetRequest)
+	req, _ := http.NewRequest("POST", "/reset", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	// Act
+	w.ResetActiveWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusNotFound, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Active workflow not found", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestResetActiveWorkflow_DBError() {
+	// Arrange
+	suite.mockDB.throwError = true
+
+	resetRequest := models.ResetActiveWorkflow{
+		DisputeID:    new(int64),
+		CurrentState: new(string),
+		Deadline:     new(time.Time),
+	}
+	*resetRequest.DisputeID = 1
+	*resetRequest.CurrentState = "new_state"
+	*resetRequest.Deadline = time.Now().Add(24 * time.Hour)
+
+	body, _ := json.Marshal(resetRequest)
+	req, _ := http.NewRequest("POST", "/reset", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	w := workflow.Workflow{
+		DB: suite.mockDB,
+	}
+
+	// Act
+	w.ResetActiveWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
+
+func (suite *WorkflowTestSuite) TestResetActiveWorkflow_OrchestratorError() {
+	// Arrange
+	suite.mockDB.throwError = false
+	suite.mockDB.ReturnActiveWorkflow = &models.ActiveWorkflows{
+		ID:           1,
+		CurrentState: "initial",
+	}
+	suite.mockOrchestrator.throwError = true
+	suite.mockOrchestrator.Error = errors.New("Orchestrator error")
+
+	resetRequest := models.ResetActiveWorkflow{
+		DisputeID:    new(int64),
+		CurrentState: new(string),
+		Deadline:     new(time.Time),
+	}
+	*resetRequest.DisputeID = 1
+	*resetRequest.CurrentState = "new_state"
+	*resetRequest.Deadline = time.Now().Add(24 * time.Hour)
+
+	body, _ := json.Marshal(resetRequest)
+	req, _ := http.NewRequest("POST", "/reset", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	wr := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(wr)
+	c.Request = req
+
+	w := workflow.Workflow{
+		DB:            suite.mockDB,
+		EnvReader:     env.NewEnvLoader(),
+		OrchestratorEntity: suite.mockOrchestrator,
+	}
+
+	// Act
+	w.ResetActiveWorkflow(c)
+
+	// Assert
+	suite.Equal(http.StatusInternalServerError, wr.Code)
+	var response models.Response
+	err := json.Unmarshal(wr.Body.Bytes(), &response)
+	suite.NoError(err)
+	suite.Equal("Internal Server Error", response.Error)
+}
 func (suite *WorkflowTestSuite) TestDeleteWorkflow_Success() {
 	// Arrange
 	suite.mockDB.throwError = false

@@ -552,6 +552,9 @@ export async function getWorkflowList(req: WorkflowListRequest): Promise<Workflo
       [wf.name, wf.author.full_name].join(" ").toLowerCase().includes(req.search!.toLowerCase())
     );
   }
+
+  data = data.slice(req.offset ?? 0, req.limit ? (req.offset ?? 0) + req.limit : undefined);
+
   return {
     total: count,
     workflows: data,

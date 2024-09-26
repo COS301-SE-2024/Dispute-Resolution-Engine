@@ -75,7 +75,9 @@ function WorkflowRow(props: WorkflowSummary) {
   return (
     <TableRow className="text-nowrap truncate">
       <TableCell className="font-medium hover:underline">
-        <Link href={`/workflows/designer/${props.id}`}>{props.name}</Link>
+        <Link href={{ pathname: "/workflows/designer", query: { id: props.id } }}>
+          {props.name}
+        </Link>
       </TableCell>
       <TableCell>{props.author.full_name}</TableCell>
       <TableCell className="text-center">{props.date_created}</TableCell>

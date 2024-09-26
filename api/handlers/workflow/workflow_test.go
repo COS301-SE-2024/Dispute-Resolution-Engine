@@ -42,6 +42,7 @@ type mockDB struct {
 	throwError           bool
 	Error                error
 	ReturnWorkflowArray  []models.GetWorkflowResponse
+	ReturnDetailedWorkflow *models.DetailedWorkflowResponse
 	ReturnWorkflow       *models.Workflow
 	ReturnDispute        *models.Dispute
 	ReturnTagArray       []models.Tag
@@ -56,11 +57,18 @@ func (m *mockDB) GetWorkflowsWithLimitOffset(limit, offset *int, name *string) (
 	return m.ReturnWorkflowArray, nil
 }
 
-func (m *mockDB) GetWorkflowByID(id uint64) (*models.Workflow, error) {
+func (m *mockDB) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
 	if m.throwError {
 		return nil, m.Error
 	}
 	return m.ReturnWorkflow, nil
+}
+
+func (m *mockDB) GetWorkflowByID(id uint64) (*models.DetailedWorkflowResponse, error) {
+	if m.throwError {
+		return nil, m.Error
+	}
+	return m.ReturnDetailedWorkflow, nil
 }
 
 func (m *mockDB) GetActiveWorkflowByWorkflowID(workflowID uint64) (*models.ActiveWorkflows, error) {

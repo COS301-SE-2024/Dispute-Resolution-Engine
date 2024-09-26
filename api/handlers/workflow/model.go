@@ -115,7 +115,23 @@ func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int, s
 	return response, nil
 }
 
+func (wfmr *workflowModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
+	var workflow models.Workflow
 
+	// Create a query object
+	query := wfmr.DB.Model(&models.Workflow{})
+	query = query.Where("id = ?", id)
+
+	// Execute the query
+	result := query.First(&workflow)
+
+	// Handle any errors
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &workflow, nil
+}
 
 
 func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.DetailedWorkflowResponse, error) {

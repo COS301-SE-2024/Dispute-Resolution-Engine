@@ -198,7 +198,7 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 
 	// Find the existing workflow
 	var existingWorkflow *models.Workflow
-	existingWorkflow, err = w.DB.GetWorkflowByID(uint64(idInt))
+	existingWorkflow, err = w.DB.GetWorkflowRecordByID(uint64(idInt))
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			logger.Warnf("Workflow with ID %s not found", id)
@@ -291,7 +291,7 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 
 	// Find the workflow record
 	var workflow *models.Workflow
-	workflow, result := w.DB.GetWorkflowByID(uint64(idInt))
+	workflow, result := w.DB.GetWorkflowRecordByID(uint64(idInt))
 	if result != nil {
 		if result == gorm.ErrRecordNotFound {
 			logger.Warnf("Workflow with ID %s not found", id)
@@ -356,7 +356,7 @@ func (w Workflow) NewActiveWorkflow(c *gin.Context) {
 	}
 
 	// Find the workflow
-	workflow, result := w.DB.GetWorkflowByID(uint64(*newActiveWorkflow.Workflow))
+	workflow, result := w.DB.GetWorkflowRecordByID(uint64(*newActiveWorkflow.Workflow))
 	if result != nil {
 		if result == gorm.ErrRecordNotFound {
 			logger.Warnf("Workflow with ID %d not found", newActiveWorkflow.Workflow)

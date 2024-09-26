@@ -69,6 +69,32 @@ type AdminDisputeSummariesResponse struct {
 	DateResolved *string      `json:"date_resolved,omitempty" gorm:"column:date_resolved"`
 }
 
+type TicketUser struct {
+	ID       string `gorm:"column:first_name" json:"id"`
+	FullName string `gorm:"column:surname" json:"full_name"`
+}
+
+type TicketSummaryResponse struct {
+	ID          string     `json:"id"`
+	User        TicketUser `json:"user"`
+	DateCreated string     `json:"date_created"`
+	Subject     string     `json:"subject"`
+	Status      string     `json:"status"`
+}
+
+type TicketMessage struct {
+	ID       string     `json:"id"`
+	User     TicketUser `json:"user"`
+	DateSent string     `json:"date_sent"`
+	Message  string     `json:"message"`
+}
+
+type TicketsByUser struct {
+	TicketSummaryResponse
+	Body     string           `json:"body"`
+	Messages []TicketMessages `json:"messages"`
+}
+
 type GetWorkflowResponse struct {
 	ID          int64     `json:"id"`
 	Name        string    `json:"name"`
@@ -82,7 +108,7 @@ type AuthorSum struct {
 	FullName string `json:"full_name"`
 }
 type WorkflowResult struct {
-	Total int `json:"total"`
+	Total     int                   `json:"total"`
 	Workflows []GetWorkflowResponse `json:"workflows"`
 }
 

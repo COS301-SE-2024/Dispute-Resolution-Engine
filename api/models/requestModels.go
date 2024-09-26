@@ -209,6 +209,35 @@ type AdminDisputesRequest struct {
 	DateFilter *DateFilter `json:"dateFilter,omitempty"`
 }
 
+
+type TicketsRequest struct {
+	// Search term for the title of disputes
+	Search *string `json:"search,omitempty"`
+
+	// Pagination parameters
+	Limit  *int `json:"limit,omitempty"`
+	Offset *int `json:"offset,omitempty"`
+
+	Sort *Sort `json:"sort,omitempty"`
+
+	// The filters to apply to data
+	Filter []Filter `json:"filter,omitempty"`
+}
+
+type PatchTicketStatus struct {
+	Status string `json:"status"`
+}
+
+type TicketMessageCreate struct {
+	Message string `json:"message"`
+}
+
+type TicketCreate struct {
+	DisputeID int64  `json:"dispute_id"`
+	Subject   string `json:"subject"`
+	Body      string `json:"body"`
+}
+
 type ViewExpetRejectionsRequest struct {
 	Expert_id *int64 `json:"expert_id,omitempty"`
 	Dispute_id *int64 `json:"dispute_id,omitempty"`

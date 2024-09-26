@@ -1,57 +1,56 @@
 # Admin Dashboard
 
+## Helper Types
+
+```ts
+export interface Sort<T extends string> {
+  // The attribute to sort by
+  attr: T;
+
+  // Sort order defaults to 'asc' if unspecified
+  order?: "asc" | "desc";
+}
+
+export interface Filter<T extends string> {
+  // The attribute to filter by
+  attr: T;
+
+  // The value to search for.
+  value: string;
+}
+```
+
+# Disputes
+
 - **Endpoint:** `POST /disputes`
 - **Headers:**
   - `Authorization: Bearer <JWT>`
 
 ```ts
-type SortOrder = "asc" | "desc";
-type SortAttribute =
-    | "title" 
-    | "status" 
-    | "workflow" 
-    | "date_filed" 
-    | "date_resolved";
-
-type FilterAttribute =
-    | "status"
-    | "workflow";
-
-interface Filter {
-      // The attribute to filter by
-      attr: FilterAttribute;
-
-      // The value to search for.
-      value: string;
-}
+type SortAttribute = "title" | "status" | "workflow" | "date_filed" | "date_resolved";
+type FilterAttribute = "status" | "workflow";
 
 interface AdminDisputesRequest {
   // Search term for the title of disputes
-  search: string;
+  search?: string;
 
   // Pagination parameters
   limit?: number;
   offset?: number;
 
-  sort?: {
-    // The attribute to sort by
-    attr: SortAttribute,
-
-    // Sort order defaults to 'asc' if unspecified
-    order?: SortOrder;
-  };
+  sort?: Sort<SortAttribute>;
 
   // The filters to apply to data
-  filter: Filter[];
+  filter?: Filter<FilterAttribute>[];
 
   dateFilter?: {
     filed?: {
-       // Filter all disputes filed before the passed-in value (inclusive)
-       before?: string
+      // Filter all disputes filed before the passed-in value (inclusive)
+      before?: string;
 
-       // Filter all disputes filed after the passed-in value (inclusive)
-       after?: string;
-    }
+      // Filter all disputes filed after the passed-in value (inclusive)
+      after?: string;
+    };
 
     // Specifying this filter would eliminate all unresolved disputes
     resolved?: {
@@ -60,12 +59,13 @@ interface AdminDisputesRequest {
 
       // Filter all disputes resolved before the passed-in value (inclusive)
       after?: string;
-    }
-  }
+    };
+  };
 }
 ```
 
 The response will be an array of disputes:
+
 ```ts
 type AdminDisputes = Array<{
   id: string;
@@ -76,7 +76,7 @@ type AdminDisputes = Array<{
   workflow: {
     id: string;
     title: string;
-  },
+  };
 
   date_filed: string;
 
@@ -87,7 +87,5 @@ type AdminDisputes = Array<{
 type AdminDisputesResponse = {
   data: AdminDisputes;
   total?: int;
-}
-
+};
 ```
-

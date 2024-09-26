@@ -74,13 +74,13 @@ type Dispute struct {
 }
 
 type Workflow struct {
-	ID         uint64          `gorm:"primaryKey;autoIncrement"`
-	Name       string          `gorm:"type:varchar(100);not null"`
-	Definition json.RawMessage `gorm:"column:definition;type:jsonb"`
-	CreatedAt  time.Time       `gorm:"autoCreateTime"`
-	LastUpdated time.Time      `gorm:"autoUpdateTime"`
-	AuthorID int64 `gorm:"column:author"`
-	Author   *User `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
+	ID          uint64          `gorm:"primaryKey;autoIncrement"`
+	Name        string          `gorm:"type:varchar(100);not null"`
+	Definition  json.RawMessage `gorm:"column:definition;type:jsonb"`
+	CreatedAt   time.Time       `gorm:"autoCreateTime"`
+	LastUpdated time.Time       `gorm:"autoUpdateTime"`
+	AuthorID    int64           `gorm:"column:author"`
+	Author      *User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
 }
 
 func (Workflow) TableName() string {
@@ -231,6 +231,25 @@ type ExpertObjection struct {
 
 func (ExpertObjection) TableName() string {
 	return "expert_objections"
+}
+
+type Ticket struct {
+	ID             int64     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
+	CreatedAt      time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
+	CreatedBy      int64     `gorm:"not null;column:created_by" json:"created_by"`
+	DisputeID      int64     `gorm:"not null;column:dispute_id" json:"dispute_id"`
+	Subject        string    `gorm:"not null;type:varchar(255);column:subject" json:"subject"`
+	Status         string    `gorm:"not null;type:ticket_status_enum;column:status" json:"status"`
+	InitialMessage string    `gorm:"type:text;column:initial_message" json:"initial_message"`
+}
+
+type TicketMessages struct {
+	ID        int64     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
+	UserID    int64     `gorm:"not null;column:user_id" json:"user_id"`
+	CreatedAt time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
+	Content   string    `gorm:"type:text;not null;column:content" json:"content"`
+	FirstName string    `gorm:"type:varchar(50);column:first_name" json:"first_name"`
+	Surname   string    `gorm:"type:varchar(50);column:surname" json:"surname"`
 }
 
 type ActiveWorkflows struct {

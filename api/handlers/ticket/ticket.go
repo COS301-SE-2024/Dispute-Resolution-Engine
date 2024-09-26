@@ -20,7 +20,7 @@ func SetupTicketRoutes(g *gin.RouterGroup, h Ticket) {
 	g.GET("/:id", h.getUserTicketDetails)
 	g.PATCH("/:id", h.patchTicketStatus)
 	g.POST("/:id/messages", h.createTicketMessage)
-	g.POST("/dispute/:id/tickets", h.createTicket)
+	g.POST("/create", h.createTicket)
 }
 
 func (h Ticket) createTicket(c *gin.Context) {
@@ -47,21 +47,15 @@ func (h Ticket) createTicket(c *gin.Context) {
 		return
 	}
 
-	disputeID := c.Param("id")
-	if disputeID == "" {
-		logger.Error("No dispute ID provided")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "No dispute ID provided"})
-		return
-	}
+	disputeID := createReq.DisputeID
 
-	disputeIntID, err := strconv.Atoi(disputeID)
 	if err != nil {
 		logger.WithError(err).Error("Invalid dispute ID")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid dispute ID"})
 		return
 	}
 
-	ticket, err := h.Model.createTicket(claims.ID, int64(disputeIntID), createReq.Subject, createReq.Body)
+	ticket, err := h.Model.createTicket(claims.ID, disputeID, createReq.Subject, createReq.Body)
 	if err != nil {
 		logger.WithError(err).Error("Error creating ticket")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating ticket"})

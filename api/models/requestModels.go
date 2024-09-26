@@ -230,6 +230,7 @@ type TicketMessageCreate struct {
 }
 
 type TicketCreate struct {
-	Subject string `json:"subject"`
-	Body    string `json:"body"`
+	DisputeID int64  `json:"dispute_id"`
+	Subject   string `json:"subject"`
+	Body      string `json:"body"`
 }

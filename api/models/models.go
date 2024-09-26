@@ -245,3 +245,22 @@ type ActiveWorkflows struct {
 func (ActiveWorkflows) TableName() string {
 	return "active_workflows"
 }
+
+type ExpertObjectionsView struct {
+	ObjectionID        int       `gorm:"column:objection_id"`
+	ObjectionCreatedAt time.Time `gorm:"column:objection_created_at"`
+	DisputeID          int       `gorm:"column:dispute_id"`
+	DisputeTitle       string    `gorm:"column:dispute_title"`
+	ExpertID           int       `gorm:"column:expert_id"`
+	ExpertFullName     string    `gorm:"column:expert_full_name"`
+	UserID             int       `gorm:"column:user_id"`
+	UserFullName       string    `gorm:"column:user_full_name"`
+	Reason             string    `gorm:"column:reason"`
+	ObjectionStatus    string    `gorm:"column:objection_status"`
+}
+
+// TableName overrides the default table name for GORM
+func (ExpertObjectionsView) TableName() string {
+	return "expert_objections_view"
+
+}

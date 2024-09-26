@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -30,6 +31,7 @@ type DisputeModel interface {
 	GetEvidenceByDispute(disputeId int64) ([]models.Evidence, error)
 	GetDisputeExperts(disputeId int64) ([]models.Expert, error)
 
+	GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, int64, error)
 	GetDisputesByUser(userId int64) ([]models.Dispute, error)
 	GetDispute(disputeId int64) (models.Dispute, error)
 
@@ -39,6 +41,7 @@ type DisputeModel interface {
 
 	ObjectExpert(userId, disputeId, expertId int64, reason string) error
 	ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error
+	GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error)
 
 	CreateDefaultUser(email string, fullName string, pass string) error
 	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
@@ -280,7 +283,7 @@ func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var expertObjections models.ExpertObjection
-	if err := m.db.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeId, expertId, models.ExpertReview).First(&expertObjections).Error; err != nil {
+	if err := m.db.Where("dispute_id = ? AND expert_id = ?", disputeId, expertId).First(&expertObjections).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving expert objections")
 		return err
 	}
@@ -487,4 +490,203 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 		logger.WithError(err).Error("Error inserting the summary.")
 		return
 	}
+}
+
+func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, int64, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var disputes []models.AdminDisputeSummariesResponse = []models.AdminDisputeSummariesResponse{}
+	var queryString strings.Builder
+	var countString strings.Builder
+	var countParams []interface{}
+	var queryParams []interface{}
+
+	queryString.WriteString("SELECT id, title, status, case_date, date_resolved FROM disputes")
+	countString.WriteString("SELECT COUNT(*) FROM disputes")
+	if searchTerm != nil {
+		queryString.WriteString(" WHERE disputes.title LIKE ?")
+		countString.WriteString(" WHERE disputes.title LIKE ?")
+		queryParams = append(queryParams, "%"+*searchTerm+"%")
+		countParams = append(countParams, "%"+*searchTerm+"%")
+	}
+
+	if filters != nil && len(*filters) > 0 {
+		if searchTerm != nil {
+			queryString.WriteString(" AND ")
+			countString.WriteString(" AND ")
+		} else {
+			queryString.WriteString(" WHERE ")
+			countString.WriteString(" WHERE ")
+		}
+		for i, filter := range *filters {
+			queryString.WriteString(filter.Attr + " = ?")
+			countString.WriteString(filter.Attr + " = ?")
+			queryParams = append(queryParams, filter.Value)
+			countParams = append(countParams, filter.Value)
+			if i < len(*filters)-1 {
+				queryString.WriteString(" AND ")
+				countString.WriteString(" AND ")
+			}
+		}
+	}
+
+	if dateFilter != nil {
+		if searchTerm != nil || (filters != nil && len(*filters) > 0) {
+			queryString.WriteString(" AND ")
+			countString.WriteString(" AND ")
+		} else {
+			queryString.WriteString(" WHERE ")
+			countString.WriteString(" WHERE ")
+		}
+		if dateFilter.Filed != nil {
+			if dateFilter.Filed.Before != nil {
+				queryString.WriteString("disputes.case_date < ? ")
+				countString.WriteString("disputes.case_date < ? ")
+				queryParams = append(queryParams, *dateFilter.Filed.Before)
+				countParams = append(countParams, *dateFilter.Filed.Before)
+			}
+			if dateFilter.Filed.After != nil {
+				if dateFilter.Filed.Before != nil {
+					queryString.WriteString("AND ")
+					countString.WriteString("AND ")
+				}
+				queryString.WriteString("disputes.case_date > ? ")
+				countString.WriteString("disputes.case_date > ? ")
+				queryParams = append(queryParams, *dateFilter.Filed.After)
+				countParams = append(countParams, *dateFilter.Filed.After)
+			}
+		}
+		if dateFilter.Resolved != nil {
+			if dateFilter.Resolved.Before != nil {
+				if dateFilter.Filed != nil {
+					queryString.WriteString("AND ")
+					countString.WriteString("AND ")
+				}
+				queryString.WriteString("disputes.date_resolved < ? ")
+				countString.WriteString("disputes.date_resolved < ? ")
+				queryParams = append(queryParams, *dateFilter.Resolved.Before)
+				countParams = append(countParams, *dateFilter.Resolved.Before)
+			}
+			if dateFilter.Resolved.After != nil {
+				if dateFilter.Filed != nil || dateFilter.Resolved.Before != nil {
+					queryString.WriteString("AND ")
+					countString.WriteString("AND ")
+				}
+				queryString.WriteString("disputes.date_resolved > ? ")
+				countString.WriteString("disputes.date_resolved > ? ")
+				queryParams = append(queryParams, *dateFilter.Resolved.After)
+				countParams = append(countParams, *dateFilter.Resolved.After)
+			}
+		}
+	}
+
+	validSortAttrs := map[string]bool{
+		"id":            true,
+		"case_date":     true,
+		"workflow":      true,
+		"status":        true,
+		"title":         true,
+		"description":   true,
+		"complainant":   true,
+		"respondant":    true,
+		"date_resolved": true,
+	}
+
+	if _, valid := validSortAttrs[sort.Attr]; !valid {
+		return disputes, 0, errors.New("invalid sort attribute")
+	}
+
+	if sort.Order != "asc" && sort.Order != "desc" {
+		sort.Order = "asc"
+	}
+
+	queryString.WriteString(" ORDER BY " + sort.Attr + " " + sort.Order)
+
+	if limit != nil {
+		queryString.WriteString(" LIMIT ?")
+		queryParams = append(queryParams, *limit)
+	}
+	if offset != nil {
+		queryString.WriteString(" OFFSET ?")
+		queryParams = append(queryParams, *offset)
+	}
+
+	//get relevant disputes data
+	var intermediateDisputes []models.AdminIntermediate
+	err := m.db.Raw(queryString.String(), queryParams...).Scan(&intermediateDisputes).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving disputes")
+		return disputes, 0, err
+	}
+
+	var countRows int64 = 0
+	err = m.db.Raw(countString.String(), countParams...).Scan(&countRows).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute count")
+		return disputes, 0, err
+	}
+
+	//take the intermediate disputes and fill in the admin response information
+	for _, dispute := range intermediateDisputes {
+		var disputeResp models.AdminDisputeSummariesResponse
+		disputeResp.Id = dispute.Id
+		disputeResp.Title = dispute.Title
+		disputeResp.Status = dispute.Status
+		disputeResp.DateFiled = dispute.CaseDate.Format("2006-01-02")
+		//get the workflow
+		var workflow models.WorkflowResp
+		err = m.db.Raw("SELECT id, name FROM workflows WHERE id = (SELECT workflow FROM disputes WHERE id = ?)", dispute.Id).First(&workflow).Error
+		if err != nil {
+			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
+		}
+		disputeResp.Workflow = workflow
+		//get the date resolved
+		if dispute.DateResolved != nil {
+			dateResolved := dispute.DateResolved.Format("2006-01-02")
+			disputeResp.DateResolved = &dateResolved
+		}
+
+		disputes = append(disputes, disputeResp)
+	}
+
+	return disputes, countRows, err
+}
+
+func (m *disputeModelReal) GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var rejections []models.ExpertObjectionsView = []models.ExpertObjectionsView{}
+	var queryString strings.Builder
+	var queryParams []interface{}
+
+	queryString.WriteString("SELECT * FROM expert_objections_view")
+	if expertID != nil || disputeID != nil {
+		queryString.WriteString(" WHERE ")
+		if expertID != nil {
+			queryString.WriteString("expert_id = ?")
+			queryParams = append(queryParams, *expertID)
+		}
+		if disputeID != nil {
+			if expertID != nil {
+				queryString.WriteString(" AND ")
+			}
+			queryString.WriteString("dispute_id = ?")
+			queryParams = append(queryParams, *disputeID)
+		}
+	}
+
+	if limit != nil {
+		queryString.WriteString(" LIMIT ?")
+		queryParams = append(queryParams, *limit)
+	}
+	if offset != nil {
+		queryString.WriteString(" OFFSET ?")
+		queryParams = append(queryParams, *offset)
+	}
+	fmt.Println(queryString.String())
+	err := m.db.Raw(queryString.String(), queryParams...).Scan(&rejections).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving expert rejections")
+		return rejections, err
+	}
+
+	return rejections, err
 }

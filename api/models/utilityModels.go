@@ -83,3 +83,11 @@ type DefaultUser struct {
 	FirstName string
 	Surname   string
 }
+
+type AdminIntermediate struct {
+	Id           int64      `gorm:"column:id"`
+	Title        string     `gorm:"column:title"`
+	Status       string     `gorm:"column:status"`
+	CaseDate     time.Time  `gorm:"column:case_date"`
+	DateResolved *time.Time `gorm:"column:date_resolved"`
+}

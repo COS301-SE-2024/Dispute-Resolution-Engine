@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { ReactNode } from "react";
 import { DisputeStatus } from "@/lib/types/dispute";
+import { TICKET_STATUS, TicketStatus } from "@/lib/types/tickets";
+import { TicketStatusBadge } from "./status-badge";
 
 const statusVariants = cva("", {
   variants: {
@@ -86,6 +88,31 @@ export function StatusDropdown({
         <DropdownMenuItem onSelect={() => onSelect("Refused")}>
           <StatusBadge variant="inactive">Refused</StatusBadge>
         </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+export function TicketStatusDropdown({
+  onSelect = () => {},
+  children,
+  disabled,
+}: {
+  onSelect?: (status: TicketStatus) => void;
+  children: ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger disabled={disabled} className="disabled:opacity-50">
+        {children}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="rounded-md">
+        {TICKET_STATUS.map((status) => (
+          <DropdownMenuItem key={status} onSelect={() => onSelect(status)}>
+            <TicketStatusBadge variant={status}>{status}</TicketStatusBadge>
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

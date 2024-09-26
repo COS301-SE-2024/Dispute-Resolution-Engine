@@ -78,7 +78,7 @@ type Workflow struct {
 	Name       string          `gorm:"type:varchar(100);not null"`
 	Definition json.RawMessage `gorm:"column:definition;type:jsonb"`
 	CreatedAt  time.Time       `gorm:"autoCreateTime"`
-
+	LastUpdated time.Time      `gorm:"autoUpdateTime"`
 	AuthorID int64 `gorm:"column:author"`
 	Author   *User `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
 }

@@ -41,7 +41,7 @@ func (o *OrchestratorMock) MakeRequestToOrchestrator(endpoint string, payload wo
 type mockDB struct {
 	throwError           bool
 	Error                error
-	ReturnWorkflowArray  []models.Workflow
+	ReturnWorkflowArray  []models.GetWorkflowResponse
 	ReturnWorkflow       *models.Workflow
 	ReturnDispute        *models.Dispute
 	ReturnTagArray       []models.Tag
@@ -49,7 +49,7 @@ type mockDB struct {
 	ReturnActiveWorkflow *models.ActiveWorkflows
 }
 
-func (m *mockDB) GetWorkflowsWithLimitOffset(limit, offset *int) ([]models.Workflow, error) {
+func (m *mockDB) GetWorkflowsWithLimitOffset(limit, offset *int, name *string) ([]models.GetWorkflowResponse, error) {
 	if m.throwError {
 		return nil, m.Error
 	}
@@ -897,13 +897,9 @@ func (suite *WorkflowTestSuite) TestGetIndividualWorkflow_QueryTagsError() {
 func (suite *WorkflowTestSuite) TestGetWorkflows_Success() {
 	// Arrange
 	suite.mockDB.throwError = false
-	suite.mockDB.ReturnWorkflowArray = []models.Workflow{
+	suite.mockDB.ReturnWorkflowArray = []models.GetWorkflowResponse{
 		{ID: 1, Name: "Workflow 1"},
 		{ID: 2, Name: "Workflow 2"},
-	}
-	suite.mockDB.ReturnTagArray = []models.Tag{
-		{ID: 1, TagName: "Tag 1"},
-		{ID: 2, TagName: "Tag 2"},
 	}
 
 	w := workflow.Workflow{
@@ -997,7 +993,7 @@ func (suite *WorkflowTestSuite) TestGetWorkflows_DBError() {
 func (suite *WorkflowTestSuite) TestGetWorkflows_QueryTagsError() {
 	// Arrange
 	suite.mockDB.throwError = false
-	suite.mockDB.ReturnWorkflowArray = []models.Workflow{
+	suite.mockDB.ReturnWorkflowArray = []models.GetWorkflowResponse{
 		{ID: 1, Name: "Workflow 1"},
 	}
 	suite.mockDB.throwError = true

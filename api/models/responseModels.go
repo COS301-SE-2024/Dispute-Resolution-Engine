@@ -65,3 +65,16 @@ type AdminDisputeSummariesResponse struct {
 	DateFiled    string       `json:"date_filed"`
 	DateResolved *string      `json:"date_resolved,omitempty" gorm:"column:date_resolved"`
 }
+
+type GetWorkflowResponse struct {
+	ID          int64     `json:"id"`
+	Name        string    `json:"name"`
+	DateCreated time.Time `json:"date_created"`
+	LastUpdated time.Time `json:"last_updated"`
+	Author      AuthorSum `json:"author"`
+}
+
+type AuthorSum struct {
+	ID       int64  `json:"id"`
+	FullName string `json:"full_name"`
+}

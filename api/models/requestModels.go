@@ -240,3 +240,9 @@ type ResetActiveWorkflow struct {
 	CurrentState *string   `json:"current_state,omitempty"`
 	Deadline     *time.Time `json:"deadline,omitempty"`
 }
+
+type GetWorkflow struct {
+	Search *string `json:"search,omitempty"`
+	Limit  *int    `json:"limit,omitempty"`
+	Offset *int    `json:"offset,omitempty"`
+}

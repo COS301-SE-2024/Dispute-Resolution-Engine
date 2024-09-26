@@ -16,7 +16,7 @@ import (
 
 func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 
-	g.GET("", h.GetWorkflows)
+	g.POST("", h.GetWorkflows)
 	g.GET("/:id", h.GetIndividualWorkflow)
 	g.POST("", h.StoreWorkflow)
 	g.PUT("/:id", h.UpdateWorkflow)
@@ -36,56 +36,51 @@ type WorkflowResult struct {
 
 func (w Workflow) GetWorkflows(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	var workflows []models.Workflow
 
 	//get parameters
-	limit := c.DefaultQuery("limit", "10")
-	offset := c.DefaultQuery("offset", "0")
-
-	limitInt, err := strconv.Atoi(limit)
+	body := models.GetWorkflow{}
+	err := c.BindJSON(&body)
 	if err != nil {
 		logger.Error(err)
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid limit parameter"})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request payload"})
 		return
 	}
 
-	offsetInt, err := strconv.Atoi(offset)
+	response, err := w.DB.GetWorkflowsWithLimitOffset(body.Limit, body.Offset, body.Search)
 	if err != nil {
-		logger.Error(err)
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid offset parameter"})
-		return
-	}
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusOK, models.Response{Data: []models.Workflow{}})
+			return
+		}
 
-	workflows, err = w.DB.GetWorkflowsWithLimitOffset(&limitInt, &offsetInt)
-	if err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
 		return
 	}
 
-	// Prepare the response structure
-	var response []struct {
-		models.Workflow
-		Tags []models.Tag `json:"tags"`
-	}
+	// // Prepare the response structure
+	// var response []struct {
+	// 	models.Workflow
+	// 	Tags []models.Tag `json:"tags"`
+	// }
 
-	for _, workflow := range workflows {
-		var taggedWorkflow struct {
-			models.Workflow
-			Tags []models.Tag `json:"tags"`
-		}
+	// for _, workflow := range workflows {
+	// 	var taggedWorkflow struct {
+	// 		models.Workflow
+	// 		Tags []models.Tag `json:"tags"`
+	// 	}
 
-		taggedWorkflow.Workflow = workflow
-		// Query for tags related to each workflow, explicitly selecting the fields
-		taggedWorkflow.Tags, err = w.DB.QueryTagsToRelatedWorkflow(workflow.ID)
-		if err != nil {
-			logger.Error(err)
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-			return
-		}
+	// 	taggedWorkflow.Workflow = workflow
+	// 	// Query for tags related to each workflow, explicitly selecting the fields
+	// 	taggedWorkflow.Tags, err = w.DB.QueryTagsToRelatedWorkflow(workflow.ID)
+	// 	if err != nil {
+	// 		logger.Error(err)
+	// 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+	// 		return
+	// 	}
 
-		response = append(response, taggedWorkflow)
-	}
+	// 	response = append(response, taggedWorkflow)
+	// }
 
 	if len(response) == 0 {
 		c.JSON(http.StatusOK, models.Response{Data: []models.Workflow{}})

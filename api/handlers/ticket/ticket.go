@@ -19,6 +19,47 @@ func SetupTicketRoutes(g *gin.RouterGroup, h Ticket) {
 	g.POST("", h.getTicketList)
 	g.GET("/:id", h.getUserTicketDetails)
 	g.PATCH("/:id", h.patchTicketStatus)
+	g.POST("/:id/messages", h.createTicketMessage)
+}
+
+func (h Ticket) createTicketMessage(c *gin.Context) {
+	tickReq := models.TicketMessageCreate{}
+	if err := c.BindJSON(&tickReq); err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
+		return
+	}
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized access"})
+		return
+	}
+	ticketID := c.Param("id")
+	if ticketID == "" {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "No ticket ID provided"})
+		return
+	}
+	ticketIDInt, err := strconv.Atoi(ticketID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid ticket ID"})
+		return
+	}
+	userRole := claims.Role
+	if userRole == "admin" {
+		err = h.Model.addAdminTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error adding ticket message"})
+			return
+		}
+		c.JSON(http.StatusNoContent, nil)
+		return
+	}
+	err = h.Model.addUserTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error adding ticket message"})
+		return
+	}
+	c.JSON(http.StatusNoContent, nil)
+
 }
 
 func (h Ticket) patchTicketStatus(c *gin.Context) {

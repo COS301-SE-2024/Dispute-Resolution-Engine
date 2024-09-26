@@ -8,6 +8,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -18,6 +19,8 @@ type TicketModel interface {
 	getTicketDetails(ticketID int64, userID int64) ([]models.TicketsByUser, error)
 	getAdminTicketDetails(ticketID int64) ([]models.TicketsByUser, error)
 	patchTicketStatus(status string, ticketID int64) error
+	addUserTicketMessage(ticketID int64, userID int64, message string) error
+	addAdminTicketMessage(ticketID int64, userID int64, message string) error
 }
 
 type Ticket struct {
@@ -37,6 +40,44 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 		JWT:   middleware.NewJwtMiddleware(),
 		Env:   envReader,
 	}
+}
+
+func (t *ticketModelReal) addUserTicketMessage(ticketID int64, userID int64, message string) error {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	userTick := models.Ticket{}
+	err := t.db.Where("created_by = ?", userID).First(&userTick, ticketID).Error
+	if err != nil {
+		logger.WithError(err).Error("Unauthorized attempt to add ticket message")
+		return err
+	}
+
+	err = t.db.Exec("INSERT INTO ticket_messages (ticket_id, user_id, created_at, content) VALUES (?, ?, ?, ?)", ticketID, userID, time.Now(), message).Error
+	if err != nil {
+		logger.WithError(err).Error("Error adding ticket message")
+		return err
+	}
+
+	return nil
+}
+
+func (t *ticketModelReal) addAdminTicketMessage(ticketID int64, userID int64, message string) error {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	ticket := models.Ticket{}
+	err := t.db.First(&ticket, ticketID).Error
+	if err != nil {
+		logger.WithError(err).Error("Ticket does not exist")
+		return err
+	}
+
+	err = t.db.Exec("INSERT INTO ticket_messages (ticket_id, user_id, created_at, content) VALUES (?, ?, ?, ?)", ticketID, userID, time.Now(), message).Error
+	if err != nil {
+		logger.WithError(err).Error("Error adding ticket message")
+		return err
+	}
+
+	return nil
 }
 
 func (t *ticketModelReal) patchTicketStatus(status string, ticketID int64) error {

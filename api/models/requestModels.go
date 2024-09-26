@@ -224,3 +224,7 @@ type TicketsRequest struct {
 type PatchTicketStatus struct {
 	Status string `json:"status"`
 }
+
+type TicketMessageCreate struct {
+	Message string `json:"message"`
+}

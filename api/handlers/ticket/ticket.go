@@ -17,10 +17,10 @@ func SetupTicketRoutes(g *gin.RouterGroup, h Ticket) {
 	jwt := middleware.NewJwtMiddleware()
 	g.Use(jwt.JWTMiddleware)
 	g.POST("", h.getTicketList)
-	g.GET("/:id", h.getTicketDetails)
+	g.GET("/:id", h.getUserTicketDetails)
 }
 
-func (h Ticket) getTicketDetails(c *gin.Context) {
+func (h Ticket) getUserTicketDetails(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	ticketID := c.Param("id")
@@ -37,7 +37,34 @@ func (h Ticket) getTicketDetails(c *gin.Context) {
 		return
 	}
 
-	ticketDetails, err := h.Model.getUserTicketDetails(int64(ticketIDInt))
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		logger.Error("Unauthorized access attempt, failed to fetch claims")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized access"})
+		return
+	}
+
+	userRole := claims.Role
+
+	if userRole == "admin" {
+		ticketDetails, err := h.Model.getAdminTicketDetails(int64(ticketIDInt))
+		if err != nil {
+			logger.WithError(err).Error("Error retrieving ticket details")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving ticket details"})
+			return
+		}
+
+		c.JSON(http.StatusOK, models.Response{Data: ticketDetails})
+	}
+
+	ticketDetails, err := h.Model.getTicketDetails(int64(ticketIDInt), claims.ID)
+
+	if err.Error() == "Unauthorized ticket access attempt" {
+		logger.Error("Unauthorized ticket access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized ticket access attempt"})
+		return
+	}
+
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving ticket details")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving ticket details"})

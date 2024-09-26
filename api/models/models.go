@@ -74,13 +74,13 @@ type Dispute struct {
 }
 
 type Workflow struct {
-	ID         uint64          `gorm:"primaryKey;autoIncrement"`
-	Name       string          `gorm:"type:varchar(100);not null"`
-	Definition json.RawMessage `gorm:"column:definition;type:jsonb"`
-	CreatedAt  time.Time       `gorm:"autoCreateTime"`
-	LastUpdated time.Time      `gorm:"autoUpdateTime"`
-	AuthorID int64 `gorm:"column:author"`
-	Author   *User `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
+	ID          uint64          `gorm:"primaryKey;autoIncrement"`
+	Name        string          `gorm:"type:varchar(100);not null"`
+	Definition  json.RawMessage `gorm:"column:definition;type:jsonb"`
+	CreatedAt   time.Time       `gorm:"autoCreateTime"`
+	LastUpdated time.Time       `gorm:"autoUpdateTime"`
+	AuthorID    int64           `gorm:"column:author"`
+	Author      *User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
 }
 
 func (Workflow) TableName() string {
@@ -233,7 +233,6 @@ func (ExpertObjection) TableName() string {
 	return "expert_objections"
 }
 
-
 type Ticket struct {
 	ID             int64     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
 	CreatedAt      time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
@@ -251,6 +250,7 @@ type TicketMessages struct {
 	Content   string    `gorm:"type:text;not null;column:content" json:"content"`
 	FirstName string    `gorm:"type:varchar(50);column:first_name" json:"first_name"`
 	Surname   string    `gorm:"type:varchar(50);column:surname" json:"surname"`
+}
 
 type ActiveWorkflows struct {
 	ID               int64           `gorm:"primaryKey;autoIncrement"`
@@ -281,6 +281,5 @@ type ExpertObjectionsView struct {
 // TableName overrides the default table name for GORM
 func (ExpertObjectionsView) TableName() string {
 	return "expert_objections_view"
-
 
 }

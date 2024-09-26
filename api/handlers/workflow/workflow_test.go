@@ -421,12 +421,12 @@ func (suite *WorkflowTestSuite) TestDeleteWorkflow_FailedToDeleteWorkflow() {
 func (suite *WorkflowTestSuite) TestStoreWorkflow_Success() {
 	// Arrange
 	suite.mockDB.throwError = false
-	authorID := int64(1)
+	// authorID := int64(1)
 	workflows := models.CreateWorkflow{
 		Name:       "New Workflow",
-		Author:     &authorID,
+		// Author:     &authorID,
 		Definition: map[string]interface{}{"key": "value"},
-		Category:   []int64{1, 2},
+		// Category:   []int64{1, 2},
 	}
 
 	body, _ := json.Marshal(workflows)
@@ -478,7 +478,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_MissingFields() {
 	// Arrange
 	workflows := models.CreateWorkflow{
 		Name:       "",
-		Author:     nil,
+		// Author:     nil,
 		Definition: nil,
 	}
 
@@ -507,12 +507,12 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_MissingFields() {
 func (suite *WorkflowTestSuite) TestStoreWorkflow_DBError() {
 	// Arrange
 	suite.mockDB.throwError = true
-	authorID := int64(1)
+	// authorID := int64(1)
 	workflows := models.CreateWorkflow{
 		Name:       "New Workflow",
-		Author:     &authorID,
+		// Author:     &authorID,
 		Definition: map[string]interface{}{"key": "value"},
-		Category:   []int64{1, 2},
+		// Category:   []int64{1, 2},
 	}
 
 	body, _ := json.Marshal(workflows)
@@ -540,12 +540,12 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_DBError() {
 func (suite *WorkflowTestSuite) TestStoreWorkflow_FailedToLinkTags() {
 	// Arrange
 	suite.mockDB.throwError = false
-	authorID := int64(1)
+	// authorID := int64(1)
 	workflows := models.CreateWorkflow{
 		Name:       "New Workflow",
-		Author:     &authorID,
+		// Author:     &authorID,
 		Definition: map[string]interface{}{"key": "value"},
-		Category:   []int64{1, 2},
+		// Category:   []int64{1, 2},
 	}
 
 	body, _ := json.Marshal(workflows)

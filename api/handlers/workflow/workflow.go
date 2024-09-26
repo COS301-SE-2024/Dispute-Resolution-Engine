@@ -143,6 +143,13 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		return
 	}
 
+	//get details form jwt
+	claims, err := w.Jwt.GetClaims(c)
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get user details"})
+		return
+	}
 	//comvert map[string] to raw json
 	workflowDefinition, err := json.Marshal(workflow.Definition)
 	if err != nil {
@@ -152,7 +159,7 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 	}
 
 	//check all fields present
-	if workflow.Name == "" || workflow.Author == nil || (workflow.Definition == nil || len(workflow.Definition) == 0) {
+	if workflow.Name == "" || (workflow.Definition == nil || len(workflow.Definition) == 0) {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing required fields"})
 		return
 	}
@@ -160,7 +167,7 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 	res := &models.Workflow{
 		Name:       workflow.Name,
 		Definition: workflowDefinition,
-		AuthorID:   *workflow.Author,
+		AuthorID:   claims.ID,
 	}
 
 	// Store the workflow in the database
@@ -171,17 +178,17 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		return
 	}
 
-	for _, tagID := range workflow.Category {
-		labelledWorkflow := models.WorkflowTags{
-			WorkflowID: res.ID,
-			TagID:      uint64(tagID),
-		}
-		if err := w.DB.CreateWorkflowTag(&labelledWorkflow); err != nil {
-			logger.Error(err)
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to link workflow with tags"})
-			return
-		}
-	}
+	// for _, tagID := range workflow.Category {
+	// 	labelledWorkflow := models.WorkflowTags{
+	// 		WorkflowID: res.ID,
+	// 		TagID:      uint64(tagID),
+	// 	}
+	// 	if err := w.DB.CreateWorkflowTag(&labelledWorkflow); err != nil {
+	// 		logger.Error(err)
+	// 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to link workflow with tags"})
+	// 		return
+	// 	}
+	// }
 
 	c.JSON(http.StatusOK, models.Response{Data: res})
 }

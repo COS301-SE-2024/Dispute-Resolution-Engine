@@ -219,8 +219,7 @@ type ViewExpetRejectionsRequest struct {
 type CreateWorkflow struct {
 	Name       string                 `json:"name,omitempty"`
 	Definition map[string]interface{} `json:"definition,omitempty"`
-	Category   []int64                `json:"category,omitempty"`
-	Author     *int64                 `json:"author,omitempty"`
+	// Category   []int64                `json:"category,omitempty"`
 }
 
 type UpdateWorkflow struct {

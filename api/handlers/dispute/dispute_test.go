@@ -47,6 +47,8 @@ type DisputeErrorTestSuite struct {
 	emailMock   *mockEmailModel
 	router      *gin.Engine
 	auditMock   *mockAuditLogger
+	mockOrchestrator *mockOrchestrator
+	mockEnv 	*mockEnv
 }
 
 func (suite *DisputeErrorTestSuite) SetupTest() {
@@ -54,8 +56,10 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 	suite.jwtMock = &mockJwtModel{}
 	suite.emailMock = &mockEmailModel{}
 	suite.auditMock = &mockAuditLogger{}
+	suite.mockOrchestrator = &mockOrchestrator{}
+	suite.mockEnv = &mockEnv{}
 
-	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock}
+	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock, OrchestratorEntity: suite.mockOrchestrator, Env: suite.mockEnv}
 	gin.SetMode("release")
 	router := gin.Default()
 	router.Use(suite.jwtMock.JWTMiddleware)
@@ -89,6 +93,42 @@ func createFileField(w *multipart.Writer, field, filename, value string) {
 }
 
 // ---------------------------------------------------------------- MODEL MOCKS
+//mock env
+
+type mockEnv struct {
+	throwErrors bool
+	Error error
+}
+
+func (m *mockEnv) LoadFromFile(files ...string) {
+}
+
+func (m *mockEnv) Register(key string) {
+}
+
+func (m *mockEnv) RegisterDefault(key, fallback string) {
+}
+
+func (m *mockEnv) Get(key string) (string, error) {
+	if m.throwErrors {
+		return "", m.Error
+	}
+	return "", nil
+}
+
+
+//mock orchestrator
+type mockOrchestrator struct {
+	throwErrors bool
+	Error error
+}
+
+func (m *mockOrchestrator) MakeRequestToOrchestrator(endpoint string, payload dispute.OrchestratorRequest) (string, error) {
+	if m.throwErrors {
+		return "", m.Error
+	}
+	return "", nil
+}
 // mock model auditlogger
 func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
 	return nil
@@ -627,104 +667,107 @@ func (suite *DisputeErrorTestSuite) TestCreateMissingFields() {
 	suite.NotEmpty(result.Error)
 }
 
-// func (suite *DisputeErrorTestSuite) TestCreateFailed() {
-// 	suite.disputeMock.throwErrors = true
+func (suite *DisputeErrorTestSuite) TestCreateFailed() {
+	suite.disputeMock.throwErrors = true
 
-// 	data := bytes.NewBuffer([]byte{})
-// 	form := multipart.NewWriter(data)
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
 
-// 	createStringField(form, "title", "Title")
-// 	createStringField(form, "description", "Desc")
-// 	createStringField(form, "respondent[full_name]", "First Last")
-// 	createStringField(form, "respondent[email]", "Email")
-// 	form.Close()
+	createStringField(form, "title", "Title")
+	createStringField(form, "description", "Desc")
+	createStringField(form, "respondent[full_name]", "First Last")
+	createStringField(form, "respondent[email]", "Email")
+	createStringField(form, "respondent[workflow]", "1")
+	form.Close()
 
-// 	req, _ := http.NewRequest("POST", "/create", data)
-// 	req.Header.Add("Authorization", "Bearer mock")
-// 	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", form.Boundary()))
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", form.Boundary()))
 
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
-// 	var result models.Response
-// 	suite.Equal(http.StatusInternalServerError, w.Code)
-// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-// 	suite.NotEmpty(result.Error)
-// }
+	var result models.Response
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
 
-// func (suite *DisputeErrorTestSuite) TestCreateSuccess() {
-// 	data := bytes.NewBuffer([]byte{})
-// 	form := multipart.NewWriter(data)
+func (suite *DisputeErrorTestSuite) TestCreateSuccess() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
 
-// 	createStringField(form, "title", "Title")
-// 	createStringField(form, "description", "Desc")
-// 	createStringField(form, "respondent[full_name]", "First Last")
-// 	createStringField(form, "respondent[email]", "Email")
-// 	form.Close()
+	createStringField(form, "title", "Title")
+	createStringField(form, "description", "Desc")
+	createStringField(form, "respondent[full_name]", "First Last")
+	createStringField(form, "respondent[email]", "Email")
+	createStringField(form, "respondent[workflow]", "1")
+	form.Close()
 
-// 	req, _ := http.NewRequest("POST", "/create", data)
-// 	req.Header.Add("Authorization", "Bearer mock")
-// 	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", form.Boundary()))
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", form.Boundary()))
 
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
-// 	var result struct {
-// 		Data map[string]interface{} `json:"data"`
-// 	}
-// 	suite.Equal(http.StatusCreated, w.Code)
-// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-// 	suite.NotEmpty(result.Data)
-// }
+	var result struct {
+		Data map[string]interface{} `json:"data"`
+	}
+	suite.Equal(http.StatusCreated, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+}
 
-// func (suite *DisputeErrorTestSuite) TestCreateFileUploads() {
-// 	data := bytes.NewBuffer([]byte{})
-// 	form := multipart.NewWriter(data)
+func (suite *DisputeErrorTestSuite) TestCreateFileUploads() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
 
-// 	createStringField(form, "title", "Title")
-// 	createStringField(form, "description", "Desc")
-// 	createStringField(form, "respondent[full_name]", "First Last")
-// 	createStringField(form, "respondent[email]", "Email")
+	createStringField(form, "title", "Title")
+	createStringField(form, "description", "Desc")
+	createStringField(form, "respondent[full_name]", "First Last")
+	createStringField(form, "respondent[email]", "Email")
+	createStringField(form, "respondent[workflow]", "1")
 
-// 	createFileField(form, "files", "file1.txt", "contents 1")
-// 	createFileField(form, "files", "file2.txt", "contents 2")
-// 	createFileField(form, "files", "file3.txt", "contents 3")
-// 	form.Close()
+	createFileField(form, "files", "file1.txt", "contents 1")
+	createFileField(form, "files", "file2.txt", "contents 2")
+	createFileField(form, "files", "file3.txt", "contents 3")
+	form.Close()
 
-// 	req, _ := http.NewRequest("POST", "/create", data)
-// 	req.Header.Add("Authorization", "Bearer mock")
-// 	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", form.Boundary()))
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", form.Boundary()))
 
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
-// 	var result struct {
-// 		Data map[string]interface{} `json:"data"`
-// 	}
-// 	suite.Equal(http.StatusCreated, w.Code)
-// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-// 	suite.NotEmpty(result.Data)
-// 	suite.Equal([]mockEvidence{
-// 		{
-// 			user:    0, // TODO: Replace this mocked data from the JWT
-// 			dispute: 0,
-// 			path:    filepath.Join("0/file1.txt"),
-// 			data:    "contents 1",
-// 		},
-// 		{
-// 			user:    0, // TODO: Replace this mocked data from the JWT
-// 			dispute: 0,
-// 			path:    filepath.Join("0/file2.txt"),
-// 			data:    "contents 2",
-// 		},
-// 		{
-// 			user:    0, // TODO: Replace this mocked data from the JWT
-// 			dispute: 0,
-// 			path:    filepath.Join("0/file3.txt"),
-// 			data:    "contents 3",
-// 		},
-// 	}, suite.disputeMock.evidence)
-// }
+	var result struct {
+		Data map[string]interface{} `json:"data"`
+	}
+	suite.Equal(http.StatusCreated, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+	suite.Equal([]mockEvidence{
+		{
+			user:    0, // TODO: Replace this mocked data from the JWT
+			dispute: 0,
+			path:    filepath.Join("0/file1.txt"),
+			data:    "contents 1",
+		},
+		{
+			user:    0, // TODO: Replace this mocked data from the JWT
+			dispute: 0,
+			path:    filepath.Join("0/file2.txt"),
+			data:    "contents 2",
+		},
+		{
+			user:    0, // TODO: Replace this mocked data from the JWT
+			dispute: 0,
+			path:    filepath.Join("0/file3.txt"),
+			data:    "contents 3",
+		},
+	}, suite.disputeMock.evidence)
+}
 
 // ---------------------------------------------------------------- GET DISPUTE
 

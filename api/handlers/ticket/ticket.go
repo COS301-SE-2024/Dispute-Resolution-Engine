@@ -18,6 +18,48 @@ func SetupTicketRoutes(g *gin.RouterGroup, h Ticket) {
 	g.Use(jwt.JWTMiddleware)
 	g.POST("", h.getTicketList)
 	g.GET("/:id", h.getUserTicketDetails)
+	g.PATCH("/:id", h.patchTicketStatus)
+}
+
+func (h Ticket) patchTicketStatus(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil || claims.Role != "admin" {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized access"})
+		return
+	}
+
+	ticketID := c.Param("id")
+	if ticketID == "" {
+		logger.Error("No ticket ID provided")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "No ticket ID provided"})
+		return
+	}
+
+	tickReq := models.PatchTicketStatus{}
+	if err := c.BindJSON(&tickReq); err != nil {
+		logger.WithError(err).Error("Invalid request")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
+		return
+	}
+
+	ticketIDInt, err := strconv.Atoi(ticketID)
+	if err != nil {
+		logger.WithError(err).Error("Invalid ticket ID")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid ticket ID"})
+		return
+	}
+
+	err = h.Model.patchTicketStatus(tickReq.Status, int64(ticketIDInt))
+	if err != nil {
+		logger.WithError(err).Error("Error updating ticket status")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating ticket status"})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
 }
 
 func (h Ticket) getUserTicketDetails(c *gin.Context) {

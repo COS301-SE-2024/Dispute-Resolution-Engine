@@ -17,6 +17,7 @@ type TicketModel interface {
 	getTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
 	getTicketDetails(ticketID int64, userID int64) ([]models.TicketsByUser, error)
 	getAdminTicketDetails(ticketID int64) ([]models.TicketsByUser, error)
+	patchTicketStatus(status string, ticketID int64) error
 }
 
 type Ticket struct {
@@ -36,6 +37,18 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 		JWT:   middleware.NewJwtMiddleware(),
 		Env:   envReader,
 	}
+}
+
+func (t *ticketModelReal) patchTicketStatus(status string, ticketID int64) error {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	err := t.db.Exec("UPDATE tickets SET status = ? WHERE id = ?", status, ticketID).Error
+	if err != nil {
+		logger.WithError(err).Error("Error updating ticket status")
+		return err
+	}
+
+	return nil
 }
 
 func (t *ticketModelReal) getAdminTicketDetails(ticketID int64) ([]models.TicketsByUser, error) {

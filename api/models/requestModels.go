@@ -220,3 +220,7 @@ type TicketsRequest struct {
 	// The filters to apply to data
 	Filter []Filter `json:"filter,omitempty"`
 }
+
+type PatchTicketStatus struct {
+	Status string `json:"status"`
+}

@@ -18,7 +18,7 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 
 	g.POST("", h.GetWorkflows)
 	g.GET("/:id", h.GetIndividualWorkflow)
-	g.POST("", h.StoreWorkflow)
+	g.POST("/create", h.StoreWorkflow)
 	g.PUT("/:id", h.UpdateWorkflow)
 	g.DELETE("/:id", h.DeleteWorkflow)
 
@@ -87,7 +87,7 @@ func (w Workflow) GetWorkflows(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, models.Response{Data: response})
+	c.JSON(http.StatusOK, models.Response{Data: models.WorkflowResult{Total: len(response), Workflows: response}})
 }
 
 func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
@@ -100,8 +100,7 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 		return
 	}
 
-	var workflow *models.Workflow
-	workflow, err = w.DB.GetWorkflowByID(uint64(idInt))
+	workflow, err := w.DB.GetWorkflowByID(uint64(idInt))
 	if err != nil && err == gorm.ErrRecordNotFound {
 		logger.Error(err)
 		c.JSON(http.StatusOK, models.Response{Error: "Record not found"})
@@ -113,23 +112,23 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 		return
 	}
 
-	// Fetch the tags associated with this workflow
-	var tags []models.Tag
-	tags, err = w.DB.QueryTagsToRelatedWorkflow(uint64(idInt))
-	if err != nil {
-		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
-	}
+	// // Fetch the tags associated with this workflow
+	// var tags []models.Tag
+	// tags, err = w.DB.QueryTagsToRelatedWorkflow(uint64(idInt))
+	// if err != nil {
+	// 	logger.Error(err)
+	// 	c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+	// 	return
+	// }
 
-	response := struct {
-		models.Workflow
-		Tags []models.Tag `json:"tags"`
-	}{
-		Workflow: *workflow,
-		Tags:     tags,
-	}
-	c.JSON(http.StatusOK, models.Response{Data: response})
+	// response := struct {
+	// 	models.Workflow
+	// 	Tags []models.Tag `json:"tags"`
+	// }{
+	// 	Workflow: *workflow,
+	// 	Tags:     tags,
+	// }
+	c.JSON(http.StatusOK, models.Response{Data: workflow})
 }
 
 func (w Workflow) StoreWorkflow(c *gin.Context) {

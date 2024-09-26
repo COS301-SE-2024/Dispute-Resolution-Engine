@@ -78,3 +78,55 @@ type AuthorSum struct {
 	ID       int64  `json:"id"`
 	FullName string `json:"full_name"`
 }
+type WorkflowResult struct {
+	Total int `json:"total"`
+	Workflows []GetWorkflowResponse `json:"workflows"`
+}
+
+type DetailedWorkflowResponse struct {
+	GetWorkflowResponse
+	Definition WorkflowOrchestrator `json:"definition"`
+}
+
+type WorkflowOrchestrator struct {
+	// The ID of the initial state of the workflow
+	Initial string `json:"initial"`
+
+	// All the states in the workflow, keyd by their ID
+	States map[string]State `json:"states"`
+}
+
+type State struct {
+	// Human-readable label of the state
+	Label string `json:"label"`
+
+	// Human-readable description of the state, describing what the state means and all
+	// the triggers that go from this state
+	Description string `json:"description"`
+
+	// All the outgoing triggers of the state, keyed by their IDs
+	Triggers map[string]Trigger `json:"triggers,omitempty"`
+
+	// The optional timer associated with a state
+	Timer *Timer `json:"timer,omitempty"`
+}
+
+type Trigger struct {
+	// Human-readable label of the trigger
+	Label string `json:"label"`
+
+	// The ID of the next state to transition to
+	Next string `json:"next_state"`
+}
+
+type Timer struct {
+	// The duration that the timer should run for
+	Duration DurationWrapper `json:"duration"`
+
+	// The ID of the trigger to fire when the timer expires
+	OnExpire string `json:"on_expire"`
+}
+
+type DurationWrapper struct {
+	time.Duration
+}

@@ -17,8 +17,9 @@ import (
 )
 
 type WorkflowDBModel interface {
+	GetWorkflowRecordByID(id uint64) (*models.Workflow, error)
 	GetWorkflowsWithLimitOffset(limit, offset *int, search *string) ([]models.GetWorkflowResponse, error)
-	GetWorkflowByID(id uint64) (*models.Workflow, error)
+	GetWorkflowByID(id uint64) (*models.DetailedWorkflowResponse, error)
 	GetActiveWorkflowByWorkflowID(workflowID uint64) (*models.ActiveWorkflows, error)
 	QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error)
 	FindDisputeByID(id uint64) (*models.Dispute, error)
@@ -114,7 +115,10 @@ func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int, s
 	return response, nil
 }
 
-func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.Workflow, error) {
+
+
+
+func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.DetailedWorkflowResponse, error) {
 	var workflow models.Workflow
 
 	// Create a query object
@@ -124,7 +128,39 @@ func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.Workflow, err
 	// Execute the query
 	result := query.First(&workflow)
 
-	return &workflow, result.Error
+	// Handle any errors
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	var author models.User
+	result = wfmr.DB.First(&author, workflow.AuthorID)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	var orchestrator models.WorkflowOrchestrator
+	err := json.Unmarshal([]byte(workflow.Definition), &orchestrator)
+	if err != nil {
+		return nil, err
+	}
+
+	//map to response model
+	response := models.DetailedWorkflowResponse{
+		GetWorkflowResponse: models.GetWorkflowResponse{
+			ID:          int64(workflow.ID),
+			Name:        workflow.Name,
+			DateCreated: workflow.CreatedAt,
+			LastUpdated: workflow.LastUpdated,
+			Author: models.AuthorSum{
+				ID:       author.ID,
+				FullName: (author.FirstName + " " + author.Surname),
+			},
+		},
+		Definition: orchestrator,
+	}
+
+	return &response, result.Error
 }
 
 func (wfmr *workflowModelReal) FindDisputeByID(id uint64) (*models.Dispute, error) {

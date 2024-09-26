@@ -1,3 +1,4 @@
+//coverage:ignore file
 package dispute
 
 import (

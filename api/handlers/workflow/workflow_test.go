@@ -425,7 +425,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_Success() {
 	workflows := models.CreateWorkflow{
 		Name:       "New Workflow",
 		// Author:     &authorID,
-		Definition: map[string]interface{}{"key": "value"},
+		Definition: models.WorkflowOrchestrator{},
 		// Category:   []int64{1, 2},
 	}
 
@@ -477,9 +477,6 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_InvalidPayload() {
 func (suite *WorkflowTestSuite) TestStoreWorkflow_MissingFields() {
 	// Arrange
 	workflows := models.CreateWorkflow{
-		Name:       "",
-		// Author:     nil,
-		Definition: nil,
 	}
 
 	body, _ := json.Marshal(workflows)
@@ -511,7 +508,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_DBError() {
 	workflows := models.CreateWorkflow{
 		Name:       "New Workflow",
 		// Author:     &authorID,
-		Definition: map[string]interface{}{"key": "value"},
+		Definition: models.WorkflowOrchestrator{},
 		// Category:   []int64{1, 2},
 	}
 
@@ -544,7 +541,7 @@ func (suite *WorkflowTestSuite) TestStoreWorkflow_FailedToLinkTags() {
 	workflows := models.CreateWorkflow{
 		Name:       "New Workflow",
 		// Author:     &authorID,
-		Definition: map[string]interface{}{"key": "value"},
+		Definition: models.WorkflowOrchestrator{},
 		// Category:   []int64{1, 2},
 	}
 
@@ -577,22 +574,25 @@ func (suite *WorkflowTestSuite) TestUpdateWorkflow_Success() {
 	// Arrange
 	suite.mockDB.throwError = false
 	suite.mockDB.ReturnWorkflow = &models.Workflow{ID: 1, Name: "Old Workflow"}
-	suite.mockDB.ReturnTagArray = []models.Tag{
-		{ID: 1, TagName: "Tag 1"},
-		{ID: 2, TagName: "Tag 2"},
-	}
 
 	w := workflow.Workflow{
 		DB: suite.mockDB,
 	}
 
 	// authorID := int64(1)
+	updated:= models.WorkflowOrchestrator{
+		Initial: "initial",
+		States: map[string]models.State{
+			"initial": {
+				Label:       "State 1",
+				Description: "Description 1",
+			},
+		},
+	}
 
 	updateData := models.UpdateWorkflow{
 		Name: new(string),
-		WorkflowDefinition: &map[string]interface{}{
-			"key": "new value",
-		},
+		WorkflowDefinition: &updated,
 		// Author:   &authorID,
 		// Category: &[]int64{1, 2},
 	}
@@ -600,7 +600,7 @@ func (suite *WorkflowTestSuite) TestUpdateWorkflow_Success() {
 	// *updateData.Author = 2
 
 	body, _ := json.Marshal(updateData)
-	req, _ := http.NewRequest("PUT", "/1", bytes.NewBuffer(body))
+	req, _ := http.NewRequest("PATCH", "/1", bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	wr := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(wr)

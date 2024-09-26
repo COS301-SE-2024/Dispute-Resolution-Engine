@@ -130,7 +130,6 @@ func (w Workflow) GetIndividualWorkflow(c *gin.Context) {
 	// }
 	c.JSON(http.StatusOK, models.Response{Data: workflow})
 }
-
 func (w Workflow) StoreWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	var workflow models.CreateWorkflow
@@ -143,14 +142,22 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		return
 	}
 
-	//get details form jwt
+	// Get details from JWT
 	claims, err := w.Jwt.GetClaims(c)
 	if err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get user details"})
 		return
 	}
-	//comvert map[string] to raw json
+
+	// Validate the workflow definition
+	if err := validateWorkflowDefinition(workflow.Definition); err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		return
+	}
+
+	// Convert map[string] to raw JSON
 	workflowDefinition, err := json.Marshal(workflow.Definition)
 	if err != nil {
 		logger.Error(err)
@@ -158,12 +165,13 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		return
 	}
 
-	//check all fields present
-	if workflow.Name == "" {
+	// Check all fields are present
+	if workflow.Name == "" || workflowDefinition == nil || workflow.Definition.Initial == "" || workflow.Definition.States == nil {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing required fields"})
 		return
 	}
-	//put into struct
+
+	// Put into struct
 	res := &models.Workflow{
 		Name:       workflow.Name,
 		Definition: workflowDefinition,
@@ -178,6 +186,7 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 		return
 	}
 
+	// Link workflow with tags (if necessary)
 	// for _, tagID := range workflow.Category {
 	// 	labelledWorkflow := models.WorkflowTags{
 	// 		WorkflowID: res.ID,
@@ -192,6 +201,52 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.Response{Data: res})
 }
+
+// validateWorkflowDefinition checks if the workflow definition is valid
+func validateWorkflowDefinition(definition models.WorkflowOrchestrator) error {
+	// Check if Initial state exists in States
+	if _, exists := definition.States[definition.Initial]; !exists {
+		return fmt.Errorf("initial state '%s' does not exist in states", definition.Initial)
+	}
+
+	for stateID, state := range definition.States {
+		// Check if state has a valid label
+		if state.Label == "" {
+			return fmt.Errorf("state '%s' is missing a label", stateID)
+		}
+
+		// Check if state has a description
+		if state.Description == "" {
+			return fmt.Errorf("state '%s' is missing a description", stateID)
+		}
+
+		// Validate each trigger in the state
+		for triggerID, trigger := range state.Triggers {
+			if trigger.Label == "" {
+				return fmt.Errorf("trigger '%s' in state '%s' is missing a label", triggerID, stateID)
+			}
+
+			// Check if the next state exists in the workflow
+			if _, exists := definition.States[trigger.Next]; !exists {
+				return fmt.Errorf("trigger '%s' in state '%s' points to a non-existent state '%s'", triggerID, stateID, trigger.Next)
+			}
+		}
+
+		// Validate the timer if present
+		if state.Timer != nil {
+			if state.Timer.Duration.Duration == 0 {
+				return fmt.Errorf("timer in state '%s' must have a non-zero duration", stateID)
+			}
+
+			if _, exists := state.Triggers[state.Timer.OnExpire]; !exists {
+				return fmt.Errorf("timer in state '%s' points to a non-existent trigger '%s'", stateID, state.Timer.OnExpire)
+			}
+		}
+	}
+
+	return nil
+}
+
 
 func (w Workflow) UpdateWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()

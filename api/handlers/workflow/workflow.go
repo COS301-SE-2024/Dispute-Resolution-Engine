@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
+	// "time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -151,7 +151,7 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 	}
 
 	// Validate the workflow definition
-	if err := validateWorkflowDefinition(workflow.Definition); err != nil {
+	if err := ValidateWorkflowDefinition(workflow.Definition); err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 		return
@@ -202,8 +202,8 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: res})
 }
 
-// validateWorkflowDefinition checks if the workflow definition is valid
-func validateWorkflowDefinition(definition models.WorkflowOrchestrator) error {
+// ValidateWorkflowDefinition checks if the workflow definition is valid
+func ValidateWorkflowDefinition(definition models.WorkflowOrchestrator) error {
 	// Check if Initial state exists in States
 	if _, exists := definition.States[definition.Initial]; !exists {
 		return fmt.Errorf("initial state '%s' does not exist in states", definition.Initial)
@@ -289,7 +289,7 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 	// Update the WorkflowDefinition if provided
 	if updateData.WorkflowDefinition != nil {
 		//validate the workflow definition
-		if err := validateWorkflowDefinition(*updateData.WorkflowDefinition); err != nil {
+		if err := ValidateWorkflowDefinition(*updateData.WorkflowDefinition); err != nil {
 			logger.Error(err)
 			c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
 			return
@@ -394,109 +394,109 @@ func (w Workflow) DeleteWorkflow(c *gin.Context) {
 
 
 
-func (w Workflow) NewActiveWorkflow(c *gin.Context) {
-	logger := utilities.NewLogger().LogWithCaller()
+// func (w Workflow) NewActiveWorkflow(c *gin.Context) {
+// 	logger := utilities.NewLogger().LogWithCaller()
 
-	var newActiveWorkflow models.NewActiveWorkflow
-	err := c.BindJSON(&newActiveWorkflow)
-	if err != nil {
-		logger.Error(err)
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request payload"})
-		return
-	}
+// 	var newActiveWorkflow models.NewActiveWorkflow
+// 	err := c.BindJSON(&newActiveWorkflow)
+// 	if err != nil {
+// 		logger.Error(err)
+// 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request payload"})
+// 		return
+// 	}
 
-	// Check if all fields are present
-	if newActiveWorkflow.DisputeID == nil || newActiveWorkflow.Workflow == nil {
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing required fields"})
-		return
-	}
+// 	// Check if all fields are present
+// 	if newActiveWorkflow.DisputeID == nil || newActiveWorkflow.Workflow == nil {
+// 		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing required fields"})
+// 		return
+// 	}
 
-	// Find the dispute
-	disputeID := uint64(*(newActiveWorkflow).DisputeID)
-	dispute, result := w.DB.FindDisputeByID(disputeID)
-	if result != nil {
-		if result == gorm.ErrRecordNotFound {
-			logger.Warnf("Dispute with ID %d not found", newActiveWorkflow.DisputeID)
-			c.JSON(http.StatusNotFound, models.Response{Error: "Dispute not found"})
-		} else {
-			logger.Error(result)
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		}
-		return
-	}
+// 	// Find the dispute
+// 	disputeID := uint64(*(newActiveWorkflow).DisputeID)
+// 	dispute, result := w.DB.FindDisputeByID(disputeID)
+// 	if result != nil {
+// 		if result == gorm.ErrRecordNotFound {
+// 			logger.Warnf("Dispute with ID %d not found", newActiveWorkflow.DisputeID)
+// 			c.JSON(http.StatusNotFound, models.Response{Error: "Dispute not found"})
+// 		} else {
+// 			logger.Error(result)
+// 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+// 		}
+// 		return
+// 	}
 
-	// Find the workflow
-	workflow, result := w.DB.GetWorkflowRecordByID(uint64(*newActiveWorkflow.Workflow))
-	if result != nil {
-		if result == gorm.ErrRecordNotFound {
-			logger.Warnf("Workflow with ID %d not found", newActiveWorkflow.Workflow)
-			c.JSON(http.StatusNotFound, models.Response{Error: "Workflow not found"})
-		} else {
-			logger.Error(result)
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		}
-		return
-	}
+// 	// Find the workflow
+// 	workflow, result := w.DB.GetWorkflowRecordByID(uint64(*newActiveWorkflow.Workflow))
+// 	if result != nil {
+// 		if result == gorm.ErrRecordNotFound {
+// 			logger.Warnf("Workflow with ID %d not found", newActiveWorkflow.Workflow)
+// 			c.JSON(http.StatusNotFound, models.Response{Error: "Workflow not found"})
+// 		} else {
+// 			logger.Error(result)
+// 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+// 		}
+// 		return
+// 	}
 
-	//add entry to active Workflows
-	timeNow := time.Now()
-	workflowID := int64(workflow.ID)
-	activeWorkflow := models.ActiveWorkflows{
-		ID:               *dispute.ID,
-		Workflow:         workflowID,
-		WorkflowInstance: workflow.Definition,
-		DateSubmitted:    timeNow,
-	}
+// 	//add entry to active Workflows
+// 	timeNow := time.Now()
+// 	workflowID := int64(workflow.ID)
+// 	activeWorkflow := models.ActiveWorkflows{
+// 		ID:               *dispute.ID,
+// 		Workflow:         workflowID,
+// 		WorkflowInstance: workflow.Definition,
+// 		DateSubmitted:    timeNow,
+// 	}
 
-	result = w.DB.CreateActiveWorkflow(&activeWorkflow)
-	if result != nil && result != gorm.ErrDuplicatedKey {
-		logger.Error(result)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Request already exists"})
-		return
-	} else if result != nil {
-		logger.Error(result)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
-	}
+// 	result = w.DB.CreateActiveWorkflow(&activeWorkflow)
+// 	if result != nil && result != gorm.ErrDuplicatedKey {
+// 		logger.Error(result)
+// 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Request already exists"})
+// 		return
+// 	} else if result != nil {
+// 		logger.Error(result)
+// 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+// 		return
+// 	}
 
-	//send request to orchestrator to activate workflow
+// 	//send request to orchestrator to activate workflow
 
-	// Get the environment variables
-	url, err := w.EnvReader.Get("ORCH_URL")
-	if err != nil {
-		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
-	}
+// 	// Get the environment variables
+// 	url, err := w.EnvReader.Get("ORCH_URL")
+// 	if err != nil {
+// 		logger.Error(err)
+// 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+// 		return
+// 	}
 
-	port, err := w.EnvReader.Get("ORCH_PORT")
-	if err != nil {
-		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
-	}
+// 	port, err := w.EnvReader.Get("ORCH_PORT")
+// 	if err != nil {
+// 		logger.Error(err)
+// 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+// 		return
+// 	}
 
-	startEndpoint, err := w.EnvReader.Get("ORCH_START")
-	if err != nil {
-		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
-	}
+// 	startEndpoint, err := w.EnvReader.Get("ORCH_START")
+// 	if err != nil {
+// 		logger.Error(err)
+// 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+// 		return
+// 	}
 
-	// Send the request to the orchestrator
-	payload := OrchestratorRequest{ID: activeWorkflow.ID}
+// 	// Send the request to the orchestrator
+// 	payload := OrchestratorRequest{ID: activeWorkflow.ID}
 
-	_, err = w.OrchestratorEntity.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, startEndpoint), payload)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
-		//delete the active workflow from table
-		w.DB.DeleteActiveWorkflow(&activeWorkflow)
-		return
-	}
+// 	_, err = w.OrchestratorEntity.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, startEndpoint), payload)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
+// 		//delete the active workflow from table
+// 		w.DB.DeleteActiveWorkflow(&activeWorkflow)
+// 		return
+// 	}
 
-	c.JSON(http.StatusOK, models.Response{Data: "Databse updated and request to Activate workflow sent"})
+// 	c.JSON(http.StatusOK, models.Response{Data: "Databse updated and request to Activate workflow sent"})
 
-}
+// }
 
 func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 

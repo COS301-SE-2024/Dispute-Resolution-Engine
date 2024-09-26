@@ -253,13 +253,196 @@ func (suite *WorkflowTestSuite) SetupTest() {
 	suite.router.POST("/create", handler.StoreWorkflow)
 	suite.router.PATCH("/:id", handler.UpdateWorkflow)
 	suite.router.DELETE("/:id", handler.DeleteWorkflow)
-	suite.router.POST("/active", handler.NewActiveWorkflow)
 	suite.router.GET("/reset", handler.ResetActiveWorkflow)
 }
 
 func TestWorkflowTestSuite(t *testing.T) {
 	suite.Run(t, new(WorkflowTestSuite))
 }
+
+func (suite *WorkflowTestSuite) TestValidateWorkflowDefinition_Success() {
+	// Arrange
+	definition := models.WorkflowOrchestrator{
+		Initial: "start",
+		States: map[string]models.State{
+			"start": {
+				Label:       "Start",
+				Description: "Starting state",
+				Triggers: map[string]models.Trigger{
+					"next": {
+						Label: "Next",
+						Next:  "end",
+					},
+				},
+			},
+			"end": {
+				Label:       "End",
+				Description: "Ending state",
+			},
+		},
+	}
+
+	// Act
+	err := workflow.ValidateWorkflowDefinition(definition)
+
+	// Assert
+	suite.NoError(err)
+}
+
+func (suite *WorkflowTestSuite) TestValidateWorkflowDefinition_MissingInitialState() {
+	// Arrange
+	definition := models.WorkflowOrchestrator{
+		Initial: "start",
+		States: map[string]models.State{
+			"end": {
+				Label:       "End",
+				Description: "Ending state",
+			},
+		},
+	}
+
+	// Act
+	err := workflow.ValidateWorkflowDefinition(definition)
+
+	// Assert
+	suite.EqualError(err, "initial state 'start' does not exist in states")
+}
+
+func (suite *WorkflowTestSuite) TestValidateWorkflowDefinition_MissingStateLabel() {
+	// Arrange
+	definition := models.WorkflowOrchestrator{
+		Initial: "start",
+		States: map[string]models.State{
+			"start": {
+				Description: "Starting state",
+			},
+		},
+	}
+
+	// Act
+	err := workflow.ValidateWorkflowDefinition(definition)
+
+	// Assert
+	suite.EqualError(err, "state 'start' is missing a label")
+}
+
+func (suite *WorkflowTestSuite) TestValidateWorkflowDefinition_MissingStateDescription() {
+	// Arrange
+	definition := models.WorkflowOrchestrator{
+		Initial: "start",
+		States: map[string]models.State{
+			"start": {
+				Label: "Start",
+			},
+		},
+	}
+
+	// Act
+	err := workflow.ValidateWorkflowDefinition(definition)
+
+	// Assert
+	suite.EqualError(err, "state 'start' is missing a description")
+}
+
+func (suite *WorkflowTestSuite) TestValidateWorkflowDefinition_MissingTriggerLabel() {
+	// Arrange
+	definition := models.WorkflowOrchestrator{
+		Initial: "start",
+		States: map[string]models.State{
+			"start": {
+				Label:       "Start",
+				Description: "Starting state",
+				Triggers: map[string]models.Trigger{
+					"next": {
+						Next: "end",
+					},
+				},
+			},
+			"end": {
+				Label:       "End",
+				Description: "Ending state",
+			},
+		},
+	}
+
+	// Act
+	err := workflow.ValidateWorkflowDefinition(definition)
+
+	// Assert
+	suite.EqualError(err, "trigger 'next' in state 'start' is missing a label")
+}
+
+func (suite *WorkflowTestSuite) TestValidateWorkflowDefinition_NonExistentNextState() {
+	// Arrange
+	definition := models.WorkflowOrchestrator{
+		Initial: "start",
+		States: map[string]models.State{
+			"start": {
+				Label:       "Start",
+				Description: "Starting state",
+				Triggers: map[string]models.Trigger{
+					"next": {
+						Label: "Next",
+						Next:  "nonexistent",
+					},
+				},
+			},
+		},
+	}
+
+	// Act
+	err := workflow.ValidateWorkflowDefinition(definition)
+
+	// Assert
+	suite.EqualError(err, "trigger 'next' in state 'start' points to a non-existent state 'nonexistent'")
+}
+
+func (suite *WorkflowTestSuite) TestValidateWorkflowDefinition_InvalidTimerDuration() {
+	// Arrange
+	definition := models.WorkflowOrchestrator{
+		Initial: "start",
+		States: map[string]models.State{
+			"start": {
+				Label:       "Start",
+				Description: "Starting state",
+				Timer: &models.Timer{
+					Duration: models.DurationWrapper{Duration: 0},
+					OnExpire: "expire",
+				},
+			},
+		},
+	}
+
+	// Act
+	err := workflow.ValidateWorkflowDefinition(definition)
+
+	// Assert
+	suite.EqualError(err, "timer in state 'start' must have a non-zero duration")
+}
+
+func (suite *WorkflowTestSuite) TestValidateWorkflowDefinition_NonExistentTimerTrigger() {
+	// Arrange
+	definition := models.WorkflowOrchestrator{
+		Initial: "start",
+		States: map[string]models.State{
+			"start": {
+				Label:       "Start",
+				Description: "Starting state",
+				Timer: &models.Timer{
+					Duration: models.DurationWrapper{Duration: 10},
+					OnExpire: "nonexistent",
+				},
+			},
+		},
+	}
+
+	// Act
+	err := workflow.ValidateWorkflowDefinition(definition)
+
+	// Assert
+	suite.EqualError(err, "timer in state 'start' points to a non-existent trigger 'nonexistent'")
+}
+
 
 func (suite *WorkflowTestSuite) TestDeleteWorkflow_Success() {
 	// Arrange

@@ -20,18 +20,18 @@ func SetupTicketRoutes(g *gin.RouterGroup, h Ticket) {
 	g.GET("/:id", h.getUserTicketDetails)
 	g.PATCH("/:id", h.patchTicketStatus)
 	g.POST("/:id/messages", h.createTicketMessage)
-	g.POST("/disputes/:id/ticket", h.createTicket)
+	g.POST("/dispute/:id/tickets", h.createTicket)
 }
 
 func (h Ticket) createTicket(c *gin.Context) {
-	createReq := models.TicketCreate{}
+	var createReq models.TicketCreate
 	logger := utilities.NewLogger().LogWithCaller()
 	if err := c.BindJSON(&createReq); err != nil {
 		logger.WithError(err).Error("Invalid request")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
 		return
 	}
-
+	logger.Info(createReq)
 	claims, err := h.JWT.GetClaims(c)
 	if err != nil {
 		logger.Error("Unauthorized access attempt")
@@ -61,18 +61,18 @@ func (h Ticket) createTicket(c *gin.Context) {
 		return
 	}
 
-	err = h.Model.createTicket(claims.ID, int64(disputeIntID), createReq.Subject, createReq.Body)
+	ticket, err := h.Model.createTicket(claims.ID, int64(disputeIntID), createReq.Subject, createReq.Body)
 	if err != nil {
 		logger.WithError(err).Error("Error creating ticket")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating ticket"})
 		return
 	}
-	
+	c.JSON(http.StatusCreated, models.Response{Data: ticket})
 
 }
 
 func (h Ticket) createTicketMessage(c *gin.Context) {
-	tickReq := models.TicketMessageCreate{}
+	var tickReq models.TicketMessageCreate
 	logger := utilities.NewLogger().LogWithCaller()
 	if err := c.BindJSON(&tickReq); err != nil {
 		logger.WithError(err).Error("Invalid request")
@@ -99,22 +99,22 @@ func (h Ticket) createTicketMessage(c *gin.Context) {
 	}
 	userRole := claims.Role
 	if userRole == "admin" {
-		err = h.Model.addAdminTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
+		ticketMessage, err := h.Model.addAdminTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
 		if err != nil {
 			logger.WithError(err).Error("Error adding ticket message")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error adding ticket message"})
 			return
 		}
-		c.JSON(http.StatusNoContent, nil)
+		c.JSON(http.StatusCreated, models.Response{Data: ticketMessage})
 		return
 	}
-	err = h.Model.addUserTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
+	ticketMessage, err := h.Model.addUserTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
 	if err != nil {
 		logger.WithError(err).Error("Error adding ticket message")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error adding ticket message"})
 		return
 	}
-	c.JSON(http.StatusNoContent, nil)
+	c.JSON(http.StatusCreated, models.Response{Data: ticketMessage})
 
 }
 
@@ -135,7 +135,7 @@ func (h Ticket) patchTicketStatus(c *gin.Context) {
 		return
 	}
 
-	tickReq := models.PatchTicketStatus{}
+	var tickReq models.PatchTicketStatus
 	if err := c.BindJSON(&tickReq); err != nil {
 		logger.WithError(err).Error("Invalid request")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})

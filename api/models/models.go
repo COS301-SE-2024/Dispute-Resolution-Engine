@@ -205,7 +205,7 @@ type Ticket struct {
 	DisputeID      int64     `gorm:"not null;column:dispute_id" json:"dispute_id"`
 	Subject        string    `gorm:"not null;type:varchar(255);column:subject" json:"subject"`
 	Status         string    `gorm:"not null;type:ticket_status_enum;column:status" json:"status"`
-	InitialMessage string    `gorm:"type:text;column:status:initial_message" json:"initial_message"`
+	InitialMessage string    `gorm:"type:text;column:initial_message" json:"initial_message"`
 }
 
 type TicketMessages struct {

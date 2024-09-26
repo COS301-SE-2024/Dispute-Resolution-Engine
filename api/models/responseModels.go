@@ -67,8 +67,8 @@ type AdminDisputeSummariesResponse struct {
 }
 
 type TicketUser struct {
-	ID       string `json:"id"`
-	FullName string `json:"full_name"`
+	ID       string `gorm:"column:first_name" json:"id"`
+	FullName string `gorm:"column:surname" json:"full_name"`
 }
 
 type TicketSummaryResponse struct {

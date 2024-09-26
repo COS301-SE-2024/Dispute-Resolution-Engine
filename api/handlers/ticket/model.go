@@ -19,9 +19,9 @@ type TicketModel interface {
 	getTicketDetails(ticketID int64, userID int64) ([]models.TicketsByUser, error)
 	getAdminTicketDetails(ticketID int64) ([]models.TicketsByUser, error)
 	patchTicketStatus(status string, ticketID int64) error
-	addUserTicketMessage(ticketID int64, userID int64, message string) error
-	addAdminTicketMessage(ticketID int64, userID int64, message string) error
-	createTicket(userID int64, dispute int64, subject string, message string) error
+	addUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
+	addAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
+	createTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error)
 }
 
 type Ticket struct {
@@ -43,17 +43,17 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 	}
 }
 
-func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject string, message string) error {
+func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	//check if the user is part of the dispute
 	disputeModel := models.Dispute{}
 	err := t.db.Where("id = ?", dispute).
-		Where("complainant = ? OR respondent = ?", userID, userID).
+		Where("complainant = ? OR respondant = ?", userID, userID).
 		First(&disputeModel).Error
 	if err != nil {
-		logger.WithError(err).Error("Unauthorized attempt to create ticket")
-		return err
+		logger.WithError(err).Error("Error creating ticket")
+		return models.Ticket{}, err
 	}
 
 	ticket := models.Ticket{
@@ -68,48 +68,76 @@ func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject stri
 	err = t.db.Create(&ticket).Error
 	if err != nil {
 		logger.WithError(err).Error("Error creating ticket")
-		return err
+		return models.Ticket{}, err
 	}
 
-	return nil
+	return ticket, nil
 }
 
-func (t *ticketModelReal) addUserTicketMessage(ticketID int64, userID int64, message string) error {
+func (t *ticketModelReal) addUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	userTick := models.Ticket{}
 	err := t.db.Where("created_by = ?", userID).First(&userTick, ticketID).Error
 	if err != nil {
 		logger.WithError(err).Error("Unauthorized attempt to add ticket message")
-		return err
+		return models.TicketMessage{}, err
 	}
 
 	err = t.db.Exec("INSERT INTO ticket_messages (ticket_id, user_id, created_at, content) VALUES (?, ?, ?, ?)", ticketID, userID, time.Now(), message).Error
 	if err != nil {
 		logger.WithError(err).Error("Error adding ticket message")
-		return err
+		return models.TicketMessage{}, err
 	}
 
-	return nil
+	var user models.TicketUser
+	err = t.db.Raw("SELECT u.id, u.first_name, u.surname FROM users u WHERE u.id = ?", userID).Scan(&user).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving user")
+		return models.TicketMessage{}, err
+	}
+
+	var ticketMessage = models.TicketMessage{
+		ID:       strconv.Itoa(int(ticketID)),
+		User:     user,
+		DateSent: time.Now().Format("2006-01-02"),
+		Message:  message,
+	}
+
+	return ticketMessage, nil
 }
 
-func (t *ticketModelReal) addAdminTicketMessage(ticketID int64, userID int64, message string) error {
+func (t *ticketModelReal) addAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	ticket := models.Ticket{}
 	err := t.db.First(&ticket, ticketID).Error
 	if err != nil {
 		logger.WithError(err).Error("Ticket does not exist")
-		return err
+		return models.TicketMessage{}, err
 	}
 
 	err = t.db.Exec("INSERT INTO ticket_messages (ticket_id, user_id, created_at, content) VALUES (?, ?, ?, ?)", ticketID, userID, time.Now(), message).Error
 	if err != nil {
 		logger.WithError(err).Error("Error adding ticket message")
-		return err
+		return models.TicketMessage{}, err
 	}
 
-	return nil
+	var user models.TicketUser
+	err = t.db.Raw("SELECT u.id, u.first_name, u.surname FROM users u WHERE u.id = ?", userID).Scan(&user).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving user")
+		return models.TicketMessage{}, err
+	}
+
+	var ticketMessage = models.TicketMessage{
+		ID:       strconv.Itoa(int(ticketID)),
+		User:     user,
+		DateSent: time.Now().Format("2006-01-02"),
+		Message:  message,
+	}
+
+	return ticketMessage, nil
 }
 
 func (t *ticketModelReal) patchTicketStatus(status string, ticketID int64) error {

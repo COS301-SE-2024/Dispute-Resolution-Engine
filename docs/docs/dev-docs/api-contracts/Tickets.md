@@ -165,5 +165,5 @@ interface TicketCreateRequest {
   body: string;
 }
 
-type TicketCreateResponse = TicketSummary;
+type TicketCreateResponse = Omit<Ticket, "user">;
 ```

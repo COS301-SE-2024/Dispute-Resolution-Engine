@@ -288,6 +288,14 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 
 	// Update the WorkflowDefinition if provided
 	if updateData.WorkflowDefinition != nil {
+		//validate the workflow definition
+		if err := validateWorkflowDefinition(*updateData.WorkflowDefinition); err != nil {
+			logger.Error(err)
+			c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+			return
+		}
+
+
 		workflowDefinition, err := json.Marshal(*updateData.WorkflowDefinition)
 		if err != nil {
 

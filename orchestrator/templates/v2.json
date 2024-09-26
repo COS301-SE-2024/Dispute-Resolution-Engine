@@ -1,0 +1,24 @@
+{
+	"label": "Domain Dispute",
+	"initial": "dispute_created",
+	"states": {
+	  "dispute_created": {
+		"label": "Dispute Created",
+		"description": "The dispute has been created and is awaiting further action.",
+		"triggers": {
+			"complaint_not_compliant": {
+				"label": "Complaint Not Compliant",
+				"next_state": "complaint_rectification"
+			}
+		},
+		"timer": {
+		  "duration": "10s",
+		  "on_expire": "complaint_not_compliant"
+		}
+	  },
+	  "complaint_rectification": {
+		"label": "Complaint Rectification",
+		"description": "The complainant has been notified that the complaint is not compliant and has 5 days to rectify the complaint."
+	  }
+	}
+  }

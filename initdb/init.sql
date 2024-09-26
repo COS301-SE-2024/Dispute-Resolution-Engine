@@ -56,8 +56,6 @@ CREATE TRIGGER update_user_timestamp
     BEFORE UPDATE ON users
     FOR EACH ROW
     EXECUTE FUNCTION update_user_last_update();
-
-
 ------------------------------------------------------------- WORKFLOWS
 CREATE TABLE workflows (
 	id SERIAL PRIMARY KEY NOT NULL,
@@ -70,9 +68,10 @@ CREATE TABLE workflows (
 
 CREATE TABLE active_workflows (
 	id SERIAL PRIMARY KEY NOT NULL,
-    workflow BIGINT REFERENCES workflows(id) NOT NULL,
-    current_state VARCHAR(255) NOT NULL,
-    state_deadline TIMESTAMP,
+	workflow BIGINT REFERENCES workflows(id) NOT NULL,
+	current_state VARCHAR(255),
+	date_submitted TIMESTAMPTZ,  -- Includes timezone information
+	state_deadline TIMESTAMPTZ,  -- Includes timezone information
 	workflow_instance JSONB NOT NULL
 );
 
@@ -214,7 +213,7 @@ CREATE TYPE event_types AS ENUM (
 	'USER',
 	'EXPERT',
 	'WORKFLOW'
-	);
+);
 
 CREATE TABLE event_log (
 	id SERIAL PRIMARY KEY,
@@ -222,6 +221,7 @@ CREATE TABLE event_log (
 	event_type event_types,
 	event_data JSON
 );
+
 
 ------------------------------------------------------------- TAGS
 CREATE TABLE tags (

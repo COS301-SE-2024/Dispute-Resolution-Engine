@@ -47,6 +47,8 @@ type DisputeErrorTestSuite struct {
 	emailMock   *mockEmailModel
 	router      *gin.Engine
 	auditMock   *mockAuditLogger
+	mockOrchestrator *mockOrchestrator
+	mockEnv 	*mockEnv
 }
 
 func (suite *DisputeErrorTestSuite) SetupTest() {
@@ -54,8 +56,10 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 	suite.jwtMock = &mockJwtModel{}
 	suite.emailMock = &mockEmailModel{}
 	suite.auditMock = &mockAuditLogger{}
+	suite.mockOrchestrator = &mockOrchestrator{}
+	suite.mockEnv = &mockEnv{}
 
-	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock}
+	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock, OrchestratorEntity: suite.mockOrchestrator, Env: suite.mockEnv}
 	gin.SetMode("release")
 	router := gin.Default()
 	router.Use(suite.jwtMock.JWTMiddleware)
@@ -89,8 +93,67 @@ func createFileField(w *multipart.Writer, field, filename, value string) {
 }
 
 // ---------------------------------------------------------------- MODEL MOCKS
+//mock env
+
+type mockEnv struct {
+	throwErrors bool
+	Error error
+}
+
+func (m *mockEnv) LoadFromFile(files ...string) {
+}
+
+func (m *mockEnv) Register(key string) {
+}
+
+func (m *mockEnv) RegisterDefault(key, fallback string) {
+}
+
+func (m *mockEnv) Get(key string) (string, error) {
+	if m.throwErrors {
+		return "", m.Error
+	}
+	return "", nil
+}
+
+
+//mock orchestrator
+type mockOrchestrator struct {
+	throwErrors bool
+	Error error
+}
+
+func (m *mockOrchestrator) MakeRequestToOrchestrator(endpoint string, payload dispute.OrchestratorRequest) (string, error) {
+	if m.throwErrors {
+		return "", m.Error
+	}
+	return "", nil
+}
 // mock model auditlogger
 func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
+	return nil
+}
+
+func (m *mockDisputeModel) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
+	if m.throwErrors {
+		return nil, errors.ErrUnsupported
+	}
+	return &models.Workflow{
+	}, nil
+
+}
+
+func (m *mockDisputeModel) CreateActiverWorkflow(workflow *models.ActiveWorkflows) error {
+	if m.throwErrors {
+		return errors.ErrUnsupported
+	}
+	return nil
+}
+
+func (m *mockDisputeModel) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {
+	if m.throwErrors {
+		return errors.ErrUnsupported
+	}
 	return nil
 }
 
@@ -614,6 +677,7 @@ func (suite *DisputeErrorTestSuite) TestCreateFailed() {
 	createStringField(form, "description", "Desc")
 	createStringField(form, "respondent[full_name]", "First Last")
 	createStringField(form, "respondent[email]", "Email")
+	createStringField(form, "respondent[workflow]", "1")
 	form.Close()
 
 	req, _ := http.NewRequest("POST", "/create", data)
@@ -637,6 +701,7 @@ func (suite *DisputeErrorTestSuite) TestCreateSuccess() {
 	createStringField(form, "description", "Desc")
 	createStringField(form, "respondent[full_name]", "First Last")
 	createStringField(form, "respondent[email]", "Email")
+	createStringField(form, "respondent[workflow]", "1")
 	form.Close()
 
 	req, _ := http.NewRequest("POST", "/create", data)
@@ -662,6 +727,7 @@ func (suite *DisputeErrorTestSuite) TestCreateFileUploads() {
 	createStringField(form, "description", "Desc")
 	createStringField(form, "respondent[full_name]", "First Last")
 	createStringField(form, "respondent[email]", "Email")
+	createStringField(form, "respondent[workflow]", "1")
 
 	createFileField(form, "files", "file1.txt", "contents 1")
 	createFileField(form, "files", "file2.txt", "contents 2")

@@ -15,7 +15,7 @@ func main() {
 	queryEngine := workflow.CreateWorkflowQuery()
 
 	// Create a new controller instance
-	controller := controller.NewController(queryEngine)
+	controller := controller.NewController()
 
 	// Start the controller
 	controller.Start()

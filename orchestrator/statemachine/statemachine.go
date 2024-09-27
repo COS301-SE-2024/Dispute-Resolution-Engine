@@ -175,7 +175,7 @@ func (s *StateMachine) GetStateDeadline() (time.Time, error) {
 	}
 	timer := s.Workflow.States[state].Timer
 	if timer == nil {
-		return time.Time{}, fmt.Errorf("state %s has no timer", state)
+		return time.Time{}, nil // states are allowed to not have timers
 	}
 	return time.Now().Add(timer.GetDuration()), nil
 }

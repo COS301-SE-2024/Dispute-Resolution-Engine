@@ -15,16 +15,14 @@ type Controller struct {
 	StateMachineRegistry map[string]statemachine.IStateMachine
 	logger               utilities.Logger
 	Scheduler            *scheduler.Scheduler
-	api                  workflow.APIWorkflow
 }
 
 // NewController creates a new controller instance
-func NewController(queryEngine workflow.DBQuery) *Controller {
+func NewController() *Controller {
 	return &Controller{
 		StateMachineRegistry: make(map[string]statemachine.IStateMachine),
 		logger:               *utilities.NewLogger(),
 		Scheduler:            scheduler.NewWithLogger(time.Second, utilities.NewLogger()),
-		api:                  workflow.CreateAPIWorkflow(queryEngine),
 	}
 }
 
@@ -49,7 +47,7 @@ func (c *Controller) RegisterStateMachine(wfID string, wf workflow.Workflow) {
 }
 
 // Transition to the next state in the specified state machine
-func (c *Controller) FireTrigger(wfID string, trigger string) {
+func (c *Controller) FireTrigger(wfID string, trigger string) (string, time.Time) {
 	/*
 	This function drives the transition from state to state given a trigger casued by an event
 	*/
@@ -57,45 +55,34 @@ func (c *Controller) FireTrigger(wfID string, trigger string) {
 	_, ok := c.StateMachineRegistry[wfID]
 	if !ok {
 		c.logger.Error("No state machine found for workflow ", wfID)
-		return
+		return "", time.Time{}
 	}
 
 	// Fire the state's trigger
 	err := c.StateMachineRegistry[wfID].TriggerTransition(trigger)
 	if err != nil {
 		c.logger.Error("Error firing trigger: ", err)
-		return
+		return "", time.Time{}
 	}
 
-	// Now we update the database with the new state and deadline
-
-	// Convert wfID to int
-	wfID_int, err := utilities.StringToInt(wfID)
-	if err != nil {
-		c.logger.Error("Error converting wfID to int: ", err)
-		return
-	}
+	// NOW we return the new state and deadline
 
 	// Get the current state of the state machine
 	current_state, err := c.StateMachineRegistry[wfID].GetCurrentState()
 	if err != nil {
 		c.logger.Error("Error getting current state: ", err)
-		return
+		return "", time.Time{}
 	}
 
 	// Get the deadline of the current state
 	stateDeadline, err := c.StateMachineRegistry[wfID].GetStateDeadline()
+	// If timer is empty but no error, then teh state just doesn't have a timer
 	if err != nil {
 		c.logger.Error("Error getting state deadline: ", err)
-		return
+		return "", time.Time{}
 	}
 
-	// update current state and state deadline in the database
-	err = c.api.UpdateActiveWorkflow(wfID_int, nil, &current_state, nil, &stateDeadline, nil)
-	if err != nil {
-		c.logger.Error("Error updating active_workflow entry in database from non-timer event: ", err)
-		return
-	}
+	return current_state, stateDeadline
 }
 
 // WaitForSignal blocks until an appropriate signal is received

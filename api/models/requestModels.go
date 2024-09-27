@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type UpdateUser struct {
 	FirstName          string  `json:"first_name"`
 	Surname            string  `json:"surname"`
@@ -132,8 +134,7 @@ type RejectExpertReview struct {
 }
 
 type DisputeStatusChange struct {
-	DisputeID int64  `json:"dispute_id"`
-	Status    string `json:"status"`
+	Status string `json:"status"`
 }
 
 type RecommendExpert struct {
@@ -205,4 +206,70 @@ type AdminDisputesRequest struct {
 	Filter []Filter `json:"filter,omitempty"`
 
 	DateFilter *DateFilter `json:"dateFilter,omitempty"`
+}
+
+
+type TicketsRequest struct {
+	// Search term for the title of disputes
+	Search *string `json:"search,omitempty"`
+
+	// Pagination parameters
+	Limit  *int `json:"limit,omitempty"`
+	Offset *int `json:"offset,omitempty"`
+
+	Sort *Sort `json:"sort,omitempty"`
+
+	// The filters to apply to data
+	Filter []Filter `json:"filter,omitempty"`
+}
+
+type PatchTicketStatus struct {
+	Status string `json:"status"`
+}
+
+type TicketMessageCreate struct {
+	Message string `json:"message"`
+}
+
+type TicketCreate struct {
+	DisputeID int64  `json:"dispute_id"`
+	Subject   string `json:"subject"`
+	Body      string `json:"body"`
+}
+
+type ViewExpetRejectionsRequest struct {
+	Expert_id *int64 `json:"expert_id,omitempty"`
+	Dispute_id *int64 `json:"dispute_id,omitempty"`
+	Limits *int `json:"limits,omitempty"`
+	Offset *int `json:"offset,omitempty"`
+}
+
+type CreateWorkflow struct {
+	Name       string                 `json:"name,omitempty"`
+	Definition WorkflowOrchestrator `json:"definition,omitempty"`
+	// Category   []int64                `json:"category,omitempty"`
+}
+
+type UpdateWorkflow struct {
+	Name               *string                 `json:"name,omitempty"`
+	WorkflowDefinition *WorkflowOrchestrator `json:"definition,omitempty"`
+	// Category           *[]int64                `json:"category,omitempty"`
+	// Author             *int64                  `json:"author,omitempty"`
+}
+
+type NewActiveWorkflow struct {
+	DisputeID *int64 `json:"dispute_id,omitempty"`
+	Workflow  *int64 `json:"workflow_id,omitempty"`
+}
+
+type ResetActiveWorkflow struct {
+	DisputeID    *int64    `json:"dispute_id,omitempty"`
+	CurrentState *string   `json:"current_state,omitempty"`
+	Deadline     *time.Time `json:"deadline,omitempty"`
+}
+
+type GetWorkflow struct {
+	Search *string `json:"search,omitempty"`
+	Limit  *int    `json:"limit,omitempty"`
+	Offset *int    `json:"offset,omitempty"`
 }

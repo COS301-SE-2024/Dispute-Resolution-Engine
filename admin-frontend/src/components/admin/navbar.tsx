@@ -33,7 +33,7 @@ function SectionTitle({ label, show }: { label: string; show: boolean }) {
 }
 
 export default function Navbar({ className }: { className?: string }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   const fullClass = useMemo(() => {
     return cn(

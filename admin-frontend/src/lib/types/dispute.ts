@@ -1,24 +1,20 @@
-export type SortOrder = "asc" | "desc";
-export type SortAttribute = "title" | "status" | "workflow" | "date_filed" | "date_resolved";
+import { Filter, Sort } from ".";
 
 export const DISPUTE_STATUS = [
-  "Awaiting respondent",
+  "Awaiting Respondant",
   "Active",
   "Review",
   "Settled",
   "Refused",
+  "Withdrawn",
+  "Transfer",
+  "Appeal",
+  "Other",
 ] as const;
 export type DisputeStatus = (typeof DISPUTE_STATUS)[number];
 
-export type FilterAttribute = "status" | "workflow";
-
-export interface Filter {
-  // The attribute to filter by
-  attr: FilterAttribute;
-
-  // The value to search for.
-  value: string;
-}
+export type DisputeFilter = Filter<"status" | "workflow">;
+export type DisputeSort = Sort<"title" | "status" | "workflow" | "date_filed" | "date_resolved">;
 
 export interface AdminDisputesRequest {
   // Search term for the title of disputes
@@ -28,16 +24,10 @@ export interface AdminDisputesRequest {
   limit?: number;
   offset?: number;
 
-  sort?: {
-    // The attribute to sort by
-    attr: SortAttribute;
-
-    // Sort order defaults to 'asc' if unspecified
-    order?: SortOrder;
-  };
+  sort?: DisputeSort;
 
   // The filters to apply to data
-  filter?: Filter[];
+  filter?: DisputeFilter[];
 
   dateFilter?: {
     filed?: {
@@ -62,7 +52,7 @@ export interface AdminDisputesRequest {
 export interface AdminDispute {
   id: string;
   title: string;
-  status: string;
+  status: DisputeStatus;
 
   // The workflow that the dispute follows
   workflow: {
@@ -75,7 +65,10 @@ export interface AdminDispute {
   // Optional because dispute may still be active (i.e. no resolved date)
   date_resolved?: string;
 }
-export type AdminDisputesResponse = Array<AdminDispute>;
+export type AdminDisputesResponse = {
+  disputes: Array<AdminDispute>;
+  total: number;
+};
 
 export interface Evidence {
   id: string;

@@ -22,6 +22,6 @@ export default function Ralph({ className, href }: { className?: string; href?: 
       {children}
     </Link>
   ) : (
-    <figure>{children}</figure>
+    <figure className={classes}>{children}</figure>
   );
 }

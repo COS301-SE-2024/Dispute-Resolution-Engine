@@ -310,6 +310,7 @@ type OrchestratorRequest struct {
 }
 type WorkflowOrchestrator interface {
 	MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
+	GetTriggers() (string, error)
 }
 
 type OrchestratorReal struct {
@@ -349,6 +350,39 @@ func (w OrchestratorReal) MakeRequestToOrchestrator(endpoint string, payload Orc
 		}
 
 		return string(rsponseBody), fmt.Errorf("internal server error")
+	}
+
+	// Read the response body
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("read body error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+
+	// Convert the response body to a string
+	responseBody := string(bodyBytes)
+
+	// Log the response body for debugging
+	logger.Info("Response Body: ", responseBody)
+
+	return responseBody, nil
+}
+
+func (w OrchestratorReal) GetTriggers() (string, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Send the GET request to the orchestrator
+	resp, err := http.Get("http://localhost:8090/triggers")
+	if err != nil {
+		logger.Error("get error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+	defer resp.Body.Close()
+
+	// Check for a successful status code (200 OK)
+	if resp.StatusCode != http.StatusOK {
+		logger.Error("status code error: ", resp.StatusCode)
+		return "", fmt.Errorf("internal server error")
 	}
 
 	// Read the response body

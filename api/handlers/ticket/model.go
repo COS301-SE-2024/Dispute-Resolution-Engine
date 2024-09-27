@@ -162,7 +162,7 @@ func (t *ticketModelReal) getAdminTicketDetails(ticketID int64) (models.TicketsB
 		return tickets, err
 	}
 	var ticketInterMessages = []models.TicketMessages{}
-	err = t.db.Raw("SELECT tm.id, tm.created_at, tm.content, tm.user_id, u.first_name, u.surname FROM ticket_messages tm JOIN users u ON tm.user_id = u.id WHERE tm.ticket_id = ?", ticketID).Scan(&ticketInterMessages).Error
+	err = t.db.Raw("SELECT tm.id, tm.created_at, tm.content, tm.user_id, u.first_name, u.surname FROM ticket_messages tm JOIN users u ON tm.user_id = u.id WHERE tm.ticket_id = ? ORDER BY tm.id", ticketID).Scan(&ticketInterMessages).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving ticket messages")
 		return tickets, err
@@ -204,7 +204,7 @@ func (t *ticketModelReal) getTicketDetails(ticketID int64, userID int64) (models
 		return tickets, err
 	}
 	var ticketInterMessages = []models.TicketMessages{}
-	err = t.db.Raw("SELECT tm.id, tm.created_at ,tm.content, tm.user_id, u.first_name, u.surname FROM ticket_messages tm JOIN users u ON tm.user_id = u.id WHERE tm.ticket_id = ? AND u.id = ?", ticketID, userID).Scan(&ticketInterMessages).Error
+	err = t.db.Raw("SELECT tm.id, tm.created_at ,tm.content, tm.user_id, u.first_name, u.surname FROM ticket_messages tm JOIN users u ON tm.user_id = u.id WHERE tm.ticket_id = ? AND u.id = ? ORDER BY tm.id", ticketID, userID).Scan(&ticketInterMessages).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving ticket messages")
 		return tickets, err

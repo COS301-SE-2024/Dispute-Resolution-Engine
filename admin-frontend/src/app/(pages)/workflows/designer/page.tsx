@@ -20,6 +20,7 @@ import { type GraphState, type GraphTrigger, type GraphInstance } from "@/lib/ty
 import { graphToWorkflow, workflowToGraph } from "@/lib/api/workflow";
 import { workflowSchema } from "@/lib/schema/workflow";
 import { Textarea } from "@/components/ui/textarea";
+import WorkflowTitle from "@/components/workflow/workflow-title";
 
 const initialNodes: GraphState[] = [
   {
@@ -169,7 +170,10 @@ function InnerProvider() {
   }
 
   return (
-    <div className="h-full grid grid-cols-[1fr_3fr]">
+    <div className="h-full grid grid-cols-[1fr_3fr] grid-rows-[auto_1fr]">
+      <div className="col-span-2 border-b dark:border-primary-500/30 border-primary-500/20">
+        <WorkflowTitle value="New workflow" onValueChange={alert} />
+      </div>
       <div className="p-2 space-y-2 flex flex-col">
         <Textarea
           className="grow resize-none font-mono"

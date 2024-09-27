@@ -180,5 +180,5 @@ func (d *DurationWrapper) UnmarshalJSON(b []byte) error {
 
 
 type TriggerResponse struct {
-	Trigger []string `json:"trigger"`
+	Trigger []string `json:"triggers"`
 }

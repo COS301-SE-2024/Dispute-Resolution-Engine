@@ -34,7 +34,7 @@ func main() {
 	router.POST("/event", handlers.TransitionStateMachine)
 
 	// Add triggers endpoint
-	router.POST("/triggers", handlers.GetTriggers)
+	router.GET("/triggers", handlers.GetTriggers)
 
 	router.Run(":8090")
 

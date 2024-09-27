@@ -372,7 +372,7 @@ func (w OrchestratorReal) GetTriggers() (string, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	// Send the GET request to the orchestrator
-	resp, err := http.Get("http://localhost:8090/triggers")
+	resp, err := http.Get("http://orchestrator:8090/triggers")
 	if err != nil {
 		logger.Error("get error: ", err)
 		return "", fmt.Errorf("internal server error")

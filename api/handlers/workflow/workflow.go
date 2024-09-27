@@ -579,6 +579,7 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 func (w Workflow) GetTriggers(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
+	// Fetch the triggers string from the orchestrator
 	triggers, err := w.OrchestratorEntity.GetTriggers()
 	if err != nil {
 		logger.Error(err)
@@ -586,16 +587,19 @@ func (w Workflow) GetTriggers(c *gin.Context) {
 		return
 	}
 
+	// Unmarshal the JSON string into the TriggerResponse struct
 	var response models.TriggerResponse
 	err = json.Unmarshal([]byte(triggers), &response)
 	if err != nil {
-		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		logger.Error("Failed to parse triggers JSON:", err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to parse triggers JSON"})
 		return
 	}
 
+	// Return the structured response
 	c.JSON(http.StatusOK, models.Response{Data: response})
-
 }
+
+
 
 

@@ -22,7 +22,6 @@ type TicketModel interface {
 	addUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
 	addAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
 	createTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error)
-	getExperts(disputeID int64) (models.AdminDisputeExperts, error)
 }
 
 type Ticket struct {
@@ -44,9 +43,7 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 	}
 }
 
-func (t *ticketModelReal) getExperts(disputeID int64) (models.AdminDisputeExperts, error) {
-	return models.AdminDisputeExperts{}, nil
-}
+
 
 func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error) {
 	logger := utilities.NewLogger().LogWithCaller()

@@ -60,12 +60,13 @@ type WorkflowResp struct {
 }
 
 type AdminDisputeSummariesResponse struct {
-	Id           string       `json:"id"`
-	Title        string       `json:"title"`
-	Status       string       `json:"status"`
-	Workflow     WorkflowResp `json:"workflow"`
-	DateFiled    string       `json:"date_filed"`
-	DateResolved *string      `json:"date_resolved,omitempty" gorm:"column:date_resolved"`
+	Id           string                `json:"id"`
+	Title        string                `json:"title"`
+	Status       string                `json:"status"`
+	Workflow     WorkflowResp          `json:"workflow"`
+	DateFiled    string                `json:"date_filed"`
+	DateResolved *string               `json:"date_resolved,omitempty" gorm:"column:date_resolved"`
+	Experts      []AdminDisputeExperts `json:"expert"`
 }
 
 type TicketUser struct {

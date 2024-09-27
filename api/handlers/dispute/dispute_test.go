@@ -42,13 +42,13 @@ type mockAuditLogger struct {
 
 type DisputeErrorTestSuite struct {
 	suite.Suite
-	disputeMock *mockDisputeModel
-	jwtMock     *mockJwtModel
-	emailMock   *mockEmailModel
-	router      *gin.Engine
-	auditMock   *mockAuditLogger
+	disputeMock      *mockDisputeModel
+	jwtMock          *mockJwtModel
+	emailMock        *mockEmailModel
+	router           *gin.Engine
+	auditMock        *mockAuditLogger
 	mockOrchestrator *mockOrchestrator
-	mockEnv 	*mockEnv
+	mockEnv          *mockEnv
 }
 
 func (suite *DisputeErrorTestSuite) SetupTest() {
@@ -97,7 +97,7 @@ func createFileField(w *multipart.Writer, field, filename, value string) {
 
 type mockEnv struct {
 	throwErrors bool
-	Error error
+	Error       error
 }
 
 func (m *mockEnv) LoadFromFile(files ...string) {
@@ -116,11 +116,10 @@ func (m *mockEnv) Get(key string) (string, error) {
 	return "", nil
 }
 
-
-//mock orchestrator
+// mock orchestrator
 type mockOrchestrator struct {
 	throwErrors bool
-	Error error
+	Error       error
 }
 
 func (m *mockOrchestrator) MakeRequestToOrchestrator(endpoint string, payload dispute.OrchestratorRequest) (string, error) {
@@ -129,6 +128,7 @@ func (m *mockOrchestrator) MakeRequestToOrchestrator(endpoint string, payload di
 	}
 	return "", nil
 }
+
 // mock model auditlogger
 func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
 	return nil
@@ -138,8 +138,7 @@ func (m *mockDisputeModel) GetWorkflowRecordByID(id uint64) (*models.Workflow, e
 	if m.throwErrors {
 		return nil, errors.ErrUnsupported
 	}
-	return &models.Workflow{
-	}, nil
+	return &models.Workflow{}, nil
 
 }
 
@@ -407,8 +406,11 @@ func (m *mockDisputeModel) GenerateAISummary(disputeID int64, disputeDesc string
 
 }
 
-// ---------------------------------------------------------------- EVIDENCE UPLOAD
+func (m *mockDisputeModel) GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error) {
+	return nil, nil
+}
 
+// ---------------------------------------------------------------- EVIDENCE UPLOAD
 func (suite *DisputeErrorTestSuite) TestEvidenceUnauthorized() {
 	suite.jwtMock.throwErrors = true
 	req, _ := http.NewRequest("POST", "/1/evidence", nil)

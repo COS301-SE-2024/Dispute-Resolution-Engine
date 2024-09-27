@@ -2,10 +2,11 @@ package utilities
 
 import (
 	"os"
-    "runtime"
-    "strings"
-	
-    "github.com/sirupsen/logrus"
+	"runtime"
+	"strconv"
+	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 var Log *logrus.Logger
@@ -54,4 +55,12 @@ func (l *Logger) LogWithCaller() *Logger {
 		}
 	}
 	return l
+}
+
+func StringToInt(s string) (int, error) {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, err
+	}
+	return i, nil
 }

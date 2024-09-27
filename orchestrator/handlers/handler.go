@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -19,9 +18,9 @@ type Response struct {
 }
 
 type ResetResponse struct {
-	ID int64 `json:"id"`
-	CurrentState *string `json:"current_state"`
-	Deadline *time.Time `json:"deadline"`
+	ID           int64      `json:"id"`
+	CurrentState *string    `json:"current_state"`
+	Deadline     *time.Time `json:"deadline"`
 }
 
 type TriggerResponse struct {
@@ -141,33 +140,44 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 		return
 	}
 
-	// Get the current state and state deadline
-	state_deadline := active_wf_record.StateDeadline
-	current_state := active_wf_record.CurrentState
+	// Update current state and deadline if they are not nil
+	if Res.CurrentState != nil {
+		// Use the provided current state
+		current_state := *Res.CurrentState
+		wf.Initial = current_state
+		active_wf_record.CurrentState = current_state
+	}
 
-	// Make the current workflow's initial state the current state
-	wf.Initial = current_state
+	// If only the deadline is provided, use the current state from the record
+	stateToUpdate := active_wf_record.CurrentState
+	if Res.Deadline != nil {
+		// Check if the deadline is in the future
+		if time.Now().Before(*Res.Deadline) {
+			active_wf_record.StateDeadline = *Res.Deadline
 
-	// Update the state deadline
-	fmt.Println("State deadline: ", state_deadline)
-	fmt.Println("Current State: ", current_state)
-	fmt.Println("Current State Deadline: ", wf.States[current_state])
-	fmt.Println("Workflow: ", wf.GetWorkflowString())
-
-	//check if state deadline is in future
-	if time.Now().Before(state_deadline) {
-		// If the state deadline is in the future, update the timer duration
-		wf.States[current_state].Timer.Duration.Duration = time.Until(state_deadline)
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "State deadline is in the past",
-		})
-		return
+			// Update the timer duration using either the provided state or the current state from the record
+			wf.States[stateToUpdate].Timer.Duration.Duration = time.Until(*Res.Deadline)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "State deadline is in the past",
+			})
+			return
+		}
 	}
 
 	// Register the state machine with the controller
 	active_wf_id_str := strconv.Itoa(active_wf_id)
 	h.controller.RegisterStateMachine(active_wf_id_str, wf)
+
+	// Update the active workflow in the database
+	err = h.api.UpdateActiveWorkflow(active_wf_id, nil, &wf.Initial, nil, &active_wf_record.StateDeadline, nil)
+	if err != nil {
+		h.logger.Error("Error updating active workflow")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error updating active workflow",
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "State machine updated successfully!",

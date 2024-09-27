@@ -30,6 +30,9 @@ func main() {
 	// Add notify of START state machine handler
 	router.POST("/start", handlers.StartStateMachine)
 
+	// Add notify of EVENT state machine handler
+	router.POST("/event", handlers.TransitionStateMachine)
+
 	router.Run(":8090")
 
 	// Wait for a signal to shutdown

@@ -2,9 +2,11 @@
 
 import {
   DisputeCreateData,
+  DisputeDecisionError,
   ExpertRejectData,
   ExpertRejectError,
   disputeCreateSchema,
+  disputeDecisionSchema,
   expertRejectSchema,
 } from "../schema/dispute";
 import { Result } from "../types";
@@ -121,4 +123,62 @@ export async function uploadEvidence(
   }
 
   return res;
+}
+
+function fileExists(data: FormData, key: string): boolean {
+  if (!(data.get(key) instanceof File)) {
+    return false;
+  }
+
+  const file = data.get("writeup") as File;
+  return !(file.size === 0 || file.name === "undefined");
+}
+
+export async function uploadDecision(
+  _initial: unknown,
+  data: FormData
+): Promise<Result<string, DisputeDecisionError>> {
+  let { data: parsed, error: parseErr } = disputeDecisionSchema.safeParse(Object.fromEntries(data));
+
+  if (!fileExists(data, "writeup")) {
+    let error = parseErr?.format();
+    return {
+      error: {
+        ...error,
+        _errors: error?._errors ?? [],
+        writeup: {
+          _errors: ["Missing Writeup"],
+        },
+      },
+    };
+  }
+
+  if (parseErr) {
+    return { error: parseErr.format() };
+  }
+
+  const res = await fetch(`${API_URL}/disputes/${parsed?.dispute_id}/evidence`, {
+    method: "POST",
+    headers: {
+      // Sub this for the proper getAuthToken thing
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: data,
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`Request failed with code ${res.status}`);
+      }
+      return res;
+    })
+    .then(() => ({ data: null } as Result<null>))
+    .catch((e) => ({ error: e.message } as Result<null>));
+
+  if (!res.error) {
+    revalidatePath(`/dispute/${parsed?.dispute_id}`);
+  }
+
+  return {
+    data: "",
+  };
 }

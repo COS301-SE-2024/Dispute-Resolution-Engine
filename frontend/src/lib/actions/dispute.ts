@@ -124,28 +124,36 @@ export async function uploadEvidence(
   return res;
 }
 
+function fileExists(data: FormData, key: string): boolean {
+  if (!(data.get(key) instanceof File)) {
+    return false;
+  }
+
+  const file = data.get("writeup") as File;
+  return !(file.size === 0 || file.name === "undefined");
+}
+
 export async function uploadDecision(
   _initial: unknown,
   data: FormData
 ): Promise<Result<string, DisputeDecisionError>> {
-  const { data: parsed, error: parseErr } = disputeDecisionSchema.safeParse(
-    Object.fromEntries(data)
-  );
-  if (parseErr) {
-    return {
-      error: parseErr.format(),
-    };
-  }
+  let { data: parsed, error: parseErr } = disputeDecisionSchema.safeParse(Object.fromEntries(data));
 
-  if (!(data.get("writeup") instanceof File)) {
+  if (!fileExists(data, "writeup")) {
+    let error = parseErr?.format();
     return {
       error: {
-        _errors: [],
+        ...error,
+        _errors: error?._errors ?? [],
         writeup: {
-          _errors: ["Missing writeup"],
+          _errors: ["Missing Writeup"],
         },
       },
     };
+  }
+
+  if (parseErr) {
+    return { error: parseErr.format() };
   }
 
   return {

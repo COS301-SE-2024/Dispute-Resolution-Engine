@@ -82,7 +82,7 @@ type TicketSummaryResponse struct {
 }
 
 type TicketMessage struct {
-	ID       string     `json:"id"`
+	ID       int64      `json:"id" gorm:"column:id"`
 	User     TicketUser `json:"user"`
 	DateSent string     `json:"date_sent"`
 	Message  string     `json:"message"`
@@ -90,8 +90,8 @@ type TicketMessage struct {
 
 type TicketsByUser struct {
 	TicketSummaryResponse
-	Body     string           `json:"body"`
-	Messages []TicketMessages `json:"messages"`
+	Body     string          `json:"body"`
+	Messages []TicketMessage `json:"messages"`
 }
 
 type GetWorkflowResponse struct {

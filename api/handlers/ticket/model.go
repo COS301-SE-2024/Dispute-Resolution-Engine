@@ -16,8 +16,8 @@ import (
 type TicketModel interface {
 	getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
 	getTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
-	getTicketDetails(ticketID int64, userID int64) ([]models.TicketsByUser, error)
-	getAdminTicketDetails(ticketID int64) ([]models.TicketsByUser, error)
+	getTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error)
+	getAdminTicketDetails(ticketID int64) (models.TicketsByUser, error)
 	patchTicketStatus(status string, ticketID int64) error
 	addUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
 	addAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
@@ -98,7 +98,7 @@ func (t *ticketModelReal) addUserTicketMessage(ticketID int64, userID int64, mes
 	}
 
 	var ticketMessage = models.TicketMessage{
-		ID:       strconv.Itoa(int(ticketID)),
+		ID:       ticketID,
 		User:     user,
 		DateSent: time.Now().Format("2006-01-02"),
 		Message:  message,
@@ -131,7 +131,7 @@ func (t *ticketModelReal) addAdminTicketMessage(ticketID int64, userID int64, me
 	}
 
 	var ticketMessage = models.TicketMessage{
-		ID:       strconv.Itoa(int(ticketID)),
+		ID:       ticketID,
 		User:     user,
 		DateSent: time.Now().Format("2006-01-02"),
 		Message:  message,
@@ -152,22 +152,35 @@ func (t *ticketModelReal) patchTicketStatus(status string, ticketID int64) error
 	return nil
 }
 
-func (t *ticketModelReal) getAdminTicketDetails(ticketID int64) ([]models.TicketsByUser, error) {
+func (t *ticketModelReal) getAdminTicketDetails(ticketID int64) (models.TicketsByUser, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	tickets := []models.TicketsByUser{}
+	tickets := models.TicketsByUser{}
 	var IntermediateTick = models.TicketIntermediate{}
 	err := t.db.Raw("SELECT t.id, t.created_at, t.subject, t.status, t.initial_message, u.id AS user_id, u.first_name, u.surname FROM tickets t JOIN users u ON t.created_by = u.id WHERE t.id = ?", ticketID).Scan(&IntermediateTick).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving ticket")
 		return tickets, err
 	}
-	var ticketMessages = []models.TicketMessages{}
-	err = t.db.Raw("SELECT tm.id, tm.content, tm.user_id, u.first_name, u.surname FROM ticket_messages tm JOIN users u ON tm.user_id = u.id WHERE tm.ticket_id = ?", ticketID).Scan(&ticketMessages).Error
+	var ticketInterMessages = []models.TicketMessages{}
+	err = t.db.Raw("SELECT tm.id, tm.created_at, tm.content, tm.user_id, u.first_name, u.surname FROM ticket_messages tm JOIN users u ON tm.user_id = u.id WHERE tm.ticket_id = ? ORDER BY tm.id", ticketID).Scan(&ticketInterMessages).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving ticket messages")
 		return tickets, err
 	}
-	tickets = append(tickets, models.TicketsByUser{
+
+	var ticketMessages = []models.TicketMessage{}
+
+	for _, ticketInterMessage := range ticketInterMessages {
+		var ticketMessage models.TicketMessage
+		ticketMessage.ID = ticketInterMessage.ID
+		ticketMessage.User = models.TicketUser{ID: strconv.Itoa(int(ticketInterMessage.UserID)), FullName: ticketInterMessage.FirstName + " " + ticketInterMessage.Surname}
+		ticketMessage.DateSent = ticketInterMessage.CreatedAt.String()
+		ticketMessage.Message = ticketInterMessage.Content
+		ticketMessages = append(ticketMessages, ticketMessage)
+
+	}
+
+	tickets = models.TicketsByUser{
 		TicketSummaryResponse: models.TicketSummaryResponse{
 			ID:          strconv.Itoa(int(IntermediateTick.Id)),
 			User:        models.TicketUser{ID: strconv.Itoa(int(IntermediateTick.UserID)), FullName: IntermediateTick.FirstName + " " + IntermediateTick.Surname},
@@ -175,28 +188,43 @@ func (t *ticketModelReal) getAdminTicketDetails(ticketID int64) ([]models.Ticket
 			Subject:     IntermediateTick.Subject,
 			Status:      IntermediateTick.Status,
 		},
-		Body:     *IntermediateTick.InitialMessage,
+		Body:     IntermediateTick.InitialMessage,
 		Messages: ticketMessages,
-	})
+	}
 	return tickets, err
 }
 
-func (t *ticketModelReal) getTicketDetails(ticketID int64, userID int64) ([]models.TicketsByUser, error) {
+func (t *ticketModelReal) getTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	tickets := []models.TicketsByUser{}
+	tickets := models.TicketsByUser{}
 	var IntermediateTick = models.TicketIntermediate{}
 	err := t.db.Raw("SELECT t.id, t.created_at, t.subject, t.status, t.initial_message, u.id AS user_id, u.first_name, u.surname FROM tickets t JOIN users u ON t.created_by = u.id WHERE t.id = ? AND u.id = ?", ticketID, userID).Scan(&IntermediateTick).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving ticket")
 		return tickets, err
 	}
-	var ticketMessages = []models.TicketMessages{}
-	err = t.db.Raw("SELECT tm.id, tm.content, tm.user_id, u.first_name, u.surname FROM ticket_messages tm JOIN users u ON tm.user_id = u.id WHERE tm.ticket_id = ? AND u.id = ?", ticketID, userID).Scan(&ticketMessages).Error
+	var ticketInterMessages = []models.TicketMessages{}
+	err = t.db.Raw("SELECT tm.id, tm.created_at ,tm.content, tm.user_id, u.first_name, u.surname FROM ticket_messages tm JOIN users u ON tm.user_id = u.id WHERE tm.ticket_id = ? AND u.id = ? ORDER BY tm.id", ticketID, userID).Scan(&ticketInterMessages).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving ticket messages")
 		return tickets, err
 	}
-	tickets = append(tickets, models.TicketsByUser{
+
+	if ticketInterMessages == nil {
+		ticketInterMessages = []models.TicketMessages{}
+	}
+	var ticketMessages = []models.TicketMessage{}
+
+	for _, ticketInterMessage := range ticketInterMessages {
+		var ticketMessage models.TicketMessage
+		ticketMessage.ID = ticketInterMessage.ID
+		ticketMessage.User = models.TicketUser{ID: strconv.Itoa(int(ticketInterMessage.UserID)), FullName: ticketInterMessage.FirstName + " " + ticketInterMessage.Surname}
+		ticketMessage.DateSent = ticketInterMessage.CreatedAt.String()
+		ticketMessage.Message = ticketInterMessage.Content
+		ticketMessages = append(ticketMessages, ticketMessage)
+	}
+
+	tickets = models.TicketsByUser{
 		TicketSummaryResponse: models.TicketSummaryResponse{
 			ID:          strconv.Itoa(int(IntermediateTick.Id)),
 			User:        models.TicketUser{ID: strconv.Itoa(int(IntermediateTick.UserID)), FullName: IntermediateTick.FirstName + " " + IntermediateTick.Surname},
@@ -204,14 +232,9 @@ func (t *ticketModelReal) getTicketDetails(ticketID int64, userID int64) ([]mode
 			Subject:     IntermediateTick.Subject,
 			Status:      IntermediateTick.Status,
 		},
-		Body:     *IntermediateTick.InitialMessage,
+		Body:     IntermediateTick.InitialMessage,
 		Messages: ticketMessages,
-	})
-
-	if len(tickets) == 0 {
-		return tickets, errors.New("Unauthorized ticket access attempt")
 	}
-
 	return tickets, err
 }
 

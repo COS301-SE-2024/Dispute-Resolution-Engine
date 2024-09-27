@@ -188,11 +188,12 @@ func (h Ticket) getUserTicketDetails(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusOK, models.Response{Data: ticketDetails})
+		return
 	}
 
 	ticketDetails, err := h.Model.getTicketDetails(int64(ticketIDInt), claims.ID)
 
-	if err.Error() == "Unauthorized ticket access attempt" {
+	if err != nil && err.Error() == "Unauthorized ticket access attempt" {
 		logger.Error("Unauthorized ticket access attempt")
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized ticket access attempt"})
 		return

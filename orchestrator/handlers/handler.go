@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	// "fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -121,10 +122,18 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 
 	// Fetch the workflow definition from the database
 	active_wf_record, err := h.api.FetchActiveWorkflow(active_wf_id)
+	// fmt.Println("Error: ",active_wf_record)
 	if err != nil {
 		h.logger.Error("Error fetching workflow definition")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error fetching workflow definition",
+		})
+		return
+	}
+
+	if active_wf_record.ID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid workflow ID",
 		})
 		return
 	}

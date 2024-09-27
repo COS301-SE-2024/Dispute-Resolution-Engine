@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
   ReactFlow,
   useNodesState,
@@ -16,13 +16,10 @@ import "@xyflow/react/dist/style.css";
 import { Button } from "@/components/ui/button";
 import CustomNode from "./CustomNode";
 
-import {
-  type Workflow,
-  type GraphState,
-  type GraphTrigger,
-  GraphInstance,
-  WorkflowDefinition,
-} from "@/lib/types";
+import { type GraphState, type GraphTrigger, type GraphInstance } from "@/lib/types";
+import { graphToWorkflow, workflowToGraph } from "@/lib/api/workflow";
+import { workflowSchema } from "@/lib/schema/workflow";
+import { Textarea } from "@/components/ui/textarea";
 
 const initialNodes: GraphState[] = [
   {
@@ -140,38 +137,56 @@ function Flow() {
 function InnerProvider() {
   const reactFlow: GraphInstance = useReactFlow();
 
-  function convertWorkflow() {
-    const { nodes, edges } = reactFlow.toObject();
-    const workflow: WorkflowDefinition = {
-      initial: "Im not sure",
-      states: Object.fromEntries(
-        nodes.map((node) => [
-          node.id,
-          {
-            label: node.data.label,
-            description: "sure bud",
-            events: Object.fromEntries(
-              edges
-                .filter((edge) => edge.source == node.id)
-                .map((edge) => [
-                  edge.id,
-                  {
-                    label: "oi blud, do somfin",
-                    next_state: edge.target,
-                  },
-                ])
-            ),
-          },
-        ])
-      ),
-    };
-    console.log(workflow);
+  const [result, setResult] = useState("");
+  const [error, setError] = useState<string>();
+
+  async function toWorkflow() {
+    const workflow = await graphToWorkflow(reactFlow.toObject());
+    setResult(JSON.stringify(workflow, null, 2));
+    setError(undefined);
+  }
+
+  async function fromWorkflow() {
+    let json;
+    try {
+      json = JSON.parse(result);
+    } catch (e) {
+      setError((e as Error).message);
+      return;
+    }
+
+    const { data, error } = workflowSchema.safeParse(json);
+    if (error) {
+      setError(error.issues[0].message);
+      return;
+    }
+
+    setError(undefined);
+
+    const [nodes, edges] = await workflowToGraph(data);
+    reactFlow.setNodes(nodes);
+    reactFlow.setEdges(edges);
   }
 
   return (
-    <div className="h-full grid grid-rows-[1fr_auto]">
+    <div className="h-full grid grid-cols-[1fr_3fr]">
+      <div className="p-2 space-y-2 flex flex-col">
+        <Textarea
+          className="grow resize-none font-mono"
+          value={result}
+          onChange={(e) => setResult(e.target.value)}
+        />
+        <div className="flex flex-col gap-2">
+          {error && (
+            <p role="alert" className="text-red-500">
+              {error}
+            </p>
+          )}
+          <Button onClick={toWorkflow}>Convert graph to workflow</Button>
+          <Button onClick={fromWorkflow}>Convert workflow to graph</Button>
+        </div>
+      </div>
       <Flow></Flow>
-      <Button onClick={convertWorkflow}>Convert to workflow</Button>
     </div>
   );
 }

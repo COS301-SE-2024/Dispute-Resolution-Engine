@@ -37,7 +37,7 @@ export async function getTicketDetails(id: number): Promise<Ticket> {
     });
 }
 
-export async function changeTicketStatus(id: string, status: TicketStatus): Promise<void> {
+export async function changeTicketStatus(id: number, status: TicketStatus): Promise<void> {
   await sf(`${API_URL}/tickets/${id}`, {
     method: "PATCH",
     headers: {
@@ -49,7 +49,7 @@ export async function changeTicketStatus(id: string, status: TicketStatus): Prom
   });
 }
 
-export async function addTicketMessage(id: string, message: string): Promise<TicketMessage> {
+export async function addTicketMessage(id: number, message: string): Promise<TicketMessage> {
   return sf(`${API_URL}/tickets/${id}/messages`, {
     method: "POST",
     headers: {

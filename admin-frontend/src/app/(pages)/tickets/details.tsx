@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { FormEvent } from "react";
 import { TICKET_DETAILS_KEY, TICKET_LIST_KEY } from "@/lib/constants";
 
-export default function TicketDetails({ ticketId }: { ticketId: string }) {
+export default function TicketDetails({ ticketId }: { ticketId: number }) {
   const { data, error } = useQuery({
     queryKey: [TICKET_DETAILS_KEY, ticketId],
     queryFn: async () => getTicketDetails(ticketId),

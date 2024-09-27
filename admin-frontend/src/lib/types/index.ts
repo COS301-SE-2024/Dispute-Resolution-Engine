@@ -28,3 +28,4 @@ export interface Filter<T extends string> {
 }
 
 export * from "./dispute";
+export * from "./workflow";

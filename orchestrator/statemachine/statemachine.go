@@ -84,6 +84,12 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 							logger.Error("Error updating active_workflow entry in database from timer event", err)
 						}
 						logger.Info("Sanity update of active_workflow entry in database", wf_id, new_state, new_state_deadline)
+						// Send http post containing workflow ID and new state to the api:9000/event endpoint
+						request := utilities.APIReq{
+							ID:           int64(wf_id_int),
+							CurrentState: new_state,
+						}
+						utilities.APIPostRequest(utilities.API_URL, request)
 					} else {
 						wf_id_int, err := strconv.Atoi(wf_id)
 						if err != nil {
@@ -94,6 +100,12 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 							logger.Error("Error updating active_workflow entry in database from timer event", err)
 						}
 						logger.Info("Sanity update of active_workflow entry in database", wf_id, new_state)
+						// Send http post containing workflow ID and new state to the api:9000/event endpoint
+						request := utilities.APIReq{
+							ID:           int64(wf_id_int),
+							CurrentState: new_state,
+						}
+						utilities.APIPostRequest(utilities.API_URL, request)
 					}
 				})
 			} else {
@@ -119,6 +131,12 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 								logger.Error("Error updating active_workflow entry in database", err)
 							}
 							logger.Info("Updated active_workflow entry in database", wf_id, new_state, new_state_deadline)
+							// Send http post containing workflow ID and new state to the api:9000/event endpoint
+							request := utilities.APIReq{
+								ID:           int64(wf_id_int),
+								CurrentState: new_state,
+							}
+							utilities.APIPostRequest(utilities.API_URL, request)
 						} else {
 							// Convert wf_id to int
 							wf_id_int, err := strconv.Atoi(wf_id)
@@ -130,7 +148,12 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 							if err != nil {
 								logger.Error("Error updating active_workflow entry in database", err)
 							}
-							logger.Info("Updated active_workflow entry in database", wf_id, new_state)
+							logger.Info("Updated active_workflow entry in database", wf_id, new_state)// Send http post containing workflow ID and new state to the api:9000/event endpoint
+							request := utilities.APIReq{
+								ID:           int64(wf_id_int),
+								CurrentState: new_state,
+							}
+							utilities.APIPostRequest(utilities.API_URL, request)
 						}
 					})
 					return nil

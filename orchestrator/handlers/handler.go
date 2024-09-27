@@ -195,6 +195,12 @@ func (h *Handler) TransitionStateMachine(c *gin.Context) {
 			})
 			return
 		}
+		// Send http post containing workflow ID and new state to the api:9000/event endpoint
+		request := utilities.APIReq{
+			ID:           int64(Res.ID),
+			CurrentState: current_state,
+		}
+		utilities.APIPostRequest(utilities.API_URL, request)	
 	} else {
 		// If there is a timer for the next state, update the current_state and state_deadline of the active_workflow entry in the database
 		err := h.api.UpdateActiveWorkflow(int(Res.ID), nil, &current_state, nil, &state_deadline, nil)
@@ -205,5 +211,11 @@ func (h *Handler) TransitionStateMachine(c *gin.Context) {
 			})
 			return
 		}
+		// Send http post containing workflow ID and new state to the api:9000/event endpoint
+		request := utilities.APIReq{
+			ID:           int64(Res.ID),
+			CurrentState: current_state,
+		}
+		utilities.APIPostRequest(utilities.API_URL, request)
 	}
 }

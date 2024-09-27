@@ -13,6 +13,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	API_URL = "http://api:9000/event"
+)
+
 type APIReq struct {
     ID int64 `json:"id"`
 	CurrentState string `json:"current_state"`
@@ -75,7 +79,7 @@ func StringToInt(s string) (int, error) {
 }
 
 // This function makes an http POST request to the specified endpoint with the specified payload
-func APIRequest(endpoint string, payload APIReq) (string, error) {
+func APIPostRequest(endpoint string, payload APIReq) (string, error) {
 	jsonData, err := json.Marshal(payload)
 	if err != nil {
 		return "", err

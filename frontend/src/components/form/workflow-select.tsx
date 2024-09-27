@@ -2,38 +2,39 @@
 
 import {
   Select,
+  SelectTrigger,
+  SelectValue,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
-import { getCountries } from "@/lib/api";
-import { SelectProps } from "@radix-ui/react-select";
+import { getWorkflowList } from "@/lib/api/workflow";
+import { SelectLabel, SelectProps } from "@radix-ui/react-select";
 import { useQuery } from "@tanstack/react-query";
 
-export default function CountrySelect({
+export default function WorkflowSelect({
   id,
   ...props
 }: SelectProps & {
   id?: string;
 }) {
   const query = useQuery({
-    queryKey: ["countryList"],
-    queryFn: () => getCountries(),
+    queryKey: ["workflowList"],
+    queryFn: () => getWorkflowList({}),
     staleTime: Infinity,
   });
 
   return (
     <Select {...props}>
       <SelectTrigger disabled={query.isPending}>
-        <SelectValue id={id} placeholder="Select a country" />
+        <SelectValue id={id} placeholder="Select a workflow" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          {query.data?.map((country) => (
-            <SelectItem key={country.country_code} value={country.country_code}>
-              {country.country_name}
+          <SelectLabel>Workflows</SelectLabel>
+          {query.data?.workflows.map((wf) => (
+            <SelectItem key={wf.id} value={wf.name}>
+              {wf.name}
             </SelectItem>
           ))}
         </SelectGroup>

@@ -19,21 +19,21 @@ type Response struct {
 }
 
 type TriggerResponse struct {
-	ID int64 `json:"id"`
+	ID      int64  `json:"id"`
 	Trigger string `json:"trigger"`
 }
 
 type Handler struct {
-	controller* controller.Controller // Pointer to the controller
-	logger utilities.Logger
-	api workflow.API
+	controller *controller.Controller // Pointer to the controller
+	logger     utilities.Logger
+	api        workflow.API
 }
 
 func NewHandler(ctrlr *controller.Controller, apiHandler workflow.API) *Handler {
 	return &Handler{
 		controller: ctrlr,
-		logger: *utilities.NewLogger(),
-		api: apiHandler,
+		logger:     *utilities.NewLogger(),
+		api:        apiHandler,
 	}
 }
 
@@ -163,7 +163,7 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 	})
 }
 
-// For when the API needs to transition the statemachine on a non-timer based trigger. 
+// For when the API needs to transition the statemachine on a non-timer based trigger.
 func (h *Handler) TransitionStateMachine(c *gin.Context) {
 	h.logger.Info("Transitioning state machine...")
 
@@ -200,7 +200,7 @@ func (h *Handler) TransitionStateMachine(c *gin.Context) {
 			ID:           int64(Res.ID),
 			CurrentState: current_state,
 		}
-		utilities.APIPostRequest(utilities.API_URL, request)	
+		utilities.APIPostRequest(utilities.API_URL, request)
 	} else {
 		// If there is a timer for the next state, update the current_state and state_deadline of the active_workflow entry in the database
 		err := h.api.UpdateActiveWorkflow(int(Res.ID), nil, &current_state, nil, &state_deadline, nil)

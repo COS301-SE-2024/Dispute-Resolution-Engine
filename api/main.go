@@ -6,6 +6,7 @@ import (
 	"api/env"
 	"api/handlers"
 	"api/handlers/dispute"
+	"api/handlers/notifications"
 
 	"api/handlers/ticket"
 
@@ -14,7 +15,6 @@ import (
 	"api/middleware"
 	"api/redisDB"
 	"api/utilities"
-	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -104,7 +104,6 @@ func main() {
 
 	workflowHandler := workflow.NewWorkflowHandler(DB, envLoader)
 
-
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
@@ -140,13 +139,44 @@ func main() {
 
 	workflowGroup := router.Group("/workflows")
 	workflowGroup.Use(jwt.JWTMiddleware)
-	workflow.SetupWorkflowRoutes(workflowGroup,workflowHandler)
+	workflow.SetupWorkflowRoutes(workflowGroup, workflowHandler)
 
 	ticketGroup := router.Group("/tickets")
 	ticket.SetupTicketRoutes(ticketGroup, ticketHandler)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	http.ListenAndServe(":8080", router)
-	logger.Info("API started successfully on port 8080")
+	go func() {
+		if err := router.Run(":8080"); err != nil {
+			logger.WithError(err).Fatal("Failed to start server")
+		} else {
+			logger.Info("Main API server started successfully")
+		}
+	}()
+
+	//-------- setup routes for the orchestrator
+	notificationHandlerOrch := notifications.NewHandler(DB)
+
+	orchRouter := gin.Default()
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders: []string{"Content-Type", "Authorization"},
+	}))
+
+	//setup handlers
+	notificationGroup := orchRouter.Group("/event")
+	notifications.SetupNotificationRoutes(notificationGroup, notificationHandlerOrch)
+
+	go func() {
+		if err := orchRouter.Run(":9000"); err != nil {
+			logger.WithError(err).Fatal("Failed to start server")
+		} else {
+			logger.Info("Orchestrator server started successfully")
+
+		}
+	}()
+
+	//
+
 }

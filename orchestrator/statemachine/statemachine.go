@@ -148,7 +148,8 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 							if err != nil {
 								logger.Error("Error updating active_workflow entry in database", err)
 							}
-							logger.Info("Updated active_workflow entry in database", wf_id, new_state)// Send http post containing workflow ID and new state to the api:9000/event endpoint
+							logger.Info("Updated active_workflow entry in database", wf_id, new_state)
+							// Send http post containing workflow ID and new state to the api:9000/event endpoint
 							request := utilities.APIReq{
 								ID:           int64(wf_id_int),
 								CurrentState: new_state,

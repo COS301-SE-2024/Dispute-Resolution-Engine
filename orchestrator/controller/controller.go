@@ -49,7 +49,7 @@ func (c *Controller) RegisterStateMachine(wfID string, wf workflow.Workflow) {
 // Transition to the next state in the specified state machine
 func (c *Controller) FireTrigger(wfID string, trigger string) (string, time.Time) {
 	/*
-	This function drives the transition from state to state given a trigger casued by an event
+		This function drives the transition from state to state given a trigger casued by an event
 	*/
 	// Check if the state machine exists
 	_, ok := c.StateMachineRegistry[wfID]

@@ -5,7 +5,6 @@ import (
 	"api/models"
 	"api/utilities"
 	"crypto/tls"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/gomail.v2"
@@ -13,20 +12,13 @@ import (
 )
 
 
-func SetupNotificationRoutes(group *gin.RouterGroup, h EmailSystem) {
-	group.POST("", h.NotifyEvent)
-	/*
-		group.Handle("/reset-password", middleware.RoleMiddleware(http.AuthFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
-		// router.Handle("/verify", middleware.RoleMiddleware(http.AuthFunc(h.Verify), 0)).Methods(http.MethodPost)
-	*/
-}
+
 
 
 type EmailSystem interface {
 	SendAdminEmail(c *gin.Context, disputeID int64, resEmail string, title string, summary string)
 	NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string)
 	SendDefaultUserEmail(c *gin.Context, email string, pass string, title string, summary string)
-	NotifyEvent(c *gin.Context)
 }
 
 type emailImpl struct {
@@ -141,17 +133,19 @@ func (e *emailImpl) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, d
 	envLoader := env.NewEnvLoader()
 
 	var dbDispute models.Dispute
-	e.db.Where("id = ?", disputeID).First(&dbDispute)
+	e.db.Where("\"id\" = ?", disputeID).First(&dbDispute)
 
+	logger.Info("dispute:", dbDispute)
+	
 	var respondent models.User
 	var complainant models.User
-	err := e.db.Where("id = ?", dbDispute.Respondant).First(&respondent)
-	if err != nil {
-		logger.WithError(err.Error).Error("Failed to get the respondent details")
+	err := e.db.First(&respondent, *dbDispute.Respondant)
+	if err.Error != nil {
+		logger.Error("Failed to get the respondent details:", err.Error)
 		return
 	}
-	err = e.db.Where("id = ?", dbDispute.Complainant).First(&complainant)
-	if err != nil {
+	err = e.db.First(&complainant, dbDispute.Complainant)
+	if err.Error != nil {
 		logger.WithError(err.Error).Error("Failed to get the complainant details")
 		return
 	}
@@ -173,6 +167,7 @@ func (e *emailImpl) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, d
 		Subject: "Dispute Status Change",
 		Body:    body,
 	}
+	logger.Info("Sending mail to: ", respondent.Email, " and ", complainant.Email)
 	go SendMail(emailComplainant)
 	go SendMail(emailRespondent)
 	logger.Info("Emails sent out")
@@ -205,20 +200,4 @@ func SendMail(email models.Email) error {
 		return err
 	}
 	return nil
-}
-
-
-func (e *emailImpl) NotifyEvent(c *gin.Context){
-	logger := utilities.NewLogger().LogWithCaller()
-
-	//bind the request body to the struct
-	var req models.NotifyEventOrchestrator
-	if err := c.BindJSON(&req); err != nil {
-		logger.WithError(err).Error("Invalid request from Orchestrator")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
-		return
-	}
-	//get the dispute details using ID from request body
-	e.NotifyDisputeStateChanged(c, req.ActiveWorkflowID, req.CurrentState)
-	logger.Info("Email notification sent successfully, via Orchestrator")
 }

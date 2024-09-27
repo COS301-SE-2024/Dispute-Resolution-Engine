@@ -35,6 +35,14 @@ type DisputeDetailsResponse struct {
 	Evidence    []Evidence    `json:"evidence"`
 	Experts     []Expert      `json:"experts"`
 	Role        string        `json:"role"`
+	Complainant UserDetails   `json:"complainant"`
+	Respondent  UserDetails   `json:"respondent"`
+}
+
+type UserDetails struct {
+	FullName string `json:"name" gorm:"column:full_name"`
+	Email    string `json:"email" gorm:"column:email"`
+	Address  string `json:"address" gorm:"column:address"`
 }
 
 type Evidence struct {

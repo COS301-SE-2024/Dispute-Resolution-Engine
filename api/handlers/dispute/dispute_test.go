@@ -207,6 +207,36 @@ func (m *mockDisputeModel) GetDispute(disputeId int64) (models.Dispute, error) {
 		Respondant: new(int64),
 	}, nil
 }
+
+func (m *mockDisputeModel) GetAdminDisputeDetails(disputeId int64) (models.DisputeDetailsResponse, error) {
+	if m.throwErrors {
+		return models.DisputeDetailsResponse{}, errors.ErrUnsupported
+	}
+	return models.DisputeDetailsResponse{
+		ID:          0,
+		Title:       "title",
+		Description: "desc",
+		Status:      "status",
+		DateCreated: time.Now(),
+		Evidence:    []models.Evidence{},
+		Experts:     []models.Expert{},
+		Role:        "",
+		Complainant: models.UserDetails{},
+		Respondent:  models.UserDetails{},
+	}, nil
+}
+
+func (m *mockDisputeModel) GetUser(userID int64) (models.UserDetails, error) {
+	if m.throwErrors {
+		return models.UserDetails{}, errors.ErrUnsupported
+	}
+	return models.UserDetails{
+		FullName: "name",
+		Email:    "email",
+		Address:  "address",
+	}, nil
+}
+
 func (m *mockDisputeModel) GetUserByEmail(email string) (models.User, error) {
 	if m.throwErrors {
 		return models.User{}, errors.ErrUnsupported

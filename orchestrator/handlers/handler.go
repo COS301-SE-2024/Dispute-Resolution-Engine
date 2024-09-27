@@ -18,6 +18,12 @@ type Response struct {
 	ID int64 `json:"id"`
 }
 
+type ResetResponse struct {
+	ID int64 `json:"id"`
+	CurrentState *string `json:"current_state"`
+	Deadline *time.Time `json:"deadline"`
+}
+
 type TriggerResponse struct {
 	ID      int64  `json:"id"`
 	Trigger string `json:"trigger"`
@@ -105,7 +111,7 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 	h.logger.Info("Restarting state machine...")
 
 	// Get the workflow ID from the request
-	var Res Response
+	var Res ResetResponse
 	if err := c.ShouldBindJSON(&Res); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request",

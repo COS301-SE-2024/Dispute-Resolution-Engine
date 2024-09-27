@@ -156,6 +156,27 @@ export async function uploadDecision(
     return { error: parseErr.format() };
   }
 
+  const res = await fetch(`${API_URL}/disputes/${parsed?.dispute_id}/evidence`, {
+    method: "POST",
+    headers: {
+      // Sub this for the proper getAuthToken thing
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: data,
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`Request failed with code ${res.status}`);
+      }
+      return res;
+    })
+    .then(() => ({ data: null } as Result<null>))
+    .catch((e) => ({ error: e.message } as Result<null>));
+
+  if (!res.error) {
+    revalidatePath(`/dispute/${parsed?.dispute_id}`);
+  }
+
   return {
     data: "",
   };

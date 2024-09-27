@@ -573,3 +573,5 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, models.Response{Data: "Database updated and request to Reset workflow sent"})
 }
+
+

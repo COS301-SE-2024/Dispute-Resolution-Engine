@@ -33,6 +33,9 @@ func main() {
 	// Add notify of EVENT state machine handler
 	router.POST("/event", handlers.TransitionStateMachine)
 
+	// Add triggers endpoint
+	router.POST("/triggers", handlers.GetTriggers)
+
 	router.Run(":8090")
 
 	// Wait for a signal to shutdown

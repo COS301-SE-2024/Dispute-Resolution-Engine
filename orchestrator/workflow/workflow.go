@@ -53,6 +53,26 @@ const (
 	TriggerAppealFeeNotPaid = "appeal_fee_not_paid"
 )
 
+func AllTriggers () []string {
+	return []string{
+		TriggerComplaintNotCompliant,
+		TriggerFeeNotPaid,
+		TiggerFeePaid,
+		TriggerComplaintCompliant,
+		TriggerTimedOut,
+		TriggerResponseReceived,
+		TriggerResponseUndelivered,
+		TriggerAdjudicatorAssigned,
+		TriggerDecisionMade,
+		TriggerPanelAppointed,
+		TriggerNoAppeal,
+		TriggerAppealSubmitted,
+		TriggerAppealOmmission,
+		TriggerAppealValid,
+		TriggerAppealFeeNotPaid,
+	}
+}
+
 // ----------------------------Timers--------------------------------
 type TimerInterface interface {
 	GetDuration() time.Duration

@@ -15,6 +15,7 @@ services:
     - "traefik.enable=true"
     - "traefik.http.routers.fe.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`) && !PathPrefix(`/grafana`)"
     - "traefik.http.routers.fe.entrypoints=${ENTRY_POINTS}"
+    - "traefik.http.routers.fe.middlewares=clickJack@docker"
     - "${FE_CA}"
   admin-frontend: # --------------------------------------------------------- Admin Frontend
     build: ./admin-frontend
@@ -33,7 +34,7 @@ services:
     - "traefik.http.routers.admin.rule=Host(`${DOMAIN}`) && (PathPrefix(`/admin`) || HeaderRegexp(`Referer`, `http.*${DOMAIN}/admin/.*`))"
     - "traefik.http.routers.admin.entrypoints=${ENTRY_POINTS}"
     - "traefik.http.middlewares.adminStrip.stripprefix.prefixes=/admin"
-    - "traefik.http.routers.admin.middlewares=adminStrip@docker"
+    - "traefik.http.routers.admin.middlewares=adminStrip@docker, clickJack@docker"
     - "${ADMIN_CA}"
   traefik: # ------------------------------------------------------Traefik
     image: traefik:v3.1
@@ -58,6 +59,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
     labels:
       - traefik.enable=true
+      - "traefik.http.middlewares.clickJack.headers.customrequestheaders.Content-Security-Policy=frame-ancestors 'self'"
   grafana: # -------------------------------------------------------------Grafana
     image: docker.io/grafana/grafana-oss
     container_name: grafana

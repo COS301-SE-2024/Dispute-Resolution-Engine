@@ -271,3 +271,13 @@ func (h *Handler) TransitionStateMachine(c *gin.Context) {
 	}
 	h.logger.Info("Transitioning successful.")
 }
+
+func (h *Handler) GetTriggers (c *gin.Context) {
+	h.logger.Info("Getting triggers...")
+
+	//get all consts from workflow package
+	c.JSON(http.StatusOK, gin.H{
+		"triggers": workflow.AllTriggers(),
+	})
+	h.logger.Info("Getting triggers successful.")
+}

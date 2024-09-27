@@ -311,14 +311,15 @@ type OrchestratorRequest struct {
 }
 
 type OrchestratorResetRequest struct {
-	ID int64 `json:"id"`
-	CurrentState *string `json:"current_state"`
-	Deadline *time.Time `json:"deadline"`
+	ID           int64      `json:"id"`
+	CurrentState *string    `json:"current_state"`
+	Deadline     *time.Time `json:"deadline"`
 }
 
 type WorkflowOrchestrator interface {
 	MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
 	SendResetRequestToOrchestrator(endpoint string, payload OrchestratorResetRequest) (string, error)
+	GetTriggers() (string, error)
 }
 
 type OrchestratorReal struct {
@@ -395,6 +396,28 @@ func (w OrchestratorReal) SendResetRequestToOrchestrator(endpoint string, payloa
 	}
 
 	//return body response
+	resp.Body.Close()
+
+	return responseBody, nil
+}
+
+func (w OrchestratorReal) GetTriggers() (string, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Send the GET request to the orchestrator
+	resp, err := http.Get("http://orchestrator:8090/triggers")
+	if err != nil {
+		logger.Error("get error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+	defer resp.Body.Close()
+
+	// Check for a successful status code (200 OK)
+	if resp.StatusCode != http.StatusOK {
+		logger.Error("status code error: ", resp.StatusCode)
+		return "", fmt.Errorf("internal server error")
+	}
+
 	// Read the response body
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -407,8 +430,6 @@ func (w OrchestratorReal) SendResetRequestToOrchestrator(endpoint string, payloa
 
 	// Log the response body for debugging
 	logger.Info("Response Body: ", responseBody)
-
-	resp.Body.Close()
 
 	return responseBody, nil
 }

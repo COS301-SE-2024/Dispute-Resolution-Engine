@@ -23,9 +23,11 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 	g.PATCH("/:id", h.UpdateWorkflow)
 	g.DELETE("/:id", h.DeleteWorkflow)
 
+
 	//manage active workflows
 	// g.POST("/activate", h.NewActiveWorkflow)
-	g.POST("/reset", h.ResetActiveWorkflow)
+	g.PATCH("/reset", h.ResetActiveWorkflow)
+	g.GET("/triggers", h.GetTriggers)
 	// g.POST("/complete", h.CompleteActiveWorkflow)
 }
 
@@ -573,3 +575,31 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, models.Response{Data: "Database updated and request to Reset workflow sent"})
 }
+
+func (w Workflow) GetTriggers(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Fetch the triggers string from the orchestrator
+	triggers, err := w.OrchestratorEntity.GetTriggers()
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	// Unmarshal the JSON string into the TriggerResponse struct
+	var response models.TriggerResponse
+	err = json.Unmarshal([]byte(triggers), &response)
+	if err != nil {
+		logger.Error("Failed to parse triggers JSON:", err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to parse triggers JSON"})
+		return
+	}
+
+	// Return the structured response
+	c.JSON(http.StatusOK, models.Response{Data: response})
+}
+
+
+
+

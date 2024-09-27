@@ -177,3 +177,8 @@ func (d *DurationWrapper) UnmarshalJSON(b []byte) error {
 	d.Duration = dur
 	return nil
 }
+
+
+type TriggerResponse struct {
+	Trigger []string `json:"triggers"`
+}

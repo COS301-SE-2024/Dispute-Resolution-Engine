@@ -35,6 +35,8 @@ func (o *OrchestratorMock) MakeRequestToOrchestrator(endpoint string, payload wo
 }
 
 func (o *OrchestratorMock) SendResetRequestToOrchestrator(endpoint string, payload workflow.OrchestratorResetRequest) (string, error) {
+
+func (o *OrchestratorMock) GetTriggers() (string, error) {
 	if o.throwError {
 		return "", o.Error
 	}

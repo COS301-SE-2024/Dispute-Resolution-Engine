@@ -33,7 +33,7 @@ export default function WorkflowSelect({
         <SelectGroup>
           <SelectLabel>Workflows</SelectLabel>
           {query.data?.workflows.map((wf) => (
-            <SelectItem key={wf.id} value={wf.name}>
+            <SelectItem key={wf.id} value={wf.id.toString()}>
               {wf.name}
             </SelectItem>
           ))}

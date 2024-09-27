@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const disputeCreateSchema = z.object({
+  workflow: z.coerce.string().min(1, "Workflow is required"),
   title: z.string().min(2).max(50),
   respondentName: z.string().min(1).max(50),
   respondentEmail: z.string().email(),

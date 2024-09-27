@@ -78,12 +78,13 @@ type DisputeResponse = {
 
 ```ts
 type DisputeCreateRequest = {
-  title : string;
-  description : string;
-  respondent[full_name] : string;
-  respondent[email] : string;
-  respondent[telephone] : string;
-  files : File
+  title: string;
+  description: string;
+  "respondent[full_name]": string;
+  "respondent[email]": string;
+  "respondent[telephone]": string;
+  "respondent[workflow]": string;
+  files: File;
 };
 ```
 

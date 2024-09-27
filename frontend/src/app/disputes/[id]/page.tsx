@@ -73,7 +73,6 @@ function DisputeHeader({
         <CreateTicketDialog asChild dispute={id}>
           <Button>Create ticket</Button>
         </CreateTicketDialog>
-        <WorkflowSelect />
       </div>
 
       <dl className="grid grid-cols-2 gap-2">

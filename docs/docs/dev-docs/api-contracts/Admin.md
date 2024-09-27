@@ -18,6 +18,14 @@ export interface Filter<T extends string> {
   // The value to search for.
   value: string;
 }
+
+type ExpertStatus = "Approved"|"Rejected"|"Review"
+export interface ExpertSummary {
+  id: number;
+  fullname: string;
+  status: ExpertStatus;
+}
+
 ```
 
 # Disputes

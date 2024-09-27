@@ -17,6 +17,12 @@ import (
 type IStateMachine interface {
 	// initialise the state machine with a workflow
 	Init(wf_id string, workflow workflow.Workflow, scheduler *scheduler.Scheduler)
+	// fire a trigger to transition to the next state
+	TriggerTransition(trigger string) error
+	// get the current state of the state machine
+	GetCurrentState() (string, error)
+	// get the deadline of the current state
+	GetStateDeadline() (time.Time, error)
 }
 
 type StateMachine struct {
@@ -75,9 +81,15 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 						}
 						err = s.api.UpdateActiveWorkflow(wf_id_int, nil, &new_state, nil, &new_state_deadline, nil)
 						if err != nil {
-							logger.Error("Error updating active_workflow entry in database", err)
+							logger.Error("Error updating active_workflow entry in database from timer event", err)
 						}
 						logger.Info("Sanity update of active_workflow entry in database", wf_id, new_state, new_state_deadline)
+						// Send http post containing workflow ID and new state to the api:9000/event endpoint
+						request := utilities.APIReq{
+							ID:           int64(wf_id_int),
+							CurrentState: new_state,
+						}
+						utilities.APIPostRequest(utilities.API_URL, request)
 					} else {
 						wf_id_int, err := strconv.Atoi(wf_id)
 						if err != nil {
@@ -85,9 +97,15 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 						}
 						err = s.api.UpdateActiveWorkflow(wf_id_int, nil, &new_state, nil, nil, nil)
 						if err != nil {
-							logger.Error("Error updating active_workflow entry in database", err)
+							logger.Error("Error updating active_workflow entry in database from timer event", err)
 						}
 						logger.Info("Sanity update of active_workflow entry in database", wf_id, new_state)
+						// Send http post containing workflow ID and new state to the api:9000/event endpoint
+						request := utilities.APIReq{
+							ID:           int64(wf_id_int),
+							CurrentState: new_state,
+						}
+						utilities.APIPostRequest(utilities.API_URL, request)
 					}
 				})
 			} else {
@@ -113,6 +131,12 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 								logger.Error("Error updating active_workflow entry in database", err)
 							}
 							logger.Info("Updated active_workflow entry in database", wf_id, new_state, new_state_deadline)
+							// Send http post containing workflow ID and new state to the api:9000/event endpoint
+							request := utilities.APIReq{
+								ID:           int64(wf_id_int),
+								CurrentState: new_state,
+							}
+							utilities.APIPostRequest(utilities.API_URL, request)
 						} else {
 							// Convert wf_id to int
 							wf_id_int, err := strconv.Atoi(wf_id)
@@ -125,6 +149,12 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 								logger.Error("Error updating active_workflow entry in database", err)
 							}
 							logger.Info("Updated active_workflow entry in database", wf_id, new_state)
+							// Send http post containing workflow ID and new state to the api:9000/event endpoint
+							request := utilities.APIReq{
+								ID:           int64(wf_id_int),
+								CurrentState: new_state,
+							}
+							utilities.APIPostRequest(utilities.API_URL, request)
 						}
 					})
 					return nil
@@ -140,4 +170,36 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 		}
 	}
 	s.StatelessStateMachine.Fire(wf.Initial)
+}
+
+func (s *StateMachine) TriggerTransition(trigger string) error {
+	err := s.StatelessStateMachine.Fire(trigger)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *StateMachine) GetCurrentState() (string, error) {
+	stateAny, err := s.StatelessStateMachine.State(context.Background())
+	if err != nil {
+		return "", err
+	}
+	state, ok := stateAny.(string)
+	if !ok {
+		return "", fmt.Errorf("state is not a string")
+	}
+	return state, nil
+}
+
+func (s *StateMachine) GetStateDeadline() (time.Time, error) {
+	state, err := s.GetCurrentState()
+	if err != nil {
+		return time.Time{}, err
+	}
+	timer := s.Workflow.States[state].Timer
+	if timer == nil {
+		return time.Time{}, nil // states are allowed to not have timers
+	}
+	return time.Now().Add(timer.GetDuration()), nil
 }

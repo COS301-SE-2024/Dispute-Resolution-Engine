@@ -18,6 +18,11 @@ type Response struct {
 	ID int64 `json:"id"`
 }
 
+type TriggerResponse struct {
+	ID      int64  `json:"id"`
+	Trigger string `json:"trigger"`
+}
+
 type Handler struct {
 	controller *controller.Controller // Pointer to the controller
 	logger     utilities.Logger
@@ -90,6 +95,7 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "State machine started successfully!",
 	})
+	h.logger.Info("Starting state machine successful.")
 }
 
 // For when the API notifies the orchestrator that there has been a manual change to the state machine.
@@ -160,4 +166,63 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "State machine updated successfully!",
 	})
+	h.logger.Info("Restarting state machine successful.")
+}
+
+// For when the API needs to transition the statemachine on a non-timer based trigger.
+func (h *Handler) TransitionStateMachine(c *gin.Context) {
+	h.logger.Info("Transitioning state machine...")
+
+	// Get the workflow ID from the request
+	var Res TriggerResponse
+	if err := c.ShouldBindJSON(&Res); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request",
+		})
+		return
+	}
+	// Fire the trigger
+	// The logic for updating the active_workflow entry in the database is in this function
+	current_state, state_deadline := h.controller.FireTrigger(strconv.Itoa(int(Res.ID)), Res.Trigger)
+	if current_state == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error transitioning state machine",
+		})
+		return
+	}
+
+	// If there is no timer for the next state, update the current_state of the active_workflow entry in the database
+	if state_deadline.IsZero() {
+		err := h.api.UpdateActiveWorkflow(int(Res.ID), nil, &current_state, nil, nil, nil)
+		if err != nil {
+			h.logger.Error("Error updating active workflow")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Error updating active workflow",
+			})
+			return
+		}
+		// Send http post containing workflow ID and new state to the api:9000/event endpoint
+		request := utilities.APIReq{
+			ID:           int64(Res.ID),
+			CurrentState: current_state,
+		}
+		utilities.APIPostRequest(utilities.API_URL, request)
+	} else {
+		// If there is a timer for the next state, update the current_state and state_deadline of the active_workflow entry in the database
+		err := h.api.UpdateActiveWorkflow(int(Res.ID), nil, &current_state, nil, &state_deadline, nil)
+		if err != nil {
+			h.logger.Error("Error updating active workflow")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Error updating active workflow",
+			})
+			return
+		}
+		// Send http post containing workflow ID and new state to the api:9000/event endpoint
+		request := utilities.APIReq{
+			ID:           int64(Res.ID),
+			CurrentState: current_state,
+		}
+		utilities.APIPostRequest(utilities.API_URL, request)
+	}
+	h.logger.Info("Transitioning successful.")
 }

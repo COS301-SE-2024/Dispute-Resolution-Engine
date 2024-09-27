@@ -91,6 +91,7 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "State machine started successfully!",
 	})
+	h.logger.Info("Starting state machine successful.")
 }
 
 // For when the API notifies the orchestrator that there has been a manual change to the state machine.
@@ -161,6 +162,7 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "State machine updated successfully!",
 	})
+	h.logger.Info("Restarting state machine successful.")
 }
 
 // For when the API needs to transition the statemachine on a non-timer based trigger.
@@ -218,4 +220,5 @@ func (h *Handler) TransitionStateMachine(c *gin.Context) {
 		}
 		utilities.APIPostRequest(utilities.API_URL, request)
 	}
+	h.logger.Info("Transitioning successful.")
 }

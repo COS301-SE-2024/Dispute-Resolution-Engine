@@ -1,17 +1,34 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { z } from "zod";
+import { Result, resultSchema } from "./types";
+
+export const API_URL = process.env.API_URL;
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const API_URL = process.env.API_URL;
+export function unwrapResult<T>(p: Promise<Result<T>>): Promise<T> {
+  return p.then(({ data, error }) => {
+    if (error) {
+      throw new Error(error);
+    }
+    return data!;
+  });
+}
 
-export const resultSchema = z.object({
-  data: z.any().optional(),
-  error: z.string().optional(),
-});
+/**
+ * Wrapper around fetch that automatically parses the return result and throws an error if something went wrong
+ */
+export function resultify<T>(prom: Promise<T>): Promise<Result<T>> {
+  return prom
+    .then((data) => ({ data }))
+    .catch((e: Error) => ({
+      error: e.message,
+    }));
+}
+
+
 
 /**
  * Parses the response body into JSON and checks that it conforms to the Result type

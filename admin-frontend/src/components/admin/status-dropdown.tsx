@@ -10,9 +10,10 @@ import {
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { ReactNode } from "react";
-import { DisputeStatus } from "@/lib/types/dispute";
+
 import { TICKET_STATUS, TicketStatus } from "@/lib/types/tickets";
 import { TicketStatusBadge } from "./status-badge";
+import { DISPUTE_STATUS, DisputeStatus } from "@/lib/types/dispute";
 
 const statusVariants = cva("", {
   variants: {
@@ -37,33 +38,65 @@ const statusVariants = cva("", {
   },
 });
 
-export interface StatusProps extends VariantProps<typeof statusVariants> {
+type Variant = VariantProps<typeof statusVariants>["variant"];
+
+const STATUS_VARIANTS: {
+  status: DisputeStatus;
+  variant: Variant;
+}[] = [
+  { status: "Awaiting Respondant", variant: "waiting" },
+  { status: "Active", variant: "active" },
+  { status: "Review", variant: "error" },
+  { status: "Refused", variant: "error" },
+  { status: "Appeal", variant: "inactive" },
+  { status: "Settled", variant: "inactive" },
+  { status: "Withdrawn", variant: "inactive" },
+  { status: "Transfer", variant: "inactive" },
+  { status: "Other", variant: "inactive" },
+] as const;
+
+export interface StatusProps {
+  value: DisputeStatus;
   dropdown?: boolean;
-  children?: ReactNode;
 }
 
-export function StatusBadge({ children, variant, dropdown = false }: StatusProps) {
-  return (
+export function StatusBadge({ value, dropdown = false }: StatusProps) {
+  const variant = STATUS_VARIANTS.find(({ status }) => status == value)?.variant;
+  if (!variant) {
+    throw new Error("Unhandled dispute status: " + value);
+  }
+
+  return dropdown ? (
     <Badge
       className={cn(
-        dropdown && "pl-1",
+        "pl-1",
         statusVariants({
           variant,
         })
       )}
+      asChild
     >
+      <button>
+        {dropdown && <ChevronDown size="1rem" />}
+        {value}
+      </button>
+    </Badge>
+  ) : (
+    <Badge className={statusVariants({ variant })}>
       {dropdown && <ChevronDown size="1rem" />}
-      {children}
+      {value}
     </Badge>
   );
 }
 
 export function StatusDropdown({
   onSelect = () => {},
+  initialValue,
   children,
   disabled,
 }: {
   onSelect?: (status: DisputeStatus) => void;
+  initialValue?: DisputeStatus;
   children: ReactNode;
   disabled?: boolean;
 }) {
@@ -73,21 +106,11 @@ export function StatusDropdown({
         {children}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="rounded-md">
-        <DropdownMenuItem onSelect={() => onSelect("Awaiting respondent")}>
-          <StatusBadge variant="waiting">Awaiting respondent</StatusBadge>
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onSelect("Active")}>
-          <StatusBadge variant="active">Active</StatusBadge>
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onSelect("Review")}>
-          <StatusBadge variant="error">Review</StatusBadge>
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onSelect("Settled")}>
-          <StatusBadge variant="inactive">Settled</StatusBadge>
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onSelect("Refused")}>
-          <StatusBadge variant="inactive">Refused</StatusBadge>
-        </DropdownMenuItem>
+        {DISPUTE_STATUS.filter((status) => status !== initialValue).map((value) => (
+          <DropdownMenuItem key={value} onSelect={() => onSelect(value)}>
+            <StatusBadge value={value} />
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -8,7 +8,6 @@ import (
 type Response struct {
 	Data  interface{} `json:"data,omitempty"`
 	Error string      `json:"error,omitempty"`
-	Total int64       `json:"total,omitempty"`
 }
 
 type DisputeSummaryResponse struct {
@@ -56,12 +55,12 @@ type DisputeCreationResponse struct {
 }
 
 type WorkflowResp struct {
-	Id    int64  `gorm:"column:id"`
-	Title string `gorm:"column:name"`
+	Id    int64  `json:"id" gorm:"column:id"`
+	Title string `json:"title" gorm:"column:name"`
 }
 
 type AdminDisputeSummariesResponse struct {
-	Id           int64        `json:"id"`
+	Id           string       `json:"id"`
 	Title        string       `json:"title"`
 	Status       string       `json:"status"`
 	Workflow     WorkflowResp `json:"workflow"`

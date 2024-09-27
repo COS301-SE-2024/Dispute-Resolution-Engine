@@ -134,8 +134,7 @@ type RejectExpertReview struct {
 }
 
 type DisputeStatusChange struct {
-	DisputeID int64  `json:"dispute_id"`
-	Status    string `json:"status"`
+	Status string `json:"status"`
 }
 
 type RecommendExpert struct {

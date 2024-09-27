@@ -16,7 +16,13 @@ import "@xyflow/react/dist/style.css";
 import { Button } from "@/components/ui/button";
 import CustomNode from "./CustomNode";
 
-import { type Workflow, type GraphState, type GraphTrigger, GraphInstance } from "@/lib/types";
+import {
+  type Workflow,
+  type GraphState,
+  type GraphTrigger,
+  GraphInstance,
+  WorkflowDefinition,
+} from "@/lib/types";
 
 const initialNodes: GraphState[] = [
   {
@@ -81,7 +87,7 @@ function Flow() {
         reactFlowInstance.addEdges([createEdge(connection, "bruh")]);
       }
     },
-    [reactFlowInstance, updateNodeInternals],
+    [reactFlowInstance, updateNodeInternals]
   );
   const { screenToFlowPosition } = useReactFlow();
   const onConnectEnd = useCallback(
@@ -105,13 +111,13 @@ function Flow() {
             sourceHandle: createId(),
             targetHandle: null,
           },
-          "new_trigger",
+          "new_trigger"
         );
         reactFlowInstance.addNodes([newNode]);
         reactFlowInstance.addEdges([newEdge]);
       }
     },
-    [reactFlowInstance, screenToFlowPosition, updateNodeInternals],
+    [reactFlowInstance, screenToFlowPosition, updateNodeInternals]
   );
 
   return (
@@ -136,8 +142,7 @@ function InnerProvider() {
 
   function convertWorkflow() {
     const { nodes, edges } = reactFlow.toObject();
-    const workflow: Workflow = {
-      label: "bruh",
+    const workflow: WorkflowDefinition = {
       initial: "Im not sure",
       states: Object.fromEntries(
         nodes.map((node) => [
@@ -154,10 +159,10 @@ function InnerProvider() {
                     label: "oi blud, do somfin",
                     next_state: edge.target,
                   },
-                ]),
+                ])
             ),
           },
-        ]),
+        ])
       ),
     };
     console.log(workflow);

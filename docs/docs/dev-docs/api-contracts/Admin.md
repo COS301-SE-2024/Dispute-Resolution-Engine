@@ -86,6 +86,6 @@ type AdminDisputes = Array<{
 
 type AdminDisputesResponse = {
   data: AdminDisputes;
-  total?: int;
+  total: number;
 };
 ```

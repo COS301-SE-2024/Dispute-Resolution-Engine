@@ -25,14 +25,16 @@ type Expert = {
   role: string;
 };
 ```
+
 # Utility Functions
+
 - **Endpoint:** `GET /utils/dispute_statuses`
 - **Headers:**
   - None expected
 - Will return a list of all possible states a dispute can be in:
 
 ```ts
-  type DisputeStatusesResponse = string[];
+type DisputeStatusesResponse = string[];
 ```
 
 # Dispute Summaries
@@ -88,9 +90,9 @@ type DisputeCreateRequest = {
 The response will return the ID of the newly-created dispute:
 
 ```ts
-type DisputeCreateResponse  = {
+type DisputeCreateResponse = {
   id: number;
-}
+};
 ```
 
 # Dispute Evidence upload
@@ -110,28 +112,29 @@ interface EvidenceUploadRequest {
 
 # Dispute Status Change
 
-- **Endpoint:** `PUT /dispute/status`
+- **Endpoint:** `PUT /disputes/{id}/status`
 - **Headers:**
   - `Authorization: Bearer <JWT>`
 
-````ts
+```ts
 type UpdateRequest = {
-  dispute_id : int;
-  status : string;
+  status: string;
 };
+```
 
 # Dispute Negotiating Party Operations
 
 ## Approving
+
 - **Endpoint:** `POST /disputes/{id}/experts/approve`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 ```ts
 interface ExpertApproveRequest {
   expert_id: string;
 }
-````
+```
 
 The response will return a success message
 

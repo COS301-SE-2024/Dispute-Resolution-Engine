@@ -6,7 +6,9 @@ import (
 	"api/utilities"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -30,7 +32,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/:id/experts/review-rejection", h.ExpertObjectionsReview)
 	g.POST("/experts/rejections", h.ViewExpertRejections)
 	g.POST("/:id/evidence", h.UploadEvidence)
-	g.PUT("/dispute/status", h.UpdateStatus)
+	g.PUT("/:id/status", h.UpdateStatus)
 
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
@@ -118,6 +120,47 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 
 	if userRole == "admin" && c.Request.Method == "POST" {
 		var reqAdminDisputes models.AdminDisputesRequest
+		body, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			logger.WithError(err).Error("Error reading request body")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
+			return
+		}
+
+		// Reset the body so it can be read again by BindJSON
+		c.Request.Body = io.NopCloser(strings.NewReader(string(body)))
+
+		// Check if the body is valid JSON and not empty
+		var bodyMap map[string]interface{}
+		if err := json.Unmarshal(body, &bodyMap); err != nil {
+			logger.WithError(err).Error("Invalid JSON format")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
+			return
+		}
+
+		// If the body contains no key-value pairs, consider it empty
+		if len(bodyMap) == 0 {
+			disputes, count, err := h.Model.GetAdminDisputes(nil, nil, nil, nil, nil, nil)
+			if err != nil {
+				logger.WithError(err).Error("error retrieving disputes")
+				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving disputes"})
+				return
+			}
+			if count == 0 {
+				logger.Info("No disputes found")
+				c.JSON(http.StatusOK, models.Response{Data: gin.H{
+					"disputes": disputes,
+					"total":    count,
+				}})
+				return
+			}
+			c.JSON(http.StatusOK, models.Response{Data: gin.H{
+				"disputes": disputes,
+				"total":    count,
+			}})
+			return
+		}
+
 		if err := c.BindJSON(&reqAdminDisputes); err != nil {
 			logger.WithError(err).Error("Invalid request")
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Request"})
@@ -161,10 +204,16 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 		}
 		if count == 0 {
 			logger.Info("No matching disputes found")
-			c.JSON(http.StatusOK, models.Response{Data: disputes, Total: 0})
+			c.JSON(http.StatusOK, models.Response{Data: gin.H{
+				"disputes": disputes,
+				"total":    0,
+			}})
 			return
 		}
-		c.JSON(http.StatusOK, models.Response{Data: disputes, Total: count})
+		c.JSON(http.StatusOK, models.Response{Data: gin.H{
+			"disputes": disputes,
+			"total":    count,
+		}})
 		return
 	}
 
@@ -508,13 +557,20 @@ func (h Dispute) UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	err := h.Model.UpdateDisputeStatus(disputeStatus.DisputeID, disputeStatus.Status)
+	disputeId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		logger.WithError(err).Error("Invalid Dispute ID")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+
+	err = h.Model.UpdateDisputeStatus(int64(disputeId), disputeStatus.Status)
 	if err != nil {
 		logger.WithError(err).Error("failed to update dispute status")
 		utilities.InternalError(c)
 		return
 	}
-	go h.Email.NotifyDisputeStateChanged(c, disputeStatus.DisputeID, disputeStatus.Status)
+	go h.Email.NotifyDisputeStateChanged(c, int64(disputeId), disputeStatus.Status)
 
 	logger.Info("Dispute status updated successfully")
 

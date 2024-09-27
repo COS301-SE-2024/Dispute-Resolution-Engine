@@ -680,28 +680,29 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		}
 	}
 
-	validSortAttrs := map[string]bool{
-		"id":            true,
-		"case_date":     true,
-		"workflow":      true,
-		"status":        true,
-		"title":         true,
-		"description":   true,
-		"complainant":   true,
-		"respondant":    true,
-		"date_resolved": true,
+	if sort != nil {
+		validSortAttrs := map[string]bool{
+			"id":            true,
+			"case_date":     true,
+			"workflow":      true,
+			"status":        true,
+			"title":         true,
+			"description":   true,
+			"complainant":   true,
+			"respondant":    true,
+			"date_resolved": true,
+		}
+
+		if _, valid := validSortAttrs[sort.Attr]; !valid {
+			return disputes, 0, errors.New("invalid sort attribute")
+		}
+
+		if sort.Order != "asc" && sort.Order != "desc" {
+			sort.Order = "asc"
+		}
+
+		queryString.WriteString(" ORDER BY " + sort.Attr + " " + sort.Order)
 	}
-
-	if _, valid := validSortAttrs[sort.Attr]; !valid {
-		return disputes, 0, errors.New("invalid sort attribute")
-	}
-
-	if sort.Order != "asc" && sort.Order != "desc" {
-		sort.Order = "asc"
-	}
-
-	queryString.WriteString(" ORDER BY " + sort.Attr + " " + sort.Order)
-
 	if limit != nil {
 		queryString.WriteString(" LIMIT ?")
 		queryParams = append(queryParams, *limit)
@@ -729,13 +730,14 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	//take the intermediate disputes and fill in the admin response information
 	for _, dispute := range intermediateDisputes {
 		var disputeResp models.AdminDisputeSummariesResponse
-		disputeResp.Id = dispute.Id
+		disputeResp.Id = strconv.Itoa(int(dispute.Id))
 		disputeResp.Title = dispute.Title
 		disputeResp.Status = dispute.Status
 		disputeResp.DateFiled = dispute.CaseDate.Format("2006-01-02")
 		//get the workflow
 		var workflow models.WorkflowResp
-		err = m.db.Raw("SELECT id, name FROM workflows WHERE id = (SELECT workflow FROM disputes WHERE id = ?)", dispute.Id).First(&workflow).Error
+
+		err = m.db.Raw("SELECT wf.id, wf.name FROM disputes d JOIN active_workflows aw ON d.workflow = aw.id JOIN workflows wf ON wf.id = aw.workflow WHERE d.id = ?", dispute.Id).First(&workflow).Error
 		if err != nil {
 			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
 		}

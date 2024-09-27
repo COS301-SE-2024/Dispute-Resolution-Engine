@@ -42,13 +42,13 @@ type mockAuditLogger struct {
 
 type DisputeErrorTestSuite struct {
 	suite.Suite
-	disputeMock *mockDisputeModel
-	jwtMock     *mockJwtModel
-	emailMock   *mockEmailModel
-	router      *gin.Engine
-	auditMock   *mockAuditLogger
+	disputeMock      *mockDisputeModel
+	jwtMock          *mockJwtModel
+	emailMock        *mockEmailModel
+	router           *gin.Engine
+	auditMock        *mockAuditLogger
 	mockOrchestrator *mockOrchestrator
-	mockEnv 	*mockEnv
+	mockEnv          *mockEnv
 }
 
 func (suite *DisputeErrorTestSuite) SetupTest() {
@@ -70,7 +70,7 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 	router.POST("", handler.GetSummaryListOfDisputes)
 	router.POST("/:id/experts/reject", handler.ExpertObjection)
 	router.POST("/:id/experts/review-rejection", handler.ExpertObjectionsReview)
-	router.PUT("/dispute/status", handler.UpdateStatus)
+	router.PUT("/:id/status", handler.UpdateStatus)
 
 	suite.router = router
 }
@@ -97,7 +97,7 @@ func createFileField(w *multipart.Writer, field, filename, value string) {
 
 type mockEnv struct {
 	throwErrors bool
-	Error error
+	Error       error
 }
 
 func (m *mockEnv) LoadFromFile(files ...string) {
@@ -116,11 +116,10 @@ func (m *mockEnv) Get(key string) (string, error) {
 	return "", nil
 }
 
-
-//mock orchestrator
+// mock orchestrator
 type mockOrchestrator struct {
 	throwErrors bool
-	Error error
+	Error       error
 }
 
 func (m *mockOrchestrator) MakeRequestToOrchestrator(endpoint string, payload dispute.OrchestratorRequest) (string, error) {
@@ -129,6 +128,7 @@ func (m *mockOrchestrator) MakeRequestToOrchestrator(endpoint string, payload di
 	}
 	return "", nil
 }
+
 // mock model auditlogger
 func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
 	return nil
@@ -138,8 +138,7 @@ func (m *mockDisputeModel) GetWorkflowRecordByID(id uint64) (*models.Workflow, e
 	if m.throwErrors {
 		return nil, errors.ErrUnsupported
 	}
-	return &models.Workflow{
-	}, nil
+	return &models.Workflow{}, nil
 
 }
 
@@ -1134,7 +1133,7 @@ func (suite *DisputeErrorTestSuite) TestUpdateStatusUnauthorized() {
 func (suite *DisputeErrorTestSuite) TestUpdateStatusInternalError() {
 	suite.jwtMock.throwErrors = false
 	suite.disputeMock.throwErrors = true
-	req, _ := http.NewRequest("PUT", "/dispute/status", bytes.NewBuffer([]byte(`{"dispute_id": 1, "status": "Resolved"}`)))
+	req, _ := http.NewRequest("PUT", "/1/status", bytes.NewBuffer([]byte(`{"status": "Resolved"}`)))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer mock")
 	w := httptest.NewRecorder()
@@ -1149,7 +1148,7 @@ func (suite *DisputeErrorTestSuite) TestUpdateStatusInternalError() {
 func (suite *DisputeErrorTestSuite) TestUpdateStatusSuccess() {
 	suite.jwtMock.throwErrors = false
 	suite.disputeMock.throwErrors = false
-	req, _ := http.NewRequest("PUT", "/dispute/status", bytes.NewBuffer([]byte(`{"dispute_id": 1, "status": "Resolved"}`)))
+	req, _ := http.NewRequest("PUT", "/1/status", bytes.NewBuffer([]byte(`{"status": "Resolved"}`)))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer mock")
 	w := httptest.NewRecorder()

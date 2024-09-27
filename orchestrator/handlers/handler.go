@@ -19,16 +19,16 @@ type Response struct {
 }
 
 type Handler struct {
-	controller* controller.Controller // Pointer to the controller
-	logger utilities.Logger
-	api workflow.API
+	controller *controller.Controller // Pointer to the controller
+	logger     utilities.Logger
+	api        workflow.API
 }
 
 func NewHandler(ctrlr *controller.Controller, apiHandler workflow.API) *Handler {
 	return &Handler{
 		controller: ctrlr,
-		logger: *utilities.NewLogger(),
-		api: apiHandler,
+		logger:     *utilities.NewLogger(),
+		api:        apiHandler,
 	}
 }
 
@@ -71,8 +71,12 @@ func (h *Handler) StartStateMachine(c *gin.Context) {
 
 	// Update the active workflow in the database
 	dateSubmitted := time.Now()
-	stateDeadline := time.Now().Add(wf.States[wf.Initial].Timer.Duration.Duration)
-	err = h.api.UpdateActiveWorkflow(active_wf_id, nil, &wf.Initial, &dateSubmitted, &stateDeadline, nil)
+	var stateDeadline *time.Time = nil
+	if wf.States[wf.Initial].Timer != nil {
+		dead := time.Now().Add(wf.States[wf.Initial].Timer.Duration.Duration)
+		stateDeadline = &dead
+	}
+	err = h.api.UpdateActiveWorkflow(active_wf_id, nil, &wf.Initial, &dateSubmitted, stateDeadline, nil)
 	if err != nil {
 		h.logger.Error("Error updating active workflow")
 		c.JSON(http.StatusInternalServerError, gin.H{

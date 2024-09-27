@@ -8,38 +8,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Language, fetchLanguages } from "@/lib/api";
+import { fetchLanguages } from "@/lib/api";
 import { SelectProps } from "@radix-ui/react-select";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 type LanguageSelectProps = SelectProps & {
   id: string;
 };
 
-export default function LanguageSelect(props: LanguageSelectProps) {
-  const [data, setData] = useState<Language[]>([]);
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const data = (await fetchLanguages()).data!;
-      if (!cancelled) {
-        setData(data);
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+export default function LanguageSelect({ id, ...props }: LanguageSelectProps) {
+  const query = useQuery({
+    queryKey: ["languageList"],
+    queryFn: () => fetchLanguages(),
+    staleTime: Infinity,
+  });
 
   return (
     <Select {...props}>
-      <SelectTrigger>
-        <SelectValue placeholder="Select a language" />
+      <SelectTrigger disabled={query.isPending}>
+        <SelectValue id={id} placeholder="Select a language" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          {data?.map((country) => (
+          {query.data?.map((country) => (
             <SelectItem key={country.id} value={country.id}>
               {country.label}
             </SelectItem>

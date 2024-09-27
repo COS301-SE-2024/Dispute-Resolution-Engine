@@ -275,6 +275,6 @@ type GetWorkflow struct {
 }
 
 type NotifyEventOrchestrator struct {
-	ActiveWorkflowID           int64  `json:"id"`
-	CurrentState string `json:"current_state"`
+	ActiveWorkflowID *int64  `json:"id"`
+	CurrentState     *string `json:"current_state"`
 }

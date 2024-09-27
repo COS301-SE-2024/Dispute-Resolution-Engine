@@ -398,7 +398,7 @@ func (w OrchestratorReal) SendResetRequestToOrchestrator(endpoint string, payloa
 	//return body response
 	resp.Body.Close()
 
-	return responseBody, nil
+	return "", nil
 }
 
 func (w OrchestratorReal) GetTriggers() (string, error) {

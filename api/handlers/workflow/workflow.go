@@ -514,18 +514,18 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 		return
 	}
 
-	// // find active workflow
-	// activeWorkflow, result := w.DB.GetActiveWorkflowByWorkflowID(uint64(*resetActiveWorkflow.DisputeID))
-	// if result != nil {
-	// 	if result == gorm.ErrRecordNotFound {
-	// 		logger.Warnf("Active workflow with ID %d not found", resetActiveWorkflow.DisputeID)
-	// 		c.JSON(http.StatusNotFound, models.Response{Error: "Active workflow not found"})
-	// 	} else {
-	// 		logger.Error(result)
-	// 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-	// 	}
-	// 	return
-	// }
+	// find active workflow
+	_, result := w.DB.GetActiveWorkflowByWorkflowID(uint64(*resetActiveWorkflow.DisputeID))
+	if result != nil {
+		if result == gorm.ErrRecordNotFound {
+			logger.Warnf("Active workflow with ID %d not found", resetActiveWorkflow.DisputeID)
+			c.JSON(http.StatusNotFound, models.Response{Error: "Active workflow not found"})
+		} else {
+			logger.Error(result)
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		}
+		return
+	}
 
 	// // Update the active workflow
 	// activeWorkflow.CurrentState = *resetActiveWorkflow.CurrentState

@@ -1,6 +1,10 @@
 package utilities
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"net/http"
 	"os"
 	"runtime"
 	"strconv"
@@ -8,6 +12,11 @@ import (
 
 	"github.com/sirupsen/logrus"
 )
+
+type APIReq struct {
+    ID int64 `json:"id"`
+	CurrentState string `json:"current_state"`
+}
 
 var Log *logrus.Logger
 
@@ -63,4 +72,25 @@ func StringToInt(s string) (int, error) {
 		return 0, err
 	}
 	return i, nil
+}
+
+// This function makes an http POST request to the specified endpoint with the specified payload
+func APIRequest(endpoint string, payload APIReq) (string, error) {
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+	
+	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	
+	return string(body), nil
 }

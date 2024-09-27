@@ -44,6 +44,9 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
         ...old,
         status: variables,
       }));
+      client.invalidateQueries({
+        queryKey: ["disputeTable"],
+      });
       toast({
         title: "Status updated successfully",
       });

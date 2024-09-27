@@ -25,7 +25,7 @@ export default function Disputes({ searchParams }: { searchParams: unknown }) {
     throw new Error(JSON.stringify(searchError));
   }
 
-  const client = new QueryClient();
+  const [client] = useState(new QueryClient());
 
   const [filter, setFilter] = useState<DisputeFilter[]>([]);
   const [page, setPage] = useState<number>(0);

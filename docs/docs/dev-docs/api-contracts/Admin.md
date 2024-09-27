@@ -90,6 +90,7 @@ type AdminDisputes = Array<{
 
   // Optional because dispute may still be active (i.e. no resolved date)
   date_resolved?: string;
+  experts: ExpertSummary;
 }>;
 
 type AdminDisputesResponse = {

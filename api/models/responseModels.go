@@ -66,7 +66,7 @@ type AdminDisputeSummariesResponse struct {
 	Workflow     WorkflowResp          `json:"workflow"`
 	DateFiled    string                `json:"date_filed"`
 	DateResolved *string               `json:"date_resolved,omitempty" gorm:"column:date_resolved"`
-	Experts      []AdminDisputeExperts `json:"expert"`
+	Experts      []AdminDisputeExperts `json:"experts"`
 }
 
 type TicketUser struct {

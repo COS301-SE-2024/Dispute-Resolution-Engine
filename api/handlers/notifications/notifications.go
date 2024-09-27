@@ -5,16 +5,28 @@ import (
 	"api/models"
 	"api/utilities"
 	"crypto/tls"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/gomail.v2"
 	"gorm.io/gorm"
 )
 
+
+func SetupNotificationRoutes(group *gin.RouterGroup, h EmailSystem) {
+	group.POST("", h.NotifyEvent)
+	/*
+		group.Handle("/reset-password", middleware.RoleMiddleware(http.AuthFunc(h.ResetPassword), 0)).Methods(http.MethodPost)
+		// router.Handle("/verify", middleware.RoleMiddleware(http.AuthFunc(h.Verify), 0)).Methods(http.MethodPost)
+	*/
+}
+
+
 type EmailSystem interface {
 	SendAdminEmail(c *gin.Context, disputeID int64, resEmail string, title string, summary string)
 	NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string)
 	SendDefaultUserEmail(c *gin.Context, email string, pass string, title string, summary string)
+	NotifyEvent(c *gin.Context)
 }
 
 type emailImpl struct {
@@ -193,4 +205,20 @@ func SendMail(email models.Email) error {
 		return err
 	}
 	return nil
+}
+
+
+func (e *emailImpl) NotifyEvent(c *gin.Context){
+	logger := utilities.NewLogger().LogWithCaller()
+
+	//bind the request body to the struct
+	var req models.NotifyEventOrchestrator
+	if err := c.BindJSON(&req); err != nil {
+		logger.WithError(err).Error("Invalid request from Orchestrator")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
+		return
+	}
+	//get the dispute details using ID from request body
+	e.NotifyDisputeStateChanged(c, req.ActiveWorkflowID, req.CurrentState)
+	logger.Info("Email notification sent successfully, via Orchestrator")
 }

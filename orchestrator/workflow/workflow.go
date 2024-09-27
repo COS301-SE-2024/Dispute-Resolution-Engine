@@ -36,15 +36,20 @@ const (
 	// Dispute triggers
 	TriggerComplaintNotCompliant = "complaint_not_compliant"
 	TriggerFeeNotPaid            = "fee_not_paid"
+	TiggerFeePaid                = "fee_paid"
 	TriggerComplaintCompliant    = "complaint_compliant"
 	TriggerTimedOut              = "timed_out"
 	TriggerResponseReceived      = "response_received"
 	TriggerResponseUndelivered   = "response_undelivered"
-	TriggerNoAppeal              = "no_appeal"
+	TriggerAdjudicatorAssigned   = "adjudicator_assigned"
+	TriggerDecisionMade          = "decision_made"
+	TriggerPanelAppointed        = "panel_appointed"
 
 	// Appeal triggers
+	TriggerNoAppeal         = "no_appeal"
 	TriggerAppealSubmitted  = "appeal_submitted"
 	TriggerAppealOmmission  = "appeal_ommission"
+	TriggerAppealValid      = "appeal_valid"
 	TriggerAppealFeeNotPaid = "appeal_fee_not_paid"
 )
 
@@ -114,7 +119,6 @@ type StateInterface interface {
 	SetTimer(timer Timer)
 }
 
-
 type State struct {
 	// Human-readable label of the state
 	Label string `json:"label"`
@@ -168,7 +172,6 @@ type WorkflowInterface interface {
 	GetWorkflowString() string
 }
 
-
 type Workflow struct {
 	// The ID of the initial state of the workflow
 	Initial string `json:"initial"`
@@ -190,7 +193,6 @@ func CreateWorkflow(initialId string, initial State) Workflow {
 func (w *Workflow) GetInitialState() State {
 	return w.States[w.Initial]
 }
-
 
 func (w *Workflow) GetWorkflowString() string {
 	result := fmt.Sprintf("Initial State: %s\n", w.Initial)

@@ -103,6 +103,12 @@ type TicketIntermediate struct {
 	InitialMessage string    `gorm:"column:initial_message"`
 }
 
+type AdminDisputeExperts struct {
+	ExpertID int64  `gorm:"column:id" json:"id"`
+	FullName string `json:"full_name"`
+	Status   string `gorm:"column:status" json:"status"`
+}
+
 // type TicketMessage struct {
 // 	ID
 // }

@@ -43,6 +43,8 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 	}
 }
 
+
+
 func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 

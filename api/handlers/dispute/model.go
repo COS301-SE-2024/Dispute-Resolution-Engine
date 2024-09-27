@@ -51,15 +51,16 @@ type DisputeModel interface {
 	CreateActiverWorkflow(workflow *models.ActiveWorkflows) error
 	DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error
 
+	GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error)
 	GenerateAISummary(disputeID int64, disputeDesc string, apiKey string)
 }
 
 type Dispute struct {
-	Model       DisputeModel
-	Email       notifications.EmailSystem
-	JWT         middleware.Jwt
-	Env         env.Env
-	AuditLogger auditLogger.DisputeProceedingsLoggerInterface
+	Model              DisputeModel
+	Email              notifications.EmailSystem
+	JWT                middleware.Jwt
+	Env                env.Env
+	AuditLogger        auditLogger.DisputeProceedingsLoggerInterface
 	OrchestratorEntity WorkflowOrchestrator
 }
 
@@ -132,11 +133,11 @@ type disputeModelReal struct {
 
 func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 	return Dispute{
-		Email:       notifications.NewHandler(db),
-		JWT:         middleware.NewJwtMiddleware(),
-		Env:         env.NewEnvLoader(),
-		Model:       &disputeModelReal{db: db, env: env.NewEnvLoader()},
-		AuditLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader),
+		Email:              notifications.NewHandler(db),
+		JWT:                middleware.NewJwtMiddleware(),
+		Env:                env.NewEnvLoader(),
+		Model:              &disputeModelReal{db: db, env: env.NewEnvLoader()},
+		AuditLogger:        auditLogger.NewDisputeProceedingsLogger(db, envReader),
 		OrchestratorEntity: OrchestratorReal{},
 	}
 }
@@ -593,6 +594,17 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 	}
 }
 
+func (m *disputeModelReal) GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var expert []models.AdminDisputeExperts
+	err := m.db.Raw("SELECT u.id, CONCAT(u.first_name,' ' ,u.surname) AS full_name, de.status FROM users u JOIN dispute_experts_view de ON u.id = de.expert WHERE de.dispute = ?", disputeID).Scan(&expert).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving experts")
+		return expert, err
+	}
+	return expert, nil
+}
+
 func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, int64, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	var disputes []models.AdminDisputeSummariesResponse = []models.AdminDisputeSummariesResponse{}
@@ -741,7 +753,14 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		if err != nil {
 			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
 		}
+
+		experts, err := m.GetExperts(dispute.Id)
+		if err != nil {
+			logger.WithError(err).Error("Error retrieving experts for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
+		}
+
 		disputeResp.Workflow = workflow
+		disputeResp.Experts = experts
 		//get the date resolved
 		if dispute.DateResolved != nil {
 			dateResolved := dispute.DateResolved.Format("2006-01-02")

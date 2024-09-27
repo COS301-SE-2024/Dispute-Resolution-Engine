@@ -406,8 +406,11 @@ func (m *mockDisputeModel) GenerateAISummary(disputeID int64, disputeDesc string
 
 }
 
-// ---------------------------------------------------------------- EVIDENCE UPLOAD
+func (m *mockDisputeModel) GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error) {
+	return nil, nil
+}
 
+// ---------------------------------------------------------------- EVIDENCE UPLOAD
 func (suite *DisputeErrorTestSuite) TestEvidenceUnauthorized() {
 	suite.jwtMock.throwErrors = true
 	req, _ := http.NewRequest("POST", "/1/evidence", nil)

@@ -18,6 +18,14 @@ export interface Filter<T extends string> {
   // The value to search for.
   value: string;
 }
+
+type ExpertStatus = "Approved"|"Rejected"|"Review"
+export interface ExpertSummary {
+  id: number;
+  fullname: string;
+  status: ExpertStatus;
+}
+
 ```
 
 # Disputes
@@ -82,6 +90,7 @@ type AdminDisputes = Array<{
 
   // Optional because dispute may still be active (i.e. no resolved date)
   date_resolved?: string;
+  experts: []ExpertSummary;
 }>;
 
 type AdminDisputesResponse = {

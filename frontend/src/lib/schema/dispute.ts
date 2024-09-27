@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DISPUTE_DECISION } from "../interfaces/dispute";
 
 export const disputeCreateSchema = z.object({
   workflow: z.coerce.string().min(1, "Workflow is required"),
@@ -22,3 +23,16 @@ export const expertRejectSchema = z.object({
 });
 export type ExpertRejectData = z.infer<typeof expertRejectSchema>;
 export type ExpertRejectError = z.ZodFormattedError<ExpertRejectData>;
+
+export const disputeDecisionSchema = z.object({
+  dispute_id: z.string(),
+  decision: z.enum(DISPUTE_DECISION, {
+    message: "Invalid dispute decision",
+  }),
+
+  // Dummy variable to make RHF happy
+  writeup: z.any(),
+});
+
+export type DisputeDecisionData = z.infer<typeof disputeDecisionSchema>;
+export type DisputeDecisionError = z.ZodFormattedError<DisputeDecisionData>;

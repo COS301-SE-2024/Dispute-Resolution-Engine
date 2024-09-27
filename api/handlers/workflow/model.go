@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -308,8 +309,16 @@ func (wfmr *workflowModelReal) UpdateActiveWorkflow(workflow *models.ActiveWorkf
 type OrchestratorRequest struct {
 	ID int64 `json:"id"`
 }
+
+type OrchestratorResetRequest struct {
+	ID           int64      `json:"id"`
+	CurrentState *string    `json:"current_state"`
+	Deadline     *time.Time `json:"deadline"`
+}
+
 type WorkflowOrchestrator interface {
 	MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
+	SendResetRequestToOrchestrator(endpoint string, payload OrchestratorResetRequest) (string, error)
 	GetTriggers() (string, error)
 }
 
@@ -366,6 +375,30 @@ func (w OrchestratorReal) MakeRequestToOrchestrator(endpoint string, payload Orc
 	logger.Info("Response Body: ", responseBody)
 
 	return responseBody, nil
+}
+
+func (w OrchestratorReal) SendResetRequestToOrchestrator(endpoint string, payload OrchestratorResetRequest) (string, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Marshal the payload to JSON
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		logger.Error("marshal error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+	logger.Info("Payload: ", string(payloadBytes))
+
+	// Send the POST request to the orchestrator
+	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		logger.Error("post error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+
+	//return body response
+	resp.Body.Close()
+
+	return "", nil
 }
 
 func (w OrchestratorReal) GetTriggers() (string, error) {

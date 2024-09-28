@@ -457,6 +457,20 @@ func (suite *TicketErrorTestSuite) TestGetTicketListSuccess() {
 	suite.NotEmpty(result.Data)
 }
 
+func (suite *TicketErrorTestSuite) TestGetTicketListAdminSuccess() {
+	suite.jwtMock.returnUser.Role = "admin"
+	body := `{}`
+	req, _ := http.NewRequest("POST", "/tickets", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Data map[string]interface{} `json:"data"`
+	}
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+}
 
 func (suite *TicketErrorTestSuite) TestGetTicketListSuccess2() {
 	body := `{"limit": 10, "offset": 0}`
@@ -472,4 +486,17 @@ func (suite *TicketErrorTestSuite) TestGetTicketListSuccess2() {
 	suite.NotEmpty(result.Data)
 }
 
+func (suite *TicketErrorTestSuite) TestGetTicketListAdminSuccess2() {
+	suite.jwtMock.returnUser.Role = "admin"
+	body := `{"limit": 10, "offset": 0}`
+	req, _ := http.NewRequest("POST", "/tickets", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
+	var result struct {
+		Data map[string]interface{} `json:"data"`
+	}
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+}

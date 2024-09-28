@@ -44,7 +44,7 @@ func (suite *TicketErrorTestSuite) SetupTest() {
 
 	handler := ticket.Ticket{Model: suite.ticketMock, JWT: suite.jwtMock, Env: suite.envMock}
 	router.Use(suite.jwtMock.JWTMiddleware)
-	router.POST("", handler.GetTicketList)
+	router.POST("/tickets", handler.GetTicketList)
 	router.GET("/:id", handler.GetUserTicketDetails)
 	router.PATCH("/:id", handler.PatchTicketStatus)
 	router.POST("/:id/messages", handler.CreateTicketMessage)
@@ -425,4 +425,18 @@ func (suite *TicketErrorTestSuite) TestGetUserTicketDetailsSuccess() {
 	suite.Equal(http.StatusOK, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Data)
+}
+
+// ---------------------------------------------------------------- GET TICKET LIST
+
+func (suite *TicketErrorTestSuite) TestGetTicketListUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("POST", "/tickets", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
 }

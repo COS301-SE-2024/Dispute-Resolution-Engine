@@ -65,7 +65,7 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
 export async function rejectExpert(
   _initial: unknown,
   data: FormData
-): Promise<Result<string, ExpertRejectError>> {
+): Promise<Result<number, ExpertRejectError>> {
   const { data: parsed, error: parseErr } = expertRejectSchema.safeParse(Object.fromEntries(data));
   if (parseErr) {
     return {
@@ -73,8 +73,8 @@ export async function rejectExpert(
     };
   }
 
-  const res = await formFetch<ExpertRejectData, string>(
-    `${API_URL}/disputes/${parsed.dispute_id}/experts/reject`,
+  const res = await formFetch<ExpertRejectData, number>(
+    `${API_URL}/disputes/${parsed.dispute_id}/objections`,
     {
       method: "POST",
       headers: {

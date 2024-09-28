@@ -43,7 +43,7 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 	}
 }
 
-func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error) {
+func (t *ticketModelReal) CreateTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	//check if the user is part of the dispute
@@ -74,7 +74,7 @@ func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject stri
 	return ticket, nil
 }
 
-func (t *ticketModelReal) addUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
+func (t *ticketModelReal) AddUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	userTick := models.Ticket{}
@@ -107,7 +107,7 @@ func (t *ticketModelReal) addUserTicketMessage(ticketID int64, userID int64, mes
 	return ticketMessage, nil
 }
 
-func (t *ticketModelReal) addAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
+func (t *ticketModelReal) AddAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	ticket := models.Ticket{}
@@ -140,7 +140,7 @@ func (t *ticketModelReal) addAdminTicketMessage(ticketID int64, userID int64, me
 	return ticketMessage, nil
 }
 
-func (t *ticketModelReal) patchTicketStatus(status string, ticketID int64) error {
+func (t *ticketModelReal) PatchTicketStatus(status string, ticketID int64) error {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	err := t.db.Exec("UPDATE tickets SET status = ? WHERE id = ?", status, ticketID).Error
@@ -152,7 +152,7 @@ func (t *ticketModelReal) patchTicketStatus(status string, ticketID int64) error
 	return nil
 }
 
-func (t *ticketModelReal) getAdminTicketDetails(ticketID int64) (models.TicketsByUser, error) {
+func (t *ticketModelReal) GetAdminTicketDetails(ticketID int64) (models.TicketsByUser, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	tickets := models.TicketsByUser{}
 	var IntermediateTick = models.TicketIntermediate{}
@@ -194,7 +194,7 @@ func (t *ticketModelReal) getAdminTicketDetails(ticketID int64) (models.TicketsB
 	return tickets, err
 }
 
-func (t *ticketModelReal) getTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error) {
+func (t *ticketModelReal) GetTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	tickets := models.TicketsByUser{}
 	var IntermediateTick = models.TicketIntermediate{}
@@ -238,7 +238,7 @@ func (t *ticketModelReal) getTicketDetails(ticketID int64, userID int64) (models
 	return tickets, err
 }
 
-func (t *ticketModelReal) getTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
+func (t *ticketModelReal) GetTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	tickets := []models.TicketSummaryResponse{}
 	var queryString strings.Builder
@@ -338,7 +338,7 @@ func (t *ticketModelReal) getTicketsByUserID(uid int64, searchTerm *string, limi
 
 }
 
-func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
+func (t *ticketModelReal) GetAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	tickets := []models.TicketSummaryResponse{}
 	var queryString strings.Builder

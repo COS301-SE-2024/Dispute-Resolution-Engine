@@ -166,8 +166,6 @@ function InnerProvider() {
     setError(undefined);
     const [nodes, edges] = await workflowToGraph(data);
     let idTrack : number = 100
-    console.log("huh")
-
     const dagreGraph = new dagre.graphlib.Graph();
     const nodeWidth = 200
     const nodeHeight = 100
@@ -182,7 +180,6 @@ function InnerProvider() {
     dagre.layout(dagreGraph);
     for (let node of nodes){
       const nodeWithPosition = dagreGraph.node(node.id);
-      console.log(nodeWithPosition.x);
       node.position = {
         x: nodeWithPosition.x,
         y: nodeWithPosition.y,
@@ -195,7 +192,6 @@ function InnerProvider() {
       sourceNode?.data.edges.push({id: currHandleId})
       edge.sourceHandle = currHandleId
     }
-
     reactFlow.setNodes(nodes);
     reactFlow.setEdges(edges);
   }

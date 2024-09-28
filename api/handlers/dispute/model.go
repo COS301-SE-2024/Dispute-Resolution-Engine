@@ -55,7 +55,7 @@ type DisputeModel interface {
 	GenerateAISummary(disputeID int64, disputeDesc string, apiKey string)
 
 	GetUser(UserID int64) (models.UserDetails, error)
-	GetAdminDisputeDetails(disputeId int64) (models.DisputeDetailsResponse, error)
+	GetAdminDisputeDetails(disputeId int64) (models.AdminDisputeDetailsResponse, error)
 }
 
 type Dispute struct {
@@ -262,42 +262,75 @@ func (m *disputeModelReal) GetDispute(disputeId int64) (dispute models.Dispute, 
 	return dispute, err
 }
 
-func (m *disputeModelReal) GetAdminDisputeDetails(disputeId int64) (models.DisputeDetailsResponse, error) {
+func (m *disputeModelReal) GetAdminDisputeDetails(disputeId int64) (models.AdminDisputeDetailsResponse, error) {
+
 	logger := utilities.NewLogger().LogWithCaller()
-	var disputeDetails models.Dispute
-	err := m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).First(&disputeDetails).Error
-
+	dispute, err := m.GetDispute(disputeId)
 	if err != nil {
-		logger.WithError(err).Error("Error retrieving dispute details")
-		return models.DisputeDetailsResponse{}, err
+		logger.WithError(err).Error("Error retrieving dispute")
+		return models.AdminDisputeDetailsResponse{}, err
 	}
 
-	compl, err := m.GetUser(disputeDetails.Complainant)
-
+	var adminIntermed models.AdminIntermediate
+	err = m.db.Raw("SELECT id, title, status, case_date, date_resolved FROM disputes WHERE id = ?", disputeId).Scan(&adminIntermed).Error
 	if err != nil {
-		logger.WithError(err).Error("Error retrieving user details")
-		return models.DisputeDetailsResponse{}, err
+		logger.WithError(err).Error("Error retrieving dispute")
+		return models.AdminDisputeDetailsResponse{}, err
 	}
-
-	resp, err := m.GetUser(*disputeDetails.Respondant)
-
+	var workflow models.WorkflowResp
+	err = m.db.Raw("SELECT wf.id, wf.name FROM disputes d JOIN active_workflows aw ON d.workflow = aw.id JOIN workflows wf ON wf.id = aw.workflow WHERE d.id = ?", adminIntermed.Id).First(&workflow).Error
 	if err != nil {
-		logger.WithError(err).Error("Error retrieving user details")
-		return models.DisputeDetailsResponse{}, err
+		logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + strconv.Itoa(int(adminIntermed.Id)))
+		return models.AdminDisputeDetailsResponse{}, err
 	}
 
-	var actualDetails models.DisputeDetailsResponse = models.DisputeDetailsResponse{
-		ID:          *disputeDetails.ID,
-		Title:       disputeDetails.Title,
-		Description: disputeDetails.Description,
-		Status:      disputeDetails.Status,
-		DateCreated: disputeDetails.CaseDate,
-		Role:        "",
-		Complainant: compl,
-		Respondent:  resp,
+	experts, err := m.GetExperts(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving experts for dispute with ID: " + strconv.Itoa(int(adminIntermed.Id)))
+		return models.AdminDisputeDetailsResponse{}, err
 	}
 
-	return actualDetails, nil
+	var evidence []models.Evidence
+	evidence, err = m.GetEvidenceByDispute(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving evidence for dispute with ID: " + strconv.Itoa(int(adminIntermed.Id)))
+		return models.AdminDisputeDetailsResponse{}, err
+	}
+
+	var complainant models.UserDetails
+	complainant, err = m.GetUser(dispute.Complainant)
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving complainant for dispute with ID: " + strconv.Itoa(int(adminIntermed.Id)))
+		return models.AdminDisputeDetailsResponse{}, err
+	}
+
+	var respondent models.UserDetails
+	respondent, err = m.GetUser(*dispute.Respondant)
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving respondent for dispute with ID: " + strconv.Itoa(int(adminIntermed.Id)))
+		return models.AdminDisputeDetailsResponse{}, err
+	}
+
+	adminDisputeDetails := models.AdminDisputeDetailsResponse{
+		AdminDisputeSummariesResponse: models.AdminDisputeSummariesResponse{
+			Id:        strconv.Itoa(int(adminIntermed.Id)),
+			Title:     adminIntermed.Title,
+			Status:    adminIntermed.Status,
+			Workflow:  workflow,
+			DateFiled: adminIntermed.CaseDate.Format("2006-01-02"),
+			Experts:   experts,
+		},
+		Description: dispute.Description,
+		Evidence:    evidence,
+		Complainant: complainant,
+		Respondent:  respondent,
+	}
+	if dispute.DateResolved != nil {
+		dateResolved := dispute.DateResolved.Format("2006-01-02")
+		adminDisputeDetails.DateResolved = &dateResolved
+	}
+
+	return adminDisputeDetails, nil
 }
 
 func (m *disputeModelReal) GetEvidenceByDispute(disputeId int64) (evidence []models.Evidence, err error) {

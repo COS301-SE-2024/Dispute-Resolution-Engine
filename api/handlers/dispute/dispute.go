@@ -278,29 +278,6 @@ func (h Dispute) GetDispute(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving dispute"})
 			return
 		}
-		evidence, err := h.Model.GetEvidenceByDispute(int64(id))
-		if err != nil {
-			logger.WithError(err).Error("Error retrieving dispute evidence")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
-			return
-		}
-		if evidence == nil {
-			evidence = []models.Evidence{}
-		}
-
-		experts, err := h.Model.GetDisputeExperts(int64(id))
-		if err != nil && err.Error() != "record not found" {
-			logger.WithError(err).Error("Error retrieving dispute experts")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: err.Error()})
-			return
-		}
-
-		if experts == nil {
-			experts = []models.Expert{}
-		}
-
-		dispute.Evidence = evidence
-		dispute.Experts = experts
 
 		c.JSON(http.StatusOK, models.Response{Data: dispute})
 		return

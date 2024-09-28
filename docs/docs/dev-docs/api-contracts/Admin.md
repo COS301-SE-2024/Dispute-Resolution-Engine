@@ -90,7 +90,6 @@ type AdminDisputes = Array<{
 
   // Optional because dispute may still be active (i.e. no resolved date)
   date_resolved?: string;
-  experts: []ExpertSummary;
 }>;
 
 type AdminDisputesResponse = {
@@ -98,3 +97,32 @@ type AdminDisputesResponse = {
   total: number;
 };
 ```
+
+# Dispute Details
+- **Endpoint:** `GET /disputes/{id}`
+- **Headers:**
+  - `Authorization: Bearer <JWT>`
+```ts
+type AdminDisputes = {
+  id: string;
+  title: string;
+  status: string;
+
+  // The workflow that the dispute follows
+  workflow: {
+    id: string;
+    title: string;
+  };
+
+  date_filed: string;
+
+  // Optional because dispute may still be active (i.e. no resolved date)
+  date_resolved?: string;
+
+  description: string;
+  evidence: Evidence[];
+  complainant: UserDetails;
+  respondent: UserDetails;
+
+  experts: ExpertSummary[];
+};```

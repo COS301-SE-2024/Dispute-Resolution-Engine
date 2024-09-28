@@ -15,20 +15,30 @@ export async function getDisputeList(req: AdminDisputesRequest): Promise<AdminDi
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },
-    body: JSON.stringify(req),
+    body: JSON.stringify({
+      ...req,
+      sort: {
+        attr: "title",
+      },
+    }),
   }).then(validateResult<AdminDisputesResponse>);
 }
 
-export async function getDisputeDetails(id: string): Promise<DisputeDetailsResponse> {
+export async function getDisputeDetails(id: number): Promise<DisputeDetailsResponse> {
   return sf(`${API_URL}/disputes/${id}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },
-  }).then(validateResult<DisputeDetailsResponse>);
+  })
+    .then(validateResult<DisputeDetailsResponse>)
+    .then((res) => {
+      console.log(res);
+      return res;
+    });
 }
 
-export async function changeDisputeStatus(id: string, status: DisputeStatus): Promise<void> {
+export async function changeDisputeStatus(id: number, status: DisputeStatus): Promise<void> {
   await sf(`${API_URL}/disputes/${id}/status`, {
     method: "PUT",
     headers: {

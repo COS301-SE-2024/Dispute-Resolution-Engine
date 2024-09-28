@@ -208,22 +208,11 @@ func (m *mockDisputeModel) GetDispute(disputeId int64) (models.Dispute, error) {
 	}, nil
 }
 
-func (m *mockDisputeModel) GetAdminDisputeDetails(disputeId int64) (models.DisputeDetailsResponse, error) {
+func (m *mockDisputeModel) GetAdminDisputeDetails(disputeId int64) (models.AdminDisputeDetailsResponse, error) {
 	if m.throwErrors {
-		return models.DisputeDetailsResponse{}, errors.ErrUnsupported
+		return models.AdminDisputeDetailsResponse{}, errors.ErrUnsupported
 	}
-	return models.DisputeDetailsResponse{
-		ID:          0,
-		Title:       "title",
-		Description: "desc",
-		Status:      "status",
-		DateCreated: time.Now(),
-		Evidence:    []models.Evidence{},
-		Experts:     []models.Expert{},
-		Role:        "",
-		Complainant: models.UserDetails{},
-		Respondent:  models.UserDetails{},
-	}, nil
+	return models.AdminDisputeDetailsResponse{}, nil
 }
 
 func (m *mockDisputeModel) GetUser(userID int64) (models.UserDetails, error) {

@@ -16,13 +16,17 @@ import { useState } from "react";
 import DisputeFilters from "./dispute-filter";
 
 const searchSchema = z.object({
-  id: z.string().optional(),
+  id: z.coerce
+    .number({
+      message: "Invalid dispute ID",
+    })
+    .optional(),
 });
 
 export default function Disputes({ searchParams }: { searchParams: unknown }) {
   const { data: params, error: searchError } = searchSchema.safeParse(searchParams);
   if (!params) {
-    throw new Error(JSON.stringify(searchError));
+    throw new Error(searchError.issues[0].message);
   }
 
   const [client] = useState(new QueryClient());

@@ -284,16 +284,15 @@ func (ExpertObjectionsView) TableName() string {
 
 }
 
-
 type ExpertSummaryView struct {
-    ExpertID           uint      `gorm:"column:expert_id; primaryKey" json:"expert_id"`
-    ExpertName         string    `gorm:"column:expert_name" json:"expert_name"`
-    RejectionPercentage float64   `gorm:"column:rejection_percentage" json:"rejection_percentage"`
-    LastAssignedDate   time.Time `gorm:"column:last_assigned_date" json:"last_assigned_date"`
-    ActiveDisputeCount int       `gorm:"column:active_dispute_count" json:"active_dispute_count"`
+	ExpertID            uint      `gorm:"column:expert_id; primaryKey" json:"expert_id"`
+	ExpertName          string    `gorm:"column:expert_name" json:"expert_name"`
+	RejectionPercentage float64   `gorm:"column:rejection_percentage" json:"rejection_percentage"`
+	LastAssignedDate    time.Time `gorm:"column:last_assigned_date" json:"last_assigned_date"`
+	ActiveDisputeCount  int       `gorm:"column:active_dispute_count" json:"active_dispute_count"`
 }
 
 // TableName specifies the table name for GORM
 func (ExpertSummaryView) TableName() string {
-    return "expert_summary_view"
+	return "expert_summary_view"
 }

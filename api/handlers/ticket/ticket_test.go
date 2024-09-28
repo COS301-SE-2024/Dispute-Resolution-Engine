@@ -440,3 +440,31 @@ func (suite *TicketErrorTestSuite) TestGetTicketListUnauthorized() {
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
 }
+
+func (suite *TicketErrorTestSuite) TestGetTicketListError() {
+	suite.ticketMock.throwErrors = true
+	body := `{}`
+	req, _ := http.NewRequest("POST", "/tickets", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
+func (suite *TicketErrorTestSuite) TestGetTicketListSuccess() {
+	body := `{}`
+	req, _ := http.NewRequest("POST", "/tickets", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Data map[string]interface{} `json:"data"`
+	}
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+}

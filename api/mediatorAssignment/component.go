@@ -75,7 +75,19 @@ func (l *Logarithmic) CalculateScore() float64 {
 
 
 type Linear struct {
-	ApplyCap bool
-	Cap int
-	InputValue int
+	BaseFunction
+	Multiplier float64
 }
+
+func (l *Linear) CalculateScore() float64 {
+	score := l.MoveYAxis + l.InputValue * l.Multiplier + l.MoveXAxis
+
+	if l.ApplyCapToValue {
+		if score > l.Cap {
+			return l.Cap
+		}
+	}
+
+	return score
+}
+

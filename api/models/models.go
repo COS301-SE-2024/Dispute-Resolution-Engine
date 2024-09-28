@@ -197,3 +197,11 @@ type ExpertObjection struct {
 func (ExpertObjection) TableName() string {
 	return "expert_objections"
 }
+
+type DisputeDecisions struct {
+	ID        int64     `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	DisputeID int64     `json:"dispute_id" gorm:"column:dispute_id"`
+	ExpertID  int64     `json:"expert_id" gorm:"column:expert_id"`
+	WriteUpID int64     `json:"write_up_id" gorm:"column:writeup_file_id"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`
+}

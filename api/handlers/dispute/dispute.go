@@ -584,8 +584,8 @@ func (h Dispute) SubmitWriteup(c *gin.Context) {
 		return
 	}
 
-	file := form.File["writeup"]
-	if len(file) == 0 {
+	fileWriteUp := form.File["writeup"]
+	if len(fileWriteUp) == 0 {
 		logger.Error("missing field in form: writeup")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: writeup"})
 		return
@@ -599,4 +599,23 @@ func (h Dispute) SubmitWriteup(c *gin.Context) {
 	}
 	folder := fmt.Sprintf("%d", disputeId)
 	folderfolder := filepath.Join(folder, "decision")
+	path := filepath.Join(folderfolder, fileWriteUp[0].Filename)
+	file, err := fileWriteUp[0].Open()
+	if err != nil {
+		logger.WithError(err).Error("failed to open file")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong."})
+		return
+	}
+
+	err = h.Model.UploadWriteup(claims.ID, int64(disputeId), path, file)
+	if err != nil {
+		logger.WithError(err).Error("failed to upload write-up")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong."})
+		return
+	}
+
+	logger.Info("Write-up uploaded successfully")
+
+	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Write-up uploaded"})
+	c.JSON(http.StatusNoContent, nil)
 }

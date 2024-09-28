@@ -218,6 +218,10 @@ func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 
 }
 
+func (m *mockDisputeModel) UploadWriteup(userId, disputeId int64, path string, file io.Reader) error {
+	return nil
+}
+
 func (m *mockDisputeModel) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {
 	return nil, nil
 }

@@ -156,7 +156,7 @@ export async function uploadDecision(
     return { error: parseErr.format() };
   }
 
-  const res = await fetch(`${API_URL}/disputes/${parsed?.dispute_id}/evidence`, {
+  const res = await fetch(`${API_URL}/disputes/${parsed?.dispute_id}/decision`, {
     method: "POST",
     headers: {
       // Sub this for the proper getAuthToken thing

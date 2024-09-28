@@ -29,7 +29,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 
 	g.POST("", h.GetSummaryListOfDisputes)
 	g.POST("/:id/objections", h.ExpertObjection)
-	g.PATCH("/:id/objections", h.ExpertObjectionsReview)
+	g.PATCH("/objections/:id", h.ExpertObjectionsReview)
 	g.POST("/experts/objections", h.ViewExpertRejections)
 	g.POST("/:id/evidence", h.UploadEvidence)
 	g.PUT("/:id/status", h.UpdateStatus)
@@ -451,8 +451,8 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 
 	//create active workflow entry
 	activeWorkflow := &models.ActiveWorkflows{
-		Workflow: int64(workflowData.ID),
-		DateSubmitted: time.Now(),
+		Workflow:         int64(workflowData.ID),
+		DateSubmitted:    time.Now(),
 		WorkflowInstance: workflowData.Definition,
 	}
 	err = h.Model.CreateActiverWorkflow(activeWorkflow)
@@ -615,9 +615,17 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 	var req models.ExpertRejectRequest
 	if err := c.BindJSON(&req); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid json"})
 		return
 	}
+
+	//check empty fields
+	if req.ExpertID == nil || req.Reason == nil {
+		logger.Error("Missing fields in request")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing fields in request"})
+		return
+	}
+
 
 	//get user properties from token
 	claims, err := h.JWT.GetClaims(c)
@@ -628,25 +636,46 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 	}
 
 	//get Admin
-	admin, err := h.Model.GetUserById(req.ExpertID)
+	admin, err := h.Model.GetUserById(*req.ExpertID)
 	if err != nil {
-		logger.WithError(err).Error("Failed to get admin")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get admin"})
+		logger.WithError(err).Error("Failed to get Expert ID")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get Expert ID"})
+		return
+	}
+
+	//check that the user is assigned to the dispute
+	assigned, err := h.Model.GetExperts(int64(disputeIdInt))
+	if err != nil {
+		logger.WithError(err).Error("Failed to get assigned experts")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get assigned experts"})
+		return
+	}
+
+	isAsssigned := false
+	for _, expert := range assigned {
+		if expert.ExpertID == *req.ExpertID {
+			isAsssigned = true
+			break
+		}
+	}
+
+	if !isAsssigned {
+		logger.Error("Expert is not assigned to dispute")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Expert is not assigned to dispute"})
 		return
 	}
 
 
 	//create ticket
 	titleTicket := "Objection against " + admin.FirstName + " " + admin.Surname + "On Dispute " + disputeId
-	ticket, err := h.TicketModel.CreateTicket(claims.ID, int64(disputeIdInt),titleTicket, req.Reason)
+	ticket, err := h.TicketModel.CreateTicket(claims.ID, int64(disputeIdInt), titleTicket, *req.Reason)
 	if err != nil {
 		logger.WithError(err).Error("Failed to create ticket")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to create ticket"})
 		return
 	}
 
-
-	err = h.Model.ObjectExpert(int64(disputeIdInt), req.ExpertID, ticket.ID)
+	err = h.Model.ObjectExpert(int64(disputeIdInt), *req.ExpertID, ticket.ID)
 	if err != nil {
 		logger.WithError(err).Error("Failed to object to expert")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
@@ -663,8 +692,8 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	// Get dispute id
-	disputeId := c.Param("id")
-	disputeIdInt, err := strconv.Atoi(disputeId)
+	objectionId := c.Param("id")
+	objectionIdInt, err := strconv.Atoi(objectionId)
 	if err != nil {
 		logger.WithError(err).Error("Cannot convert dispute ID to integer")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
@@ -683,11 +712,18 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	var req models.RejectExpertReview
 	if err := c.BindJSON(&req); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Request failed"})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid body"})
 		return
 	}
 
-	err = h.Model.ReviewExpertObjection(claims.ID, int64(disputeIdInt), req.ExpertID, req.Status)
+	// Check empty fields
+	if req.Status == nil {
+		logger.Error("Missing fields in request")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing fields in request"})
+		return
+	}
+
+	err = h.Model.ReviewExpertObjection(int64(objectionIdInt), *req.Status)
 	if err != nil {
 		logger.WithError(err).Error("failed to review objection")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "failed to review objection"})

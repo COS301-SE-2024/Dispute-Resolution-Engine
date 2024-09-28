@@ -126,13 +126,12 @@ type ExpertApproveRequest struct {
 }
 
 type ExpertRejectRequest struct {
-	ExpertID int64  `json:"expert_id"`
-	Reason   string `json:"reason"`
+	ExpertID *int64  `json:"expert_id"`
+	Reason   *string `json:"reason"`
 }
 
 type RejectExpertReview struct {
-	ExpertID int64 `json:"expert_id"`
-	Status ExpObjStatus  `json:"accepted"`
+	Status *ExpObjStatus  `json:"status"`
 }
 
 type DisputeStatusChange struct {

@@ -43,8 +43,9 @@ type DisputeModel interface {
 	UpdateDisputeStatus(disputeId int64, status string) error
 
 	ObjectExpert(disputeId, expertId, ticketId int64) error
-	ReviewExpertObjection(userId, disputeId, expertId int64, approved models.ExpObjStatus) error
+	ReviewExpertObjection(objectionId int64, approved models.ExpObjStatus) error
 	GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error)
+	
 
 	CreateDefaultUser(email string, fullName string, pass string) error
 	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
@@ -394,11 +395,12 @@ func (m *disputeModelReal) ObjectExpert(disputeId, expertId, ticketId int64) err
 	}
 	return nil
 }
-func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int64, approved models.ExpObjStatus) error {
+func (m *disputeModelReal) ReviewExpertObjection(rejectionID int64, approved models.ExpObjStatus) error {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var expertObjections models.ExpertObjection
-	if err := m.db.Where("dispute_id = ? AND expert_id = ?", disputeId, expertId).First(&expertObjections).Error; err != nil {
+	logger.Infof("Rejection ID: %d", rejectionID)
+	if err := m.db.Where("\"id\" = ?", rejectionID).First(&expertObjections).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving expert objections")
 		return err
 	}

@@ -257,7 +257,7 @@ func (m *mockDisputeModel) ObjectExpert(disputeId, expertId, ticketId int64) err
 	}
 	return nil
 }
-func (m *mockDisputeModel) ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error {
+func (m *mockDisputeModel) ReviewExpertObjection(expertId int64, approved models.ExpObjStatus) error {
 	if m.throwErrors {
 		return errors.ErrUnsupported
 	}

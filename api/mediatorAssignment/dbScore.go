@@ -6,45 +6,28 @@ import (
 )
 
 type ScoreModeler interface {
-	GetScoreInput(summary []models.ExpertSummaryView) []ResultWithID
+	GetScoreInput(summary models.ExpertSummaryView) ResultWithID
 }
 
 type LastAssignmentstruct struct {
 }
 
-func (d *LastAssignmentstruct) GetScoreInput(summary []models.ExpertSummaryView) []ResultWithID {
-
-	score := make([]ResultWithID, len(summary))
-	for _, expertSummary := range summary {
-		//calculate score last assignment
-		lastAssignment := time.Since(expertSummary.LastAssignedDate).Hours() / 24
-		score = append(score, ResultWithID{ID: expertSummary.ExpertID, Result: lastAssignment})
-	}
+func (d *LastAssignmentstruct) GetScoreInput(summary models.ExpertSummaryView) *ResultWithID {
+	lastAssignment := time.Since(summary.LastAssignedDate).Hours() / 24
+	score := &ResultWithID{ID: summary.ExpertID, Result: lastAssignment}
 	return score
 }
 
 type AssignedDisputes struct {
 }
 
-func (d *AssignedDisputes) GetScoreInput(summary []models.ExpertSummaryView) []ResultWithID {
-
-	score := make([]ResultWithID, len(summary))
-	for _, expertSummary := range summary {
-		//calculate score assigned disputes
-		score = append(score, ResultWithID{ID: expertSummary.ExpertID, Result: float64(expertSummary.ActiveDisputeCount)})
-	}
-	return score
+func (d *AssignedDisputes) GetScoreInput(summary models.ExpertSummaryView) ResultWithID {
+	return ResultWithID{ID: summary.ExpertID, Result: float64(summary.ActiveDisputeCount)}
 }
 
 type RejectionCount struct {
 }
 
-func (d *RejectionCount) GetScoreInput(summary []models.ExpertSummaryView) []ResultWithID {
-
-	score := make([]ResultWithID, len(summary))
-	for _, expertSummary := range summary {
-		//calculate score rejection count
-		score = append(score, ResultWithID{ID: expertSummary.ExpertID, Result: expertSummary.RejectionPercentage})
-	}
-	return score
+func (d *RejectionCount) GetScoreInput(summary models.ExpertSummaryView) ResultWithID {
+	return ResultWithID{ID: summary.ExpertID, Result: float64(summary.RejectionPercentage)}
 }

@@ -5,8 +5,8 @@ import "api/models"
 // AglorithmComponent struct and interface
 
 type AlgorithmComponent interface {
-	CalculateScore(summary []models.ExpertSummaryView) []ResultWithID
-	ApplyOperator(value1 []ResultWithID, value2 []ResultWithID) []ResultWithID
+	CalculateScore(summary models.ExpertSummaryView) ResultWithID
+	ApplyOperator(value1 []ResultWithID, value2 []ResultWithID) []ResultWithID 
 }
 
 type BaseComponent struct {
@@ -15,19 +15,18 @@ type BaseComponent struct {
 	Operator ComponentOperator
 }
 
-func (b *BaseComponent) CalculateScore(summary []models.ExpertSummaryView) []ResultWithID {
-	score := b.ScoreModeler.GetScoreInput(summary)
-	for _, score := range score {
-		score.Result = b.Function.CalculateScore(score.Result)
-	}
-	return score
+func (b *BaseComponent) CalculateScore(summary models.ExpertSummaryView) ResultWithID {
+	result := b.ScoreModeler.GetScoreInput(summary)
+	result.Result = b.Function.CalculateScore(result.Result)
+	return result
 }
 
 func (b *BaseComponent) ApplyOperator(value1 []ResultWithID, value2 []ResultWithID) []ResultWithID {
-	for i := range value1 {
-		value1[i].Result = b.Operator.ApplyOperator(value1[i].Result, value2[i].Result)
+	var results []ResultWithID
+	for i := 0; i < len(value1); i++ {
+		results = append(results, ResultWithID{ID: value1[i].ID, Result: b.Operator.ApplyOperator(value1[i].Result, value2[i].Result)})
 	}
-	return value1
+	return results
 }
 
 

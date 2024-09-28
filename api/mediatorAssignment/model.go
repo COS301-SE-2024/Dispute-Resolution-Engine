@@ -24,7 +24,7 @@ type DBModel interface {
 	GetExpertSummaryViews() ([]models.ExpertSummaryView, error)
 	GetExpertSummaryViewByExpertID(expertID int) (models.ExpertSummaryView, error)
 	GetExpertSummaryViewByColumnValue(columnName string, columnValue string) (models.ExpertSummaryView, error)
-	GetRejectionFromDispute(disputeId int) (models.DisputeExpert, error)
+	GetRejectionFromDispute(disputeId int) ([]models.DisputeExpert, error)
 }
 
 type DBModelReal struct {
@@ -49,8 +49,8 @@ func (d *DBModelReal) GetExpertSummaryViewByColumnValue(columnName string, colum
 	return expertSummaryView, nil
 }
 
-func (d *DBModelReal) GetRejectionFromDispute(disputeId int) (models.DisputeExpert, error) {
-	var disputeExpert models.DisputeExpert
-	d.DB.Where("dispute_id = ?", disputeId).First(&disputeExpert)
+func (d *DBModelReal) GetRejectionFromDispute(disputeId int) ([]models.DisputeExpert, error) {
+	var disputeExpert []models.DisputeExpert
+	d.DB.Where("dispute_id = ?", disputeId).Find(&disputeExpert)
 	return disputeExpert, nil
 }

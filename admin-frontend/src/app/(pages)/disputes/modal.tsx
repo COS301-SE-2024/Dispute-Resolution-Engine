@@ -3,18 +3,20 @@
 import { Button } from "@/components/ui/button";
 
 import { DialogClose, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { UserIcon, X } from "lucide-react";
 import Sidebar from "@/components/admin/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown";
+import { DisputeStatusBadge, StatusBadge } from "@/components/admin/status-badge";
 import {
   type UserDetails,
   type DisputeDetails,
   DisputeStatus,
   DisputeDetailsResponse,
+  ExpertSummary,
+  ObjectionStatus,
 } from "@/lib/types/dispute";
 import { changeDisputeStatus, getDisputeDetails } from "@/lib/api/dispute";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -28,6 +30,8 @@ import {
 import { Download, EllipsisVertical, FileText, Trash } from "lucide-react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ObjectionStatusBadge } from "@/components/admin/status-badge";
+import { DisputeStatusDropdown, ObjectionStatusDropdown } from "@/components/admin/status-dropdown";
 
 export default function DisputeDetails({ id: disputeId }: { id: string }) {
   const { toast } = useToast();
@@ -73,13 +77,15 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
             </DialogClose>
           </div>
           <div className="flex gap-2 items-center">
-            <StatusDropdown
+            <DisputeStatusDropdown
               initialValue={data.status}
               onSelect={(val) => status.mutate(val)}
               disabled={status.isPending}
             >
-              <StatusBadge dropdown value={data.status} />
-            </StatusDropdown>
+              <DisputeStatusBadge dropdown variant={data.status}>
+                {data.status}
+              </DisputeStatusBadge>
+            </DisputeStatusDropdown>
             <span>{data.date_filed}</span>
           </div>
 
@@ -122,6 +128,52 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
                 <CardTitle>Respondent</CardTitle>
                 <UserDetails {...data.respondent} />
               </section>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Experts</CardTitle>
+              <CardDescription>See who is assigned to the case.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
+                <ExpertAssignment id={1} fullname="John doe" status="Approved" />
+              </ul>
+              <CardTitle className="mt-5 text-lg">Objections</CardTitle>
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
+                <Objection
+                  id={0}
+                  ticket_id={0}
+                  expert_name={"Jonny Test"}
+                  user_name={"Finn Human"}
+                  date_submitted={"today"}
+                  status={"Review"}
+                />
+                <Objection
+                  id={0}
+                  ticket_id={0}
+                  expert_name={"Jonny Test"}
+                  user_name={"Finn Human"}
+                  date_submitted={"today"}
+                  status={"Review"}
+                />
+                <Objection
+                  id={0}
+                  ticket_id={0}
+                  expert_name={"Jonny Test"}
+                  user_name={"Finn Human"}
+                  date_submitted={"today"}
+                  status={"Review"}
+                />
+                <Objection
+                  id={0}
+                  ticket_id={0}
+                  expert_name={"Jonny Test"}
+                  user_name={"Finn Human"}
+                  date_submitted={"today"}
+                  status={"Review"}
+                />
+              </ul>
             </CardContent>
           </Card>
         </div>
@@ -183,6 +235,54 @@ function Evidence({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+    </li>
+  );
+}
+
+function ExpertAssignment({ id, fullname, status }: ExpertSummary) {
+  return (
+    <li className="grid grid-cols-[auto_1fr_auto] gap-2 items-center px-3 py-2 border border-primary-500/30 rounded-md">
+      <UserIcon size="1.7rem" />
+      <span className="truncate">{fullname}</span>
+      <StatusBadge variant="success">Gucci</StatusBadge>
+    </li>
+  );
+}
+
+function Objection({
+  id,
+  ticket_id,
+  expert_name,
+  user_name,
+  date_submitted,
+  status,
+}: {
+  id: number;
+  ticket_id: number;
+  expert_name: string;
+  user_name: string;
+  date_submitted: string;
+  status: ObjectionStatus;
+}) {
+  return (
+    <li className="grid grid-cols-[1fr_auto] gap-2 items-center px-3 py-2 border border-primary-500/30 rounded-md">
+      <div>
+        <Link
+          className="hover:underline truncate"
+          href={{ pathname: "/tickets", query: { id: ticket_id.toString() } }}
+        >
+          {expert_name}
+        </Link>
+        <br />
+        <span className="truncate opacity-50">
+          by {user_name}, {date_submitted}
+        </span>
+      </div>
+      <ObjectionStatusDropdown>
+        <ObjectionStatusBadge dropdown variant={status}>
+          {status}
+        </ObjectionStatusBadge>
+      </ObjectionStatusDropdown>
     </li>
   );
 }

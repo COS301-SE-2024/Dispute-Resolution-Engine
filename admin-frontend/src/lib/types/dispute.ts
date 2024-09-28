@@ -13,6 +13,9 @@ export const DISPUTE_STATUS = [
 ] as const;
 export type DisputeStatus = (typeof DISPUTE_STATUS)[number];
 
+export const OBJECTION_STATUS = ["Review", "Overruled", "Sustained"] as const;
+export type ObjectionStatus = (typeof OBJECTION_STATUS)[number];
+
 export type DisputeFilter = Filter<"status" | "workflow">;
 export type DisputeSort = Sort<"title" | "status" | "workflow" | "date_filed" | "date_resolved">;
 
@@ -83,11 +86,20 @@ export interface UserDetails {
   address: string;
 }
 
+export type ExpertStatus = "Approved" | "Rejected" | "Review";
+export interface ExpertSummary {
+  id: number;
+  fullname: string;
+  status: ExpertStatus;
+}
+
 export interface DisputeDetails extends AdminDispute {
   description: string;
   evidence: Evidence[];
   complainant: UserDetails;
   respondent: UserDetails;
+
+  experts: ExpertSummary[];
 }
 
 export type DisputeDetailsResponse = DisputeDetails;

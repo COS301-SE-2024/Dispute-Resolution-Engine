@@ -12,7 +12,7 @@ import { getDisputeList } from "@/lib/api/dispute";
 import { useQuery } from "@tanstack/react-query";
 import { AdminDisputesResponse, DisputeFilter, Filter, type AdminDispute } from "@/lib/types";
 
-import { StatusBadge } from "@/components/admin/status-dropdown";
+import { DisputeStatusBadge } from "@/components/admin/status-badge";
 import { LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -79,7 +79,7 @@ function DisputeRow(props: AdminDispute) {
         <Link href={{ pathname: "/disputes", query: { id: props.id } }}>{props.title}</Link>
       </TableCell>
       <TableCell>
-        <StatusBadge value={props.status} />
+        <DisputeStatusBadge variant={props.status}>{props.status}</DisputeStatusBadge>
       </TableCell>
       <TableCell>
         <Link

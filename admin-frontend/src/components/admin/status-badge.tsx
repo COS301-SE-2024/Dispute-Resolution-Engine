@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { FunctionComponent, HTMLAttributes } from "react";
 import { ChevronDown } from "lucide-react";
 import { TicketStatus } from "@/lib/types/tickets";
+import { DisputeStatus, ObjectionStatus } from "@/lib/types";
 
 const statusVariants = cva("", {
   variants: {
@@ -86,4 +87,22 @@ export const TicketStatusBadge = mapStatus<TicketStatus>({
   Closed: "inactive",
   Solved: "success",
   "On Hold": "warning",
+});
+
+export const DisputeStatusBadge = mapStatus<DisputeStatus>({
+  "Awaiting Respondant": "warning",
+  Active: "success",
+  Review: "error",
+  Refused: "error",
+  Appeal: "inactive",
+  Settled: "inactive",
+  Withdrawn: "inactive",
+  Transfer: "inactive",
+  Other: "inactive",
+});
+
+export const ObjectionStatusBadge = mapStatus<ObjectionStatus>({
+  Review: "warning",
+  Overruled: "inactive",
+  Sustained: "success",
 });

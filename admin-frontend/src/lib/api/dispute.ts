@@ -15,7 +15,12 @@ export async function getDisputeList(req: AdminDisputesRequest): Promise<AdminDi
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },
-    body: JSON.stringify(req),
+    body: JSON.stringify({
+      ...req,
+      sort: {
+        attr: "title",
+      },
+    }),
   }).then(validateResult<AdminDisputesResponse>);
 }
 

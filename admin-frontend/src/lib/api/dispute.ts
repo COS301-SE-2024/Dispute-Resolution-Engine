@@ -24,7 +24,7 @@ export async function getDisputeList(req: AdminDisputesRequest): Promise<AdminDi
   }).then(validateResult<AdminDisputesResponse>);
 }
 
-export async function getDisputeDetails(id: string): Promise<DisputeDetailsResponse> {
+export async function getDisputeDetails(id: number): Promise<DisputeDetailsResponse> {
   return sf(`${API_URL}/disputes/${id}`, {
     method: "GET",
     headers: {
@@ -38,7 +38,7 @@ export async function getDisputeDetails(id: string): Promise<DisputeDetailsRespo
     });
 }
 
-export async function changeDisputeStatus(id: string, status: DisputeStatus): Promise<void> {
+export async function changeDisputeStatus(id: number, status: DisputeStatus): Promise<void> {
   await sf(`${API_URL}/disputes/${id}/status`, {
     method: "PUT",
     headers: {

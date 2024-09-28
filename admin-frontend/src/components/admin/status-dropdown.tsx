@@ -13,12 +13,8 @@ import { ReactNode } from "react";
 
 import { TICKET_STATUS, TicketStatus } from "@/lib/types/tickets";
 import { DisputeStatusBadge, ObjectionStatusBadge, TicketStatusBadge } from "./status-badge";
-import {
-  DISPUTE_STATUS,
-  DisputeStatus,
-  OBJECTION_STATUS,
-  ObjectionStatus,
-} from "@/lib/types/dispute";
+import { DISPUTE_STATUS, DisputeStatus } from "@/lib/types/dispute";
+import { OBJECTION_STATUS, ObjectionStatus } from "@/lib/types/experts";
 
 const statusVariants = cva("", {
   variants: {

@@ -9,19 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  DisputeStatusBadge,
-  ExpertStatusBadge,
-  StatusBadge,
-} from "@/components/admin/status-badge";
+import { DisputeStatusBadge, ExpertStatusBadge } from "@/components/admin/status-badge";
 import {
   type UserDetails,
   type DisputeDetails,
-  DisputeStatus,
-  DisputeDetailsResponse,
-  ExpertSummary,
-  ObjectionStatus,
-  ExpertStatus,
+  type DisputeStatus,
+  type DisputeDetailsResponse,
+  type ExpertSummary,
 } from "@/lib/types/dispute";
 import { changeDisputeStatus, getDisputeDetails } from "@/lib/api/dispute";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -37,21 +31,26 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ObjectionStatusBadge } from "@/components/admin/status-badge";
 import { DisputeStatusDropdown, ObjectionStatusDropdown } from "@/components/admin/status-dropdown";
-import { changeObjectionStatus } from "@/lib/api/expert";
+import { changeObjectionStatus, getExpertObjections } from "@/lib/api/expert";
 import { DISPUTE_DETAILS_KEY, DISPUTE_LIST_KEY } from "@/lib/constants";
+import { ObjectionListResponse, ObjectionStatus } from "@/lib/types/experts";
 
-export default function DisputeDetails({ id: disputeId }: { id: string }) {
+export default function DisputeDetails({ id: disputeId }: { id: number }) {
   const { toast } = useToast();
   const client = useQueryClient();
-  const { data, error } = useQuery({
-    queryKey: [DISPUTE_DETAILS_KEY],
+  const details = useQuery({
+    queryKey: [DISPUTE_DETAILS_KEY, disputeId],
     queryFn: async () => getDisputeDetails(disputeId),
+  });
+  const objections = useQuery({
+    queryKey: [DISPUTE_DETAILS_KEY, disputeId, "objections"],
+    queryFn: async () => getExpertObjections(disputeId),
   });
 
   const status = useMutation({
     mutationFn: (status: DisputeStatus) => changeDisputeStatus(disputeId, status),
     onSuccess: (data, variables) => {
-      client.setQueryData([DISPUTE_DETAILS_KEY], (old: DisputeDetailsResponse) => ({
+      client.setQueryData([DISPUTE_DETAILS_KEY, disputeId], (old: DisputeDetailsResponse) => ({
         ...old,
         status: variables,
       }));
@@ -72,10 +71,10 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
   });
 
   return (
-    data && (
+    details.data && (
       <Sidebar open className="p-6 md:pl-8 rounded-l-2xl flex flex-col">
         <DialogHeader className="grid grid-cols-[1fr_auto] gap-2 border-b pb-6 mb-6 border-primary-500/50 space-y-0 items-center">
-          <DialogTitle className="p-2">{data.title}</DialogTitle>
+          <DialogTitle className="p-2">{details.data.title}</DialogTitle>
           <div className="flex justify-end items-start">
             <DialogClose asChild>
               <Button variant="ghost" className="rounded-full aspect-square p-2 m-0">
@@ -85,30 +84,30 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
           </div>
           <div className="flex gap-2 items-center">
             <DisputeStatusDropdown
-              initialValue={data.status}
+              initialValue={details.data.status}
               onSelect={(val) => status.mutate(val)}
               disabled={status.isPending}
             >
-              <DisputeStatusBadge dropdown variant={data.status}>
-                {data.status}
+              <DisputeStatusBadge dropdown variant={details.data.status}>
+                {details.data.status}
               </DisputeStatusBadge>
             </DisputeStatusDropdown>
-            <span>{data.date_filed}</span>
+            <span>{details.data.date_filed}</span>
           </div>
 
-          <p>Case Number: {data.id}</p>
+          <p>Case Number: {details.data.id}</p>
         </DialogHeader>
         <div className="overflow-y-auto grow space-y-6 pr-3">
           <Card>
             <CardHeader>
               <CardTitle>Overview</CardTitle>
-              <CardDescription>{data.description}</CardDescription>
+              <CardDescription>{details.data.description}</CardDescription>
             </CardHeader>
             <CardContent>
               <h4 className="mb-1">Evidence</h4>
               <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
-                {data.evidence.length > 0 ? (
-                  data.evidence.map((evi) => (
+                {details.data.evidence.length > 0 ? (
+                  details.data.evidence.map((evi) => (
                     <Evidence
                       key={evi.id}
                       id={evi.id}
@@ -129,11 +128,11 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <section className="space-y-3">
                 <CardTitle>Complainant</CardTitle>
-                <UserDetails {...data.complainant} />
+                <UserDetails {...details.data.complainant} />
               </section>
               <section className="space-y-3">
                 <CardTitle>Respondent</CardTitle>
-                <UserDetails {...data.respondent} />
+                <UserDetails {...details.data.respondent} />
               </section>
             </CardContent>
           </Card>
@@ -144,45 +143,25 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
             </CardHeader>
             <CardContent>
               <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
-                {data.experts.map((exp) => (
+                {details.data?.experts.length == 0 && (
+                  <li className="text-sm text-black/50 dark:text-white/50">
+                    No experts are assigned to the case.
+                  </li>
+                )}
+                {details.data?.experts.map((exp) => (
                   <ExpertAssignment key={exp.id} {...exp} />
                 ))}
               </ul>
-              <CardTitle className="mt-5 text-lg">Objections</CardTitle>
-              <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
-                <Objection
-                  id={0}
-                  ticket_id={1}
-                  expert_name={"Jonny Test"}
-                  user_name={"Finn Human"}
-                  date_submitted={"today"}
-                  status={"Review"}
-                />
-                <Objection
-                  id={0}
-                  ticket_id={1}
-                  expert_name={"Jonny Test"}
-                  user_name={"Finn Human"}
-                  date_submitted={"today"}
-                  status={"Review"}
-                />
-                <Objection
-                  id={0}
-                  ticket_id={1}
-                  expert_name={"Jonny Test"}
-                  user_name={"Finn Human"}
-                  date_submitted={"today"}
-                  status={"Review"}
-                />
-                <Objection
-                  id={0}
-                  ticket_id={1}
-                  expert_name={"Jonny Test"}
-                  user_name={"Finn Human"}
-                  date_submitted={"today"}
-                  status={"Review"}
-                />
-              </ul>
+              {!objections.isPending && objections.data!.length > 0 && (
+                <>
+                  <CardTitle className="mt-5 text-lg">Objections</CardTitle>
+                  <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
+                    {objections.data!.map((obj) => (
+                      <Objection key={obj.id} disputeId={disputeId} {...obj} />
+                    ))}
+                  </ul>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -259,6 +238,7 @@ function ExpertAssignment({ id, full_name, status }: ExpertSummary) {
 }
 
 function Objection({
+  disputeId,
   id,
   ticket_id,
   expert_name,
@@ -266,6 +246,7 @@ function Objection({
   date_submitted,
   status,
 }: {
+  disputeId: number;
   id: number;
   ticket_id: number;
   expert_name: string;
@@ -274,9 +255,26 @@ function Objection({
   status: ObjectionStatus;
 }) {
   const { toast } = useToast();
-  const objection = useMutation({
-    mutationFn: (status: ObjectionStatus) => changeObjectionStatus(id, status),
+  const client = useQueryClient();
+  const statusMut = useMutation({
+    mutationFn: (data: ObjectionStatus) => changeObjectionStatus(disputeId, id, data),
+
     onSuccess: (data, variables) => {
+      client.setQueryData(
+        [DISPUTE_DETAILS_KEY, disputeId, "objections"],
+        (old: ObjectionListResponse) =>
+          old.map((obj) =>
+            obj.id !== id
+              ? obj
+              : {
+                  ...obj,
+                  status: variables,
+                }
+          )
+      );
+      client.invalidateQueries({
+        queryKey: [DISPUTE_LIST_KEY, disputeId],
+      });
       toast({
         title: "Objection status updated successfully",
       });
@@ -304,7 +302,7 @@ function Objection({
           by {user_name}, {date_submitted}
         </span>
       </div>
-      <ObjectionStatusDropdown onSelect={(s) => objection.mutate(s)}>
+      <ObjectionStatusDropdown onSelect={(s) => statusMut.mutate(s)}>
         <ObjectionStatusBadge dropdown variant={status}>
           {status}
         </ObjectionStatusBadge>

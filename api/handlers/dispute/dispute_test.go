@@ -1460,3 +1460,172 @@ func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingRespondentEmail() {
 	suite.NotEmpty(result.Error)
 	suite.Equal("missing field in form: respondent[email]", result.Error) // This should match now
 }
+
+// ---------------------------------------------------------------- WRITEUP UPLOAD
+
+func (suite *DisputeErrorTestSuite) TestWriteupUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("POST", "/1/decision", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupUnauthorized2() {
+	suite.jwtMock.returnUser.Role = "user"
+	req, _ := http.NewRequest("POST", "/1/decision", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupEmptyMultipartForm() {
+	req, _ := http.NewRequest("POST", "/1/decision", bytes.NewBuffer([]byte{}))
+
+	suite.jwtMock.returnUser.Role = "expert"
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "multipart/form-data")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupErrorOpeningMultipartFile() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormFile("files", "file1.txt")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusBadRequest, w.Code)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupNoDecision() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "writeup", "file1.txt", "file contents")
+	// createStringField(form, "decision", "")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("missing field in form: decision", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupNoWriteUp() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	// createFileField(form, "writeup", "file1.txt", "file contents")
+	createStringField(form, "decision", "Test")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("missing field in form: writeup", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupErrorDuringUpload() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "writeup", "file1.txt", "file contents")
+	createStringField(form, "decision", "Test")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	suite.disputeMock.throwErrors = true
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusNoContent, w.Code)
+	// suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupInvalidID() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "writeup", "file1.txt", "file contents")
+	createStringField(form, "decision", "Test")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/$/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", form.Boundary()))
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusBadRequest, w.Code)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupSuccess() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "writeup", "file1.txt", "file contents")
+	createStringField(form, "decision", "Test")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", form.Boundary()))
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusNoContent, w.Code)
+
+}

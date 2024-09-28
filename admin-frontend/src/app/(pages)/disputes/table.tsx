@@ -12,7 +12,7 @@ import { getDisputeList } from "@/lib/api/dispute";
 import { useQuery } from "@tanstack/react-query";
 import { AdminDisputesResponse, DisputeFilter, Filter, type AdminDispute } from "@/lib/types";
 
-import { StatusBadge } from "@/components/admin/status-dropdown";
+import { DisputeStatusBadge } from "@/components/admin/status-badge";
 import { LinkIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -24,11 +24,11 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
-import { PAGE_SIZE } from "@/lib/constants";
+import { DISPUTE_LIST_KEY, PAGE_SIZE } from "@/lib/constants";
 
 export function DisputeTable({ filters, page = 0 }: { filters?: DisputeFilter[]; page: number }) {
   const { data, error, isPending } = useQuery({
-    queryKey: ["disputeTable", filters, page],
+    queryKey: [DISPUTE_LIST_KEY, filters, page],
     queryFn: () =>
       getDisputeList({
         filter: filters,
@@ -79,7 +79,7 @@ function DisputeRow(props: AdminDispute) {
         <Link href={{ pathname: "/disputes", query: { id: props.id } }}>{props.title}</Link>
       </TableCell>
       <TableCell>
-        <StatusBadge value={props.status} />
+        <DisputeStatusBadge variant={props.status}>{props.status}</DisputeStatusBadge>
       </TableCell>
       <TableCell>
         <Link
@@ -106,7 +106,7 @@ export function DisputePager({
   page?: number;
 }) {
   const query = useQuery<AdminDisputesResponse>({
-    queryKey: ["disputeTable", filters, page],
+    queryKey: [DISPUTE_LIST_KEY, filters, page],
   });
 
   const [current, setCurrent] = useState(page);

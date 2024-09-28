@@ -1,6 +1,9 @@
 package mediatorassignment
 
-import "math"
+import (
+	"math"
+	"time"
+)
 
 // AglorithmComponent struct and interface
 
@@ -141,9 +144,22 @@ type DBScoreInput interface {
 }
 
 type DBScoreInputBase struct {
-	DB *DBModel
+	DB DBModel
+	Column string
 }
 
 type DBScoreLastAssignmentstruct struct {
 	DBScoreInputBase
+}
+
+func (d *DBScoreLastAssignmentstruct) GetScoreInput() (float64, error) {
+	expertSummary, err := d.DB.GetExpertSummaryViewByColumn(d.Column)
+	if err != nil {
+		return 0, err
+	}
+
+	//calculate score current date - last assigned date
+	score := float64(time.Until(expertSummary.LastAssignedDate).Hours())
+
+	return score, nil
 }

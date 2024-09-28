@@ -43,7 +43,7 @@ type DisputeModel interface {
 	UpdateDisputeStatus(disputeId int64, status string) error
 
 	ObjectExpert(disputeId, expertId, ticketId int64) error
-	ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error
+	ReviewExpertObjection(userId, disputeId, expertId int64, approved models.ExpObjStatus) error
 	GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error)
 
 	CreateDefaultUser(email string, fullName string, pass string) error
@@ -394,7 +394,7 @@ func (m *disputeModelReal) ObjectExpert(disputeId, expertId, ticketId int64) err
 	}
 	return nil
 }
-func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error {
+func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int64, approved models.ExpObjStatus) error {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var expertObjections models.ExpertObjection
@@ -404,11 +404,7 @@ func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int
 	}
 
 	// Update status
-	if approved {
-		expertObjections.Status = models.ObjectionSustained
-	} else {
-		expertObjections.Status = models.ObjectionOverruled
-	}
+	expertObjections.Status = approved
 
 	if err := m.db.Save(&expertObjections).Error; err != nil {
 		logger.WithError(err).Error("Error updating expert objections")

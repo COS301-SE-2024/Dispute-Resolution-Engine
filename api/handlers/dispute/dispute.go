@@ -29,8 +29,8 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 
 	g.POST("", h.GetSummaryListOfDisputes)
 	g.POST("/:id/objections", h.ExpertObjection)
-	g.POST("/:id/experts/review-rejection", h.ExpertObjectionsReview)
-	g.POST("/experts/rejections", h.ViewExpertRejections)
+	g.PATCH("/:id/objections", h.ExpertObjectionsReview)
+	g.POST("/experts/objections", h.ViewExpertRejections)
 	g.POST("/:id/evidence", h.UploadEvidence)
 	g.PUT("/:id/status", h.UpdateStatus)
 
@@ -687,7 +687,7 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 		return
 	}
 
-	err = h.Model.ReviewExpertObjection(claims.ID, int64(disputeIdInt), req.ExpertID, req.Accepted)
+	err = h.Model.ReviewExpertObjection(claims.ID, int64(disputeIdInt), req.ExpertID, req.Status)
 	if err != nil {
 		logger.WithError(err).Error("failed to review objection")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "failed to review objection"})
@@ -697,7 +697,7 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	logger.Info("Expert objections reviewed successfully")
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Expert objections reviewed successfully"})
 
-	c.JSON(http.StatusOK, models.Response{Data: "Expert objections reviewed successfully"})
+	c.JSON(http.StatusNoContent, models.Response{Data: "Expert objections reviewed successfully"})
 }
 
 func (h Dispute) ViewExpertRejections(c *gin.Context) {

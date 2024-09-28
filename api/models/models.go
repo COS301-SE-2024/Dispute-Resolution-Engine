@@ -220,10 +220,10 @@ const (
 )
 
 type ExpertObjection struct {
-	ID        int64        `gorm:"primaryKey;autoIncrement" json:"id"`
-	ExpertID  int64        `gorm:"not null" json:"expert_id"`
-	TicketID  int64       `gorm:"not null" json:"ticket_id"`
-	Status    ExpObjStatus `gorm:"type:exp_obj_status;default:'Review'" json:"status"`
+	ID       int64        `gorm:"primaryKey;autoIncrement" json:"id"`
+	ExpertID int64        `gorm:"not null" json:"expert_id"`
+	TicketID int64        `gorm:"not null" json:"ticket_id"`
+	Status   ExpObjStatus `gorm:"type:exp_obj_status;default:'Review'" json:"status"`
 }
 
 func (ExpertObjection) TableName() string {
@@ -262,21 +262,21 @@ func (ActiveWorkflows) TableName() string {
 	return "active_workflows"
 }
 
+// ExpertObjectionsView represents the expert_objections_view SQL view.
 type ExpertObjectionsView struct {
-	ObjectionID        int       `gorm:"column:objection_id"`
-	ObjectionCreatedAt time.Time `gorm:"column:objection_created_at"`
-	DisputeID          int       `gorm:"column:dispute_id"`
-	DisputeTitle       string    `gorm:"column:dispute_title"`
-	ExpertID           int       `gorm:"column:expert_id"`
-	ExpertFullName     string    `gorm:"column:expert_full_name"`
-	UserID             int       `gorm:"column:user_id"`
-	UserFullName       string    `gorm:"column:user_full_name"`
-	Reason             string    `gorm:"column:reason"`
-	ObjectionStatus    string    `gorm:"column:objection_status"`
+	ObjectionID     int       `gorm:"column:objection_id" json:"id"`                  // ID of the objection
+	TicketID        int       `gorm:"column:ticket_id" json:"ticket_id"`              // ID of the related ticket
+	TicketCreatedAt time.Time `gorm:"column:ticket_created_at" json:"date_submitted"` // Created date of the ticket
+	DisputeID       int       `gorm:"column:dispute_id"`                              // ID of the associated dispute
+	DisputeTitle    string    `gorm:"column:dispute_title"`                           // Title of the dispute
+	ExpertID        int       `gorm:"column:expert_id"`                               // ID of the expert being objected to
+	ExpertFullName  string    `gorm:"column:expert_full_name" json:"expert_name"`     // Full name of the expert
+	UserID          int       `gorm:"column:user_id"`                                 // ID of the user creating the objection
+	UserFullName    string    `gorm:"column:user_full_name" json:"user_name"`         // Full name of the user creating the objection
+	ObjectionStatus string    `gorm:"column:objection_status" json:"status"`          // Status of the objection (Review, Sustained, Overruled)
 }
 
-// TableName overrides the default table name for GORM
+// TableName overrides the table name for GORM to map it to the view.
 func (ExpertObjectionsView) TableName() string {
 	return "expert_objections_view"
-
 }

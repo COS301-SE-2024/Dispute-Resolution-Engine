@@ -1,60 +1,50 @@
 package mediatorassignment
 
-import "time"
+import (
+	"api/models"
+	"time"
+)
 
-type DBScoreInput interface {
-	GetScoreInput() (float64, error)
+type ScoreModeler interface {
+	GetScoreInput(summary []models.ExpertSummaryView) []ResultWithID
 }
 
-type DBScoreInputBase struct {
-	DB     DBModel
-	Column string
+type LastAssignmentstruct struct {
 }
 
-type DBScoreLastAssignmentstruct struct {
-	DBScoreInputBase
-}
+func (d *LastAssignmentstruct) GetScoreInput(summary []models.ExpertSummaryView) []ResultWithID {
 
-func (d *DBScoreLastAssignmentstruct) GetScoreInput() (float64, error) {
-	expertSummary, err := d.DB.GetExpertSummaryViewByColumn(d.Column)
-	if err != nil {
-		return 0, err
+	score := make([]ResultWithID, len(summary))
+	for _, expertSummary := range summary {
+		//calculate score last assignment
+		lastAssignment := time.Since(expertSummary.LastAssignedDate).Hours() / 24
+		score = append(score, ResultWithID{ID: expertSummary.ExpertID, Result: lastAssignment})
 	}
-
-	//calculate score current date - last assigned date
-	score := float64(time.Until(expertSummary.LastAssignedDate).Hours())
-
-	return score, nil
+	return score
 }
 
-type DBScoreAssignedDisputes struct {
-	DBScoreInputBase
+type AssignedDisputes struct {
 }
 
-func (d *DBScoreAssignedDisputes) GetScoreInput() (float64, error) {
-	expertSummary, err := d.DB.GetExpertSummaryViewByColumn(d.Column)
-	if err != nil {
-		return 0, err
+func (d *AssignedDisputes) GetScoreInput(summary []models.ExpertSummaryView) []ResultWithID {
+
+	score := make([]ResultWithID, len(summary))
+	for _, expertSummary := range summary {
+		//calculate score assigned disputes
+		score = append(score, ResultWithID{ID: expertSummary.ExpertID, Result: float64(expertSummary.ActiveDisputeCount)})
 	}
-
-	//calculate score assigned disputes
-	score := float64(expertSummary.ActiveDisputeCount)
-
-	return score, nil
+	return score
 }
 
-type DBScoreRejectionCount struct {
-	DBScoreInputBase
+type RejectionCount struct {
 }
 
-func (d *DBScoreRejectionCount) GetScoreInput() (float64, error) {
-	expertSummary, err := d.DB.GetExpertSummaryViewByColumn(d.Column)
-	if err != nil {
-		return 0, err
+func (d *RejectionCount) GetScoreInput(summary []models.ExpertSummaryView) []ResultWithID {
+
+	score := make([]ResultWithID, len(summary))
+	for _, expertSummary := range summary {
+		//calculate score rejection count
+		score = append(score, ResultWithID{ID: expertSummary.ExpertID, Result: expertSummary.RejectionPercentage})
 	}
-
-	//calculate score rejection count
-	score := float64(expertSummary.RejectionPercentage)
-
-	return score, nil
+	return score
 }

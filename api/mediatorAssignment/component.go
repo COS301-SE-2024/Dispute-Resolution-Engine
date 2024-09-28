@@ -1,25 +1,40 @@
 package mediatorassignment
+
+import "api/models"
+
 // AglorithmComponent struct and interface
 
 type AlgorithmComponent interface {
-	CalculateScore() float64
+	CalculateScore(summary []models.ExpertSummaryView) []ResultWithID
+	ApplyOperator(value1 []ResultWithID, value2 []ResultWithID) []ResultWithID
 }
 
 type BaseComponent struct {
+	ScoreModeler ScoreModeler
 	Function MathFunctions
-	DBScore  DBScoreInput
 	Operator ComponentOperator
 }
 
-func (b *BaseComponent) CalculateScore() float64 {
-	score, err := b.DBScore.GetScoreInput()
-	if err != nil {
-		return 0
+func (b *BaseComponent) CalculateScore(summary []models.ExpertSummaryView) []ResultWithID {
+	score := b.ScoreModeler.GetScoreInput(summary)
+	for _, score := range score {
+		score.Result = b.Function.CalculateScore(score.Result)
 	}
-
-	return b.Function.CalculateScore(score)
+	return score
 }
 
-func (b *BaseComponent) ApplyOperator(value1 float64, value2 float64) float64 {
-	return b.Operator.ApplyOperator(value1, value2)
+func (b *BaseComponent) ApplyOperator(value1 []ResultWithID, value2 []ResultWithID) []ResultWithID {
+	for i := range value1 {
+		value1[i].Result = b.Operator.ApplyOperator(value1[i].Result, value2[i].Result)
+	}
+	return value1
+}
+
+
+func NewAlgorithmComponent(scoreModeler ScoreModeler, function MathFunctions, operator ComponentOperator) AlgorithmComponent {
+	return &BaseComponent{
+		ScoreModeler: scoreModeler,
+		Function: function,
+		Operator: operator,
+	}
 }

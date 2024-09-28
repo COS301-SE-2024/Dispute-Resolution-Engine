@@ -6,6 +6,12 @@ import (
 	"gorm.io/gorm"
 )
 
+type ResultWithID struct {
+	ID     uint
+	Result float64
+}
+
+
 const (
 	ExpertIDColumn            = "expert_id"
 	ExpertNameColumn          = "expert_name"
@@ -17,7 +23,6 @@ const (
 type DBModel interface {
 	GetExpertSummaryViews() ([]models.ExpertSummaryView, error)
 	GetExpertSummaryViewByExpertID(expertID int) (models.ExpertSummaryView, error)
-	GetExpertSummaryViewByColumn(columnName string) (models.ExpertSummaryView, error)
 	GetExpertSummaryViewByColumnValue(columnName string, columnValue string) (models.ExpertSummaryView, error)
 	GetRejectionFromDispute(disputeId int) (models.DisputeExpert, error)
 }
@@ -35,12 +40,6 @@ func (d *DBModelReal) GetExpertSummaryViews() ([]models.ExpertSummaryView, error
 func (d *DBModelReal) GetExpertSummaryViewByExpertID(expertID int) (models.ExpertSummaryView, error) {
 	var expertSummaryView models.ExpertSummaryView
 	d.DB.Where(ExpertIDColumn, expertID).First(&expertSummaryView)
-	return expertSummaryView, nil
-}
-
-func (d *DBModelReal) GetExpertSummaryViewByColumn(columnName string) (models.ExpertSummaryView, error) {
-	var expertSummaryView models.ExpertSummaryView
-	d.DB.Where(columnName).First(&expertSummaryView)
 	return expertSummaryView, nil
 }
 

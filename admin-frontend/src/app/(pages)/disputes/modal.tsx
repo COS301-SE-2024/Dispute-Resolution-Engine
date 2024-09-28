@@ -21,6 +21,7 @@ import {
   DisputeDetailsResponse,
   ExpertSummary,
   ObjectionStatus,
+  ExpertStatus,
 } from "@/lib/types/dispute";
 import { changeDisputeStatus, getDisputeDetails } from "@/lib/api/dispute";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -36,24 +37,26 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ObjectionStatusBadge } from "@/components/admin/status-badge";
 import { DisputeStatusDropdown, ObjectionStatusDropdown } from "@/components/admin/status-dropdown";
+import { changeObjectionStatus } from "@/lib/api/expert";
+import { DISPUTE_DETAILS_KEY, DISPUTE_LIST_KEY } from "@/lib/constants";
 
 export default function DisputeDetails({ id: disputeId }: { id: string }) {
   const { toast } = useToast();
   const client = useQueryClient();
   const { data, error } = useQuery({
-    queryKey: ["dispute"],
+    queryKey: [DISPUTE_DETAILS_KEY],
     queryFn: async () => getDisputeDetails(disputeId),
   });
 
   const status = useMutation({
     mutationFn: (status: DisputeStatus) => changeDisputeStatus(disputeId, status),
     onSuccess: (data, variables) => {
-      client.setQueryData(["dispute"], (old: DisputeDetailsResponse) => ({
+      client.setQueryData([DISPUTE_DETAILS_KEY], (old: DisputeDetailsResponse) => ({
         ...old,
         status: variables,
       }));
       client.invalidateQueries({
-        queryKey: ["disputeTable"],
+        queryKey: [DISPUTE_LIST_KEY],
       });
       toast({
         title: "Status updated successfully",
@@ -270,6 +273,23 @@ function Objection({
   date_submitted: string;
   status: ObjectionStatus;
 }) {
+  const { toast } = useToast();
+  const objection = useMutation({
+    mutationFn: (status: ObjectionStatus) => changeObjectionStatus(id, status),
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Objection status updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "error",
+        title: "Something went wrong",
+        description: error?.message,
+      });
+    },
+  });
+
   return (
     <li className="grid grid-cols-[1fr_auto] gap-2 items-center px-3 py-2 border border-primary-500/30 rounded-md">
       <div>
@@ -284,7 +304,7 @@ function Objection({
           by {user_name}, {date_submitted}
         </span>
       </div>
-      <ObjectionStatusDropdown>
+      <ObjectionStatusDropdown onSelect={(s) => objection.mutate(s)}>
         <ObjectionStatusBadge dropdown variant={status}>
           {status}
         </ObjectionStatusBadge>

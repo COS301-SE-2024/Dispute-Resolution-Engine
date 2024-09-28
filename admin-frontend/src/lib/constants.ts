@@ -1,3 +1,9 @@
+/** The React Query key used to store the list of disputes */
+export const DISPUTE_LIST_KEY = "disputeList";
+
+/** The React Query key used to store the list of disputes */
+export const DISPUTE_DETAILS_KEY = "disputeDetails";
+
 /** The React Query key used to store the list of tickets */
 export const TICKET_LIST_KEY = "ticketList";
 

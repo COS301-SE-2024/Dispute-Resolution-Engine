@@ -30,6 +30,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/:id/experts/review-rejection", h.ExpertObjectionsReview)
 	g.POST("/:id/evidence", h.UploadEvidence)
 	g.PUT("/dispute/status", h.UpdateStatus)
+	g.POST("/:id/decision", h.SubmitWriteup)
 
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)

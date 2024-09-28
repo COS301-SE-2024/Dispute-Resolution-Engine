@@ -14,14 +14,14 @@ import (
 )
 
 type TicketModel interface {
-	getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
-	getTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
-	getTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error)
-	getAdminTicketDetails(ticketID int64) (models.TicketsByUser, error)
-	patchTicketStatus(status string, ticketID int64) error
-	addUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
-	addAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
-	createTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error)
+	GetAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
+	GetTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
+	GetTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error)
+	GetAdminTicketDetails(ticketID int64) (models.TicketsByUser, error)
+	PatchTicketStatus(status string, ticketID int64) error
+	AddUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
+	AddAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
+	CreateTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error)
 }
 
 type Ticket struct {
@@ -42,8 +42,6 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 		Env:   envReader,
 	}
 }
-
-
 
 func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error) {
 	logger := utilities.NewLogger().LogWithCaller()

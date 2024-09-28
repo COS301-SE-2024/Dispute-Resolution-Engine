@@ -206,7 +206,9 @@ func (suite *TicketErrorTestSuite) TestCreateBadRequest() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)

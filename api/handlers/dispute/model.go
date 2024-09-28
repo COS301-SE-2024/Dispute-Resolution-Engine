@@ -5,6 +5,7 @@ import (
 	"api/auditLogger"
 	"api/env"
 	"api/handlers/notifications"
+	"api/handlers/ticket"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
@@ -28,6 +29,7 @@ import (
 )
 
 type DisputeModel interface {
+	UploadWriteup(userId, disputeId int64, path string, file io.Reader) error
 	UploadEvidence(userId, disputeId int64, path string, file io.Reader) (uint, error)
 	GetEvidenceByDispute(disputeId int64) ([]models.Evidence, error)
 	GetDisputeExperts(disputeId int64) ([]models.Expert, error)
@@ -37,12 +39,14 @@ type DisputeModel interface {
 	GetDispute(disputeId int64) (models.Dispute, error)
 
 	GetUserByEmail(email string) (models.User, error)
+	GetUserById(userId int64) (models.User, error)
 	CreateDispute(dispute models.Dispute) (int64, error)
 	UpdateDisputeStatus(disputeId int64, status string) error
 
-	ObjectExpert(userId, disputeId, expertId int64, reason string) error
-	ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error
+	ObjectExpert(disputeId, expertId, ticketId int64) error
+	ReviewExpertObjection(objectionId int64, approved models.ExpObjStatus) error
 	GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error)
+	
 
 	CreateDefaultUser(email string, fullName string, pass string) error
 	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
@@ -60,6 +64,7 @@ type DisputeModel interface {
 
 type Dispute struct {
 	Model              DisputeModel
+	TicketModel        ticket.TicketModel
 	Email              notifications.EmailSystem
 	JWT                middleware.Jwt
 	Env                env.Env
@@ -142,7 +147,82 @@ func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 		Model:              &disputeModelReal{db: db, env: env.NewEnvLoader()},
 		AuditLogger:        auditLogger.NewDisputeProceedingsLogger(db, envReader),
 		OrchestratorEntity: OrchestratorReal{},
+		TicketModel:        ticket.NetTicketModelReal(db, envReader),
 	}
+}
+
+func (m *disputeModelReal) GetUserById(userId int64) (models.User, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	user := models.User{}
+	err := m.db.Where("\"id\"= ?", userId).First(&user).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving user")
+	}
+	return user, err
+}
+
+func (m *disputeModelReal) UploadWriteup(userId, disputeId int64, path string, file io.Reader) error {
+	env := env.NewEnvLoader()
+	fileStorageRoot, err := env.Get("FILESTORAGE_ROOT")
+	if err != nil {
+		return err
+	}
+	fileStorageUrl, err := env.Get("FILESTORAGE_URL")
+	if err != nil {
+		return err
+	}
+
+	logger := utilities.NewLogger().LogWithCaller()
+	dir, name := filepath.Split(path)
+	dest := filepath.Join(fileStorageRoot, path)
+
+	if err := os.MkdirAll(filepath.Join(fileStorageRoot, dir), 0755); err != nil {
+		logger.WithError(err).Error("failed to create folder for file upload")
+		return err
+	}
+
+	url := fmt.Sprintf("%s/%s", fileStorageUrl, path)
+
+	// Open the destination file
+	destFile, err := os.Create(dest)
+	if err != nil {
+		logger.WithError(err).Errorf("failed to create file in storage: '%s'", dest)
+		return errors.New("failed to create file in storage")
+	}
+	defer destFile.Close()
+
+	// Copy file content to destination
+	_, err = io.Copy(destFile, file)
+	if err != nil {
+		logger.WithError(err).Error("failed to copy file content")
+		return errors.New("failed to copy file content")
+	}
+
+	// Add file entry to Database
+	fileRow := models.File{
+		FileName: name,
+		FilePath: url,
+		Uploaded: time.Now(),
+	}
+
+	if err := m.db.Create(&fileRow).Error; err != nil {
+		logger.WithError(err).Error("error adding file to database")
+		return errors.New("error adding file to database")
+	}
+
+	//add entry to dispute decisions table
+	disputeDecision := models.DisputeDecisions{
+		DisputeID: disputeId,
+		ExpertID:  userId,
+		WriteUpID: int64(*fileRow.ID),
+	}
+
+	if err := m.db.Create(&disputeDecision).Error; err != nil {
+		logger.WithError(err).Error("error creating dispute decision")
+		return errors.New("error creating dispute decision")
+	}
+
+	return nil
 }
 
 func (m *disputeModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
@@ -174,6 +254,7 @@ func (m *disputeModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkflows
 	}
 
 	return nil
+
 }
 
 func (m *disputeModelReal) UploadEvidence(userId, disputeId int64, path string, file io.Reader) (uint, error) {
@@ -450,15 +531,14 @@ func (m *disputeModelReal) UpdateDisputeStatus(disputeId int64, status string) e
 		return err
 	}
 }
-func (m *disputeModelReal) ObjectExpert(userId, disputeId, expertId int64, reason string) error {
+func (m *disputeModelReal) ObjectExpert(disputeId, expertId, ticketId int64) error {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	//add entry to expert objections table
 	expertObjection := models.ExpertObjection{
-		DisputeID: disputeId,
-		ExpertID:  expertId,
-		UserID:    userId,
-		Reason:    reason,
+		ExpertID: expertId,
+		TicketID: ticketId,
+		Status:   models.ObjectionReview,
 	}
 
 	if err := m.db.Create(&expertObjection).Error; err != nil {
@@ -467,21 +547,18 @@ func (m *disputeModelReal) ObjectExpert(userId, disputeId, expertId int64, reaso
 	}
 	return nil
 }
-func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error {
+func (m *disputeModelReal) ReviewExpertObjection(rejectionID int64, approved models.ExpObjStatus) error {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var expertObjections models.ExpertObjection
-	if err := m.db.Where("dispute_id = ? AND expert_id = ?", disputeId, expertId).First(&expertObjections).Error; err != nil {
+	logger.Infof("Rejection ID: %d", rejectionID)
+	if err := m.db.Where("\"id\" = ?", rejectionID).First(&expertObjections).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving expert objections")
 		return err
 	}
 
 	// Update status
-	if approved {
-		expertObjections.Status = models.ObjectionSustained
-	} else {
-		expertObjections.Status = models.ObjectionOverruled
-	}
+	expertObjections.Status = approved
 
 	if err := m.db.Save(&expertObjections).Error; err != nil {
 		logger.WithError(err).Error("Error updating expert objections")

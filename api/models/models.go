@@ -6,24 +6,24 @@ import (
 )
 
 type User struct {
-	ID                int64      `json:"id" gorm:"primaryKey;autoIncrement"`
-	FirstName         string     `json:"first_name" gorm:"type:varchar(50);not null"`
-	Surname           string     `json:"surname" gorm:"type:varchar(50);not null"`
-	Birthdate         time.Time  `json:"birthdate" gorm:"type:date;not null"`
-	Nationality       string     `json:"nationality" gorm:"type:varchar(50);not null"`
-	Role              string     `json:"role" gorm:"type:varchar(50);not null"`
-	Email             string     `json:"email" gorm:"type:varchar(100);unique;not null"`
-	PasswordHash      string     `json:"password,omitempty" gorm:"type:varchar(255);not null"`
-	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20)"`
-	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`
-	CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
-	LastUpdate        *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
-	LastLogin         *time.Time `gorm:"type:timestamp"`
-	Status            string     `json:"status" gorm:"type:varchar(20);default:'active'"`
-	Gender            string     `json:"gender" gorm:"type:gender_enum"`
-	PreferredLanguage *string    `json:"preferred_language,omitempty" gorm:"type:varchar(50)"`
-	Timezone          *string    `json:"timezone,omitempty" gorm:"type:varchar(50)"`
-	Salt              string     `gorm:"type:varchar(255)"`
+	ID                int64      `json:"id" gorm:"primaryKey;autoIncrement;column:id"`                                   //Filled in by API
+	FirstName         string     `json:"first_name" gorm:"type:varchar(50);not null;column:first_name"`                  //check
+	Surname           string     `json:"surname" gorm:"type:varchar(50);not null;column:surname"`                        //check
+	Birthdate         time.Time  `json:"birthdate" gorm:"type:date;not null;column:birthdate"`                           //check
+	Nationality       string     `json:"nationality" gorm:"type:varchar(50);not null;column:nationality"`                //check
+	Role              string     `json:"role" gorm:"type:varchar(50);not null;column:role"`                              //Filled in by API
+	Email             string     `json:"email" gorm:"type:varchar(100);unique;not null;column:email"`                    //check
+	PasswordHash      string     `json:"password,omitempty" gorm:"type:varchar(255);not null;column:password_hash"`      //Updated by API
+	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20);column:phone_number"`             //need
+	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`                                  //what the fuck
+	CreatedAt         time.Time  `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`   //Filled in by API
+	UpdatedAt         *time.Time `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:updated_at"`   //Filled in by API
+	LastLogin         *time.Time `json:"last_login" gorm:"type:timestamp;column:last_login"`                             //Filled in by API
+	Status            string     `json:"status" gorm:"type:varchar(20);default:'active';column:status"`                  //Filled in by API
+	Gender            string     `json:"gender" gorm:"type:gender_enum;column:gender"`                                   //check
+	PreferredLanguage *string    `json:"preferred_language,omitempty" gorm:"type:varchar(50);column:preferred_language"` //worked on
+	Timezone          *string    `json:"timezone,omitempty" gorm:"type:varchar(50);column:timezone"`                     //need to be handled by me?
+	Salt              string     `gorm:"type:varchar(255);column:salt"`
 }
 
 type ArchivedDisputeSummary struct {
@@ -47,6 +47,7 @@ type ArchivedDispute struct {
 	ArchivedDisputeSummary
 	Events []Event `json:"events"`
 }
+
 
 type DisputeStatus string
 
@@ -221,17 +222,22 @@ const (
 )
 
 type ExpertObjection struct {
-	ID        int64        `gorm:"primaryKey;autoIncrement" json:"id"`
-	CreatedAt time.Time    `gorm:"autoCreateTime" json:"created_at"`
-	DisputeID int64        `gorm:"not null" json:"dispute_id"`
-	ExpertID  int64        `gorm:"not null" json:"expert_id"`
-	UserID    int64        `gorm:"not null" json:"user_id"`
-	Reason    string       `gorm:"type:text" json:"reason"`
-	Status    ExpObjStatus `gorm:"type:exp_obj_status;default:'Review'" json:"status"`
+	ID       int64        `gorm:"primaryKey;autoIncrement" json:"id"`
+	ExpertID int64        `gorm:"not null" json:"expert_id"`
+	TicketID int64        `gorm:"not null" json:"ticket_id"`
+	Status   ExpObjStatus `gorm:"type:exp_obj_status;default:'Review'" json:"status"`
 }
 
 func (ExpertObjection) TableName() string {
 	return "expert_objections"
+}
+
+type DisputeDecisions struct {
+	ID        int64     `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	DisputeID int64     `json:"dispute_id" gorm:"column:dispute_id"`
+	ExpertID  int64     `json:"expert_id" gorm:"column:expert_id"`
+	WriteUpID int64     `json:"write_up_id" gorm:"column:writeup_file_id"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`
 }
 
 type Ticket struct {
@@ -266,21 +272,21 @@ func (ActiveWorkflows) TableName() string {
 	return "active_workflows"
 }
 
+// ExpertObjectionsView represents the expert_objections_view SQL view.
 type ExpertObjectionsView struct {
-	ObjectionID        int       `gorm:"column:objection_id"`
-	ObjectionCreatedAt time.Time `gorm:"column:objection_created_at"`
-	DisputeID          int       `gorm:"column:dispute_id"`
-	DisputeTitle       string    `gorm:"column:dispute_title"`
-	ExpertID           int       `gorm:"column:expert_id"`
-	ExpertFullName     string    `gorm:"column:expert_full_name"`
-	UserID             int       `gorm:"column:user_id"`
-	UserFullName       string    `gorm:"column:user_full_name"`
-	Reason             string    `gorm:"column:reason"`
-	ObjectionStatus    string    `gorm:"column:objection_status"`
+	ObjectionID     int       `gorm:"column:objection_id" json:"id"`                  // ID of the objection
+	TicketID        int       `gorm:"column:ticket_id" json:"ticket_id"`              // ID of the related ticket
+	TicketCreatedAt time.Time `gorm:"column:ticket_created_at" json:"date_submitted"` // Created date of the ticket
+	DisputeID       int       `gorm:"column:dispute_id"`                              // ID of the associated dispute
+	DisputeTitle    string    `gorm:"column:dispute_title"`                           // Title of the dispute
+	ExpertID        int       `gorm:"column:expert_id"`                               // ID of the expert being objected to
+	ExpertFullName  string    `gorm:"column:expert_full_name" json:"expert_name"`     // Full name of the expert
+	UserID          int       `gorm:"column:user_id"`                                 // ID of the user creating the objection
+	UserFullName    string    `gorm:"column:user_full_name" json:"user_name"`         // Full name of the user creating the objection
+	ObjectionStatus string    `gorm:"column:objection_status" json:"status"`          // Status of the objection (Review, Sustained, Overruled)
 }
 
-// TableName overrides the default table name for GORM
+// TableName overrides the table name for GORM to map it to the view.
 func (ExpertObjectionsView) TableName() string {
 	return "expert_objections_view"
-
 }

@@ -18,7 +18,8 @@ import { getAuthToken } from "../jwt";
 import { API_URL, sf, validateResult } from "../utils";
 
 export async function createWorkflow(req: WorkflowCreateRequest): Promise<WorkflowCreateResponse> {
-  return sf(`${API_URL}/workflows`, {
+  console.log("Request in createWorkflow", JSON.stringify(req))
+  return sf(`${API_URL}/workflows/create`, {
     method: "POST",
     body: JSON.stringify(req),
     headers: {

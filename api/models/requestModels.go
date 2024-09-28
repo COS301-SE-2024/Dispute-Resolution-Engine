@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type UpdateUser struct {
 	FirstName          string  `json:"first_name"`
@@ -124,13 +126,12 @@ type ExpertApproveRequest struct {
 }
 
 type ExpertRejectRequest struct {
-	ExpertID int64  `json:"expert_id"`
-	Reason   string `json:"reason"`
+	ExpertID *int64  `json:"expert_id"`
+	Reason   *string `json:"reason"`
 }
 
 type RejectExpertReview struct {
-	ExpertID int64 `json:"expert_id"`
-	Accepted bool  `json:"accepted"`
+	Status *ExpObjStatus  `json:"status"`
 }
 
 type DisputeStatusChange struct {

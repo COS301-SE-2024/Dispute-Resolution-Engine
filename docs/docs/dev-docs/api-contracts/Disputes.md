@@ -134,54 +134,18 @@ type UpdateRequest = {
 };
 ```
 
-# Dispute Negotiating Party Operations
+# Dispute decision
 
-## Approving
-
-- **Endpoint:** `POST /disputes/{id}/experts/approve`
+- **Endpoint:** `POST /disputes/{id}/decision`
 - **Headers:**
   - `Authorization: Bearer <JWT>`
+- **Note:** The endpoint uses `multipart/form-data` instead of JSON, so the interface below serves only as a guideline
 
 ```ts
-interface ExpertApproveRequest {
-  expert_id: string;
+interface DisputeDecisionRequest {
+  decision: DisputeDecision;
+  writeup: File;
 }
 ```
 
-The response will return a success message
-
-```ts
-type ExpertApproveResponse = string;
-```
-
-## Rejecting
-
-- **Endpoint:** `POST /disputes/{id}/experts/reject`
-- **Headers:**
-  - `Authorization: Bearer <JWT>`
-
-```ts
-interface ExpertRejectRequest {
-  expert_id: string;
-  reason: string;
-}
-```
-
-The response will return a success message
-
-```ts
-type ExpertRejectResponse = string;
-```
-
-## Reviewing Rejection
-
-- **Endpoint:** `POST /disputes/{id}/experts/review-rejection`
-- **Headers:**
-  - `Authorization: Bearer <JWT>`
-
-```ts
-interface ExpertRejectRequest {
-  expert_id: string;
-  accepted: boolean;
-}
-```
+Respond with an HTTP code 204 (no content).

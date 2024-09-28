@@ -93,7 +93,7 @@ func (h Ticket) createTicketMessage(c *gin.Context) {
 	}
 	userRole := claims.Role
 	if userRole == "admin" {
-		ticketMessage, err := h.Model.addAdminTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
+		ticketMessage, err := h.Model.AddAdminTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
 		if err != nil {
 			logger.WithError(err).Error("Error adding ticket message")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error adding ticket message"})
@@ -102,7 +102,7 @@ func (h Ticket) createTicketMessage(c *gin.Context) {
 		c.JSON(http.StatusCreated, models.Response{Data: ticketMessage})
 		return
 	}
-	ticketMessage, err := h.Model.addUserTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
+	ticketMessage, err := h.Model.AddUserTicketMessage(int64(ticketIDInt), claims.ID, tickReq.Message)
 	if err != nil {
 		logger.WithError(err).Error("Error adding ticket message")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error adding ticket message"})
@@ -143,7 +143,7 @@ func (h Ticket) patchTicketStatus(c *gin.Context) {
 		return
 	}
 
-	err = h.Model.patchTicketStatus(tickReq.Status, int64(ticketIDInt))
+	err = h.Model.PatchTicketStatus(tickReq.Status, int64(ticketIDInt))
 	if err != nil {
 		logger.WithError(err).Error("Error updating ticket status")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error updating ticket status"})
@@ -180,7 +180,7 @@ func (h Ticket) getUserTicketDetails(c *gin.Context) {
 	userRole := claims.Role
 
 	if userRole == "admin" {
-		ticketDetails, err := h.Model.getAdminTicketDetails(int64(ticketIDInt))
+		ticketDetails, err := h.Model.GetAdminTicketDetails(int64(ticketIDInt))
 		if err != nil {
 			logger.WithError(err).Error("Error retrieving ticket details")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving ticket details"})
@@ -191,7 +191,7 @@ func (h Ticket) getUserTicketDetails(c *gin.Context) {
 		return
 	}
 
-	ticketDetails, err := h.Model.getTicketDetails(int64(ticketIDInt), claims.ID)
+	ticketDetails, err := h.Model.GetTicketDetails(int64(ticketIDInt), claims.ID)
 
 	if err != nil && err.Error() == "Unauthorized ticket access attempt" {
 		logger.Error("Unauthorized ticket access attempt")
@@ -245,7 +245,7 @@ func (h Ticket) getTicketList(c *gin.Context) {
 		// If the body contains no key-value pairs, consider it empty
 		if len(bodyMap) == 0 {
 			logger.Info("Empty request body")
-			tickets, count, err := h.Model.getAdminTicketList(nil, nil, nil, nil, nil)
+			tickets, count, err := h.Model.GetAdminTicketList(nil, nil, nil, nil, nil)
 			if err != nil {
 				logger.WithError(err).Error("error retrieving tickets")
 				c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving tickets"})
@@ -290,7 +290,7 @@ func (h Ticket) getTicketList(c *gin.Context) {
 		if reqAdminTickets.Filter != nil {
 			filters = &reqAdminTickets.Filter
 		}
-		tickets, count, err := h.Model.getAdminTicketList(searchTerm, limit, offset, sort, filters)
+		tickets, count, err := h.Model.GetAdminTicketList(searchTerm, limit, offset, sort, filters)
 		if err != nil {
 			logger.WithError(err).Error("error retrieving tickets")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving tickets"})
@@ -333,7 +333,7 @@ func (h Ticket) getTicketList(c *gin.Context) {
 	// If the body contains no key-value pairs, consider it empty
 	if len(bodyMap) == 0 {
 		logger.Info("Empty request body")
-		tickets, count, err := h.Model.getTicketsByUserID(userID, nil, nil, nil, nil, nil)
+		tickets, count, err := h.Model.GetTicketsByUserID(userID, nil, nil, nil, nil, nil)
 		if err != nil {
 			logger.WithError(err).Error("error retrieving tickets")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving tickets"})
@@ -378,7 +378,7 @@ func (h Ticket) getTicketList(c *gin.Context) {
 	if reqTickets.Filter != nil {
 		filters = &reqTickets.Filter
 	}
-	tickets, count, err := h.Model.getTicketsByUserID(userID, searchTerm, limit, offset, sort, filters)
+	tickets, count, err := h.Model.GetTicketsByUserID(userID, searchTerm, limit, offset, sort, filters)
 	if err != nil {
 		logger.WithError(err).Error("error retrieving tickets")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error while retrieving tickets"})

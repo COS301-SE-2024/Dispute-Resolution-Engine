@@ -4,13 +4,12 @@ import "math"
 
 type MathFunctions interface {
 	//function to calculate the score
-	CalculateScore() float64
+	CalculateScore(inputValue float64) float64
 }
 
 type BaseFunction struct {
 	ApplyCapToValue bool
 	Cap             float64
-	InputValue      float64
 	MoveYAxis       float64
 	MoveXAxis       float64
 }
@@ -20,8 +19,8 @@ type Expontential struct {
 	BaseFunction
 }
 
-func (e *Expontential) CalculateScore() float64 {
-	score := e.MoveYAxis + math.Pow(e.BaseExponent, e.InputValue) + e.MoveXAxis
+func (e *Expontential) CalculateScore(inputValue float64) float64 {
+	score := e.MoveYAxis + math.Pow(e.BaseExponent, inputValue) + e.MoveXAxis
 
 	if e.ApplyCapToValue {
 		if score > e.Cap {
@@ -37,8 +36,8 @@ type Logarithmic struct {
 	LogBase float64
 }
 
-func (l *Logarithmic) CalculateScore() float64 {
-	score := l.MoveYAxis + math.Log(l.InputValue)/math.Log(l.LogBase) + l.MoveXAxis
+func (l *Logarithmic) CalculateScore(inputValue float64) float64 {
+	score := l.MoveYAxis + math.Log(inputValue)/math.Log(l.LogBase) + l.MoveXAxis
 
 	if l.ApplyCapToValue {
 		if score > l.Cap {
@@ -54,8 +53,8 @@ type Linear struct {
 	Multiplier float64
 }
 
-func (l *Linear) CalculateScore() float64 {
-	score := l.MoveYAxis + l.InputValue*l.Multiplier + l.MoveXAxis
+func (l *Linear) CalculateScore(inputValue float64) float64 {
+	score := l.MoveYAxis + inputValue*l.Multiplier + l.MoveXAxis
 
 	if l.ApplyCapToValue {
 		if score > l.Cap {

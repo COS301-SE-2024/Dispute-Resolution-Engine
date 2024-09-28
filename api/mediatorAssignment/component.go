@@ -1,27 +1,25 @@
 package mediatorassignment
-
 // AglorithmComponent struct and interface
 
 type AlgorithmComponent interface {
+	CalculateScore() float64
 }
 
 type BaseComponent struct {
-	Function *MathFunctions
-	DBScore  *DBScoreInput
-	Operator *ComponentOperator
+	Function MathFunctions
+	DBScore  DBScoreInput
+	Operator ComponentOperator
 }
 
-// logorithmic backoff component
-// will provide a score which based on a logorithmic scale of the number of active disputes assigned to the mediator
-type ComponentAssignedDisputes struct {
+func (b *BaseComponent) CalculateScore() float64 {
+	score, err := b.DBScore.GetScoreInput()
+	if err != nil {
+		return 0
+	}
+
+	return b.Function.CalculateScore(score)
 }
 
-// exponential ramp up component
-// exponential scoring based on the number of disputes rejected by the mediator since last involved
-type ComponentRejectionCount struct {
-}
-
-// linear growth component
-// linear scoring based on the number of disputes resolved by the mediator since last involved
-type ComponentTimeSinceLastDispute struct {
+func (b *BaseComponent) ApplyOperator(value1 float64, value2 float64) float64 {
+	return b.Operator.ApplyOperator(value1, value2)
 }

@@ -91,3 +91,25 @@ type AdminIntermediate struct {
 	CaseDate     time.Time  `gorm:"column:case_date"`
 	DateResolved *time.Time `gorm:"column:date_resolved"`
 }
+
+type TicketIntermediate struct {
+	Id             int64     `gorm:"column:id"`
+	DisputeID      int64     `gorm:"column:dispute_id"`
+	CreatedAt      time.Time `gorm:"column:created_at"`
+	Subject        string    `gorm:"column:subject"`
+	Status         string    `gorm:"column:status"`
+	UserID         int64     `gorm:"column:user_id"`
+	FirstName      string    `gorm:"column:first_name"`
+	Surname        string    `gorm:"column:surname"`
+	InitialMessage string    `gorm:"column:initial_message"`
+}
+
+type AdminDisputeExperts struct {
+	ExpertID int64  `gorm:"column:id" json:"id"`
+	FullName string `json:"full_name"`
+	Status   string `gorm:"column:status" json:"status"`
+}
+
+// type TicketMessage struct {
+// 	ID
+// }

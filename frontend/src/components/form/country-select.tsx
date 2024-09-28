@@ -8,9 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Country, fetchCountries } from "@/lib/api";
+import { getCountries } from "@/lib/api";
 import { SelectProps } from "@radix-ui/react-select";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function CountrySelect({
   id,
@@ -18,29 +18,20 @@ export default function CountrySelect({
 }: SelectProps & {
   id?: string;
 }) {
-  const [data, setData] = useState<Country[]>([]);
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const data = (await fetchCountries()).data!;
-      if (!cancelled) {
-        setData(data);
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const query = useQuery({
+    queryKey: ["countryList"],
+    queryFn: () => getCountries(),
+    staleTime: Infinity,
+  });
 
   return (
     <Select {...props}>
-      <SelectTrigger>
+      <SelectTrigger disabled={query.isPending}>
         <SelectValue id={id} placeholder="Select a country" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          {data?.map((country) => (
+          {query.data?.map((country) => (
             <SelectItem key={country.country_code} value={country.country_code}>
               {country.country_name}
             </SelectItem>

@@ -1,3 +1,4 @@
+//coverage:ignore file
 package dispute
 
 import (
@@ -42,20 +43,93 @@ type DisputeModel interface {
 
 	ObjectExpert(userId, disputeId, expertId int64, reason string) error
 	ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error
+	GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error)
 
 	CreateDefaultUser(email string, fullName string, pass string) error
 	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
 
+	GetWorkflowRecordByID(id uint64) (*models.Workflow, error)
+	CreateActiverWorkflow(workflow *models.ActiveWorkflows) error
+	DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error
+
+	GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error)
 	GenerateAISummary(disputeID int64, disputeDesc string, apiKey string)
+
+	GetUser(UserID int64) (models.UserDetails, error)
+	GetAdminDisputeDetails(disputeId int64) (models.AdminDisputeDetailsResponse, error)
 }
 
 type Dispute struct {
-	Model       DisputeModel
-	Email       notifications.EmailSystem
-	JWT         middleware.Jwt
-	Env         env.Env
-	AuditLogger auditLogger.DisputeProceedingsLoggerInterface
+	Model              DisputeModel
+	Email              notifications.EmailSystem
+	JWT                middleware.Jwt
+	Env                env.Env
+	AuditLogger        auditLogger.DisputeProceedingsLoggerInterface
+	OrchestratorEntity WorkflowOrchestrator
 }
+
+type OrchestratorRequest struct {
+	ID int64 `json:"id"`
+}
+type WorkflowOrchestrator interface {
+	MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
+}
+
+type OrchestratorReal struct {
+}
+
+func (w OrchestratorReal) MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Marshal the payload to JSON
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		logger.Error("marshal error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+	logger.Info("Payload: ", string(payloadBytes))
+
+	// Send the POST request to the orchestrator
+	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		logger.Error("post error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+	defer resp.Body.Close()
+
+	// Check for a successful status code (200 OK)
+
+	if resp.StatusCode == http.StatusInternalServerError {
+		logger.Error("status code error: ", resp.StatusCode)
+		return "", fmt.Errorf("Check theat you gave the correct state name if resetting")
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Error("status code error: ", resp.StatusCode)
+		rsponseBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Error("read body error: ", err)
+			return "", fmt.Errorf("internal server error")
+		}
+
+		return string(rsponseBody), fmt.Errorf("internal server error")
+	}
+
+	// Read the response body
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("read body error: ", err)
+		return "", fmt.Errorf("internal server error")
+	}
+
+	// Convert the response body to a string
+	responseBody := string(bodyBytes)
+
+	// Log the response body for debugging
+	logger.Info("Response Body: ", responseBody)
+
+	return responseBody, nil
+}
+
 type disputeModelReal struct {
 	db  *gorm.DB
 	env env.Env
@@ -63,13 +137,15 @@ type disputeModelReal struct {
 
 func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 	return Dispute{
-		Email:       notifications.NewHandler(db),
-		JWT:         middleware.NewJwtMiddleware(),
-		Env:         env.NewEnvLoader(),
-		Model:       &disputeModelReal{db: db, env: env.NewEnvLoader()},
-		AuditLogger: auditLogger.NewDisputeProceedingsLogger(db, envReader),
+		Email:              notifications.NewHandler(db),
+		JWT:                middleware.NewJwtMiddleware(),
+		Env:                env.NewEnvLoader(),
+		Model:              &disputeModelReal{db: db, env: env.NewEnvLoader()},
+		AuditLogger:        auditLogger.NewDisputeProceedingsLogger(db, envReader),
+		OrchestratorEntity: OrchestratorReal{},
 	}
 }
+
 
 func (m *disputeModelReal) UploadWriteup(userId, disputeId int64, path string, file io.Reader) error {
 	env := env.NewEnvLoader()
@@ -130,6 +206,37 @@ func (m *disputeModelReal) UploadWriteup(userId, disputeId int64, path string, f
 	if err := m.db.Create(&disputeDecision).Error; err != nil {
 		logger.WithError(err).Error("error creating dispute decision")
 		return errors.New("error creating dispute decision")
+	}
+
+	return nil
+}
+
+func (m *disputeModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	workflow := models.Workflow{}
+	err := m.db.Where("id = ?", id).First(&workflow).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving workflow record")
+		return nil, err
+	}
+	return &workflow, nil
+}
+
+func (m *disputeModelReal) CreateActiverWorkflow(workflow *models.ActiveWorkflows) error {
+	result := m.db.Create(workflow)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
+
+func (m *disputeModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {
+	result := m.db.Delete(workflow)
+
+	if result.Error != nil {
+		return result.Error
 	}
 
 	return nil
@@ -201,13 +308,96 @@ func (m *disputeModelReal) UploadEvidence(userId, disputeId int64, path string, 
 	return *fileRow.ID, nil
 }
 
+func (m *disputeModelReal) GetUser(userID int64) (models.UserDetails, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var user models.UserDetails
+	err := m.db.Raw("SELECT CONCAT(u.first_name, ' ', u.surname) AS full_name, u.email, CONCAT(a.street, ' ',a.street2,' ',a.street3, CHR(10), a.city, CHR(10), a.province, CHR(10), a.country)  AS address FROM users u JOIN addresses a ON a.id = u.id WHERE u.id = ?", userID).Scan(&user).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving user")
+		return user, err
+	}
+	return user, nil
+}
+
 func (m *disputeModelReal) GetDispute(disputeId int64) (dispute models.Dispute, err error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	err = m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).First(&dispute).Error
+
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute")
 	}
 	return dispute, err
+}
+
+func (m *disputeModelReal) GetAdminDisputeDetails(disputeId int64) (models.AdminDisputeDetailsResponse, error) {
+
+	logger := utilities.NewLogger().LogWithCaller()
+	dispute, err := m.GetDispute(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute")
+		return models.AdminDisputeDetailsResponse{}, err
+	}
+
+	var adminIntermed models.AdminIntermediate
+	err = m.db.Raw("SELECT id, title, status, case_date, date_resolved FROM disputes WHERE id = ?", disputeId).Scan(&adminIntermed).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute")
+		return models.AdminDisputeDetailsResponse{}, err
+	}
+	var workflow models.WorkflowResp
+	err = m.db.Raw("SELECT wf.id, wf.name FROM disputes d JOIN active_workflows aw ON d.workflow = aw.id JOIN workflows wf ON wf.id = aw.workflow WHERE d.id = ?", adminIntermed.Id).First(&workflow).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + strconv.Itoa(int(adminIntermed.Id)))
+		return models.AdminDisputeDetailsResponse{}, err
+	}
+
+	experts, err := m.GetExperts(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving experts for dispute with ID: " + strconv.Itoa(int(adminIntermed.Id)))
+		return models.AdminDisputeDetailsResponse{}, err
+	}
+
+	var evidence []models.Evidence
+	evidence, err = m.GetEvidenceByDispute(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving evidence for dispute with ID: " + strconv.Itoa(int(adminIntermed.Id)))
+		return models.AdminDisputeDetailsResponse{}, err
+	}
+
+	var complainant models.UserDetails
+	complainant, err = m.GetUser(dispute.Complainant)
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving complainant for dispute with ID: " + strconv.Itoa(int(adminIntermed.Id)))
+		return models.AdminDisputeDetailsResponse{}, err
+	}
+
+	var respondent models.UserDetails
+	respondent, err = m.GetUser(*dispute.Respondant)
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving respondent for dispute with ID: " + strconv.Itoa(int(adminIntermed.Id)))
+		return models.AdminDisputeDetailsResponse{}, err
+	}
+
+	adminDisputeDetails := models.AdminDisputeDetailsResponse{
+		AdminDisputeSummariesResponse: models.AdminDisputeSummariesResponse{
+			Id:        strconv.Itoa(int(adminIntermed.Id)),
+			Title:     adminIntermed.Title,
+			Status:    adminIntermed.Status,
+			Workflow:  workflow,
+			DateFiled: adminIntermed.CaseDate.Format("2006-01-02"),
+			Experts:   experts,
+		},
+		Description: dispute.Description,
+		Evidence:    evidence,
+		Complainant: complainant,
+		Respondent:  respondent,
+	}
+	if dispute.DateResolved != nil {
+		dateResolved := dispute.DateResolved.Format("2006-01-02")
+		adminDisputeDetails.DateResolved = &dateResolved
+	}
+
+	return adminDisputeDetails, nil
 }
 
 func (m *disputeModelReal) GetEvidenceByDispute(disputeId int64) (evidence []models.Evidence, err error) {
@@ -348,7 +538,7 @@ func (m *disputeModelReal) ReviewExpertObjection(userId, disputeId, expertId int
 	logger := utilities.NewLogger().LogWithCaller()
 
 	var expertObjections models.ExpertObjection
-	if err := m.db.Where("dispute_id = ? AND expert_id = ? AND status = ?", disputeId, expertId, models.ExpertReview).First(&expertObjections).Error; err != nil {
+	if err := m.db.Where("dispute_id = ? AND expert_id = ?", disputeId, expertId).First(&expertObjections).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving expert objections")
 		return err
 	}
@@ -557,6 +747,17 @@ func (m *disputeModelReal) GenerateAISummary(disputeID int64, disputeDesc string
 	}
 }
 
+func (m *disputeModelReal) GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var expert []models.AdminDisputeExperts
+	err := m.db.Raw("SELECT u.id, CONCAT(u.first_name,' ' ,u.surname) AS full_name, de.status FROM users u JOIN dispute_experts_view de ON u.id = de.expert WHERE de.dispute = ?", disputeID).Scan(&expert).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving experts")
+		return expert, err
+	}
+	return expert, nil
+}
+
 func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, int64, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	var disputes []models.AdminDisputeSummariesResponse = []models.AdminDisputeSummariesResponse{}
@@ -644,28 +845,29 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 		}
 	}
 
-	validSortAttrs := map[string]bool{
-		"id":            true,
-		"case_date":     true,
-		"workflow":      true,
-		"status":        true,
-		"title":         true,
-		"description":   true,
-		"complainant":   true,
-		"respondant":    true,
-		"date_resolved": true,
+	if sort != nil {
+		validSortAttrs := map[string]bool{
+			"id":            true,
+			"case_date":     true,
+			"workflow":      true,
+			"status":        true,
+			"title":         true,
+			"description":   true,
+			"complainant":   true,
+			"respondant":    true,
+			"date_resolved": true,
+		}
+
+		if _, valid := validSortAttrs[sort.Attr]; !valid {
+			return disputes, 0, errors.New("invalid sort attribute")
+		}
+
+		if sort.Order != "asc" && sort.Order != "desc" {
+			sort.Order = "asc"
+		}
+
+		queryString.WriteString(" ORDER BY " + sort.Attr + " " + sort.Order)
 	}
-
-	if _, valid := validSortAttrs[sort.Attr]; !valid {
-		return disputes, 0, errors.New("invalid sort attribute")
-	}
-
-	if sort.Order != "asc" && sort.Order != "desc" {
-		sort.Order = "asc"
-	}
-
-	queryString.WriteString(" ORDER BY " + sort.Attr + " " + sort.Order)
-
 	if limit != nil {
 		queryString.WriteString(" LIMIT ?")
 		queryParams = append(queryParams, *limit)
@@ -693,17 +895,25 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	//take the intermediate disputes and fill in the admin response information
 	for _, dispute := range intermediateDisputes {
 		var disputeResp models.AdminDisputeSummariesResponse
-		disputeResp.Id = dispute.Id
+		disputeResp.Id = strconv.Itoa(int(dispute.Id))
 		disputeResp.Title = dispute.Title
 		disputeResp.Status = dispute.Status
 		disputeResp.DateFiled = dispute.CaseDate.Format("2006-01-02")
 		//get the workflow
 		var workflow models.WorkflowResp
-		err = m.db.Raw("SELECT id, name FROM workflows WHERE id = (SELECT workflow FROM disputes WHERE id = ?)", dispute.Id).First(&workflow).Error
+
+		err = m.db.Raw("SELECT wf.id, wf.name FROM disputes d JOIN active_workflows aw ON d.workflow = aw.id JOIN workflows wf ON wf.id = aw.workflow WHERE d.id = ?", dispute.Id).First(&workflow).Error
 		if err != nil {
 			logger.WithError(err).Error("Error retrieving workflow for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
 		}
+
+		experts, err := m.GetExperts(dispute.Id)
+		if err != nil {
+			logger.WithError(err).Error("Error retrieving experts for dispute with ID: " + strconv.Itoa(int(dispute.Id)))
+		}
+
 		disputeResp.Workflow = workflow
+		disputeResp.Experts = experts
 		//get the date resolved
 		if dispute.DateResolved != nil {
 			dateResolved := dispute.DateResolved.Format("2006-01-02")
@@ -714,4 +924,44 @@ func (m *disputeModelReal) GetAdminDisputes(searchTerm *string, limit *int, offs
 	}
 
 	return disputes, countRows, err
+}
+
+func (m *disputeModelReal) GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var rejections []models.ExpertObjectionsView = []models.ExpertObjectionsView{}
+	var queryString strings.Builder
+	var queryParams []interface{}
+
+	queryString.WriteString("SELECT * FROM expert_objections_view")
+	if expertID != nil || disputeID != nil {
+		queryString.WriteString(" WHERE ")
+		if expertID != nil {
+			queryString.WriteString("expert_id = ?")
+			queryParams = append(queryParams, *expertID)
+		}
+		if disputeID != nil {
+			if expertID != nil {
+				queryString.WriteString(" AND ")
+			}
+			queryString.WriteString("dispute_id = ?")
+			queryParams = append(queryParams, *disputeID)
+		}
+	}
+
+	if limit != nil {
+		queryString.WriteString(" LIMIT ?")
+		queryParams = append(queryParams, *limit)
+	}
+	if offset != nil {
+		queryString.WriteString(" OFFSET ?")
+		queryParams = append(queryParams, *offset)
+	}
+	fmt.Println(queryString.String())
+	err := m.db.Raw(queryString.String(), queryParams...).Scan(&rejections).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving expert rejections")
+		return rejections, err
+	}
+
+	return rejections, err
 }

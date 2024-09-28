@@ -24,6 +24,13 @@ type Expert = {
   phone: string;
   role: string;
 };
+
+type UserDetails = {
+  name: string;
+  email: string;
+  address: string;
+}
+
 ```
 
 # Utility Functions
@@ -67,6 +74,10 @@ type DisputeResponse = {
 
   evidence: Evidence[];
   experts: Expert[];
+
+  role: string;
+  complainant: UserDetails;
+  respondent: UserDetails; 
 };
 ```
 
@@ -78,12 +89,13 @@ type DisputeResponse = {
 
 ```ts
 type DisputeCreateRequest = {
-  title : string;
-  description : string;
-  respondent[full_name] : string;
-  respondent[email] : string;
-  respondent[telephone] : string;
-  files : File
+  title: string;
+  description: string;
+  "respondent[full_name]": string;
+  "respondent[email]": string;
+  "respondent[telephone]": string;
+  "respondent[workflow]": string;
+  files: File;
 };
 ```
 
@@ -112,28 +124,29 @@ interface EvidenceUploadRequest {
 
 # Dispute Status Change
 
-- **Endpoint:** `PUT /dispute/status`
+- **Endpoint:** `PUT /disputes/{id}/status`
 - **Headers:**
   - `Authorization: Bearer <JWT>`
 
-````ts
+```ts
 type UpdateRequest = {
-  dispute_id : int;
-  status : string;
+  status: string;
 };
+```
 
 # Dispute Negotiating Party Operations
 
 ## Approving
+
 - **Endpoint:** `POST /disputes/{id}/experts/approve`
 - **Headers:**
-    - `Authorization: Bearer <JWT>`
+  - `Authorization: Bearer <JWT>`
 
 ```ts
 interface ExpertApproveRequest {
   expert_id: string;
 }
-````
+```
 
 The response will return a success message
 

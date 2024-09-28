@@ -215,7 +215,7 @@ func (suite *TicketErrorTestSuite) TestCreateBadRequest() {
 }
 
 func (suite *TicketErrorTestSuite) TestCreateBadRequest2() {
-	body := `{"dispute": asda, "subject": "test","message": "test"}`
+	body := `{"dispute": kjhdsak, "subject": "test","message": "test"}`
 	req, _ := http.NewRequest("POST", "/create", bytes.NewBuffer([]byte(body)))
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
@@ -236,7 +236,9 @@ func (suite *TicketErrorTestSuite) TestCreateError() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusInternalServerError, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
@@ -253,7 +255,7 @@ func (suite *TicketErrorTestSuite) TestCreateSuccess() {
 	}
 	suite.Equal(http.StatusCreated, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-	suite.NotEmpty(result.Data)
+	suite.NotEmpty(result)
 }
 
 // ---------------------------------------------------------------- CREATE TICKET MESSAGE
@@ -263,15 +265,30 @@ func (suite *TicketErrorTestSuite) TestCreateMessageUnauthorized() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
+func (suite *TicketErrorTestSuite) TestCreateMessageBadRequest() {
+	req, _ := http.NewRequest("POST", "/1/messages", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
 }
 
 func (suite *TicketErrorTestSuite) TestCreateTicketMessageBadID() {
 	body := `{"message": "test"}`
-	req, _ := http.NewRequest("POST", "/asdasdaw/messages", bytes.NewBuffer([]byte(body)))
+	req, _ := http.NewRequest("POST", "/$/messages", bytes.NewBuffer([]byte(body)))
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 

@@ -233,7 +233,6 @@ func (m *mockDisputeModel) GetUserByEmail(email string) (models.User, error) {
 	return models.User{
 		PhoneNumber:       new(string),
 		AddressID:         new(int64),
-		LastUpdate:        new(time.Time),
 		LastLogin:         new(time.Time),
 		PreferredLanguage: new(string),
 		Timezone:          new(string),

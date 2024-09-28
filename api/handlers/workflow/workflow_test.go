@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -35,6 +34,12 @@ func (o *OrchestratorMock) MakeRequestToOrchestrator(endpoint string, payload wo
 	return o.ReturnString, nil
 }
 
+func (o *OrchestratorMock) SendResetRequestToOrchestrator(endpoint string, payload workflow.OrchestratorResetRequest) (string, error) {
+	if o.throwError {
+		return "", o.Error
+	}
+	return o.ReturnString, nil
+}
 func (o *OrchestratorMock) GetTriggers() (string, error) {
 	if o.throwError {
 		return "", o.Error
@@ -512,8 +517,6 @@ func (suite *WorkflowTestSuite) TestResetActiveWorkflow_Success() {
 	w.ResetActiveWorkflow(c)
 	//print body of request
 
-	fmt.Println("Body of request: ", body)
-
 	// Assert
 	suite.Equal(http.StatusOK, wr.Code)
 	var response models.Response
@@ -593,6 +596,8 @@ func (suite *WorkflowTestSuite) TestResetActiveWorkflow_NotFound() {
 
 	w := workflow.Workflow{
 		DB: suite.mockDB,
+		EnvReader: 		suite.mockEnvReader,
+		OrchestratorEntity: suite.mockOrchestrator,
 	}
 
 	// Act
@@ -609,6 +614,9 @@ func (suite *WorkflowTestSuite) TestResetActiveWorkflow_NotFound() {
 func (suite *WorkflowTestSuite) TestResetActiveWorkflow_DBError() {
 	// Arrange
 	suite.mockDB.throwError = true
+	suite.mockOrchestrator.throwError = true
+	suite.mockEnvReader.throwError = true
+	suite.mockEnvReader.Error = errors.New("Internal Server Error")
 
 	resetRequest := models.ResetActiveWorkflow{
 		DisputeID:    new(int64),
@@ -628,6 +636,8 @@ func (suite *WorkflowTestSuite) TestResetActiveWorkflow_DBError() {
 
 	w := workflow.Workflow{
 		DB: suite.mockDB,
+		OrchestratorEntity: suite.mockOrchestrator,
+		EnvReader: 			suite.mockEnvReader,
 	}
 
 	// Act

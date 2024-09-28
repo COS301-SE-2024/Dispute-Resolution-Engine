@@ -24,6 +24,13 @@ type Expert = {
   phone: string;
   role: string;
 };
+
+type UserDetails = {
+  name: string;
+  email: string;
+  address: string;
+}
+
 ```
 
 # Utility Functions
@@ -67,6 +74,10 @@ type DisputeResponse = {
 
   evidence: Evidence[];
   experts: Expert[];
+
+  role: string;
+  complainant: UserDetails;
+  respondent: UserDetails; 
 };
 ```
 
@@ -122,3 +133,19 @@ type UpdateRequest = {
   status: string;
 };
 ```
+
+# Dispute decision
+
+- **Endpoint:** `POST /disputes/{id}/decision`
+- **Headers:**
+  - `Authorization: Bearer <JWT>`
+- **Note:** The endpoint uses `multipart/form-data` instead of JSON, so the interface below serves only as a guideline
+
+```ts
+interface DisputeDecisionRequest {
+  decision: DisputeDecision;
+  writeup: File;
+}
+```
+
+Respond with an HTTP code 204 (no content).

@@ -32,7 +32,9 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.PATCH("/objections/:id", h.ExpertObjectionsReview)
 	g.POST("/experts/objections", h.ViewExpertRejections)
 	g.POST("/:id/evidence", h.UploadEvidence)
+	g.POST("/:id/decision", h.SubmitWriteup)
 	g.PUT("/:id/status", h.UpdateStatus)
+
 
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
@@ -268,6 +270,18 @@ func (h Dispute) GetDispute(c *gin.Context) {
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.Response{Error: fmt.Sprintf("Invalid dispute id '%s'", idParam)})
+		return
+	}
+
+	if jwtClaims.Role == "admin" {
+		dispute, err := h.Model.GetAdminDisputeDetails(int64(id))
+		if err != nil {
+			logger.WithError(err).Error("Error retrieving dispute")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving dispute"})
+			return
+		}
+
+		c.JSON(http.StatusOK, models.Response{Data: dispute})
 		return
 	}
 
@@ -736,6 +750,70 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	c.JSON(http.StatusNoContent, models.Response{Data: "Expert objections reviewed successfully"})
 }
 
+
+func (h Dispute) SubmitWriteup(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+	if claims.Role != "expert" {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		logger.WithError(err).Error("Error parsing form")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to parse form data"})
+		return
+	}
+
+	if form.Value["decision"] == nil || len(form.Value["decision"]) == 0 {
+		logger.Error("missing field in form: decision")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: decision"})
+		return
+	}
+
+	fileWriteUp := form.File["writeup"]
+	if len(fileWriteUp) == 0 {
+		logger.Error("missing field in form: writeup")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: writeup"})
+		return
+	}
+	id := c.Param("id")
+	disputeId, err := strconv.Atoi(id)
+	if err != nil {
+		logger.WithError(err).Error("Invalid Dispute ID")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+	folder := fmt.Sprintf("%d", disputeId)
+	folderfolder := filepath.Join(folder, "decision")
+	path := filepath.Join(folderfolder, fileWriteUp[0].Filename)
+	file, err := fileWriteUp[0].Open()
+	if err != nil {
+		logger.WithError(err).Error("failed to open file")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong."})
+		return
+	}
+
+	err = h.Model.UploadWriteup(claims.ID, int64(disputeId), path, file)
+	if err != nil {
+		logger.WithError(err).Error("failed to upload write-up")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong."})
+		return
+	}
+
+	logger.Info("Write-up uploaded successfully")
+
+	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Write-up uploaded"})
+	c.JSON(http.StatusNoContent, nil)
+}
+
 func (h Dispute) ViewExpertRejections(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
@@ -757,4 +835,5 @@ func (h Dispute) ViewExpertRejections(c *gin.Context) {
 
 	logger.Info("Expert rejections retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: rejections})
+
 }

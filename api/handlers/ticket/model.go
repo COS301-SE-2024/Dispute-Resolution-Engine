@@ -160,7 +160,7 @@ func (t *TicketModelReal) GetAdminTicketDetails(ticketID int64) (models.TicketsB
 	logger := utilities.NewLogger().LogWithCaller()
 	tickets := models.TicketsByUser{}
 	var IntermediateTick = models.TicketIntermediate{}
-	err := t.db.Raw("SELECT t.id, t.created_at, t.subject, t.status, t.initial_message, u.id AS user_id, u.first_name, u.surname FROM tickets t JOIN users u ON t.created_by = u.id WHERE t.id = ?", ticketID).Scan(&IntermediateTick).Error
+	err := t.db.Raw("SELECT t.id, t.dispute_id, t.created_at, t.subject, t.status, t.initial_message, u.id AS user_id, u.first_name, u.surname FROM tickets t JOIN users u ON t.created_by = u.id WHERE t.id = ?", ticketID).Scan(&IntermediateTick).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving ticket")
 		return tickets, err
@@ -185,6 +185,7 @@ func (t *TicketModelReal) GetAdminTicketDetails(ticketID int64) (models.TicketsB
 	}
 
 	tickets = models.TicketsByUser{
+		DisputeID: IntermediateTick.DisputeID,
 		TicketSummaryResponse: models.TicketSummaryResponse{
 			ID:          strconv.Itoa(int(IntermediateTick.Id)),
 			User:        models.TicketUser{ID: strconv.Itoa(int(IntermediateTick.UserID)), FullName: IntermediateTick.FirstName + " " + IntermediateTick.Surname},

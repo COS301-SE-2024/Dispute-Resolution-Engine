@@ -6,24 +6,24 @@ import (
 )
 
 type User struct {
-	ID                int64      `json:"id" gorm:"primaryKey;autoIncrement"`
-	FirstName         string     `json:"first_name" gorm:"type:varchar(50);not null"`
-	Surname           string     `json:"surname" gorm:"type:varchar(50);not null"`
-	Birthdate         time.Time  `json:"birthdate" gorm:"type:date;not null"`
-	Nationality       string     `json:"nationality" gorm:"type:varchar(50);not null"`
-	Role              string     `json:"role" gorm:"type:varchar(50);not null"`
-	Email             string     `json:"email" gorm:"type:varchar(100);unique;not null"`
-	PasswordHash      string     `json:"password,omitempty" gorm:"type:varchar(255);not null"`
-	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20)"`
-	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`
-	CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
-	LastUpdate        *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
-	LastLogin         *time.Time `gorm:"type:timestamp"`
-	Status            string     `json:"status" gorm:"type:varchar(20);default:'active'"`
-	Gender            string     `json:"gender" gorm:"type:gender_enum"`
-	PreferredLanguage *string    `json:"preferred_language,omitempty" gorm:"type:varchar(50)"`
-	Timezone          *string    `json:"timezone,omitempty" gorm:"type:varchar(50)"`
-	Salt              string     `gorm:"type:varchar(255)"`
+	ID                int64      `json:"id" gorm:"primaryKey;autoIncrement;column:id"`                                   //Filled in by API
+	FirstName         string     `json:"first_name" gorm:"type:varchar(50);not null;column:first_name"`                  //check
+	Surname           string     `json:"surname" gorm:"type:varchar(50);not null;column:surname"`                        //check
+	Birthdate         time.Time  `json:"birthdate" gorm:"type:date;not null;column:birthdate"`                           //check
+	Nationality       string     `json:"nationality" gorm:"type:varchar(50);not null;column:nationality"`                //check
+	Role              string     `json:"role" gorm:"type:varchar(50);not null;column:role"`                              //Filled in by API
+	Email             string     `json:"email" gorm:"type:varchar(100);unique;not null;column:email"`                    //check
+	PasswordHash      string     `json:"password,omitempty" gorm:"type:varchar(255);not null;column:password_hash"`      //Updated by API
+	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20);column:phone_number"`             //need
+	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`                                  //what the fuck
+	CreatedAt         time.Time  `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`   //Filled in by API
+	UpdatedAt         *time.Time `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:updated_at"`   //Filled in by API
+	LastLogin         *time.Time `json:"last_login" gorm:"type:timestamp;column:last_login"`                             //Filled in by API
+	Status            string     `json:"status" gorm:"type:varchar(20);default:'active';column:status"`                  //Filled in by API
+	Gender            string     `json:"gender" gorm:"type:gender_enum;column:gender"`                                   //check
+	PreferredLanguage *string    `json:"preferred_language,omitempty" gorm:"type:varchar(50);column:preferred_language"` //worked on
+	Timezone          *string    `json:"timezone,omitempty" gorm:"type:varchar(50);column:timezone"`                     //need to be handled by me?
+	Salt              string     `gorm:"type:varchar(255);column:salt"`
 }
 
 type ArchivedDisputeSummary struct {
@@ -48,6 +48,7 @@ type ArchivedDispute struct {
 	Events []Event `json:"events"`
 }
 
+
 type DisputeStatus string
 
 const (
@@ -63,14 +64,15 @@ const (
 )
 
 type Dispute struct {
-	ID          *int64        `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
-	CaseDate    time.Time     `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
-	Workflow    *int64        `json:"workflow" gorm:"column:workflow"`
-	Status      DisputeStatus `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
-	Title       string        `json:"title" gorm:"type:varchar(255);not null;column:title"`
-	Description string        `json:"description" gorm:"type:text;column:description"`
-	Complainant int64         `json:"complainant" gorm:"column:complainant"`
-	Respondant  *int64        `json:"respondant" gorm:"column:respondant"`
+	ID           *int64        `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	CaseDate     time.Time     `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
+	Workflow     *int64        `json:"workflow" gorm:"column:workflow"`
+	Status       DisputeStatus `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
+	Title        string        `json:"title" gorm:"type:varchar(255);not null;column:title"`
+	Description  string        `json:"description" gorm:"type:text;column:description"`
+	Complainant  int64         `json:"complainant" gorm:"column:complainant"`
+	Respondant   *int64        `json:"respondant" gorm:"column:respondant"`
+	DateResolved *time.Time    `json:"date_resolved" gorm:"type:timestamp;column:date_resolved"`
 }
 
 type Workflow struct {
@@ -228,6 +230,14 @@ type ExpertObjection struct {
 
 func (ExpertObjection) TableName() string {
 	return "expert_objections"
+}
+
+type DisputeDecisions struct {
+	ID        int64     `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	DisputeID int64     `json:"dispute_id" gorm:"column:dispute_id"`
+	ExpertID  int64     `json:"expert_id" gorm:"column:expert_id"`
+	WriteUpID int64     `json:"write_up_id" gorm:"column:writeup_file_id"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`
 }
 
 type Ticket struct {

@@ -43,7 +43,7 @@ export interface Workflow extends WorkflowSummary {
   definition: WorkflowDefinition;
 }
 
-export interface WorkflowDefinition {
+export interface    WorkflowDefinition {
   initial: string;
   states: {
     [key: string]: State;
@@ -110,9 +110,6 @@ export interface WorkflowUpdateRequest {
 export interface WorkflowCreateRequest {
   // The name of the workflow
   name: string;
-
-  // The tags assigned to the workflow
-  tags: string[];
 
   // The workflow definition
   definition: WorkflowDefinition;

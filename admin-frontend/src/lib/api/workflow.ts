@@ -18,7 +18,8 @@ import { getAuthToken } from "../jwt";
 import { API_URL, sf, validateResult } from "../utils";
 
 export async function createWorkflow(req: WorkflowCreateRequest): Promise<WorkflowCreateResponse> {
-  return sf(`${API_URL}/workflows`, {
+  console.log("Request in createWorkflow", JSON.stringify(req))
+  return sf(`${API_URL}/workflows/create`, {
     method: "POST",
     body: JSON.stringify(req),
     headers: {
@@ -75,7 +76,7 @@ export async function graphToWorkflow({
   nodes,
   edges,
 }: ReactFlowJsonObject<GraphState, GraphTrigger>): Promise<WorkflowDefinition> {
-  console.log(nodes, edges);
+  // console.log(nodes, edges);
   return {
     initial: "Im not sure",
     states: Object.fromEntries(
@@ -90,7 +91,7 @@ export async function graphToWorkflow({
               .map((edge) => [
                 edge.id,
                 {
-                  label: "oi blud, do somfin",
+                  label: edge.data ? edge.data.trigger : "default",
                   next_state: edge.target,
                 },
               ])
@@ -104,6 +105,23 @@ export async function graphToWorkflow({
 export async function workflowToGraph(
   workflow: WorkflowDefinition
 ): Promise<[GraphState[], GraphTrigger[]]> {
+  let triggers : GraphTrigger[] = []
+  let currId : number = 0
+  for (const stateKey in workflow.states) {
+    const state = workflow.states[stateKey];
+  
+    for (const eventKey in state.events) {
+      const event = state.events[eventKey];
+      const trigger : GraphTrigger = {
+        id: (currId++).toString(),
+        source: stateKey,
+        target: event.next_state,
+        data: {trigger: event.label},
+        type: "custom-edge",
+      }
+      triggers.push(trigger)
+    }
+  }
   return [
     Object.keys(workflow.states).map((id) => ({
       id,
@@ -114,6 +132,6 @@ export async function workflowToGraph(
       },
       position: { x: 0, y: 0 },
     })),
-    [],
+    triggers,
   ];
 }

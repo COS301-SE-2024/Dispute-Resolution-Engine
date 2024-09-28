@@ -91,12 +91,12 @@ CREATE TYPE dispute_status AS ENUM (
 CREATE TABLE disputes (
 	id SERIAL PRIMARY KEY,
 	case_date DATE DEFAULT CURRENT_DATE,
-	workflow BIGINT REFERENCES active_workflows(id),
+	workflow BIGINT REFERENCES active_workflows(id) NOT NULL,
 	status dispute_status DEFAULT 'Awaiting Respondant',
 	title VARCHAR(255) NOT NULL,
-	description TEXT,
-	complainant BIGINT REFERENCES users(id),
-	respondant BIGINT REFERENCES users(id),
+	description TEXT NOT NULL,
+	complainant BIGINT REFERENCES users(id) NOT NULL,
+	respondant BIGINT REFERENCES users(id) NOT NULL,
     date_resolved DATE DEFAULT NULL
 );
 

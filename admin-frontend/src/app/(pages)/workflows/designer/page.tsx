@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useMemo, useRef, useState } from "react";
+import dagre from "dagre";
 import {
   ReactFlow,
   useNodesState,
@@ -9,6 +10,7 @@ import {
   ReactFlowProvider,
   useUpdateNodeInternals,
   ConnectionState,
+  Position,
 } from "@xyflow/react";
 import CustomEdge from "./CustomEdge";
 
@@ -16,17 +18,19 @@ import "@xyflow/react/dist/style.css";
 import { Button } from "@/components/ui/button";
 import CustomNode from "./CustomNode";
 
-import { type GraphState, type GraphTrigger, type GraphInstance } from "@/lib/types";
-import { graphToWorkflow, workflowToGraph } from "@/lib/api/workflow";
+import { type GraphState, type GraphTrigger, type GraphInstance, WorkflowCreateRequest } from "@/lib/types";
+import { createWorkflow, graphToWorkflow, workflowToGraph } from "@/lib/api/workflow";
 import { workflowSchema } from "@/lib/schema/workflow";
 import { Textarea } from "@/components/ui/textarea";
+import WorkflowTitle from "@/components/workflow/workflow-title";
+import { SaveIcon } from "lucide-react";
 
 const initialNodes: GraphState[] = [
   {
     id: "0",
     type: "customNode",
     position: { x: 0, y: 0 },
-    data: { label: "Node A", edges: [] },
+    data: { label: "New Node", edges: [] },
   },
 ];
 
@@ -51,13 +55,27 @@ function useCustomId(start: number | undefined) {
 }
 
 // http://localhost:3000/workflow
-function Flow() {
+function Flow({setIsSaved} : {setIsSaved : any}) {
   const createId = useCustomId(initialNodes.length);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const reactFlowInstance: GraphInstance = useReactFlow();
 
+  const handleNodesChange = useCallback(
+    (changes : any) => {
+      onNodesChange(changes);
+      setIsSaved(false)
+    },
+    [onNodesChange]
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const handleEdgesChange = useCallback(
+    (changes : any) => {
+      onNodesChange(changes);
+      setIsSaved(false)
+    },
+    [onEdgesChange]
+  );
+  const reactFlowInstance: GraphInstance = useReactFlow();
   function createEdge(connection: Connection, trigger: string): GraphTrigger {
     const edge = {
       ...connection,
@@ -122,7 +140,7 @@ function Flow() {
       className="dark:bg-surface-dark-950 stroke-primary-500"
       nodes={nodes}
       edges={edges}
-      onNodesChange={onNodesChange}
+      onNodesChange={handleNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onConnectEnd={onConnectEnd}
@@ -136,25 +154,37 @@ function Flow() {
 
 function InnerProvider() {
   const reactFlow: GraphInstance = useReactFlow();
-
+  const updateNodeInternals = useUpdateNodeInternals()
   const [result, setResult] = useState("");
   const [error, setError] = useState<string>();
+  const [title, setTitle] = useState<string>("New Workflow");
+  const [isSaved, setIsSaved] = useState<boolean>(false)
 
   async function toWorkflow() {
     const workflow = await graphToWorkflow(reactFlow.toObject());
-    setResult(JSON.stringify(workflow, null, 2));
+    const tempWorkflow = {...workflow, label: "asdf"}
+    setResult(JSON.stringify(tempWorkflow, null, 2));
     setError(undefined);
+  }
+  async function saveWorkflow() {
+    const workflow = await graphToWorkflow(reactFlow.toObject());
+    workflow.initial = Object.keys(workflow.states)[0]
+    const wfRequest : WorkflowCreateRequest = {
+      name: title,
+      definition : workflow,
+    }
+    setIsSaved(true)
+    const response = await createWorkflow(wfRequest)
   }
 
   async function fromWorkflow() {
-    let json;
+    let json: string;
     try {
       json = JSON.parse(result);
     } catch (e) {
       setError((e as Error).message);
       return;
     }
-
     const { data, error } = workflowSchema.safeParse(json);
     if (error) {
       setError(error.issues[0].message);
@@ -162,14 +192,49 @@ function InnerProvider() {
     }
 
     setError(undefined);
-
     const [nodes, edges] = await workflowToGraph(data);
+    let idTrack : number = 100
+    const dagreGraph = new dagre.graphlib.Graph();
+    const nodeWidth = 200
+    const nodeHeight = 100
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    dagreGraph.setGraph({ rankdir: "LR" , ranker:"tight-tree"});
+    nodes.forEach((node) => {
+      dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    });
+    edges.forEach((edge) => {
+      dagreGraph.setEdge(edge.source, edge.target);
+    });
+    dagre.layout(dagreGraph);
+    for (let node of nodes){
+      const nodeWithPosition = dagreGraph.node(node.id);
+      node.position = {
+        x: nodeWithPosition.x,
+        y: nodeWithPosition.y,
+      };
+    }
+
+    for(let edge of edges){
+      let sourceNode = nodes.find(node => node.id === edge.source)
+      let currHandleId : string = (idTrack++).toString()
+      sourceNode?.data.edges.push({id: currHandleId})
+      edge.sourceHandle = currHandleId
+    }
     reactFlow.setNodes(nodes);
     reactFlow.setEdges(edges);
   }
 
   return (
-    <div className="h-full grid grid-cols-[1fr_3fr]">
+    <div className="h-full grid grid-cols-[1fr_3fr] grid-rows-[auto_1fr]">
+      <div className="col-span-2 border-b dark:border-primary-500/30 border-primary-500/20 flex items-center gap-2">
+        <WorkflowTitle value={title} onValueChange={(value) => {
+          setTitle(value)
+        }} />
+        <Button variant="ghost" title="Save" onClick={saveWorkflow}>
+          <SaveIcon size="1.2rem" />
+        </Button>
+        <span className={isSaved?  "opacity-100 text-sm" : "opacity-50 text-sm"}>{isSaved? "Saved" : "Unsaved"}</span>
+      </div>
       <div className="p-2 space-y-2 flex flex-col">
         <Textarea
           className="grow resize-none font-mono"
@@ -186,7 +251,7 @@ function InnerProvider() {
           <Button onClick={fromWorkflow}>Convert workflow to graph</Button>
         </div>
       </div>
-      <Flow></Flow>
+      <Flow setIsSaved={setIsSaved}></Flow>
     </div>
   );
 }

@@ -14,13 +14,17 @@ import { useState } from "react";
 import TicketFilters from "./ticket-filters";
 
 const searchSchema = z.object({
-  id: z.number().optional(),
+  id: z.coerce
+    .number({
+      message: "Invalid ticket ID",
+    })
+    .optional(),
 });
 
 export default function Tickets({ searchParams }: { searchParams: unknown }) {
   const { data: params, error: searchError } = searchSchema.safeParse(searchParams);
   if (!params) {
-    throw new Error(JSON.stringify(searchError));
+    throw new Error(searchError.issues[0].message);
   }
 
   const [client] = useState(new QueryClient());

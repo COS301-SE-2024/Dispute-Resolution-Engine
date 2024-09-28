@@ -275,6 +275,25 @@ func (m *mockDisputeModel) GetDispute(disputeId int64) (models.Dispute, error) {
 		Respondant: new(int64),
 	}, nil
 }
+
+func (m *mockDisputeModel) GetAdminDisputeDetails(disputeId int64) (models.AdminDisputeDetailsResponse, error) {
+	if m.throwErrors {
+		return models.AdminDisputeDetailsResponse{}, errors.ErrUnsupported
+	}
+	return models.AdminDisputeDetailsResponse{}, nil
+}
+
+func (m *mockDisputeModel) GetUser(userID int64) (models.UserDetails, error) {
+	if m.throwErrors {
+		return models.UserDetails{}, errors.ErrUnsupported
+	}
+	return models.UserDetails{
+		FullName: "name",
+		Email:    "email",
+		Address:  "address",
+	}, nil
+}
+
 func (m *mockDisputeModel) GetUserByEmail(email string) (models.User, error) {
 	if m.throwErrors {
 		return models.User{}, errors.ErrUnsupported
@@ -282,7 +301,6 @@ func (m *mockDisputeModel) GetUserByEmail(email string) (models.User, error) {
 	return models.User{
 		PhoneNumber:       new(string),
 		AddressID:         new(int64),
-		LastUpdate:        new(time.Time),
 		LastLogin:         new(time.Time),
 		PreferredLanguage: new(string),
 		Timezone:          new(string),
@@ -393,6 +411,10 @@ func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 		Timezone:          new(string),
 	}, nil
 
+}
+
+func (m *mockDisputeModel) UploadWriteup(userId, disputeId int64, path string, file io.Reader) error {
+	return nil
 }
 
 func (m *mockDisputeModel) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {

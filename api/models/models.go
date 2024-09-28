@@ -48,6 +48,7 @@ type ArchivedDispute struct {
 	Events []Event `json:"events"`
 }
 
+
 type DisputeStatus string
 
 const (
@@ -233,7 +234,6 @@ type ExpertObjection struct {
 func (ExpertObjection) TableName() string {
 	return "expert_objections"
 }
-
 
 type DisputeDecisions struct {
 	ID        int64     `json:"id" gorm:"primaryKey;autoIncrement;column:id"`

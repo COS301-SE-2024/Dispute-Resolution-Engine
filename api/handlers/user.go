@@ -309,7 +309,7 @@ func (h *Handler) UserAnalyticsEndpoint(c *gin.Context) {
 			selectColumns := groupByColumns + ", COUNT(*) as count"
 			query = query.Select(selectColumns).Group(groupByColumns)
 		} else {
-			query = query.Select("nationality, COUNT(*) as count").Group("nationality")
+			query = query.Select("COUNT(*) as count")
 		}
 	} else {
 		if analyticsReq.GroupBy != nil {

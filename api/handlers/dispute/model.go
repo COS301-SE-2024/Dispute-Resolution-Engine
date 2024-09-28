@@ -53,6 +53,9 @@ type DisputeModel interface {
 
 	GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error)
 	GenerateAISummary(disputeID int64, disputeDesc string, apiKey string)
+
+	GetUser(UserID int64) (models.UserDetails, error)
+	GetAdminDisputeDetails(disputeId int64) (models.DisputeDetailsResponse, error)
 }
 
 type Dispute struct {
@@ -238,13 +241,63 @@ func (m *disputeModelReal) UploadEvidence(userId, disputeId int64, path string, 
 	return *fileRow.ID, nil
 }
 
+func (m *disputeModelReal) GetUser(userID int64) (models.UserDetails, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var user models.UserDetails
+	err := m.db.Raw("SELECT CONCAT(u.first_name, ' ', u.surname) AS full_name, u.email, CONCAT(a.street, ' ',a.street2,' ',a.street3, CHR(10), a.city, CHR(10), a.province, CHR(10), a.country)  AS address FROM users u JOIN addresses a ON a.id = u.id WHERE u.id = ?", userID).Scan(&user).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving user")
+		return user, err
+	}
+	return user, nil
+}
+
 func (m *disputeModelReal) GetDispute(disputeId int64) (dispute models.Dispute, err error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	err = m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).First(&dispute).Error
+
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute")
 	}
 	return dispute, err
+}
+
+func (m *disputeModelReal) GetAdminDisputeDetails(disputeId int64) (models.DisputeDetailsResponse, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var disputeDetails models.Dispute
+	err := m.db.Model(&models.Dispute{}).Where("id = ?", disputeId).First(&disputeDetails).Error
+
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute details")
+		return models.DisputeDetailsResponse{}, err
+	}
+
+	compl, err := m.GetUser(disputeDetails.Complainant)
+
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving user details")
+		return models.DisputeDetailsResponse{}, err
+	}
+
+	resp, err := m.GetUser(*disputeDetails.Respondant)
+
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving user details")
+		return models.DisputeDetailsResponse{}, err
+	}
+
+	var actualDetails models.DisputeDetailsResponse = models.DisputeDetailsResponse{
+		ID:          *disputeDetails.ID,
+		Title:       disputeDetails.Title,
+		Description: disputeDetails.Description,
+		Status:      disputeDetails.Status,
+		DateCreated: disputeDetails.CaseDate,
+		Role:        "",
+		Complainant: compl,
+		Respondent:  resp,
+	}
+
+	return actualDetails, nil
 }
 
 func (m *disputeModelReal) GetEvidenceByDispute(disputeId int64) (evidence []models.Evidence, err error) {

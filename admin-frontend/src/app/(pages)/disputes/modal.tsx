@@ -257,7 +257,7 @@ function Objection({
   const { toast } = useToast();
   const client = useQueryClient();
   const statusMut = useMutation({
-    mutationFn: (data: ObjectionStatus) => changeObjectionStatus(disputeId, id, data),
+    mutationFn: (data: ObjectionStatus) => changeObjectionStatus(id, data),
 
     onSuccess: (data, variables) => {
       client.setQueryData(

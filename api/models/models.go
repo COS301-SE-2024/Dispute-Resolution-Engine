@@ -17,7 +17,6 @@ type User struct {
 	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20);column:phone_number"`             //need
 	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`                                  //what the fuck
 	CreatedAt         time.Time  `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`   //Filled in by API
-	UpdatedAt         *time.Time `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:updated_at"`   //Filled in by API
 	LastLogin         *time.Time `json:"last_login" gorm:"type:timestamp;column:last_login"`                             //Filled in by API
 	Status            string     `json:"status" gorm:"type:varchar(20);default:'active';column:status"`                  //Filled in by API
 	Gender            string     `json:"gender" gorm:"type:gender_enum;column:gender"`                                   //check
@@ -47,7 +46,6 @@ type ArchivedDispute struct {
 	ArchivedDisputeSummary
 	Events []Event `json:"events"`
 }
-
 
 type DisputeStatus string
 

@@ -39,6 +39,12 @@ type DisputeDetailsResponse struct {
 	Respondent  UserDetails   `json:"respondent"`
 }
 
+type ExpertSummary struct {
+	ID       string `json:"id"`
+	FullName string `json:"full_name"`
+	Status   string `json:"status"`
+}
+
 type UserDetails struct {
 	FullName string `json:"name" gorm:"column:full_name"`
 	Email    string `json:"email" gorm:"column:email"`
@@ -75,6 +81,14 @@ type AdminDisputeSummariesResponse struct {
 	DateFiled    string                `json:"date_filed"`
 	DateResolved *string               `json:"date_resolved,omitempty" gorm:"column:date_resolved"`
 	Experts      []AdminDisputeExperts `json:"experts"`
+}
+
+type AdminDisputeDetailsResponse struct {
+	AdminDisputeSummariesResponse
+	Description string      `json:"description"`
+	Evidence    []Evidence  `json:"evidence"`
+	Complainant UserDetails `json:"complainant"`
+	Respondent  UserDetails `json:"respondent"`
 }
 
 type TicketUser struct {
@@ -186,7 +200,6 @@ func (d *DurationWrapper) UnmarshalJSON(b []byte) error {
 	d.Duration = dur
 	return nil
 }
-
 
 type TriggerResponse struct {
 	Trigger []string `json:"triggers"`

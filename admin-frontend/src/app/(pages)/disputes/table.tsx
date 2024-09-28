@@ -24,11 +24,11 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
-import { PAGE_SIZE } from "@/lib/constants";
+import { DISPUTE_LIST_KEY, PAGE_SIZE } from "@/lib/constants";
 
 export function DisputeTable({ filters, page = 0 }: { filters?: DisputeFilter[]; page: number }) {
   const { data, error, isPending } = useQuery({
-    queryKey: ["disputeTable", filters, page],
+    queryKey: [DISPUTE_LIST_KEY, filters, page],
     queryFn: () =>
       getDisputeList({
         filter: filters,
@@ -106,7 +106,7 @@ export function DisputePager({
   page?: number;
 }) {
   const query = useQuery<AdminDisputesResponse>({
-    queryKey: ["disputeTable", filters, page],
+    queryKey: [DISPUTE_LIST_KEY, filters, page],
   });
 
   const [current, setCurrent] = useState(page);

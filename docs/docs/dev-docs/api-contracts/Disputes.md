@@ -24,6 +24,13 @@ type Expert = {
   phone: string;
   role: string;
 };
+
+type UserDetails = {
+  name: string;
+  email: string;
+  address: string;
+}
+
 ```
 
 # Utility Functions
@@ -67,6 +74,10 @@ type DisputeResponse = {
 
   evidence: Evidence[];
   experts: Expert[];
+
+  role: string;
+  complainant: UserDetails;
+  respondent: UserDetails; 
 };
 ```
 

@@ -23,9 +23,11 @@ func SetupWorkflowRoutes(g *gin.RouterGroup, h Workflow) {
 	g.PATCH("/:id", h.UpdateWorkflow)
 	g.DELETE("/:id", h.DeleteWorkflow)
 
+
 	//manage active workflows
 	// g.POST("/activate", h.NewActiveWorkflow)
-	g.POST("/reset", h.ResetActiveWorkflow)
+	g.PATCH("/reset", h.ResetActiveWorkflow)
+	g.GET("/triggers", h.GetTriggers)
 	// g.POST("/complete", h.CompleteActiveWorkflow)
 }
 
@@ -509,13 +511,13 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	}
 
 	// check if all fields are present
-	if resetActiveWorkflow.DisputeID == nil || resetActiveWorkflow.CurrentState == nil || resetActiveWorkflow.Deadline == nil {
+	if resetActiveWorkflow.DisputeID == nil || (resetActiveWorkflow.CurrentState == nil && resetActiveWorkflow.Deadline == nil) {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing required fields"})
 		return
 	}
 
 	// find active workflow
-	activeWorkflow, result := w.DB.GetActiveWorkflowByWorkflowID(uint64(*resetActiveWorkflow.DisputeID))
+	_, result := w.DB.GetActiveWorkflowByWorkflowID(uint64(*resetActiveWorkflow.DisputeID))
 	if result != nil {
 		if result == gorm.ErrRecordNotFound {
 			logger.Warnf("Active workflow with ID %d not found", resetActiveWorkflow.DisputeID)
@@ -527,15 +529,15 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 		return
 	}
 
-	// Update the active workflow
-	activeWorkflow.CurrentState = *resetActiveWorkflow.CurrentState
-	activeWorkflow.StateDeadline = *resetActiveWorkflow.Deadline
-	result = w.DB.UpdateActiveWorkflow(activeWorkflow)
-	if result != nil {
-		logger.Error(result)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
-	}
+	// // Update the active workflow
+	// activeWorkflow.CurrentState = *resetActiveWorkflow.CurrentState
+	// activeWorkflow.StateDeadline = *resetActiveWorkflow.Deadline
+	// result = w.DB.UpdateActiveWorkflow(activeWorkflow)
+	// if result != nil {
+	// 	logger.Error(result)
+	// 	c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+	// 	return
+	// }
 
 	//get Environment variables
 	url, err := w.EnvReader.Get("ORCH_URL")
@@ -560,9 +562,9 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	}
 
 	// Send the request to the orchestrator
-	payload := OrchestratorRequest{ID: activeWorkflow.ID}
+	payload := OrchestratorResetRequest{ID: *resetActiveWorkflow.DisputeID, CurrentState: resetActiveWorkflow.CurrentState, Deadline: resetActiveWorkflow.Deadline}
 
-	body, err := w.OrchestratorEntity.MakeRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, resetEndpoint), payload)
+	body, err := w.OrchestratorEntity.SendResetRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, resetEndpoint), payload)
 	if err != nil {
 		if strings.Contains(body, "deadline") {
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid deadline specified"})
@@ -573,3 +575,31 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, models.Response{Data: "Database updated and request to Reset workflow sent"})
 }
+
+func (w Workflow) GetTriggers(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	// Fetch the triggers string from the orchestrator
+	triggers, err := w.OrchestratorEntity.GetTriggers()
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	// Unmarshal the JSON string into the TriggerResponse struct
+	var response models.TriggerResponse
+	err = json.Unmarshal([]byte(triggers), &response)
+	if err != nil {
+		logger.Error("Failed to parse triggers JSON:", err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to parse triggers JSON"})
+		return
+	}
+
+	// Return the structured response
+	c.JSON(http.StatusOK, models.Response{Data: response})
+}
+
+
+
+

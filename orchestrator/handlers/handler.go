@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -16,6 +16,12 @@ import (
 
 type Response struct {
 	ID int64 `json:"id"`
+}
+
+type ResetResponse struct {
+	ID           int64      `json:"id"`
+	CurrentState *string    `json:"current_state"`
+	Deadline     *time.Time `json:"deadline"`
 }
 
 type TriggerResponse struct {
@@ -105,7 +111,7 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 	h.logger.Info("Restarting state machine...")
 
 	// Get the workflow ID from the request
-	var Res Response
+	var Res ResetResponse
 	if err := c.ShouldBindJSON(&Res); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid request",
@@ -116,10 +122,18 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 
 	// Fetch the workflow definition from the database
 	active_wf_record, err := h.api.FetchActiveWorkflow(active_wf_id)
+	// fmt.Println("Error: ",active_wf_record)
 	if err != nil {
 		h.logger.Error("Error fetching workflow definition")
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error fetching workflow definition",
+		})
+		return
+	}
+
+	if active_wf_record.ID == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid workflow ID",
 		})
 		return
 	}
@@ -135,33 +149,64 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 		return
 	}
 
-	// Get the current state and state deadline
-	state_deadline := active_wf_record.StateDeadline
-	current_state := active_wf_record.CurrentState
+	// Update current state and deadline if they are not nil
+	//check if current is valid if not nil
+	if Res.CurrentState != nil {
+		if _, exists := wf.States[*Res.CurrentState]; !exists {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid state provided",
+			})
+			return
+		}
+		// Use the provided current state
+		current_state := *Res.CurrentState
+		wf.Initial = current_state
+		active_wf_record.CurrentState = current_state
+		//if has a timer, update the deadline
+		if wf.States[current_state].Timer != nil {
+			h.logger.Info("State has a timer")
+			active_wf_record.StateDeadline = time.Now().Add(wf.States[current_state].Timer.Duration.Duration)
+			h.logger.Info("State deadline: ", active_wf_record.StateDeadline)
+		}
 
-	// Make the current workflow's initial state the current state
-	wf.Initial = current_state
+	}
 
-	// Update the state deadline
-	fmt.Println("State deadline: ", state_deadline)
-	fmt.Println("Current State: ", current_state)
-	fmt.Println("Current State Deadline: ", wf.States[current_state])
-	fmt.Println("Workflow: ", wf.GetWorkflowString())
+	// If only the deadline is provided, use the current state from the record
+	stateToUpdate := active_wf_record.CurrentState
+	if Res.Deadline != nil{
+		if wf.States[stateToUpdate].Timer == nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "State Has No Timer",
+			})
+		}
 
-	//check if state deadline is in future
-	if time.Now().Before(state_deadline) {
-		// If the state deadline is in the future, update the timer duration
-		wf.States[current_state].Timer.Duration.Duration = time.Until(state_deadline)
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "State deadline is in the past",
-		})
-		return
+		// Check if the deadline is in the future
+		if time.Now().Before(*Res.Deadline) {
+			active_wf_record.StateDeadline = *Res.Deadline
+
+			// Update the timer duration using either the provided state or the current state from the record
+			wf.States[stateToUpdate].Timer.Duration.Duration = time.Until(*Res.Deadline)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "State deadline is in the past",
+			})
+			return
+		}
 	}
 
 	// Register the state machine with the controller
 	active_wf_id_str := strconv.Itoa(active_wf_id)
 	h.controller.RegisterStateMachine(active_wf_id_str, wf)
+
+	// Update the active workflow in the database
+	err = h.api.UpdateActiveWorkflow(active_wf_id, nil, &wf.Initial, nil, &active_wf_record.StateDeadline, nil)
+	if err != nil {
+		h.logger.Error("Error updating active workflow")
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error updating active workflow",
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "State machine updated successfully!",
@@ -225,4 +270,14 @@ func (h *Handler) TransitionStateMachine(c *gin.Context) {
 		utilities.APIPostRequest(utilities.API_URL, request)
 	}
 	h.logger.Info("Transitioning successful.")
+}
+
+func (h *Handler) GetTriggers (c *gin.Context) {
+	h.logger.Info("Getting triggers...")
+
+	//get all consts from workflow package
+	c.JSON(http.StatusOK, gin.H{
+		"triggers": workflow.AllTriggers(),
+	})
+	h.logger.Info("Getting triggers successful.")
 }

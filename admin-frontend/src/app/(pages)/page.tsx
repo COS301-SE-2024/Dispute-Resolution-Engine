@@ -36,8 +36,16 @@ export default function Home() {
     <div className="flex flex-col">
       <PageHeader label="Dashboard" />
       <div className="grow md:p-10 md:gap-10 overflow-y-auto flex flex-wrap  items-start justify-start">
-        <StatusPieChart data={data} />
-        <TicketStatusPieChart data={data2} />
+        <StatusPieChart
+          title="Disputes"
+          description="An overview of the disputes created within the last month"
+          data={data}
+        />
+        <TicketStatusPieChart
+          title="Tickets"
+          description="An overview of the tickets created within the last month"
+          data={data2}
+        />
       </div>
     </div>
   );

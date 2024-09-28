@@ -33,7 +33,15 @@ const CHART_COLORS: Record<TicketStatus, string> = {
 
 const chartConfig = {} satisfies ChartConfig;
 
-export default function TicketStatusPieChart({ data }: { data: Record<TicketStatus, number> }) {
+export default function TicketStatusPieChart({
+  title,
+  description,
+  data,
+}: {
+  title: string;
+  description: string;
+  data: Record<TicketStatus, number>;
+}) {
   const totalCount = React.useMemo(() => {
     return Object.values(data).reduce((acc, curr) => acc + curr, 0);
   }, [data]);
@@ -57,8 +65,8 @@ export default function TicketStatusPieChart({ data }: { data: Record<TicketStat
   return (
     <Card className="mx-0">
       <CardHeader>
-        <CardTitle>Overview</CardTitle>
-        <CardDescription>See the tickets currently in the system</CardDescription>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px]">

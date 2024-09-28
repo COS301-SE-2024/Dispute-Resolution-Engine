@@ -39,7 +39,15 @@ const CHART_COLORS: Record<DisputeStatus, string> = {
 
 const chartConfig = {} satisfies ChartConfig;
 
-export default function StatusPieChart({ data }: { data: Record<DisputeStatus, number> }) {
+export default function StatusPieChart({
+  title,
+  description,
+  data,
+}: {
+  title: string;
+  description: string;
+  data: Record<DisputeStatus, number>;
+}) {
   const totalCount = React.useMemo(() => {
     return Object.values(data).reduce((acc, curr) => acc + curr, 0);
   }, [data]);
@@ -63,8 +71,8 @@ export default function StatusPieChart({ data }: { data: Record<DisputeStatus, n
   return (
     <Card className="mx-0">
       <CardHeader>
-        <CardTitle>Overview</CardTitle>
-        <CardDescription>See the disputes currently in the system</CardDescription>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px]">

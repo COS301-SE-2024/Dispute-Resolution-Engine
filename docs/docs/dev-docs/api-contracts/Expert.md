@@ -48,18 +48,27 @@ export type CreateObjectionResponse = number;
 
 ## Retrieving objections
 
-- **Endpoint:** `GET /disputes/{id}/objections`
+- **Endpoint:** `POST /disputes/experts/objections`
 - **Headers:**
   - `Authorization: Bearer <JWT>`
 - **Note:** Should not be accessible by an administrator
+```ts
+interface ViewExpetRejectionsRequest {
+	Expert_id?  : number
+	Dispute_id? : number
+	Limits?     : number   
+	Offset?     : number 
+}
+```
 
+returns:
 ```ts
 type ObjectionListResponse = Objection[];
 ```
 
 ## Reviewing an objection
 
-- **Endpoint:** `PATCH /disputes/{id}/objections/{id}`
+- **Endpoint:** `PATCH /disputes/objections/{id}`
 - **Headers:**
   - `Authorization: Bearer <JWT>`
 

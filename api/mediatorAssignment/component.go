@@ -9,7 +9,7 @@ type AlgorithmComponent interface {
 
 type BaseComponent struct {
 	Function *MathFunctions 
-	DB *DBModel
+	DBScore *DBScoreInput
 	Operator *ComponentOperator
 }
 
@@ -131,4 +131,19 @@ type DivideOperator struct {
 
 func (d *DivideOperator) ApplyOperator(value1 float64, value2 float64) float64 {
 	return value1 / value2
+}
+
+
+//------Score Input calculator off of DB
+
+type DBScoreInput interface {
+	GetScoreInput() (float64, error)
+}
+
+type DBScoreInputBase struct {
+	DB *DBModel
+}
+
+type DBScoreLastAssignmentstruct struct {
+	DBScoreInputBase
 }

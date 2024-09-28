@@ -284,6 +284,96 @@ CREATE TABLE dispute_decisions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,             	-- Date the writeup was submitted
     UNIQUE (dispute_id)                                			  	-- One decision per dispute, regardless of who submitted it
 );
+------------------------------------------------------------- View
+-- Define the get_rejection_percentage_for_expert function first
+CREATE OR REPLACE FUNCTION get_rejection_percentage_for_expert(expert_id_input BIGINT)
+RETURNS NUMERIC AS $$
+DECLARE
+    total_assigned INT;
+    total_rejected INT;
+    rejection_percentage NUMERIC;
+BEGIN
+    -- Get the total number of disputes assigned to the expert
+    SELECT COUNT(de.dispute)
+    INTO total_assigned
+    FROM dispute_experts de
+    WHERE de."user" = expert_id_input;
+
+    -- Get the number of disputes where the expert was rejected
+    SELECT COUNT(de.dispute)
+    INTO total_rejected
+    FROM dispute_experts de
+    JOIN dispute_experts_view dev ON de.dispute = dev.dispute AND de."user" = dev.expert
+    WHERE dev.expert = expert_id_input AND dev.status = 'Rejected';
+
+    -- Calculate rejection percentage
+    IF total_assigned = 0 THEN
+        rejection_percentage := 0;  -- If no disputes are assigned, return 0% to avoid division by zero
+    ELSE
+        rejection_percentage := (total_rejected::NUMERIC / total_assigned) * 100;
+    END IF;
+
+    RETURN rejection_percentage;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Define the get_last_assigned_date_for_expert function
+CREATE OR REPLACE FUNCTION get_last_assigned_date_for_expert(expert_id_input BIGINT)
+RETURNS DATE AS $$
+DECLARE
+    last_assigned_date DATE;
+BEGIN
+    SELECT 
+        MAX(d.date_resolved)  -- Get the most recent date_resolved
+    INTO last_assigned_date
+    FROM 
+        dispute_experts de
+    JOIN 
+        disputes d ON de.dispute = d.id
+    WHERE 
+        de."user" = expert_id_input AND  -- Filter for the specific expert
+        d.date_resolved IS NOT NULL;     -- Only consider disputes that have been resolved
+
+    RETURN last_assigned_date;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Define the get_active_dispute_count_for_expert function
+CREATE OR REPLACE FUNCTION get_active_dispute_count_for_expert(expert_id_input BIGINT)
+RETURNS INT AS $$
+DECLARE
+    active_dispute_count INT;
+BEGIN
+    SELECT 
+        COUNT(d.id)
+    INTO active_dispute_count
+    FROM 
+        dispute_experts de
+    JOIN 
+        disputes d ON de.dispute = d.id
+    WHERE 
+        de."user" = expert_id_input AND  -- Filter for the specific expert
+        d.date_resolved IS NULL;         -- Check if the dispute is still unresolved
+
+    RETURN active_dispute_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Now define the view that uses these functions
+CREATE OR REPLACE VIEW expert_summary_view AS
+SELECT 
+    u.id AS expert_id,
+    u.first_name || ' ' || u.surname AS expert_name,
+    get_rejection_percentage_for_expert(u.id::BIGINT) AS rejection_percentage,
+    get_last_assigned_date_for_expert(u.id::BIGINT) AS last_assigned_date,
+    get_active_dispute_count_for_expert(u.id::BIGINT) AS active_dispute_count
+FROM 
+    users u
+JOIN 
+    dispute_experts de ON u.id = de."user"
+GROUP BY 
+    u.id, u.first_name, u.surname;
+
 ------------------------------------------------------------- TABLE CONTENTS
 INSERT INTO Countries (country_code, country_name) VALUES
 ('AF', 'Afghanistan'),

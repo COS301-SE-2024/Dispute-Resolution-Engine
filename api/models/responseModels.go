@@ -91,8 +91,9 @@ type TicketMessage struct {
 
 type TicketsByUser struct {
 	TicketSummaryResponse
-	Body     string          `json:"body"`
-	Messages []TicketMessage `json:"messages"`
+	DisputeID int64           `json:"dispute_id"`
+	Body      string          `json:"body"`
+	Messages  []TicketMessage `json:"messages"`
 }
 
 type GetWorkflowResponse struct {

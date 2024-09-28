@@ -94,6 +94,7 @@ type AdminIntermediate struct {
 
 type TicketIntermediate struct {
 	Id             int64     `gorm:"column:id"`
+	DisputeID      int64     `gorm:"column:dispute_id"`
 	CreatedAt      time.Time `gorm:"column:created_at"`
 	Subject        string    `gorm:"column:subject"`
 	Status         string    `gorm:"column:status"`

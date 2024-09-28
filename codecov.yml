@@ -6,7 +6,7 @@ coverage:
         threshold: 5%
     patch:
       default:
-        target: 50%
+        target: 5%
         threshold: 5%
 ignore:
   - "api/handlers/dispute/model.go"

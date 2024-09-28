@@ -55,6 +55,7 @@ export function sf(
 ): Promise<Response> {
   return fetch(input, init).then((res) => {
     if (!res.ok) {
+      console.log("Response in sf", JSON.stringify(res))
       throw new Error(`Request failed with code ${res.status}`);
     }
     return res;

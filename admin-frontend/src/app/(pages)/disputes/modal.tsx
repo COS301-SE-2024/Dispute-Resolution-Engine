@@ -38,6 +38,7 @@ import { DisputeStatusDropdown, ObjectionStatusDropdown } from "@/components/adm
 import { changeObjectionStatus, getExpertObjections } from "@/lib/api/expert";
 import { DISPUTE_DETAILS_KEY, DISPUTE_LIST_KEY } from "@/lib/constants";
 import { ObjectionListResponse, ObjectionStatus } from "@/lib/types/experts";
+import StateSelect from "@/components/dispute/state-select";
 
 export default function DisputeDetails({ id: disputeId }: { id: number }) {
   const { toast } = useToast();
@@ -99,7 +100,7 @@ export default function DisputeDetails({ id: disputeId }: { id: number }) {
                 </DisputeStatusBadge>
               </DisputeStatusDropdown>
               <strong>Current State:</strong>
-              <StatusBadge>Bruh</StatusBadge>
+              <StateSelect dispute={disputeId} />
             </div>
 
             <div className="ml-auto grid grid-cols-2 gap-2">

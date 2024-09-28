@@ -145,6 +145,15 @@ The endpoint does not accept any body. On success it will return a HTTP 204 (no 
 
 # Active Workflows
 
+- **Endpoint:** `GET /dispute/{id}/workflow`
+- **Headers:**
+  - `Authorization: Bearer <JWT>`
+- **Note:** Should only be accessible by an administrator
+
+```ts
+type ActiveWorkflowResponse = ActiveWorkflow;
+```
+
 ## Viewing all active workflows
 
 ## Viewing a particular workflow

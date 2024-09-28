@@ -30,7 +30,12 @@ export async function getDisputeDetails(id: string): Promise<DisputeDetailsRespo
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },
-  }).then(validateResult<DisputeDetailsResponse>);
+  })
+    .then(validateResult<DisputeDetailsResponse>)
+    .then((res) => {
+      console.log(res);
+      return res;
+    });
 }
 
 export async function changeDisputeStatus(id: string, status: DisputeStatus): Promise<void> {

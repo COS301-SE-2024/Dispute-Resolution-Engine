@@ -14,7 +14,7 @@ import { useState } from "react";
 import TicketFilters from "./ticket-filters";
 
 const searchSchema = z.object({
-  id: z.number().optional(),
+  id: z.coerce.number().optional(),
 });
 
 export default function Tickets({ searchParams }: { searchParams: unknown }) {

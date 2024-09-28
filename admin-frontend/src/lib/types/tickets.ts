@@ -23,6 +23,8 @@ export interface TicketSummary {
 }
 
 export interface Ticket extends TicketSummary {
+  dispute_id: number;
+
   // The initial message submitted with the ticket
   body: string;
 

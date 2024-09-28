@@ -89,7 +89,7 @@ export interface UserDetails {
 export type ExpertStatus = "Approved" | "Rejected" | "Review";
 export interface ExpertSummary {
   id: number;
-  fullname: string;
+  full_name: string;
   status: ExpertStatus;
 }
 

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { FunctionComponent, HTMLAttributes } from "react";
 import { ChevronDown } from "lucide-react";
 import { TicketStatus } from "@/lib/types/tickets";
-import { DisputeStatus, ObjectionStatus } from "@/lib/types";
+import { DisputeStatus, ExpertStatus, ObjectionStatus } from "@/lib/types";
 
 const statusVariants = cva("", {
   variants: {
@@ -105,4 +105,10 @@ export const ObjectionStatusBadge = mapStatus<ObjectionStatus>({
   Review: "warning",
   Overruled: "inactive",
   Sustained: "success",
+});
+
+export const ExpertStatusBadge = mapStatus<ExpertStatus>({
+  Review: "warning",
+  Approved: "success",
+  Rejected: "inactive",
 });

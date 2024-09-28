@@ -9,7 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { DisputeStatusBadge, StatusBadge } from "@/components/admin/status-badge";
+import {
+  DisputeStatusBadge,
+  ExpertStatusBadge,
+  StatusBadge,
+} from "@/components/admin/status-badge";
 import {
   type UserDetails,
   type DisputeDetails,
@@ -137,13 +141,15 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
             </CardHeader>
             <CardContent>
               <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
-                <ExpertAssignment id={1} fullname="John doe" status="Approved" />
+                {data.experts.map((exp) => (
+                  <ExpertAssignment key={exp.id} {...exp} />
+                ))}
               </ul>
               <CardTitle className="mt-5 text-lg">Objections</CardTitle>
               <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
                 <Objection
                   id={0}
-                  ticket_id={0}
+                  ticket_id={1}
                   expert_name={"Jonny Test"}
                   user_name={"Finn Human"}
                   date_submitted={"today"}
@@ -151,7 +157,7 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
                 />
                 <Objection
                   id={0}
-                  ticket_id={0}
+                  ticket_id={1}
                   expert_name={"Jonny Test"}
                   user_name={"Finn Human"}
                   date_submitted={"today"}
@@ -159,7 +165,7 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
                 />
                 <Objection
                   id={0}
-                  ticket_id={0}
+                  ticket_id={1}
                   expert_name={"Jonny Test"}
                   user_name={"Finn Human"}
                   date_submitted={"today"}
@@ -167,7 +173,7 @@ export default function DisputeDetails({ id: disputeId }: { id: string }) {
                 />
                 <Objection
                   id={0}
-                  ticket_id={0}
+                  ticket_id={1}
                   expert_name={"Jonny Test"}
                   user_name={"Finn Human"}
                   date_submitted={"today"}
@@ -239,12 +245,12 @@ function Evidence({
   );
 }
 
-function ExpertAssignment({ id, fullname, status }: ExpertSummary) {
+function ExpertAssignment({ id, full_name, status }: ExpertSummary) {
   return (
     <li className="grid grid-cols-[auto_1fr_auto] gap-2 items-center px-3 py-2 border border-primary-500/30 rounded-md">
       <UserIcon size="1.7rem" />
-      <span className="truncate">{fullname}</span>
-      <StatusBadge variant="success">Gucci</StatusBadge>
+      <span className="truncate">{full_name}</span>
+      <ExpertStatusBadge variant={status}>{status}</ExpertStatusBadge>
     </li>
   );
 }

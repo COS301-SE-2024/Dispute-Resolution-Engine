@@ -9,6 +9,9 @@ import {
   SelectLabel,
   SelectItem,
 } from "@/components/ui/select";
+import { getWorkflowList } from "@/lib/api/workflow";
+import { WORKFLOW_FILTER_KEY, WORKFLOW_LIST_KEY } from "@/lib/constants";
+import { useQuery } from "@tanstack/react-query";
 
 export default function WorkflowFilter({
   initialValue,
@@ -17,6 +20,14 @@ export default function WorkflowFilter({
   onValueChange?: (id: string | undefined) => void;
   initialValue?: string;
 }) {
+  const query = useQuery({
+    queryKey: [WORKFLOW_LIST_KEY],
+    queryFn: async () => {
+      const { workflows } = await getWorkflowList({});
+      return workflows;
+    },
+  });
+
   return (
     <Select
       defaultValue={initialValue ?? "none"}
@@ -29,11 +40,11 @@ export default function WorkflowFilter({
         <SelectGroup>
           <SelectLabel>Workflow</SelectLabel>
           <SelectItem value={"none"}>No workflow</SelectItem>
-          <SelectItem value={"1"}>Workflow #1</SelectItem>
-          <SelectItem value={"2"}>Workflow #2</SelectItem>
-          <SelectItem value={"3"}>Workflow #3</SelectItem>
-          <SelectItem value={"4"}>Workflow #4</SelectItem>
-          <SelectItem value={"5"}>Workflow #5</SelectItem>
+          {query.data?.map((wf) => (
+            <SelectItem key={wf.id} value={wf.id.toString()}>
+              {wf.name}
+            </SelectItem>
+          ))}
         </SelectGroup>
       </SelectContent>
     </Select>

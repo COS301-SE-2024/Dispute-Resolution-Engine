@@ -48,6 +48,7 @@ type ArchivedDispute struct {
 	Events []Event `json:"events"`
 }
 
+
 type DisputeStatus string
 
 const (
@@ -234,6 +235,14 @@ func (ExpertObjection) TableName() string {
 	return "expert_objections"
 }
 
+type DisputeDecisions struct {
+	ID        int64     `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	DisputeID int64     `json:"dispute_id" gorm:"column:dispute_id"`
+	ExpertID  int64     `json:"expert_id" gorm:"column:expert_id"`
+	WriteUpID int64     `json:"write_up_id" gorm:"column:writeup_file_id"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`
+}
+
 type Ticket struct {
 	ID             int64     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
 	CreatedAt      time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
@@ -282,5 +291,4 @@ type ExpertObjectionsView struct {
 // TableName overrides the default table name for GORM
 func (ExpertObjectionsView) TableName() string {
 	return "expert_objections_view"
-
 }

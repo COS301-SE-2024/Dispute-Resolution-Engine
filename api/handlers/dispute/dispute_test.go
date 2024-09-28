@@ -233,7 +233,6 @@ func (m *mockDisputeModel) GetUserByEmail(email string) (models.User, error) {
 	return models.User{
 		PhoneNumber:       new(string),
 		AddressID:         new(int64),
-		LastUpdate:        new(time.Time),
 		LastLogin:         new(time.Time),
 		PreferredLanguage: new(string),
 		Timezone:          new(string),
@@ -330,6 +329,10 @@ func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 		Timezone:          new(string),
 	}, nil
 
+}
+
+func (m *mockDisputeModel) UploadWriteup(userId, disputeId int64, path string, file io.Reader) error {
+	return nil
 }
 
 func (m *mockDisputeModel) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {

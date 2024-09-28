@@ -185,3 +185,19 @@ interface ExpertRejectRequest {
   accepted: boolean;
 }
 ```
+
+# Dispute decision
+
+- **Endpoint:** `POST /disputes/{id}/decision`
+- **Headers:**
+  - `Authorization: Bearer <JWT>`
+- **Note:** The endpoint uses `multipart/form-data` instead of JSON, so the interface below serves only as a guideline
+
+```ts
+interface DisputeDecisionRequest {
+  decision: DisputeDecision;
+  writeup: File;
+}
+```
+
+Respond with an HTTP code 204 (no content).

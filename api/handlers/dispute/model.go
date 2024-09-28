@@ -28,6 +28,7 @@ import (
 )
 
 type DisputeModel interface {
+	UploadWriteup(userId, disputeId int64, path string, file io.Reader) error
 	UploadEvidence(userId, disputeId int64, path string, file io.Reader) (uint, error)
 	GetEvidenceByDispute(disputeId int64) ([]models.Evidence, error)
 	GetDisputeExperts(disputeId int64) ([]models.Expert, error)
@@ -145,6 +146,71 @@ func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 	}
 }
 
+
+func (m *disputeModelReal) UploadWriteup(userId, disputeId int64, path string, file io.Reader) error {
+	env := env.NewEnvLoader()
+	fileStorageRoot, err := env.Get("FILESTORAGE_ROOT")
+	if err != nil {
+		return err
+	}
+	fileStorageUrl, err := env.Get("FILESTORAGE_URL")
+	if err != nil {
+		return err
+	}
+
+	logger := utilities.NewLogger().LogWithCaller()
+	dir, name := filepath.Split(path)
+	dest := filepath.Join(fileStorageRoot, path)
+
+	if err := os.MkdirAll(filepath.Join(fileStorageRoot, dir), 0755); err != nil {
+		logger.WithError(err).Error("failed to create folder for file upload")
+		return err
+	}
+
+	url := fmt.Sprintf("%s/%s", fileStorageUrl, path)
+
+	// Open the destination file
+	destFile, err := os.Create(dest)
+	if err != nil {
+		logger.WithError(err).Errorf("failed to create file in storage: '%s'", dest)
+		return errors.New("failed to create file in storage")
+	}
+	defer destFile.Close()
+
+	// Copy file content to destination
+	_, err = io.Copy(destFile, file)
+	if err != nil {
+		logger.WithError(err).Error("failed to copy file content")
+		return errors.New("failed to copy file content")
+	}
+
+	// Add file entry to Database
+	fileRow := models.File{
+		FileName: name,
+		FilePath: url,
+		Uploaded: time.Now(),
+	}
+
+	if err := m.db.Create(&fileRow).Error; err != nil {
+		logger.WithError(err).Error("error adding file to database")
+		return errors.New("error adding file to database")
+	}
+
+	//add entry to dispute decisions table
+	disputeDecision := models.DisputeDecisions{
+		DisputeID: disputeId,
+		ExpertID:  userId,
+		WriteUpID: int64(*fileRow.ID),
+	}
+
+	if err := m.db.Create(&disputeDecision).Error; err != nil {
+		logger.WithError(err).Error("error creating dispute decision")
+		return errors.New("error creating dispute decision")
+	}
+
+	return nil
+}
+
 func (m *disputeModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	workflow := models.Workflow{}
@@ -174,6 +240,7 @@ func (m *disputeModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkflows
 	}
 
 	return nil
+
 }
 
 func (m *disputeModelReal) UploadEvidence(userId, disputeId int64, path string, file io.Reader) (uint, error) {

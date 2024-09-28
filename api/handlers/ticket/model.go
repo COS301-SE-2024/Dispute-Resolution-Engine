@@ -43,7 +43,6 @@ func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 	}
 }
 
-
 func NetTicketModelReal(db *gorm.DB, envReader env.Env) TicketModel {
 	return &TicketModelReal{db: db, env: envReader}
 }
@@ -80,7 +79,6 @@ func (t *TicketModelReal) CreateTicket(userID int64, dispute int64, subject stri
 	return ticket, nil
 }
 
-
 func (t *TicketModelReal) AddUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
 
 	logger := utilities.NewLogger().LogWithCaller()
@@ -114,7 +112,6 @@ func (t *TicketModelReal) AddUserTicketMessage(ticketID int64, userID int64, mes
 
 	return ticketMessage, nil
 }
-
 
 func (t *TicketModelReal) AddAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
 
@@ -150,7 +147,6 @@ func (t *TicketModelReal) AddAdminTicketMessage(ticketID int64, userID int64, me
 	return ticketMessage, nil
 }
 
-
 func (t *TicketModelReal) PatchTicketStatus(status string, ticketID int64) error {
 
 	logger := utilities.NewLogger().LogWithCaller()
@@ -164,7 +160,6 @@ func (t *TicketModelReal) PatchTicketStatus(status string, ticketID int64) error
 	return nil
 }
 
-=
 func (t *TicketModelReal) GetAdminTicketDetails(ticketID int64) (models.TicketsByUser, error) {
 
 	logger := utilities.NewLogger().LogWithCaller()
@@ -208,7 +203,6 @@ func (t *TicketModelReal) GetAdminTicketDetails(ticketID int64) (models.TicketsB
 	}
 	return tickets, err
 }
-
 
 func (t *TicketModelReal) GetTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error) {
 
@@ -254,7 +248,6 @@ func (t *TicketModelReal) GetTicketDetails(ticketID int64, userID int64) (models
 	}
 	return tickets, err
 }
-
 
 func (t *TicketModelReal) GetTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
 
@@ -356,7 +349,6 @@ func (t *TicketModelReal) GetTicketsByUserID(uid int64, searchTerm *string, limi
 	return tickets, count, err
 
 }
-
 
 func (t *TicketModelReal) GetAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
 

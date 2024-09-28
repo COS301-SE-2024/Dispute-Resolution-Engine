@@ -43,7 +43,7 @@ export interface Workflow extends WorkflowSummary {
   definition: WorkflowDefinition;
 }
 
-export interface WorkflowDefinition {
+export interface    WorkflowDefinition {
   initial: string;
   states: {
     [key: string]: State;

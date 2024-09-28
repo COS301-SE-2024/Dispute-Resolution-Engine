@@ -39,9 +39,6 @@ export default function CustomEdge({
     function () {
       const nodes = reactFlow.getNodes();
       let edges = reactFlow.getEdges();
-      console.log("edges before ", edges);
-      console.log("nodes before ", nodes);
-      console.log("id before ", id);
       let deletedEdge: Edge | null = null;
       for (let index in edges) {
         if (edges[index].id == id) {
@@ -49,7 +46,6 @@ export default function CustomEdge({
           break;
         }
       }
-      console.log("deletedEdge ", deletedEdge);
       edges = edges.filter((e) => e.id !== (deletedEdge ?? { id: "" }).id);
       for (let index in nodes) {
         if (deletedEdge && nodes[index].id == deletedEdge.source) {
@@ -59,8 +55,6 @@ export default function CustomEdge({
           updateNodeInternals(nodes[index].id);
         }
       }
-      console.log("edges after ", edges);
-      console.log("nodes after ", nodes);
       reactFlow.setEdges(edges);
       reactFlow.setNodes(nodes);
       if (deletedEdge) {

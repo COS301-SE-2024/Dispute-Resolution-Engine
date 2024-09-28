@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useMemo, useRef, useState } from "react";
+import dagre from "dagre";
 import {
   ReactFlow,
   useNodesState,
@@ -9,6 +10,7 @@ import {
   ReactFlowProvider,
   useUpdateNodeInternals,
   ConnectionState,
+  Position,
 } from "@xyflow/react";
 import CustomEdge from "./CustomEdge";
 
@@ -136,25 +138,25 @@ function Flow() {
 
 function InnerProvider() {
   const reactFlow: GraphInstance = useReactFlow();
-
+  const updateNodeInternals = useUpdateNodeInternals()
   const [result, setResult] = useState("");
   const [error, setError] = useState<string>();
 
   async function toWorkflow() {
     const workflow = await graphToWorkflow(reactFlow.toObject());
-    setResult(JSON.stringify(workflow, null, 2));
+    const tempWorkflow = {...workflow, label: "asdf"}
+    setResult(JSON.stringify(tempWorkflow, null, 2));
     setError(undefined);
   }
 
   async function fromWorkflow() {
-    let json;
+    let json: string;
     try {
       json = JSON.parse(result);
     } catch (e) {
       setError((e as Error).message);
       return;
     }
-
     const { data, error } = workflowSchema.safeParse(json);
     if (error) {
       setError(error.issues[0].message);
@@ -162,8 +164,38 @@ function InnerProvider() {
     }
 
     setError(undefined);
-
     const [nodes, edges] = await workflowToGraph(data);
+    let idTrack : number = 100
+    console.log("huh")
+
+    const dagreGraph = new dagre.graphlib.Graph();
+    const nodeWidth = 200
+    const nodeHeight = 100
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    dagreGraph.setGraph({ rankdir: "LR" , ranker:"tight-tree"});
+    nodes.forEach((node) => {
+      dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    });
+    edges.forEach((edge) => {
+      dagreGraph.setEdge(edge.source, edge.target);
+    });
+    dagre.layout(dagreGraph);
+    for (let node of nodes){
+      const nodeWithPosition = dagreGraph.node(node.id);
+      console.log(nodeWithPosition.x);
+      node.position = {
+        x: nodeWithPosition.x,
+        y: nodeWithPosition.y,
+      };
+    }
+
+    for(let edge of edges){
+      let sourceNode = nodes.find(node => node.id === edge.source)
+      let currHandleId : string = (idTrack++).toString()
+      sourceNode?.data.edges.push({id: currHandleId})
+      edge.sourceHandle = currHandleId
+    }
+
     reactFlow.setNodes(nodes);
     reactFlow.setEdges(edges);
   }

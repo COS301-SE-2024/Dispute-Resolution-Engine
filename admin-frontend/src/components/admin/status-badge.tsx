@@ -3,8 +3,9 @@ import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
 import { FunctionComponent, HTMLAttributes } from "react";
 import { ChevronDown } from "lucide-react";
-import { TicketStatus } from "@/lib/types/tickets";
-import { DisputeStatus, ExpertStatus, ObjectionStatus } from "@/lib/types";
+import { type TicketStatus } from "@/lib/types/tickets";
+import { type DisputeStatus, type ExpertStatus } from "@/lib/types";
+import { type ObjectionStatus } from "@/lib/types/experts";
 
 const statusVariants = cva("", {
   variants: {

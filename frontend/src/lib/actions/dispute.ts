@@ -65,7 +65,7 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
 export async function rejectExpert(
   _initial: unknown,
   data: FormData
-): Promise<Result<number, ExpertRejectError>> {
+): Promise<Result<string, ExpertRejectError>> {
   const { data: parsed, error: parseErr } = expertRejectSchema.safeParse(Object.fromEntries(data));
   if (parseErr) {
     return {
@@ -88,10 +88,14 @@ export async function rejectExpert(
     }
   );
 
-  if (!res.error) {
-    revalidatePath(`/disputes/${parsed.dispute_id}`);
+  if (res.error) {
+    return res;
   }
-  return res;
+
+  revalidatePath(`/disputes/${parsed.dispute_id}`);
+  return {
+    data: res.data!.toString(),
+  };
 }
 
 export async function uploadEvidence(

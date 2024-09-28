@@ -410,6 +410,12 @@ func (m *disputeModelReal) GetAdminDisputeDetails(disputeId int64) (models.Admin
 		dateResolved := dispute.DateResolved.Format("2006-01-02")
 		adminDisputeDetails.DateResolved = &dateResolved
 	}
+	if adminDisputeDetails.Experts == nil {
+		adminDisputeDetails.Experts = []models.AdminDisputeExperts{}
+	}
+	if adminDisputeDetails.Evidence == nil {
+		adminDisputeDetails.Evidence = []models.Evidence{}
+	}
 
 	return adminDisputeDetails, nil
 }

@@ -292,7 +292,9 @@ func (suite *TicketErrorTestSuite) TestCreateTicketMessageBadID() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
@@ -305,7 +307,9 @@ func (suite *TicketErrorTestSuite) TestCreateTicketMessageError() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusInternalServerError, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
@@ -333,7 +337,23 @@ func (suite *TicketErrorTestSuite) TestPatchUnauthorized() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
+func (suite *TicketErrorTestSuite) TestPatchUnauthorizedUser() {
+	suite.jwtMock.returnUser.Role = "user"
+	req, _ := http.NewRequest("PATCH", "/1", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusUnauthorized, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
@@ -347,7 +367,9 @@ func (suite *TicketErrorTestSuite) TestPatchError() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusInternalServerError, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
@@ -359,7 +381,9 @@ func (suite *TicketErrorTestSuite) TestPatchBadRequest() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
@@ -382,7 +406,9 @@ func (suite *TicketErrorTestSuite) TestGetTicketDetailsUnauthorized() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusUnauthorized, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
@@ -390,17 +416,21 @@ func (suite *TicketErrorTestSuite) TestGetTicketDetailsUnauthorized() {
 
 func (suite *TicketErrorTestSuite) TestGetTicketDetailsError() {
 	suite.ticketMock.throwErrors = true
+	suite.jwtMock.returnUser.Role = "admin"
 	req, _ := http.NewRequest("GET", "/1", nil)
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusInternalServerError, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
 }
 
 func (suite *TicketErrorTestSuite) TestGetTicketDetailsSuccess() {
+	suite.jwtMock.returnUser.Role = "admin"
 	req, _ := http.NewRequest("GET", "/1", nil)
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
@@ -415,13 +445,28 @@ func (suite *TicketErrorTestSuite) TestGetTicketDetailsSuccess() {
 
 // ---------------------------------------------------------------- GET USER TICKET DETAILS
 
+func (suite *TicketErrorTestSuite) TestGetUserTicketDetailsBadRequest() {
+	req, _ := http.NewRequest("GET", "/$", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
 func (suite *TicketErrorTestSuite) TestGetUserTicketDetailsUnauthorized() {
 	suite.jwtMock.throwErrors = true
 	req, _ := http.NewRequest("GET", "/1", nil)
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusUnauthorized, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
@@ -433,7 +478,9 @@ func (suite *TicketErrorTestSuite) TestGetUserTicketDetailsError() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusInternalServerError, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)

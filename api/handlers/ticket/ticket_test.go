@@ -315,7 +315,38 @@ func (suite *TicketErrorTestSuite) TestCreateTicketMessageError() {
 	suite.NotEmpty(result.Error)
 }
 
-func (suite *TicketErrorTestSuite) TestCreateTicketSuccess() {
+func (suite *TicketErrorTestSuite) TestCreateTicketMessageError2() {
+	suite.jwtMock.returnUser.Role = "admin"
+	suite.ticketMock.throwErrors = true
+	body := `{"message": "test"}`
+	req, _ := http.NewRequest("POST", "/1/messages", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
+func (suite *TicketErrorTestSuite) TestCreateTicketMessageSuccess() {
+	body := `{"message": "test"}`
+	req, _ := http.NewRequest("POST", "/1/messages", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Data map[string]interface{} `json:"data"`
+	}
+	suite.Equal(http.StatusCreated, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+}
+
+func (suite *TicketErrorTestSuite) TestCreateTicketMessageSuccess2() {
+	suite.jwtMock.returnUser.Role = "admin"
 	body := `{"message": "test"}`
 	req, _ := http.NewRequest("POST", "/1/messages", bytes.NewBuffer([]byte(body)))
 	w := httptest.NewRecorder()
@@ -378,6 +409,21 @@ func (suite *TicketErrorTestSuite) TestPatchError() {
 func (suite *TicketErrorTestSuite) TestPatchBadRequest() {
 	suite.jwtMock.returnUser.Role = "admin"
 	req, _ := http.NewRequest("PATCH", "/1", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
+func (suite *TicketErrorTestSuite) TestPatchBadRequest2() {
+	suite.jwtMock.returnUser.Role = "admin"
+	body := `{"status": "Open"}`
+	req, _ := http.NewRequest("PATCH", "/$", bytes.NewBuffer([]byte(body)))
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 

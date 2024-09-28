@@ -154,7 +154,7 @@ func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 		Surname:           "",
 		Birthdate:         time.Now(),
 		Nationality:       "",
-		Role:              "",
+		Role:              "admin",
 		Email:             "",
 		PhoneNumber:       new(string),
 		AddressID:         new(int64),
@@ -315,39 +315,51 @@ func (suite *TicketErrorTestSuite) TestPatchUnauthorized() {
 	suite.NotEmpty(result.Error)
 }
 
-// func (suite *TicketErrorTestSuite) TestPatchError() {
-// 	suite.ticketMock.throwErrors = true
-// 	req, _ := http.NewRequest("PATCH", "/1", nil)
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
+func (suite *TicketErrorTestSuite) TestPatchError() {
+	suite.ticketMock.throwErrors = true
+	mockJwtModel := &mockJwtModel{}
+	mockJwtModel.GenerateJWT(models.User{})
+	mockJwtModel.GetClaims(&gin.Context{})
 
-// 	var result models.Response
-// 	suite.Equal(http.StatusInternalServerError, w.Code)
-// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-// 	suite.NotEmpty(result.Error)
-// }
+	req, _ := http.NewRequest("PATCH", "/1", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
-// func (suite *TicketErrorTestSuite) TestPatchBadRequest() {
+	var result models.Response
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
 
-// 	req, _ := http.NewRequest("PATCH", "/1", nil)
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
+func (suite *TicketErrorTestSuite) TestPatchBadRequest() {
 
-// 	var result models.Response
-// 	suite.Equal(http.StatusBadRequest, w.Code)
-// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-// 	suite.NotEmpty(result.Error)
-// }
+	suite.ticketMock.throwErrors = true
+	mockJwtModel := &mockJwtModel{}
+	mockJwtModel.GenerateJWT(models.User{})
+	mockJwtModel.GetClaims(&gin.Context{})
 
-// func (suite *TicketErrorTestSuite) TestPatchSuccess() {
+	req, _ := http.NewRequest("PATCH", "/1", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
-// 	body := `{"status": "test"}`
-// 	req, _ := http.NewRequest("PATCH", "/1", bytes.NewBuffer([]byte(body)))
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
 
-// 	suite.Equal(http.StatusNoContent, w.Code)
-// }
+func (suite *TicketErrorTestSuite) TestPatchSuccess() {
+
+	suite.ticketMock.throwErrors = true
+	mockJwtModel := &mockJwtModel{}
+	mockJwtModel.GenerateJWT(models.User{})
+	mockJwtModel.GetClaims(&gin.Context{})
+	body := `{"status": "Open"}`
+	req, _ := http.NewRequest("PATCH", "/1", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+	suite.Equal(http.StatusNoContent, w.Code)
+}
 
 // ---------------------------------------------------------------- GET TICKET DETAILS
 

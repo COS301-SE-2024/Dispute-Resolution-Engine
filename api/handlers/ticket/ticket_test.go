@@ -178,20 +178,24 @@ func (suite *TicketErrorTestSuite) TestCreateUnauthorized() {
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusUnauthorized, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
 }
 
 func (suite *TicketErrorTestSuite) TestCreateUnauthorizedAdmin() {
-	suite.jwtMock.throwErrors = true
 	suite.jwtMock.returnUser.Role = "admin"
-	req, _ := http.NewRequest("POST", "/create", nil)
+	body := `{"dispute": 1, "subject": "test", "message": "test"}`
+	req, _ := http.NewRequest("POST", "/create", bytes.NewBuffer([]byte(body)))
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusUnauthorized, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)

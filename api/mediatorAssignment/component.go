@@ -1,7 +1,8 @@
 package mediatorassignment
 
+import "math"
 
-// AglorithmComponent struct and interface 
+// AglorithmComponent struct and interface
 
 type AlgorithmComponent interface {
 }
@@ -26,20 +27,24 @@ type ComponentTimeSinceLastDispute struct {
 
 type MathFunctions interface {
 	//function to calculate the score
-	CalculateScore() int
-	ApplyCap(setCap bool)
-	SetCap(value int)
+	CalculateScore() float64
+}
+
+type BaseFunction struct {
+	ApplyCapToValue bool
+	Cap float64
+	InputValue float64
+	MoveYAxis float64
+	MoveXAxis float64
 }
 
 type Expontential struct {
-	ApplyCapToValue bool
-	Cap int
-	InputValue int
-	Expontent int
+	BaseExponent float64
+	BaseFunction
 }
 
-func (e *Expontential) CalculateScore() int {
-	score := e.InputValue * e.Expontent
+func (e *Expontential) CalculateScore() float64 {
+	score := e.MoveYAxis + math.Pow(e.BaseExponent, e.InputValue) + e.MoveXAxis
 
 	if e.ApplyCapToValue {
 		if score > e.Cap {
@@ -50,20 +55,23 @@ func (e *Expontential) CalculateScore() int {
 	return score
 }
 
-func (e *Expontential) ApplyCap(setCap bool) {
-	e.ApplyCapToValue = setCap
-}
-
-func (e *Expontential) SetCap(value int) {
-	e.Cap = value
-}
 
 type Logarithmic struct {
-	ApplyCap bool
-	Cap int
-	InputValue int
+	BaseFunction
+	LogBase float64
 }
 
+func (l *Logarithmic) CalculateScore() float64 {
+	score := l.MoveYAxis + math.Log(l.InputValue) / math.Log(l.LogBase) + l.MoveXAxis
+
+	if l.ApplyCapToValue {
+		if score > l.Cap {
+			return l.Cap
+		}
+	}
+
+	return score
+}
 
 
 type Linear struct {

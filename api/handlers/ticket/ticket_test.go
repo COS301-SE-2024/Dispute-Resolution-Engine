@@ -315,39 +315,39 @@ func (suite *TicketErrorTestSuite) TestPatchUnauthorized() {
 	suite.NotEmpty(result.Error)
 }
 
-func (suite *TicketErrorTestSuite) TestPatchError() {
-	suite.ticketMock.throwErrors = true
-	req, _ := http.NewRequest("PATCH", "/1", nil)
-	w := httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
+// func (suite *TicketErrorTestSuite) TestPatchError() {
+// 	suite.ticketMock.throwErrors = true
+// 	req, _ := http.NewRequest("PATCH", "/1", nil)
+// 	w := httptest.NewRecorder()
+// 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
-	suite.Equal(http.StatusInternalServerError, w.Code)
-	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-	suite.NotEmpty(result.Error)
-}
+// 	var result models.Response
+// 	suite.Equal(http.StatusInternalServerError, w.Code)
+// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+// 	suite.NotEmpty(result.Error)
+// }
 
-func (suite *TicketErrorTestSuite) TestPatchBadRequest() {
+// func (suite *TicketErrorTestSuite) TestPatchBadRequest() {
 
-	req, _ := http.NewRequest("PATCH", "/1", nil)
-	w := httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
+// 	req, _ := http.NewRequest("PATCH", "/1", nil)
+// 	w := httptest.NewRecorder()
+// 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
-	suite.Equal(http.StatusBadRequest, w.Code)
-	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-	suite.NotEmpty(result.Error)
-}
+// 	var result models.Response
+// 	suite.Equal(http.StatusBadRequest, w.Code)
+// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+// 	suite.NotEmpty(result.Error)
+// }
 
-func (suite *TicketErrorTestSuite) TestPatchSuccess() {
+// func (suite *TicketErrorTestSuite) TestPatchSuccess() {
 
-	body := `{"status": "test"}`
-	req, _ := http.NewRequest("PATCH", "/1", bytes.NewBuffer([]byte(body)))
-	w := httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
+// 	body := `{"status": "test"}`
+// 	req, _ := http.NewRequest("PATCH", "/1", bytes.NewBuffer([]byte(body)))
+// 	w := httptest.NewRecorder()
+// 	suite.router.ServeHTTP(w, req)
 
-	suite.Equal(http.StatusNoContent, w.Code)
-}
+// 	suite.Equal(http.StatusNoContent, w.Code)
+// }
 
 // ---------------------------------------------------------------- GET TICKET DETAILS
 

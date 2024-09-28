@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useMemo, useRef, useState } from "react";
+import dagre from "dagre";
 import {
   ReactFlow,
   useNodesState,
@@ -9,6 +10,7 @@ import {
   ReactFlowProvider,
   useUpdateNodeInternals,
   ConnectionState,
+  Position,
 } from "@xyflow/react";
 import CustomEdge from "./CustomEdge";
 
@@ -142,7 +144,8 @@ function InnerProvider() {
 
   async function toWorkflow() {
     const workflow = await graphToWorkflow(reactFlow.toObject());
-    setResult(JSON.stringify(workflow, null, 2));
+    const tempWorkflow = {...workflow, label: "asdf"}
+    setResult(JSON.stringify(tempWorkflow, null, 2));
     setError(undefined);
   }
 
@@ -164,19 +167,35 @@ function InnerProvider() {
     const [nodes, edges] = await workflowToGraph(data);
     let idTrack : number = 100
     console.log("huh")
+
+    const dagreGraph = new dagre.graphlib.Graph();
+    const nodeWidth = 200
+    const nodeHeight = 100
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+    dagreGraph.setGraph({ rankdir: "LR" , ranker:"tight-tree"});
+    nodes.forEach((node) => {
+      dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+    });
+    edges.forEach((edge) => {
+      dagreGraph.setEdge(edge.source, edge.target);
+    });
+    dagre.layout(dagreGraph);
+    for (let node of nodes){
+      const nodeWithPosition = dagreGraph.node(node.id);
+      console.log(nodeWithPosition.x);
+      node.position = {
+        x: nodeWithPosition.x,
+        y: nodeWithPosition.y,
+      };
+    }
+
     for(let edge of edges){
       let sourceNode = nodes.find(node => node.id === edge.source)
       let currHandleId : string = (idTrack++).toString()
       sourceNode?.data.edges.push({id: currHandleId})
       edge.sourceHandle = currHandleId
     }
-    for (let node of nodes){
-      const viewPort = reactFlow.getViewport()
-      node.position = {
-        x: Math.floor(Math.random() * 500) + 1, 
-        y: Math.floor(Math.random() * 500) + 1, 
-      }
-    }
+
     reactFlow.setNodes(nodes);
     reactFlow.setEdges(edges);
   }

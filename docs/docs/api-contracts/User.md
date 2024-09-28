@@ -1,5 +1,35 @@
 # User
 
+All endpoints follow the following general type:
+
+```ts
+type Result<T> =
+  | {
+      data: T;
+      error?: never;
+    }
+  | {
+      data?: never;
+      error: string;
+    };
+```
+
+Which corresponds to either returning:
+
+```json5
+{
+    "data": /* ... some data */
+}
+```
+
+or
+
+```json5
+{
+  error: "error message",
+}
+```
+
 # User Profile
 
 - **Endpoint:** `GET /user/profile`
@@ -90,7 +120,15 @@ The server will respond with a success or failure
 type UserAddressUpdateResponse = string;
 ```
 
+<<<<<<< HEAD:docs/docs/api-contracts/User.md
+
 # user analytics
+
+=======
+
+# User analytics
+
+> > > > > > > feat/analytics-ui:docs/api-contracts/User.md
 
 - **Endpoint:** `POST /user/analytics`
 - **Headers:**
@@ -102,15 +140,54 @@ interface DateRange {
   endDate: string;
 }
 
+<<<<<<< HEAD:docs/docs/api-contracts/User.md
 interface UserAnalytics {
   columnValueComparison?: Array<{ column: string; value: any }>;
   orderBy?: Array<{ column: string; direction: "asc" | "desc" }>;
+=======
+interface UserAnalyticsRequest {
+  // Used to fuzzy search columns from the users table, e.g. { "column": "role", value: "Mediator" }
+  columnValueComparison?: Array<{ column: string; value: any }>;
+
+  // Used to order the results obtained. Multiple elements are only useful when a column contains items with the same key
+  orderBy?: Array<{ column: string; direction: "asc" | "desc" }>;
+
+>>>>>>> feat/analytics-ui:docs/api-contracts/User.md
   dateRanges?: {
     created_at?: DateRange;
     updated_at?: DateRange;
     last_login?: DateRange;
   };
+
+  // Column names to group by
   groupBy?: string[];
+
+  // Whether to return a count instead of concrete results
   count: boolean;
 }
+
+type UserAnalyticsResponse =
+  | {
+      count: number;
+    }
+  | {
+      users: Array<{
+        id: number;
+        first_name: string;
+        surname: string;
+        birthdate: string;
+        nationality: string;
+        role: string;
+        email: string;
+        phone_number?: string;
+        address_id?: number;
+        created_at: string;
+        updated_at?: string;
+        last_login?: string;
+        status: string;
+        gender: string;
+        preferred_language?: string;
+        timezone?: string;
+      }>;
+    };
 ```

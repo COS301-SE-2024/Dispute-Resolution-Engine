@@ -134,58 +134,6 @@ type UpdateRequest = {
 };
 ```
 
-# Dispute Negotiating Party Operations
-
-## Approving
-
-- **Endpoint:** `POST /disputes/{id}/experts/approve`
-- **Headers:**
-  - `Authorization: Bearer <JWT>`
-
-```ts
-interface ExpertApproveRequest {
-  expert_id: string;
-}
-```
-
-The response will return a success message
-
-```ts
-type ExpertApproveResponse = string;
-```
-
-## Rejecting
-
-- **Endpoint:** `POST /disputes/{id}/experts/reject`
-- **Headers:**
-  - `Authorization: Bearer <JWT>`
-
-```ts
-interface ExpertRejectRequest {
-  expert_id: string;
-  reason: string;
-}
-```
-
-The response will return a success message
-
-```ts
-type ExpertRejectResponse = string;
-```
-
-## Reviewing Rejection
-
-- **Endpoint:** `POST /disputes/{id}/experts/review-rejection`
-- **Headers:**
-  - `Authorization: Bearer <JWT>`
-
-```ts
-interface ExpertRejectRequest {
-  expert_id: string;
-  accepted: boolean;
-}
-```
-
 # Dispute decision
 
 - **Endpoint:** `POST /disputes/{id}/decision`

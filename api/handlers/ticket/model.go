@@ -14,14 +14,14 @@ import (
 )
 
 type TicketModel interface {
-	getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
-	getTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
-	getTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error)
-	getAdminTicketDetails(ticketID int64) (models.TicketsByUser, error)
-	patchTicketStatus(status string, ticketID int64) error
-	addUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
-	addAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
-	createTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error)
+	GetAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
+	GetTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error)
+	GetTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error)
+	GetAdminTicketDetails(ticketID int64) (models.TicketsByUser, error)
+	PatchTicketStatus(status string, ticketID int64) error
+	AddUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
+	AddAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error)
+	CreateTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error)
 }
 
 type Ticket struct {
@@ -30,20 +30,24 @@ type Ticket struct {
 	Env   env.Env
 }
 
-type ticketModelReal struct {
+type TicketModelReal struct {
 	db  *gorm.DB
 	env env.Env
 }
 
 func NewHandler(db *gorm.DB, envReader env.Env) Ticket {
 	return Ticket{
-		Model: &ticketModelReal{db: db, env: env.NewEnvLoader()},
+		Model: &TicketModelReal{db: db, env: env.NewEnvLoader()},
 		JWT:   middleware.NewJwtMiddleware(),
 		Env:   envReader,
 	}
 }
 
-func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error) {
+func NetTicketModelReal(db *gorm.DB, envReader env.Env) TicketModel {
+	return &TicketModelReal{db: db, env: envReader}
+}
+
+func (t *TicketModelReal) CreateTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	//check if the user is part of the dispute
@@ -74,7 +78,7 @@ func (t *ticketModelReal) createTicket(userID int64, dispute int64, subject stri
 	return ticket, nil
 }
 
-func (t *ticketModelReal) addUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
+func (t *TicketModelReal) AddUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	userTick := models.Ticket{}
@@ -107,7 +111,7 @@ func (t *ticketModelReal) addUserTicketMessage(ticketID int64, userID int64, mes
 	return ticketMessage, nil
 }
 
-func (t *ticketModelReal) addAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
+func (t *TicketModelReal) AddAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	ticket := models.Ticket{}
@@ -140,7 +144,7 @@ func (t *ticketModelReal) addAdminTicketMessage(ticketID int64, userID int64, me
 	return ticketMessage, nil
 }
 
-func (t *ticketModelReal) patchTicketStatus(status string, ticketID int64) error {
+func (t *TicketModelReal) PatchTicketStatus(status string, ticketID int64) error {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	err := t.db.Exec("UPDATE tickets SET status = ? WHERE id = ?", status, ticketID).Error
@@ -152,7 +156,7 @@ func (t *ticketModelReal) patchTicketStatus(status string, ticketID int64) error
 	return nil
 }
 
-func (t *ticketModelReal) getAdminTicketDetails(ticketID int64) (models.TicketsByUser, error) {
+func (t *TicketModelReal) GetAdminTicketDetails(ticketID int64) (models.TicketsByUser, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	tickets := models.TicketsByUser{}
 	var IntermediateTick = models.TicketIntermediate{}
@@ -195,7 +199,7 @@ func (t *ticketModelReal) getAdminTicketDetails(ticketID int64) (models.TicketsB
 	return tickets, err
 }
 
-func (t *ticketModelReal) getTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error) {
+func (t *TicketModelReal) GetTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	tickets := models.TicketsByUser{}
 	var IntermediateTick = models.TicketIntermediate{}
@@ -239,7 +243,7 @@ func (t *ticketModelReal) getTicketDetails(ticketID int64, userID int64) (models
 	return tickets, err
 }
 
-func (t *ticketModelReal) getTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
+func (t *TicketModelReal) GetTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	tickets := []models.TicketSummaryResponse{}
 	var queryString strings.Builder
@@ -339,7 +343,7 @@ func (t *ticketModelReal) getTicketsByUserID(uid int64, searchTerm *string, limi
 
 }
 
-func (t *ticketModelReal) getAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
+func (t *TicketModelReal) GetAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
 	logger := utilities.NewLogger().LogWithCaller()
 	tickets := []models.TicketSummaryResponse{}
 	var queryString strings.Builder

@@ -55,7 +55,7 @@ func (h Ticket) createTicket(c *gin.Context) {
 		return
 	}
 
-	ticket, err := h.Model.createTicket(claims.ID, disputeID, createReq.Subject, createReq.Body)
+	ticket, err := h.Model.CreateTicket(claims.ID, disputeID, createReq.Subject, createReq.Body)
 	if err != nil {
 		logger.WithError(err).Error("Error creating ticket")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating ticket"})

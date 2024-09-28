@@ -28,7 +28,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.GET("/:id", h.GetDispute)
 
 	g.POST("", h.GetSummaryListOfDisputes)
-	g.POST("/:id/experts/reject", h.ExpertObjection)
+	g.POST("/:id/objections", h.ExpertObjection)
 	g.POST("/:id/experts/review-rejection", h.ExpertObjectionsReview)
 	g.POST("/experts/rejections", h.ViewExpertRejections)
 	g.POST("/:id/evidence", h.UploadEvidence)
@@ -627,7 +627,26 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 		return
 	}
 
-	err = h.Model.ObjectExpert(claims.ID, int64(disputeIdInt), req.ExpertID, req.Reason)
+	//get Admin
+	admin, err := h.Model.GetUserById(req.ExpertID)
+	if err != nil {
+		logger.WithError(err).Error("Failed to get admin")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get admin"})
+		return
+	}
+
+
+	//create ticket
+	titleTicket := "Objection against " + admin.FirstName + " " + admin.Surname + "On Dispute " + disputeId
+	ticket, err := h.TicketModel.CreateTicket(claims.ID, int64(disputeIdInt),titleTicket, req.Reason)
+	if err != nil {
+		logger.WithError(err).Error("Failed to create ticket")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to create ticket"})
+		return
+	}
+
+
+	err = h.Model.ObjectExpert(int64(disputeIdInt), req.ExpertID, ticket.ID)
 	if err != nil {
 		logger.WithError(err).Error("Failed to object to expert")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
@@ -636,7 +655,8 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Expert rejected suggestion"})
 	logger.Info("Expert rejected suggestion")
-	c.JSON(http.StatusOK, models.Response{Data: "objection filed successfully"})
+
+	c.JSON(http.StatusOK, models.Response{Data: ticket.ID})
 }
 
 func (h Dispute) ExpertObjectionsReview(c *gin.Context) {

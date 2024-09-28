@@ -221,11 +221,8 @@ const (
 
 type ExpertObjection struct {
 	ID        int64        `gorm:"primaryKey;autoIncrement" json:"id"`
-	CreatedAt time.Time    `gorm:"autoCreateTime" json:"created_at"`
-	DisputeID int64        `gorm:"not null" json:"dispute_id"`
 	ExpertID  int64        `gorm:"not null" json:"expert_id"`
-	UserID    int64        `gorm:"not null" json:"user_id"`
-	Reason    string       `gorm:"type:text" json:"reason"`
+	TicketID  int64       `gorm:"not null" json:"ticket_id"`
 	Status    ExpObjStatus `gorm:"type:exp_obj_status;default:'Review'" json:"status"`
 }
 

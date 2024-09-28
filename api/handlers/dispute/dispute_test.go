@@ -252,7 +252,7 @@ func (m *mockDisputeModel) UpdateDisputeStatus(disputeId int64, status string) e
 	}
 	return nil
 }
-func (m *mockDisputeModel) ObjectExpert(userId, disputeId, expertId int64, reason string) error {
+func (m *mockDisputeModel) ObjectExpert(disputeId, expertId, ticketId int64) error {
 	if m.throwErrors {
 		return errors.ErrUnsupported
 	}
@@ -264,6 +264,21 @@ func (m *mockDisputeModel) ReviewExpertObjection(userId, disputeId, expertId int
 	}
 	return nil
 }
+
+func (m *mockDisputeModel) GetUserById(userId int64) (models.User, error) {
+	if m.throwErrors {
+		return models.User{}, errors.ErrUnsupported
+	}
+	return models.User{
+		PhoneNumber:       new(string),
+		AddressID:         new(int64),
+		LastUpdate:        new(time.Time),
+		LastLogin:         new(time.Time),
+		PreferredLanguage: new(string),
+		Timezone:          new(string),
+	}, nil
+}
+
 func (m *mockJwtModel) GenerateJWT(user models.User) (string, error) {
 	if m.throwErrors {
 		return "", errors.ErrUnsupported

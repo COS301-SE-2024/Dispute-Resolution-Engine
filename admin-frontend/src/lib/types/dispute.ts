@@ -13,9 +13,6 @@ export const DISPUTE_STATUS = [
 ] as const;
 export type DisputeStatus = (typeof DISPUTE_STATUS)[number];
 
-export const OBJECTION_STATUS = ["Review", "Overruled", "Sustained"] as const;
-export type ObjectionStatus = (typeof OBJECTION_STATUS)[number];
-
 export type DisputeFilter = Filter<"status" | "workflow">;
 export type DisputeSort = Sort<"title" | "status" | "workflow" | "date_filed" | "date_resolved">;
 

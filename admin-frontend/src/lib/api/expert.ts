@@ -1,16 +1,29 @@
 "use server";
 
-import { ObjectionStatus, type ExpertStatus } from "../types";
+import { getAuthToken } from "../jwt";
+import { ObjectionStatus, type ObjectionListResponse } from "../types/experts";
+import { API_URL, sf, validateResult } from "../utils";
 
-export async function changeObjectionStatus(id: number, status: ObjectionStatus): Promise<void> {
-  //   await sf(`${API_URL}/tickets/${id}`, {
-  //     method: "PATCH",
-  //     headers: {
-  //       Authorization: `Bearer ${getAuthToken()}`,
-  //     },
-  //     body: JSON.stringify({
-  //       status,
-  //     }),
-  //   });
-  return;
+export async function getExpertObjections(dispute: number): Promise<ObjectionListResponse> {
+  return sf(`${API_URL}/disputes/${dispute}/objections`, {
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  }).then(validateResult<ObjectionListResponse>);
+}
+
+export async function changeObjectionStatus(
+  dispute: number,
+  objection: number,
+  status: ObjectionStatus
+): Promise<void> {
+  await sf(`${API_URL}/disputes/${dispute}/objections/${objection}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: JSON.stringify({
+      status,
+    }),
+  });
 }

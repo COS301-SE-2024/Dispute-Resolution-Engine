@@ -3,8 +3,10 @@ package ticket_test
 import (
 	"api/handlers/ticket"
 	"api/models"
+	"encoding/json"
 	"errors"
 	"net/http"
+	"net/http/httptest"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -46,6 +48,7 @@ func (suite *TicketErrorTestSuite) SetupTest() {
 	router.POST("/:id/messages", handler.CreateTicketMessage)
 	router.POST("/create", handler.CreateTicket)
 
+	suite.router = router
 }
 
 /*-------------------------------MOCK MODELS-----------------------------------------*/
@@ -174,3 +177,19 @@ func (m *mockEnv) Get(key string) (string, error) {
 	}
 	return "", nil
 }
+
+// ---------------------------------------------------------------- CREATE TICKET
+
+func (suite *TicketErrorTestSuite) TestCreateUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("POST", "/create", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
+

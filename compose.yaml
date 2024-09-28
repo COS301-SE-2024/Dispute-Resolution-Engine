@@ -2,7 +2,7 @@ services:
   frontend: # ---------------------------------------------------------Frontend
     build: ./frontend
     ports:
-      - "3000:3000"
+      - "3001:3000"
     env_file:
       - fe.env
     depends_on:
@@ -12,11 +12,15 @@ services:
         - action: rebuild
           path: ./frontend
     labels:
-      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+    - "traefik.enable=true"
+    - "traefik.http.routers.fe.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`) && !PathPrefix(`/grafana`)"
+    - "traefik.http.routers.fe.entrypoints=${ENTRY_POINTS}"
+    - "traefik.http.routers.fe.middlewares=clickJack@docker"
+    - "${FE_CA}"
   admin-frontend: # --------------------------------------------------------- Admin Frontend
     build: ./admin-frontend
     ports:
-      - "3001:3000"
+      - "3002:3000"
     env_file:
       - fe.env
     depends_on:
@@ -25,6 +29,52 @@ services:
       watch:
         - action: rebuild
           path: ./admin-frontend
+    labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.admin.rule=Host(`${DOMAIN}`) && (PathPrefix(`/admin`) || HeaderRegexp(`Referer`, `http.*${DOMAIN}/admin/.*`))"
+    - "traefik.http.routers.admin.entrypoints=${ENTRY_POINTS}"
+    - "traefik.http.middlewares.adminStrip.stripprefix.prefixes=/admin"
+    - "traefik.http.routers.admin.middlewares=adminStrip@docker, clickJack@docker"
+    - "${ADMIN_CA}"
+  traefik: # ------------------------------------------------------Traefik
+    image: traefik:v3.1
+    command: 
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--log.level=DEBUG"
+      - "--${CA_CERT_LINE1}"
+      - "--${CA_CERT_LINE2}"
+      - "--${CA_CERT_LINE3}"
+      - "--${CA_CERT_LINE4}"
+      - "--${CA_CERT_LINE5}"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    labels:
+      - traefik.enable=true
+      - "traefik.http.middlewares.clickJack.headers.customrequestheaders.Content-Security-Policy=frame-ancestors 'self'"
+  grafana: # -------------------------------------------------------------Grafana
+    image: docker.io/grafana/grafana-oss
+    container_name: grafana
+    env_file:
+      - graf.env
+    ports:
+      - "3000:3000" # Changed Grafana's port to avoid conflict with frontend
+    volumes:
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+    labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.grafana.rule=Host(`${DOMAIN}`) && PathPrefix(`/grafana`)"
+    - "traefik.http.routers.grafana.entrypoints=${ENTRY_POINTS}"
+    - "${GRAF_CA}"
   api: # ------------------------------------------------------------------API
     build: ./api
     ports:
@@ -82,18 +132,6 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
     restart: unless-stopped
-  grafana: # -------------------------------------------------------------Grafana
-    image: docker.io/grafana/grafana-oss
-    container_name: grafana
-    # env_file:
-    #   - graf.env
-    ports:
-      - "3001:3000" # Changed Grafana's port to avoid conflict with frontend
-    volumes:
-      - grafana-data:/var/lib/grafana
-    restart: unless-stopped
-    labels:
-      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
   cadvisor: # -----------------------------------------------------------Cadvisor
     image: gcr.io/cadvisor/cadvisor
     container_name: cadvisor
@@ -135,14 +173,6 @@ services:
     labels:
       - "traefik.enable=false"
 
-  reverse-proxy: # ------------------------------------------------------Traefik
-    image: traefik:v3.1
-    command: --api.insecure=true --providers.docker
-    ports:
-      - "80:80"
-      - "8080:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
 volumes: # ---------------------------------------------------------------Volumes
   pgdata:
   evi_files:

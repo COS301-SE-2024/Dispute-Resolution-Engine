@@ -29,10 +29,11 @@ type mockEvidence struct {
 type mockDisputeModel struct {
 	throwErrors bool
 	evidence    []mockEvidence
-	Get_Experts  []models.AdminDisputeExperts
+	Get_Experts []models.AdminDisputeExperts
 }
 type mockJwtModel struct {
 	throwErrors bool
+	returnUser  models.UserInfoJWT
 }
 type mockEmailModel struct {
 	throwErrors bool
@@ -43,7 +44,7 @@ type mockAuditLogger struct {
 
 type mockTicketModel struct {
 	throwErrors bool
-	Error 	 error
+	Error       error
 }
 
 type DisputeErrorTestSuite struct {
@@ -55,7 +56,7 @@ type DisputeErrorTestSuite struct {
 	auditMock        *mockAuditLogger
 	mockOrchestrator *mockOrchestrator
 	mockEnv          *mockEnv
-	mockTicket		*mockTicketModel
+	mockTicket       *mockTicketModel
 }
 
 func (suite *DisputeErrorTestSuite) SetupTest() {
@@ -71,13 +72,17 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 	gin.SetMode("release")
 	router := gin.Default()
 	router.Use(suite.jwtMock.JWTMiddleware)
-	router.POST("/:id/evidence", handler.UploadEvidence)
+
+	router.GET("/disputes", handler.GetSummaryListOfDisputes)
 	router.POST("/create", handler.CreateDispute)
 	router.GET("/:id", handler.GetDispute)
-	router.POST("/experts/objections", handler.ViewExpertRejections)
-	router.POST("", handler.GetSummaryListOfDisputes)
+
+	router.POST("/disputes", handler.GetSummaryListOfDisputes)
 	router.POST("/:id/objections", handler.ExpertObjection)
-	router.POST("/objections/:id", handler.ExpertObjectionsReview)
+	router.PATCH("/objections/:id", handler.ExpertObjectionsReview)
+	router.POST("/experts/objections", handler.ViewExpertRejections)
+	router.POST("/:id/evidence", handler.UploadEvidence)
+	router.POST("/:id/decision", handler.SubmitWriteup)
 	router.PUT("/:id/status", handler.UpdateStatus)
 
 	suite.router = router
@@ -159,7 +164,6 @@ func (m *mockTicketModel) CreateTicket(userID int64, dispute int64, subject stri
 	}
 	return models.Ticket{}, nil
 }
-
 
 //mock env
 
@@ -394,22 +398,7 @@ func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 	if m.throwErrors {
 		return models.UserInfoJWT{}, errors.ErrUnsupported
 	}
-	return models.UserInfoJWT{
-		ID:                0,
-		FirstName:         "",
-		Surname:           "",
-		Birthdate:         time.Now(),
-		Nationality:       "",
-		Role:              "",
-		Email:             "",
-		PhoneNumber:       new(string),
-		AddressID:         new(int64),
-		Status:            "",
-		Gender:            "",
-		PreferredLanguage: new(string),
-		Timezone:          new(string),
-	}, nil
-
+	return m.returnUser, nil
 }
 
 func (m *mockDisputeModel) UploadWriteup(userId, disputeId int64, path string, file io.Reader) error {
@@ -452,30 +441,31 @@ func (suite *DisputeErrorTestSuite) TestGetSummaryListUnauthorized() {
 	suite.Equal("Unauthorized", result.Error)
 }
 
-// func (suite *DisputeErrorTestSuite) TestGetSummaryListNoDisputes() {
-// 	req, _ := http.NewRequest("GET", "/summary", nil)
-// 	req.Header.Add("Authorization", "Bearer mock")
+func (suite *DisputeErrorTestSuite) TestGetSummaryListNoDisputes() {
+	req, _ := http.NewRequest("GET", "/disptues", nil)
+	req.Header.Add("Authorization", "Bearer mock")
 
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
-// 	var result models.Response
-// 	suite.Equal(http.StatusOK, w.Code)
-// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-// 	suite.Empty(result.Error)
-// 	suite.Empty(result.Data)
-// }
+	var result models.Response
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Empty(result.Error)
+	suite.Empty(result.Data)
+}
 
-// func (suite *DisputeErrorTestSuite) TestGetSummaryListWithDisputes() {
-// 	// Mock disputes
-// 	suite.disputeMock.evidence = []mockEvidence{
-// 		{
-// 			user:    1,
-// 			dispute: 1,
-// 			path:    "path/to/file",
-// 			data:    "evidence data",
-// 		},
-// 	}
+func (suite *DisputeErrorTestSuite) TestGetSummaryListWithDisputes() {
+	// Mock disputes
+	suite.disputeMock.evidence = []mockEvidence{
+		{
+			user:    1,
+			dispute: 1,
+			path:    "path/to/file",
+			data:    "evidence data",
+		},
+	}
+}
 
 // 	req, _ := http.NewRequest("GET", "/summary", nil)
 // 	req.Header.Add("Authorization", "Bearer mock")
@@ -495,7 +485,7 @@ func (suite *DisputeErrorTestSuite) TestGetSummaryListUnauthorized() {
 
 func (suite *DisputeErrorTestSuite) TestGetSummaryListErrorRetrievingDisputes() {
 	suite.disputeMock.throwErrors = true
-	req, _ := http.NewRequest("GET", "/summary", nil)
+	req, _ := http.NewRequest("GET", "/disputes", nil)
 	req.Header.Add("Authorization", "Bearer mock")
 
 	w := httptest.NewRecorder()
@@ -1169,7 +1159,7 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionSuccess() {
 		{
 			ExpertID: 1,
 			FullName: "name",
-			Status:  string(models.ObjectionOverruled),
+			Status:   string(models.ObjectionOverruled),
 		},
 	}
 

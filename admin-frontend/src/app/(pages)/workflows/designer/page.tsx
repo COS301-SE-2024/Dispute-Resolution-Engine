@@ -18,8 +18,8 @@ import "@xyflow/react/dist/style.css";
 import { Button } from "@/components/ui/button";
 import CustomNode from "./CustomNode";
 
-import { type GraphState, type GraphTrigger, type GraphInstance } from "@/lib/types";
-import { graphToWorkflow, workflowToGraph } from "@/lib/api/workflow";
+import { type GraphState, type GraphTrigger, type GraphInstance, WorkflowCreateRequest } from "@/lib/types";
+import { createWorkflow, graphToWorkflow, workflowToGraph } from "@/lib/api/workflow";
 import { workflowSchema } from "@/lib/schema/workflow";
 import { Textarea } from "@/components/ui/textarea";
 import WorkflowTitle from "@/components/workflow/workflow-title";
@@ -30,7 +30,7 @@ const initialNodes: GraphState[] = [
     id: "0",
     type: "customNode",
     position: { x: 0, y: 0 },
-    data: { label: "Node A", edges: [] },
+    data: { label: "New Node", edges: [] },
   },
 ];
 
@@ -55,13 +55,27 @@ function useCustomId(start: number | undefined) {
 }
 
 // http://localhost:3000/workflow
-function Flow() {
+function Flow({setIsSaved} : {setIsSaved : any}) {
   const createId = useCustomId(initialNodes.length);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const reactFlowInstance: GraphInstance = useReactFlow();
 
+  const handleNodesChange = useCallback(
+    (changes : any) => {
+      onNodesChange(changes);
+      setIsSaved(false)
+    },
+    [onNodesChange]
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const handleEdgesChange = useCallback(
+    (changes : any) => {
+      onNodesChange(changes);
+      setIsSaved(false)
+    },
+    [onEdgesChange]
+  );
+  const reactFlowInstance: GraphInstance = useReactFlow();
   function createEdge(connection: Connection, trigger: string): GraphTrigger {
     const edge = {
       ...connection,
@@ -126,7 +140,7 @@ function Flow() {
       className="dark:bg-surface-dark-950 stroke-primary-500"
       nodes={nodes}
       edges={edges}
-      onNodesChange={onNodesChange}
+      onNodesChange={handleNodesChange}
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onConnectEnd={onConnectEnd}
@@ -143,12 +157,24 @@ function InnerProvider() {
   const updateNodeInternals = useUpdateNodeInternals()
   const [result, setResult] = useState("");
   const [error, setError] = useState<string>();
+  const [title, setTitle] = useState<string>("New Workflow");
+  const [isSaved, setIsSaved] = useState<boolean>(false)
 
   async function toWorkflow() {
     const workflow = await graphToWorkflow(reactFlow.toObject());
     const tempWorkflow = {...workflow, label: "asdf"}
     setResult(JSON.stringify(tempWorkflow, null, 2));
     setError(undefined);
+  }
+  async function saveWorkflow() {
+    const workflow = await graphToWorkflow(reactFlow.toObject());
+    workflow.initial = Object.keys(workflow.states)[0]
+    const wfRequest : WorkflowCreateRequest = {
+      name: title,
+      definition : workflow,
+    }
+    setIsSaved(true)
+    const response = await createWorkflow(wfRequest)
   }
 
   async function fromWorkflow() {
@@ -201,11 +227,13 @@ function InnerProvider() {
   return (
     <div className="h-full grid grid-cols-[1fr_3fr] grid-rows-[auto_1fr]">
       <div className="col-span-2 border-b dark:border-primary-500/30 border-primary-500/20 flex items-center gap-2">
-        <WorkflowTitle value="New workflow" onValueChange={alert} />
-        <Button variant="ghost" title="Save">
+        <WorkflowTitle value={title} onValueChange={(value) => {
+          setTitle(value)
+        }} />
+        <Button variant="ghost" title="Save" onClick={saveWorkflow}>
           <SaveIcon size="1.2rem" />
         </Button>
-        <span className="opacity-50 text-sm">Unsaved</span>
+        <span className={isSaved?  "opacity-100 text-sm" : "opacity-50 text-sm"}>{isSaved? "Saved" : "Unsaved"}</span>
       </div>
       <div className="p-2 space-y-2 flex flex-col">
         <Textarea
@@ -223,7 +251,7 @@ function InnerProvider() {
           <Button onClick={fromWorkflow}>Convert workflow to graph</Button>
         </div>
       </div>
-      <Flow></Flow>
+      <Flow setIsSaved={setIsSaved}></Flow>
     </div>
   );
 }

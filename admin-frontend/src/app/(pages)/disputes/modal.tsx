@@ -9,7 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { DisputeStatusBadge, ExpertStatusBadge } from "@/components/admin/status-badge";
+import {
+  DisputeStatusBadge,
+  ExpertStatusBadge,
+  StatusBadge,
+} from "@/components/admin/status-badge";
 import {
   type UserDetails,
   type DisputeDetails,
@@ -83,19 +87,28 @@ export default function DisputeDetails({ id: disputeId }: { id: number }) {
             </DialogClose>
           </div>
           <div className="flex gap-2 items-center">
-            <DisputeStatusDropdown
-              initialValue={details.data.status}
-              onSelect={(val) => status.mutate(val)}
-              disabled={status.isPending}
-            >
-              <DisputeStatusBadge dropdown variant={details.data.status}>
-                {details.data.status}
-              </DisputeStatusBadge>
-            </DisputeStatusDropdown>
-            <span>{details.data.date_filed}</span>
-          </div>
+            <div className="grid grid-cols-2 gap-2">
+              <strong>Status:</strong>
+              <DisputeStatusDropdown
+                initialValue={details.data.status}
+                onSelect={(val) => status.mutate(val)}
+                disabled={status.isPending}
+              >
+                <DisputeStatusBadge dropdown variant={details.data.status}>
+                  {details.data.status}
+                </DisputeStatusBadge>
+              </DisputeStatusDropdown>
+              <strong>Current State:</strong>
+              <StatusBadge>Bruh</StatusBadge>
+            </div>
 
-          <p>Case Number: {details.data.id}</p>
+            <div className="ml-auto grid grid-cols-2 gap-2">
+              <strong className="text-right">Filed:</strong>
+              <span>{details.data.date_filed}</span>
+              <strong className="text-right">Case number:</strong>
+              <span>{details.data.id}</span>
+            </div>
+          </div>
         </DialogHeader>
         <div className="overflow-y-auto grow space-y-6 pr-3">
           <Card>

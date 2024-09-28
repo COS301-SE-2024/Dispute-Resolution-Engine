@@ -24,15 +24,17 @@ export const description = "A donut chart with text";
 const ACTIVE_STATUS: DisputeStatus[] = ["Awaiting Respondant", "Active", "Review"];
 
 const CHART_COLORS: Record<DisputeStatus, string> = {
-  "Awaiting Respondant": "red",
-  Active: "green",
-  Review: "orange",
-  Settled: "yellow",
-  Refused: "blue",
-  Withdrawn: "pink",
-  Transfer: "purple",
-  Appeal: "brown",
-  Other: "yellow",
+  "Awaiting Respondant": "#78A8FF",
+  Review: "#78A8FF",
+  Active: "#78A8FF",
+
+  Settled: "#22c55e",
+  Refused: "#22c55e",
+
+  Appeal: "#fb923c",
+  Withdrawn: "#94a3b8",
+  Transfer: "#94a3b8",
+  Other: "#94a3b8",
 };
 
 const chartConfig = {} satisfies ChartConfig;

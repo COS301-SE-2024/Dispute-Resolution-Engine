@@ -4,11 +4,11 @@ export const DISPUTE_STATUS = [
   "Awaiting Respondant",
   "Active",
   "Review",
+  "Appeal",
   "Settled",
   "Refused",
   "Withdrawn",
   "Transfer",
-  "Appeal",
   "Other",
 ] as const;
 export type DisputeStatus = (typeof DISPUTE_STATUS)[number];

@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
@@ -21,6 +20,7 @@ type mockTicketModel struct {
 
 type mockJwtModel struct {
 	throwErrors bool
+	returnUser  models.UserInfoJWT
 }
 
 type mockEnv struct {
@@ -148,21 +148,7 @@ func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 	if m.throwErrors {
 		return models.UserInfoJWT{}, errors.ErrUnsupported
 	}
-	return models.UserInfoJWT{
-		ID:                0,
-		FirstName:         "",
-		Surname:           "",
-		Birthdate:         time.Now(),
-		Nationality:       "",
-		Role:              "admin",
-		Email:             "",
-		PhoneNumber:       new(string),
-		AddressID:         new(int64),
-		Status:            "",
-		Gender:            "",
-		PreferredLanguage: new(string),
-		Timezone:          new(string),
-	}, nil
+	return m.returnUser, nil
 
 }
 
@@ -200,6 +186,7 @@ func (suite *TicketErrorTestSuite) TestCreateUnauthorized() {
 
 func (suite *TicketErrorTestSuite) TestCreateUnauthorizedAdmin() {
 	suite.jwtMock.throwErrors = true
+	suite.jwtMock.returnUser.Role = "admin"
 	req, _ := http.NewRequest("POST", "/create", nil)
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
@@ -221,33 +208,33 @@ func (suite *TicketErrorTestSuite) TestCreateBadRequest() {
 	suite.NotEmpty(result.Error)
 }
 
-// func (suite *TicketErrorTestSuite) TestCreateError() {
-// 	suite.ticketMock.throwErrors = true
+func (suite *TicketErrorTestSuite) TestCreateError() {
+	suite.ticketMock.throwErrors = true
 
-// 	body := `{"dispute": 1, "subject": "test", "message": "test"}`
-// 	req, _ := http.NewRequest("POST", "/create", bytes.NewBuffer([]byte(body)))
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
+	body := `{"dispute": 1, "subject": "test", "message": "test"}`
+	req, _ := http.NewRequest("POST", "/create", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
-// 	var result models.Response
-// 	suite.Equal(http.StatusInternalServerError, w.Code)
-// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-// 	suite.NotEmpty(result.Error)
-// }
+	var result models.Response
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
 
-// func (suite *TicketErrorTestSuite) TestCreateSuccess() {
-// 	body := `{"dispute": 1, "subject": "test", "message": "test"}`
-// 	req, _ := http.NewRequest("POST", "/create", bytes.NewBuffer([]byte(body)))
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
+func (suite *TicketErrorTestSuite) TestCreateSuccess() {
+	body := `{"dispute": 1, "subject": "test", "message": "test"}`
+	req, _ := http.NewRequest("POST", "/create", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
-// 	var result struct {
-// 		Data map[string]interface{} `json:"data"`
-// 	}
-// 	suite.Equal(http.StatusCreated, w.Code)
-// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-// 	suite.NotEmpty(result.Data)
-// }
+	var result struct {
+		Data map[string]interface{} `json:"data"`
+	}
+	suite.Equal(http.StatusCreated, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+}
 
 // ---------------------------------------------------------------- CREATE TICKET MESSAGE
 func (suite *TicketErrorTestSuite) TestCreateMessageUnauthorized() {
@@ -315,29 +302,22 @@ func (suite *TicketErrorTestSuite) TestPatchUnauthorized() {
 	suite.NotEmpty(result.Error)
 }
 
-// func (suite *TicketErrorTestSuite) TestPatchError() {
-// 	suite.ticketMock.throwErrors = true
-// 	mockJwtModel := &mockJwtModel{}
-// 	mockJwtModel.GenerateJWT(models.User{})
-// 	mockJwtModel.GetClaims(&gin.Context{})
+func (suite *TicketErrorTestSuite) TestPatchError() {
+	suite.ticketMock.throwErrors = true
+	suite.jwtMock.returnUser.Role = "admin"
+	body := `{"status": "Open"}`
+	req, _ := http.NewRequest("PATCH", "/1", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
-// 	req, _ := http.NewRequest("PATCH", "/1", nil)
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
-
-// 	var result models.Response
-// 	suite.Equal(http.StatusInternalServerError, w.Code)
-// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-// 	suite.NotEmpty(result.Error)
-// }
+	var result models.Response
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
 
 func (suite *TicketErrorTestSuite) TestPatchBadRequest() {
-
-	suite.ticketMock.throwErrors = true
-	mockJwtModel := &mockJwtModel{}
-	mockJwtModel.GenerateJWT(models.User{})
-	mockJwtModel.GetClaims(&gin.Context{})
-
+	suite.jwtMock.returnUser.Role = "admin"
 	req, _ := http.NewRequest("PATCH", "/1", nil)
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
@@ -348,18 +328,14 @@ func (suite *TicketErrorTestSuite) TestPatchBadRequest() {
 	suite.NotEmpty(result.Error)
 }
 
-// func (suite *TicketErrorTestSuite) TestPatchSuccess() {
-
-// 	suite.ticketMock.throwErrors = true
-// 	mockJwtModel := &mockJwtModel{}
-// 	mockJwtModel.GenerateJWT(models.User{})
-// 	mockJwtModel.GetClaims(&gin.Context{})
-// 	body := `{"status": "Open"}`
-// 	req, _ := http.NewRequest("PATCH", "/1", bytes.NewBuffer([]byte(body)))
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
-// 	suite.Equal(http.StatusNoContent, w.Code)
-// }
+func (suite *TicketErrorTestSuite) TestPatchSuccess() {
+	suite.jwtMock.returnUser.Role = "admin"
+	body := `{"status": "Open"}`
+	req, _ := http.NewRequest("PATCH", "/1", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+	suite.Equal(http.StatusNoContent, w.Code)
+}
 
 // ---------------------------------------------------------------- GET TICKET DETAILS
 
@@ -481,6 +457,7 @@ func (suite *TicketErrorTestSuite) TestGetTicketListSuccess() {
 	suite.NotEmpty(result.Data)
 }
 
+
 func (suite *TicketErrorTestSuite) TestGetTicketListSuccess2() {
 	body := `{"limit": 10, "offset": 0}`
 	req, _ := http.NewRequest("POST", "/tickets", bytes.NewBuffer([]byte(body)))
@@ -494,3 +471,5 @@ func (suite *TicketErrorTestSuite) TestGetTicketListSuccess2() {
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Data)
 }
+
+

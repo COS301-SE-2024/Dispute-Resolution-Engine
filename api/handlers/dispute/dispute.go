@@ -556,3 +556,47 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 
 	c.JSON(http.StatusOK, models.Response{Data: "Expert objections reviewed successfully"})
 }
+
+func (h Dispute) SubmitWriteup(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+	if claims.Role != "expert" {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		logger.WithError(err).Error("Error parsing form")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to parse form data"})
+		return
+	}
+
+	if form.Value["decision"] == nil || len(form.Value["decision"]) == 0 {
+		logger.Error("missing field in form: decision")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: decision"})
+		return
+	}
+
+	file := form.File["writeup"]
+	if len(file) == 0 {
+		logger.Error("missing field in form: writeup")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: writeup"})
+		return
+	}
+	id := c.Param("id")
+	disputeId, err := strconv.Atoi(id)
+	if err != nil {
+		logger.WithError(err).Error("Invalid Dispute ID")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+	folder := fmt.Sprintf("%d", disputeId)
+	folderfolder := filepath.Join(folder, "decision")
+}

@@ -35,7 +35,6 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/:id/decision", h.SubmitWriteup)
 	g.PUT("/:id/status", h.UpdateStatus)
 
-
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
 
@@ -640,7 +639,6 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 		return
 	}
 
-
 	//get user properties from token
 	claims, err := h.JWT.GetClaims(c)
 	if err != nil {
@@ -678,7 +676,6 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Expert is not assigned to dispute"})
 		return
 	}
-
 
 	//create ticket
 	titleTicket := "Objection against " + admin.FirstName + " " + admin.Surname + "On Dispute " + disputeId
@@ -750,7 +747,6 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	c.JSON(http.StatusNoContent, models.Response{Data: "Expert objections reviewed successfully"})
 }
 
-
 func (h Dispute) SubmitWriteup(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	claims, err := h.JWT.GetClaims(c)
@@ -818,7 +814,7 @@ func (h Dispute) ViewExpertRejections(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	// get body of post
-	var req models.ViewExpetRejectionsRequest
+	var req models.ViewExpertRejectionsRequest
 	if err := c.BindJSON(&req); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Body"})
@@ -826,7 +822,7 @@ func (h Dispute) ViewExpertRejections(c *gin.Context) {
 	}
 
 	//query the database
-	rejections, err := h.Model.GetExpertRejections(req.Expert_id, req.Dispute_id, req.Limits, req.Offset)
+	rejections, err := h.Model.GetExpertRejections(req.ExpertId, req.DisputeId, req.Limits, req.Offset)
 	if err != nil {
 		logger.WithError(err).Error("Failed to retrieve expert rejections")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})

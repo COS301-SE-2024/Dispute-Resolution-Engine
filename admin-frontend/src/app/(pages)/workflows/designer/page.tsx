@@ -136,7 +136,7 @@ function Flow() {
 
 function InnerProvider() {
   const reactFlow: GraphInstance = useReactFlow();
-
+  const updateNodeInternals = useUpdateNodeInternals()
   const [result, setResult] = useState("");
   const [error, setError] = useState<string>();
 
@@ -147,14 +147,13 @@ function InnerProvider() {
   }
 
   async function fromWorkflow() {
-    let json;
+    let json: string;
     try {
       json = JSON.parse(result);
     } catch (e) {
       setError((e as Error).message);
       return;
     }
-
     const { data, error } = workflowSchema.safeParse(json);
     if (error) {
       setError(error.issues[0].message);
@@ -162,8 +161,22 @@ function InnerProvider() {
     }
 
     setError(undefined);
-
     const [nodes, edges] = await workflowToGraph(data);
+    let idTrack : number = 100
+    console.log("huh")
+    for(let edge of edges){
+      let sourceNode = nodes.find(node => node.id === edge.source)
+      let currHandleId : string = (idTrack++).toString()
+      sourceNode?.data.edges.push({id: currHandleId})
+      edge.sourceHandle = currHandleId
+    }
+    for (let node of nodes){
+      const viewPort = reactFlow.getViewport()
+      node.position = {
+        x: Math.floor(Math.random() * 500) + 1, 
+        y: Math.floor(Math.random() * 500) + 1, 
+      }
+    }
     reactFlow.setNodes(nodes);
     reactFlow.setEdges(edges);
   }

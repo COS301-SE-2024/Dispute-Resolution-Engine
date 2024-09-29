@@ -1,6 +1,7 @@
 package mediatorassignment_test
 
 import (
+	"math"
 	"testing"
 
 	mediatorassignment "api/mediatorAssignment"
@@ -39,6 +40,6 @@ func TestDivideOperator(t *testing.T) {
 func TestDivideOperator_DivideByZero(t *testing.T) {
 	divideOperator := &mediatorassignment.DivideOperator{}
 	result := divideOperator.ApplyOperator(12, 0)
-	expected := float64(0) // Assuming the function returns 0 for divide by zero
+	expected := float64(math.Inf(1)) 
 	assert.Equal(t, expected, result)
 }

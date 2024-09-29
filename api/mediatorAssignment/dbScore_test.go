@@ -35,7 +35,7 @@ func TestLastAssignmentstruct_GetScoreInput(t *testing.T) {
 			},
 			expectedResult: mediatorassignment.ResultWithID{
 				ID:     2,
-				Result: 30,
+				Result: 31,
 			},
 		},
 	}

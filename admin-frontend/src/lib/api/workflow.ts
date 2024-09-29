@@ -53,7 +53,7 @@ export async function getWorkflowDetails(id: number): Promise<WorkflowDetailsRes
   }).then(validateResult<WorkflowDetailsResponse>);
 }
 
-export async function updateWorkflow(id: string, req: WorkflowUpdateRequest): Promise<void> {
+export async function updateWorkflow(id: number, req: WorkflowUpdateRequest): Promise<void> {
   await sf(`${API_URL}/workflows/${id}`, {
     method: "PATCH",
     body: JSON.stringify(req),

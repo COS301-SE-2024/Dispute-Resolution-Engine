@@ -157,7 +157,7 @@ type State struct {
 	Description string `json:"description"`
 
 	// All the outgoing triggers of the state, keyed by their IDs
-	Triggers map[string]Trigger `json:"triggers,omitempty"`
+	Triggers map[string]Trigger `json:"events,omitempty"`
 
 	// The optional timer associated with a state
 	Timer *Timer `json:"timer,omitempty"`

@@ -26,7 +26,12 @@ import {
   WorkflowCreateRequest,
   Workflow,
 } from "@/lib/types";
-import { createWorkflow, graphToWorkflow, workflowToGraph } from "@/lib/api/workflow";
+import {
+  createWorkflow,
+  graphToWorkflow,
+  updateWorkflow,
+  workflowToGraph,
+} from "@/lib/api/workflow";
 import { workflowSchema } from "@/lib/schema/workflow";
 import { Textarea } from "@/components/ui/textarea";
 import WorkflowTitle from "@/components/workflow/workflow-title";
@@ -191,7 +196,7 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
   const updateNodeInternals = useUpdateNodeInternals();
   const [result, setResult] = useState("");
   const [error, setError] = useState<string>();
-  const [title, setTitle] = useState<string>("New Workflow");
+
   const [isSaved, setIsSaved] = useState<boolean>(false);
 
   async function toWorkflow() {
@@ -200,26 +205,39 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
     setResult(JSON.stringify(tempWorkflow, null, 2));
     setError(undefined);
   }
+
   async function saveWorkflow() {
-    const workflow = await graphToWorkflow(reactFlow.toObject());
-    workflow.initial = Object.keys(workflow.states)[0];
-    const wfRequest: WorkflowCreateRequest = {
-      name: title,
-      definition: workflow,
-    };
+    const definition = await graphToWorkflow(reactFlow.toObject());
+    definition.initial = Object.keys(definition.states)[0];
+
+    console.log(definition);
+    if (workflow) {
+      alert("Update");
+      await updateWorkflow(workflow.id, {
+        definition,
+      });
+    } else {
+      alert("Create");
+      await createWorkflow({ name: title, definition });
+    }
     setIsSaved(true);
-    const response = await createWorkflow(wfRequest);
+  }
+
+  const [title, setTitle] = useState(workflow?.name ?? "New Workflow");
+  async function commitTitle(value: string) {
+    if (!workflow) {
+      return;
+    }
+    await updateWorkflow(workflow.id, {
+      name: value,
+    });
+    setTitle(value);
   }
 
   return (
     <div className="h-full grid grid-cols-[1fr_3fr] grid-rows-[auto_1fr]">
       <div className="col-span-2 border-b dark:border-primary-500/30 border-primary-500/20 flex items-center gap-2">
-        <WorkflowTitle
-          value={title}
-          onValueChange={(value) => {
-            setTitle(value);
-          }}
-        />
+        <WorkflowTitle value={title} onValueChange={commitTitle} />
         <Button variant="ghost" title="Save" onClick={saveWorkflow}>
           <SaveIcon size="1.2rem" />
         </Button>

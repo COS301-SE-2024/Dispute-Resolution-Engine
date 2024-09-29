@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  ActiveWorkflow,
   AdminDisputesRequest,
   AdminDisputesResponse,
   DisputeDetailsResponse,
@@ -47,5 +48,45 @@ export async function changeDisputeStatus(id: number, status: DisputeStatus): Pr
     body: JSON.stringify({
       status,
     }),
+  });
+}
+
+export async function getDisputeWorkflow(id: number): Promise<ActiveWorkflow> {
+  return sf(`${API_URL}/disputes/${id}/workflow`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  })
+    .then(validateResult<ActiveWorkflow>)
+    .then((res) => {
+      console.log(res);
+      return res;
+    });
+}
+
+export async function changeDisputeState(id: number, state: string): Promise<void> {
+  await sf(`${API_URL}/workflows/reset`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      dispute_id: id,
+      current_state: state,
+    }),
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  });
+}
+
+export async function changeDisputeDeadline(id: number, date: Date): Promise<void> {
+  await sf(`${API_URL}/workflows/reset`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      dispute_id: id,
+      deadline: date.toISOString(),
+    }),
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
   });
 }

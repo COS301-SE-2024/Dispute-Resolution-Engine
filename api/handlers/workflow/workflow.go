@@ -565,6 +565,8 @@ func (w Workflow) ResetActiveWorkflow(c *gin.Context) {
 	payload := OrchestratorResetRequest{ID: *resetActiveWorkflow.DisputeID, CurrentState: resetActiveWorkflow.CurrentState, Deadline: resetActiveWorkflow.Deadline}
 
 	body, err := w.OrchestratorEntity.SendResetRequestToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, resetEndpoint), payload)
+	logger.Info("Body: ", body)
+	logger.Info("Error: ", err)
 	if err != nil {
 		if strings.Contains(body, "deadline") {
 			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid deadline specified"})

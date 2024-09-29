@@ -16,14 +16,14 @@ import (
 func SetupTicketRoutes(g *gin.RouterGroup, h Ticket) {
 	jwt := middleware.NewJwtMiddleware()
 	g.Use(jwt.JWTMiddleware)
-	g.POST("", h.getTicketList)
-	g.GET("/:id", h.getUserTicketDetails)
-	g.PATCH("/:id", h.patchTicketStatus)
-	g.POST("/:id/messages", h.createTicketMessage)
-	g.POST("/create", h.createTicket)
+	g.POST("", h.GetTicketList)
+	g.GET("/:id", h.GetUserTicketDetails)
+	g.PATCH("/:id", h.PatchTicketStatus)
+	g.POST("/:id/messages", h.CreateTicketMessage)
+	g.POST("/create", h.CreateTicket)
 }
 
-func (h Ticket) createTicket(c *gin.Context) {
+func (h Ticket) CreateTicket(c *gin.Context) {
 	var createReq models.TicketCreate
 	logger := utilities.NewLogger().LogWithCaller()
 	if err := c.BindJSON(&createReq); err != nil {
@@ -65,7 +65,7 @@ func (h Ticket) createTicket(c *gin.Context) {
 
 }
 
-func (h Ticket) createTicketMessage(c *gin.Context) {
+func (h Ticket) CreateTicketMessage(c *gin.Context) {
 	var tickReq models.TicketMessageCreate
 	logger := utilities.NewLogger().LogWithCaller()
 	if err := c.BindJSON(&tickReq); err != nil {
@@ -112,7 +112,7 @@ func (h Ticket) createTicketMessage(c *gin.Context) {
 
 }
 
-func (h Ticket) patchTicketStatus(c *gin.Context) {
+func (h Ticket) PatchTicketStatus(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	claims, err := h.JWT.GetClaims(c)
@@ -153,7 +153,7 @@ func (h Ticket) patchTicketStatus(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
-func (h Ticket) getUserTicketDetails(c *gin.Context) {
+func (h Ticket) GetUserTicketDetails(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	ticketID := c.Param("id")
@@ -209,7 +209,7 @@ func (h Ticket) getUserTicketDetails(c *gin.Context) {
 
 }
 
-func (h Ticket) getTicketList(c *gin.Context) {
+func (h Ticket) GetTicketList(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	claims, err := h.JWT.GetClaims(c)
 

@@ -153,6 +153,7 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 	//check if current is valid if not nil
 	if Res.CurrentState != nil {
 		if _, exists := wf.States[*Res.CurrentState]; !exists {
+			h.logger.Error("Invalid state provided")
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "Invalid state provided",
 			})
@@ -169,15 +170,25 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 			h.logger.Info("State deadline: ", active_wf_record.StateDeadline)
 		}
 
+	} else {
+		//set to current state form database
+		wf.Initial = active_wf_record.CurrentState
+		if wf.States[wf.Initial].Timer != nil {
+			h.logger.Info("State has a timer")
+			active_wf_record.StateDeadline = time.Now().Add(wf.States[wf.Initial].Timer.Duration.Duration)
+			h.logger.Info("State deadline: ", active_wf_record.StateDeadline)
+		}
 	}
 
 	// If only the deadline is provided, use the current state from the record
 	stateToUpdate := active_wf_record.CurrentState
 	if Res.Deadline != nil{
 		if wf.States[stateToUpdate].Timer == nil {
+			h.logger.Error("State Has No Timer")
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "State Has No Timer",
 			})
+			return
 		}
 
 		// Check if the deadline is in the future
@@ -187,6 +198,7 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 			// Update the timer duration using either the provided state or the current state from the record
 			wf.States[stateToUpdate].Timer.Duration.Duration = time.Until(*Res.Deadline)
 		} else {
+			h.logger.Error("State deadline is in the past")
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "State deadline is in the past",
 			})

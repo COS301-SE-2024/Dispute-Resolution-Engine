@@ -43,7 +43,7 @@ export interface Workflow extends WorkflowSummary {
   definition: WorkflowDefinition;
 }
 
-export interface    WorkflowDefinition {
+export interface WorkflowDefinition {
   initial: string;
   states: {
     [key: string]: State;
@@ -69,14 +69,15 @@ export interface Event {
   next_state: string;
 }
 
-export interface ActiveWorkflow extends Workflow {
-  current_state: {
-    // The ID of the current state
-    id: string;
+export interface ActiveWorkflow {
+  id: number;
+  workflow: number;
+  date_submitted: string;
 
-    // The deadline of the current state (if any)
-    deadline?: string;
-  };
+  current_state: string;
+  current_deadline?: string;
+
+  definition: WorkflowDefinition;
 }
 
 export interface WorkflowListRequest {

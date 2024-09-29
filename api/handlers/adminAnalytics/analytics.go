@@ -3,6 +3,7 @@ package adminanalytics
 import (
 	"api/models"
 	"api/utilities"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -81,17 +82,22 @@ func (h AdminAnalyticsHandler) GetTableStats(c *gin.Context) {
 		return
 	}
 
+	var groupBy *string
+	var column *string
 	var value interface{}
+
+	groupBy = body.Group
 	if body.Where != nil {
 		// If Where is provided, use its value. Otherwise, leave value as nil.
 		value = body.Where.Value
+		column = &body.Where.Column
 	}
 
 	// Call the CountRecordsWithGroupBy function
-	resCount, err := h.DB.CountRecordsWithGroupBy(table, &body.Where.Column, &value, body.Group)
+	resCount, err := h.DB.CountRecordsWithGroupBy(table, column, &value, groupBy)
 	if err != nil {
 		logger.WithError(err).Error("Failed to count records")
-		c.JSON(500, models.Response{Error: "Failed to count records"})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to count records"})
 		return
 	}
 

@@ -201,8 +201,7 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
 
   async function toWorkflow() {
     const workflow = await graphToWorkflow(reactFlow.toObject());
-    const tempWorkflow = { ...workflow, label: "asdf" };
-    setResult(JSON.stringify(tempWorkflow, null, 2));
+    setResult(JSON.stringify(workflow, null, 2));
     setError(undefined);
   }
 

@@ -77,14 +77,19 @@ export async function graphToWorkflow({
   edges,
 }: ReactFlowJsonObject<GraphState, GraphTrigger>): Promise<WorkflowDefinition> {
   // console.log(nodes, edges);
+  const initial = nodes.find((state) => state.data.initial)?.id;
+  if (!initial) {
+    throw new Error("No initial state!");
+  }
+
   return {
-    initial: "Im not sure",
+    initial: initial,
     states: Object.fromEntries(
       nodes.map((node) => [
         node.id,
         {
           label: node.data.label,
-          description: "sure bud",
+          description: node.data.description,
           events: Object.fromEntries(
             edges
               .filter((edge) => edge.source == node.id)
@@ -128,6 +133,8 @@ export async function workflowToGraph(
       type: "customNode",
       data: {
         label: workflow.states[id].label,
+        initial: workflow.initial == id ? true : undefined,
+        description: workflow.states[id].description,
         edges: [],
       },
       position: { x: 0, y: 0 },

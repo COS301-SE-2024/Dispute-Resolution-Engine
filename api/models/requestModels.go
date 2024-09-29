@@ -278,3 +278,7 @@ type NotifyEventOrchestrator struct {
 	ActiveWorkflowID *int64  `json:"id"`
 	CurrentState     *string `json:"current_state"`
 }
+
+type AdminGroupingAnalytics struct {
+	Group *string `json:"group"`
+}

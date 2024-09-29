@@ -41,6 +41,41 @@ func (h AdminAnalyticsHandler) GetDisputeGrouping(c *gin.Context) {
 		return
 	}
 
+	// Parse the request body
+	var groupingRequest models.AdminGroupingAnalytics
+	if err := c.BindJSON(&groupingRequest); err != nil {
+		logger.WithError(err).Error("Failed to parse request body")
+		c.JSON(400, models.Response{Error: "Failed to parse request body"})
+		return
+	}
+
+	if groupingRequest.Group == nil || (*groupingRequest.Group != "status" && *groupingRequest.Group != "country") {
+		logger.Error("Invalid request body")
+		c.JSON(400, models.Response{Error: "Invalid request body"})
+		return
+	}
+
+	if *groupingRequest.Group == "status" {
+		grouping, err := h.DB.GetDisputeGroupingByStatus()
+		if err != nil {
+			logger.WithError(err).Error("Failed to get dispute grouping by status")
+			c.JSON(500, models.Response{Error: "Failed to get dispute grouping by status"})
+			return
+		}
+
+		c.JSON(200, models.Response{Data: grouping})
+		return
+	} else {
+		grouping, err := h.DB.GetDisputeGroupingByCountry()
+		if err != nil {
+			logger.WithError(err).Error("Failed to get dispute grouping by country")
+			c.JSON(500, models.Response{Error: "Failed to get dispute grouping by country"})
+			return
+		}
+
+		c.JSON(200, models.Response{Data: grouping})
+		return
+	}
 }
 
 func (h AdminAnalyticsHandler) GetTableStats(c *gin.Context) {

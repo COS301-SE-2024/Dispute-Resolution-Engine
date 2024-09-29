@@ -24,15 +24,24 @@ type Expert = {
   phone: string;
   role: string;
 };
+
+type UserDetails = {
+  name: string;
+  email: string;
+  address: string;
+}
+
 ```
+
 # Utility Functions
+
 - **Endpoint:** `GET /utils/dispute_statuses`
 - **Headers:**
   - None expected
 - Will return a list of all possible states a dispute can be in:
 
 ```ts
-  type DisputeStatusesResponse = string[];
+type DisputeStatusesResponse = string[];
 ```
 
 # Dispute Summaries
@@ -65,6 +74,10 @@ type DisputeResponse = {
 
   evidence: Evidence[];
   experts: Expert[];
+
+  role: string;
+  complainant: UserDetails;
+  respondent: UserDetails; 
 };
 ```
 
@@ -76,21 +89,22 @@ type DisputeResponse = {
 
 ```ts
 type DisputeCreateRequest = {
-  title : string;
-  description : string;
-  respondent[full_name] : string;
-  respondent[email] : string;
-  respondent[telephone] : string;
-  files : File
+  title: string;
+  description: string;
+  "respondent[full_name]": string;
+  "respondent[email]": string;
+  "respondent[telephone]": string;
+  "respondent[workflow]": string;
+  files: File;
 };
 ```
 
 The response will return the ID of the newly-created dispute:
 
 ```ts
-type DisputeCreateResponse  = {
+type DisputeCreateResponse = {
   id: number;
-}
+};
 ```
 
 # Dispute Evidence upload
@@ -110,63 +124,28 @@ interface EvidenceUploadRequest {
 
 # Dispute Status Change
 
-- **Endpoint:** `PUT /dispute/status`
+- **Endpoint:** `PUT /disputes/{id}/status`
 - **Headers:**
   - `Authorization: Bearer <JWT>`
 
-````ts
+```ts
 type UpdateRequest = {
-  dispute_id : int;
-  status : string;
+  status: string;
 };
-
-# Dispute Negotiating Party Operations
-
-## Approving
-- **Endpoint:** `POST /disputes/{id}/experts/approve`
-- **Headers:**
-    - `Authorization: Bearer <JWT>`
-
-```ts
-interface ExpertApproveRequest {
-  expert_id: string;
-}
-````
-
-The response will return a success message
-
-```ts
-type ExpertApproveResponse = string;
 ```
 
-## Rejecting
+# Dispute decision
 
-- **Endpoint:** `POST /disputes/{id}/experts/reject`
+- **Endpoint:** `POST /disputes/{id}/decision`
 - **Headers:**
   - `Authorization: Bearer <JWT>`
+- **Note:** The endpoint uses `multipart/form-data` instead of JSON, so the interface below serves only as a guideline
 
 ```ts
-interface ExpertRejectRequest {
-  expert_id: string;
-  reason: string;
+interface DisputeDecisionRequest {
+  decision: DisputeDecision;
+  writeup: File;
 }
 ```
 
-The response will return a success message
-
-```ts
-type ExpertRejectResponse = string;
-```
-
-## Reviewing Rejection
-
-- **Endpoint:** `POST /disputes/{id}/experts/review-rejection`
-- **Headers:**
-  - `Authorization: Bearer <JWT>`
-
-```ts
-interface ExpertRejectRequest {
-  expert_id: string;
-  accepted: boolean;
-}
-```
+Respond with an HTTP code 204 (no content).

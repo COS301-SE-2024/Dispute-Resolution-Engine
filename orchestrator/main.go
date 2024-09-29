@@ -1,33 +1,43 @@
 package main
 
 import (
-	"fmt"
-	"orchestrator/db"
-	"orchestrator/env"
-	"orchestrator/utilities"
+	"orchestrator/controller"
+	"orchestrator/handlers"
+	"orchestrator/workflow"
+
+	"github.com/gin-gonic/gin"
 )
 
-var requiredEnvVariables = []string{
-	// PostGres-related variables
-	"DATABASE_URL",
-	"DATABASE_PORT",
-	"DATABASE_USER",
-	"DATABASE_PASSWORD",
-	"DATABASE_NAME",
-}
-
 func main() {
-	fmt.Println("Hello, World!")
-	logger := utilities.NewLogger().LogWithCaller()
-	env.LoadFromFile(".env", "api.env")
+	router := gin.Default()
 
-	for _, key := range requiredEnvVariables {
-		env.Register(key)
-	}
+	// Create a new query engine instance
+	queryEngine := workflow.CreateWorkflowQuery()
 
-	DB, err := db.Init()
-	if err != nil {
-		logger.WithError(err).Fatal("Couldn't initialize database connection")
-	}
-	fmt.Println(DB)
+	// Create a new controller instance
+	controller := controller.NewController()
+
+	// Start the controller
+	controller.Start()
+
+	// Create a new handler instance
+	apiHandler := workflow.CreateAPIWorkflow(queryEngine)
+	handlers := handlers.NewHandler(controller, &apiHandler)
+
+	// Add notify of update state machine handler
+	router.POST("/restart", handlers.RestartStateMachine)
+
+	// Add notify of START state machine handler
+	router.POST("/start", handlers.StartStateMachine)
+
+	// Add notify of EVENT state machine handler
+	router.POST("/event", handlers.TransitionStateMachine)
+
+	// Add triggers endpoint
+	router.GET("/triggers", handlers.GetTriggers)
+
+	router.Run(":8090")
+
+	// Wait for a signal to shutdown
+	controller.WaitForSignal()
 }

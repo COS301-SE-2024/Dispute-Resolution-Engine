@@ -5,6 +5,7 @@ import (
 	"api/utilities"
 	"encoding/base64"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -93,7 +94,7 @@ func (h User) UpdateUser(c *gin.Context) {
 	var updateUser models.UpdateUser
 	if err := c.BindJSON(&updateUser); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Something went wrong..."})
 		return
 	}
 
@@ -149,7 +150,7 @@ func (h User) RemoveAccount(c *gin.Context) {
 	var user models.DeleteUser
 	if err := c.BindJSON(&user); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
 		return
 	}
 
@@ -202,7 +203,7 @@ func (h User) UpdateUserAddress(c *gin.Context) {
 	var updateUserAddress models.UpdateAddress
 	if err := c.BindJSON(&updateUserAddress); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
 		return
 	}
 	//retrieve the record from the database
@@ -282,19 +283,7 @@ func (h *Handler) UserAnalyticsEndpoint(c *gin.Context) {
 	// Add WHERE clauses for column-value comparisons
 	if analyticsReq.ColumnvalueComparisons != nil {
 		for _, cvc := range *analyticsReq.ColumnvalueComparisons {
-			query = query.Where(cvc.Column+" LIKE ?", "%"+cvc.Value+"%")
-		}
-	}
-
-	// Add ORDER BY clauses
-	if analyticsReq.OrderBy != nil {
-		for _, ob := range *analyticsReq.OrderBy {
-			switch ob.Order {
-			case "asc":
-				query = query.Order(ob.Column + " ASC")
-			case "desc":
-				query = query.Order(ob.Column + " DESC")
-			}
+			query = query.Where(cvc.Column+"::text LIKE ?", "%"+cvc.Value+"%")
 		}
 	}
 
@@ -316,27 +305,50 @@ func (h *Handler) UserAnalyticsEndpoint(c *gin.Context) {
 		}
 	}
 
-	// Add GROUP BY clauses
-	if analyticsReq.GroupBy != nil {
-		for _, gb := range *analyticsReq.GroupBy {
-			query = query.Group(gb)
+	// Add GROUP BY clauses and SELECT columns if Count is true
+	if analyticsReq.Count {
+		if analyticsReq.GroupBy != nil {
+			groupByColumns := strings.Join(*analyticsReq.GroupBy, ", ")
+			selectColumns := groupByColumns + ", COUNT(*) as count"
+			query = query.Select(selectColumns).Group(groupByColumns)
+		} else {
+			query = query.Select("COUNT(*) as count")
+		}
+	} else {
+		if analyticsReq.GroupBy != nil {
+			groupByColumns := strings.Join(*analyticsReq.GroupBy, ", ")
+			query = query.Select(groupByColumns).Group(groupByColumns)
+		} else {
+			query = query.Select("*")
+		}
+	}
+
+	// Add ORDER BY clauses
+	if analyticsReq.OrderBy != nil {
+		for _, ob := range *analyticsReq.OrderBy {
+			switch ob.Order {
+			case "asc":
+				query = query.Order(ob.Column + " ASC")
+			case "desc":
+				query = query.Order(ob.Column + " DESC")
+			}
 		}
 	}
 
 	// Execute the query based on count or fetch all records
 	if analyticsReq.Count {
-		var count int64
-		if err := query.Count(&count).Error; err != nil {
+		var results []map[string]interface{}
+		if err := query.Find(&results).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to fetch user count"})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"count": count})
+		c.JSON(http.StatusOK, models.Response{Data: results})
 	} else {
-		var users []models.User
-		if err := query.Find(&users).Error; err != nil {
+		var results []map[string]interface{}
+		if err := query.Find(&results).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to fetch users"})
 			return
 		}
-		c.JSON(http.StatusOK, models.Response{Data: users})
+		c.JSON(http.StatusOK, models.Response{Data: results})
 	}
 }

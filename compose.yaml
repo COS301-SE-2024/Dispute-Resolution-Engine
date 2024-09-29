@@ -17,6 +17,11 @@ services:
     - "traefik.http.routers.fe.entrypoints=${ENTRY_POINTS}"
     - "traefik.http.routers.fe.middlewares=clickJack@docker"
     - "${FE_CA}"
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
   admin-frontend: # --------------------------------------------------------- Admin Frontend
     build: ./admin-frontend
     ports:
@@ -25,6 +30,10 @@ services:
       - fe.env
     depends_on:
       - "api"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
     develop:
       watch:
         - action: rebuild
@@ -69,12 +78,16 @@ services:
       - "3000:3000" # Changed Grafana's port to avoid conflict with frontend
     volumes:
       - grafana-data:/var/lib/grafana
-    restart: unless-stopped
     labels:
     - "traefik.enable=true"
     - "traefik.http.routers.grafana.rule=Host(`${DOMAIN}`) && PathPrefix(`/grafana`)"
     - "traefik.http.routers.grafana.entrypoints=${ENTRY_POINTS}"
     - "${GRAF_CA}"
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
   api: # ------------------------------------------------------------------API
     build: ./api
     ports:
@@ -90,7 +103,6 @@ services:
       watch:
         - action: rebuild
           path: ./api
-    restart: unless-stopped
     logging:
       driver: loki
       options:
@@ -98,6 +110,11 @@ services:
         mode: non-blocking
         max-buffer-size: 4m
         loki-retries: "3"
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
   orchestrator: # ---------------------------------------------------Orchestrator
     build: ./orchestrator
     ports:
@@ -106,6 +123,22 @@ services:
       - api.env
     depends_on:
       - "postgres"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./orchestrator
+    logging:
+      driver: loki
+      options:
+        loki-url: http://loki:3100/loki/api/v1/push
+        mode: non-blocking
+        max-buffer-size: 4m
+        loki-retries: "3"
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
   postgres: # ----------------------------------------------------------Postgres
     image: postgres
     ports:
@@ -115,6 +148,11 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
   redis-cache: # --------------------------------------------------------Redis
     image: redis
     ports:
@@ -122,6 +160,11 @@ services:
     env_file:
       - red.env
     command: sh -c 'redis-server --requirepass "$$REDIS_PASSWORD"'
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
   prometheus: # ----------------------------------------------------------Prometheus
     image: docker.io/prom/prometheus
     container_name: prometheus
@@ -131,7 +174,11 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
-    restart: unless-stopped
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
   cadvisor: # -----------------------------------------------------------Cadvisor
     image: gcr.io/cadvisor/cadvisor
     container_name: cadvisor
@@ -148,7 +195,11 @@ services:
       - 8081:8080
     environment:
       - allowlisted_container_labels=com.docker.swarm.service.name
-    restart: unless-stopped
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
   loki: # ---------------------------------------------------------------Loki
     image: grafana/loki
     ports:
@@ -160,6 +211,11 @@ services:
       - source: loki-config
         target: /etc/loki/loki-config.yaml
     user: root
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
   promtail: # -----------------------------------------------------------Promtail
     image: grafana/promtail
     volumes:
@@ -173,6 +229,11 @@ services:
     labels:
       - "traefik.enable=false"
 
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
 volumes: # ---------------------------------------------------------------Volumes
   pgdata:
   evi_files:

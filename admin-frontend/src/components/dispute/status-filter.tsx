@@ -12,13 +12,15 @@ import {
 import { DISPUTE_STATUS, DisputeStatus } from "@/lib/types";
 
 export default function StatusFilter({
+  initialValue,
   onValueChange = () => {},
 }: {
   onValueChange?: (status: DisputeStatus | undefined) => void;
+  initialValue?: DisputeStatus;
 }) {
   return (
     <Select
-      defaultValue="none"
+      defaultValue={initialValue ?? "none"}
       onValueChange={(val) => onValueChange(val === "none" ? undefined : (val as DisputeStatus))}
     >
       <SelectTrigger className="w-[180px]">

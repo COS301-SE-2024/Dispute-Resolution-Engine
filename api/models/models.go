@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 )
 
@@ -15,9 +16,9 @@ type User struct {
 	PasswordHash      string     `json:"password,omitempty" gorm:"type:varchar(255);not null;column:password_hash"`      //Updated by API
 	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20);column:phone_number"`             //need
 	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`                                  //what the fuck
-	CreatedAt         time.Time  `gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`                     //Filled in by API
-	UpdatedAt         *time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:updated_at"`                     //Filled in by API
-	LastLogin         *time.Time `gorm:"type:timestamp;column:last_login"`                                               //Filled in by API
+	CreatedAt         time.Time  `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`   //Filled in by API
+	UpdatedAt         *time.Time `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:updated_at"`   //Filled in by API
+	LastLogin         *time.Time `json:"last_login" gorm:"type:timestamp;column:last_login"`                             //Filled in by API
 	Status            string     `json:"status" gorm:"type:varchar(20);default:'active';column:status"`                  //Filled in by API
 	Gender            string     `json:"gender" gorm:"type:gender_enum;column:gender"`                                   //check
 	PreferredLanguage *string    `json:"preferred_language,omitempty" gorm:"type:varchar(50);column:preferred_language"` //worked on
@@ -47,30 +48,65 @@ type ArchivedDispute struct {
 	Events []Event `json:"events"`
 }
 
-type dispute_decision string
+
+type DisputeStatus string
 
 const (
-	Resolved   dispute_decision = "Resolved"
-	Unresolved dispute_decision = "Unresolved"
-	Settled    dispute_decision = "Settled"
-	Refused    dispute_decision = "Refused"
-	Withdrawn  dispute_decision = "Withdrawn"
-	Transfer   dispute_decision = "Transfer"
-	Appeal     dispute_decision = "Appeal"
-	Other      dispute_decision = "Other"
+	StatusAwaitingRespondant DisputeStatus = "Awaiting Respondant"
+	StatusActive             DisputeStatus = "Active"
+	StatusReview             DisputeStatus = "Review"
+	StatusSettled            DisputeStatus = "Settled"
+	StatusRefused            DisputeStatus = "Refused"
+	StatusWithdrawn          DisputeStatus = "Withdrawn"
+	StatusTransfer           DisputeStatus = "Transfer"
+	StatusAppeal             DisputeStatus = "Appeal"
+	StatusOther              DisputeStatus = "Other"
 )
 
 type Dispute struct {
-	ID          *int64           `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
-	CaseDate    time.Time        `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
-	Workflow    *int64           `json:"workflow" gorm:"column:workflow"`
-	Status      string           `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
-	Title       string           `json:"title" gorm:"type:varchar(255);not null;column:title"`
-	Description string           `json:"description" gorm:"type:text;column:description"`
-	Complainant int64            `json:"complainant" gorm:"column:complainant"`
-	Respondant  *int64           `json:"respondant" gorm:"column:respondant"`
-	Resolved    bool             `json:"resolved" gorm:"default:false;column:resolved"`
-	Decision    dispute_decision `json:"decision" gorm:"type:dispute_decision_enum;default:'Unresolved';column:decision"`
+	ID           *int64        `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	CaseDate     time.Time     `json:"case_date" gorm:"type:date;default:CURRENT_DATE;column:case_date"`
+	Workflow     *int64        `json:"workflow" gorm:"column:workflow"`
+	Status       DisputeStatus `json:"status" gorm:"type:dispute_status_enum;default:'Awaiting Respondant';column:status"`
+	Title        string        `json:"title" gorm:"type:varchar(255);not null;column:title"`
+	Description  string        `json:"description" gorm:"type:text;column:description"`
+	Complainant  int64         `json:"complainant" gorm:"column:complainant"`
+	Respondant   *int64        `json:"respondant" gorm:"column:respondant"`
+	DateResolved *time.Time    `json:"date_resolved" gorm:"type:timestamp;column:date_resolved"`
+}
+
+type Workflow struct {
+	ID          uint64          `gorm:"primaryKey;autoIncrement"`
+	Name        string          `gorm:"type:varchar(100);not null"`
+	Definition  json.RawMessage `gorm:"column:definition;type:jsonb"`
+	CreatedAt   time.Time       `gorm:"autoCreateTime"`
+	LastUpdated time.Time       `gorm:"autoUpdateTime"`
+	AuthorID    int64           `gorm:"column:author"`
+	Author      *User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
+}
+
+func (Workflow) TableName() string {
+	return "workflows"
+}
+
+type Tag struct {
+	ID      uint64 `gorm:"primaryKey;autoIncrement"`
+	TagName string `gorm:"type:varchar(100);not null"`
+}
+
+func (Tag) TableName() string {
+	return "tags"
+}
+
+type WorkflowTags struct {
+	WorkflowID uint64   `gorm:"primaryKey;column:workflow_id"`
+	TagID      uint64   `gorm:"primaryKey;column:tag_id"`
+	Workflow   Workflow `gorm:"foreignKey:WorkflowID"`
+	Tag        Tag      `gorm:"foreignKey:TagID"`
+}
+
+func (WorkflowTags) TableName() string {
+	return "workflow_tags"
 }
 
 type DisputeSummaries struct {
@@ -98,7 +134,7 @@ const (
 	Disputes     EventTypes = "DISPUTE"
 	Users        EventTypes = "USER"
 	Experts      EventTypes = "EXPERT"
-	Workflow     EventTypes = "WORKFLOW"
+	Workflows    EventTypes = "WORKFLOW"
 )
 
 // EventLog represents the event_log table
@@ -138,43 +174,21 @@ func (Country) TableName() string {
 	return "countries"
 }
 
-type Response struct {
-	Data  interface{} `json:"data,omitempty"`
-	Error string      `json:"error,omitempty"`
-}
-
-type ExpertVote string
-
-const (
-	Pending  ExpertVote = "Pending"
-	Approved ExpertVote = "Approved"
-	Rejected ExpertVote = "Rejected"
-)
-
 type ExpertStatus string
 
 const (
-	ApprovedStatus ExpertStatus = "Approved"
-	RejectedStatus ExpertStatus = "Rejected"
-	ReviewStatus   ExpertStatus = "Review"
+	ExpertApproved ExpertStatus = "Approved"
+	ExpertReview   ExpertStatus = "Review"
+	ExpertRejected ExpertStatus = "Rejected"
 )
 
 type DisputeExpert struct {
-	Dispute int64 `gorm:"primaryKey;column:dispute;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
-	User    int64 `gorm:"primaryKey;column:user;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	Dispute int64        `gorm:"primaryKey;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	Expert  int64        `gorm:"primaryKey;type:bigint;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;references:id"`
+	Status  ExpertStatus `gorm:"<-:false;type:expert_status`
 }
 
 func (DisputeExpert) TableName() string {
-	return "dispute_experts"
-}
-
-type DisputeExpertView struct {
-	Dispute int64        `gorm:"->`
-	Expert  int64        `gorm:"->`
-	Status  ExpertStatus `gorm:"->;type:expert_status`
-}
-
-func (DisputeExpertView) TableName() string {
 	return "dispute_experts_view"
 }
 
@@ -202,21 +216,77 @@ func (DisputeEvidence) TableName() string {
 type ExpObjStatus string
 
 const (
-	Review    ExpObjStatus = "Review"
-	Sustained ExpObjStatus = "Sustained"
-	Overruled ExpObjStatus = "Overruled"
+	ObjectionReview    ExpObjStatus = "Review"
+	ObjectionSustained ExpObjStatus = "Sustained"
+	ObjectionOverruled ExpObjStatus = "Overruled"
 )
 
 type ExpertObjection struct {
-	ID        int64        `gorm:"primaryKey;autoIncrement" json:"id"`
-	CreatedAt time.Time    `gorm:"autoCreateTime" json:"created_at"`
-	DisputeID int64        `gorm:"not null" json:"dispute_id"`
-	ExpertID  int64        `gorm:"not null" json:"expert_id"`
-	UserID    int64        `gorm:"not null" json:"user_id"`
-	Reason    string       `gorm:"type:text" json:"reason"`
-	Status    ExpObjStatus `gorm:"type:exp_obj_status;default:'Review'" json:"status"`
+	ID       int64        `gorm:"primaryKey;autoIncrement" json:"id"`
+	ExpertID int64        `gorm:"not null" json:"expert_id"`
+	TicketID int64        `gorm:"not null" json:"ticket_id"`
+	Status   ExpObjStatus `gorm:"type:exp_obj_status;default:'Review'" json:"status"`
 }
 
 func (ExpertObjection) TableName() string {
 	return "expert_objections"
+}
+
+type DisputeDecisions struct {
+	ID        int64     `json:"id" gorm:"primaryKey;autoIncrement;column:id"`
+	DisputeID int64     `json:"dispute_id" gorm:"column:dispute_id"`
+	ExpertID  int64     `json:"expert_id" gorm:"column:expert_id"`
+	WriteUpID int64     `json:"write_up_id" gorm:"column:writeup_file_id"`
+	CreatedAt time.Time `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`
+}
+
+type Ticket struct {
+	ID             int64     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
+	CreatedAt      time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
+	CreatedBy      int64     `gorm:"not null;column:created_by" json:"created_by"`
+	DisputeID      int64     `gorm:"not null;column:dispute_id" json:"dispute_id"`
+	Subject        string    `gorm:"not null;type:varchar(255);column:subject" json:"subject"`
+	Status         string    `gorm:"not null;type:ticket_status_enum;column:status" json:"status"`
+	InitialMessage string    `gorm:"type:text;column:initial_message" json:"initial_message"`
+}
+
+type TicketMessages struct {
+	ID        int64     `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
+	UserID    int64     `gorm:"not null;column:user_id" json:"user_id"`
+	CreatedAt time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
+	Content   string    `gorm:"type:text;not null;column:content" json:"content"`
+	FirstName string    `gorm:"type:varchar(50);column:first_name" json:"first_name"`
+	Surname   string    `gorm:"type:varchar(50);column:surname" json:"surname"`
+}
+
+type ActiveWorkflows struct {
+	ID               int64           `gorm:"primaryKey;autoIncrement"`
+	Workflow         int64           `gorm:"not null"`                               // Foreign Key to Workflow
+	CurrentState     string          `gorm:"column:current_state;type:varchar(255)"` // Current State
+	DateSubmitted    time.Time       `gorm:"column:date_submitted;type:timestamp"`   // Date the workflow was submitted
+	StateDeadline    time.Time       `gorm:"column:state_deadline;type:timestamp"`   // Deadline for the current state
+	WorkflowInstance json.RawMessage `gorm:"type:jsonb"`
+}
+
+func (ActiveWorkflows) TableName() string {
+	return "active_workflows"
+}
+
+// ExpertObjectionsView represents the expert_objections_view SQL view.
+type ExpertObjectionsView struct {
+	ObjectionID     int       `gorm:"column:objection_id" json:"id"`                  // ID of the objection
+	TicketID        int       `gorm:"column:ticket_id" json:"ticket_id"`              // ID of the related ticket
+	TicketCreatedAt time.Time `gorm:"column:ticket_created_at" json:"date_submitted"` // Created date of the ticket
+	DisputeID       int       `gorm:"column:dispute_id"`                              // ID of the associated dispute
+	DisputeTitle    string    `gorm:"column:dispute_title"`                           // Title of the dispute
+	ExpertID        int       `gorm:"column:expert_id"`                               // ID of the expert being objected to
+	ExpertFullName  string    `gorm:"column:expert_full_name" json:"expert_name"`     // Full name of the expert
+	UserID          int       `gorm:"column:user_id"`                                 // ID of the user creating the objection
+	UserFullName    string    `gorm:"column:user_full_name" json:"user_name"`         // Full name of the user creating the objection
+	ObjectionStatus string    `gorm:"column:objection_status" json:"status"`          // Status of the objection (Review, Sustained, Overruled)
+}
+
+// TableName overrides the table name for GORM to map it to the view.
+func (ExpertObjectionsView) TableName() string {
+	return "expert_objections_view"
 }

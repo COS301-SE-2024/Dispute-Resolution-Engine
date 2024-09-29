@@ -219,6 +219,7 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
           definition,
         });
       } else {
+        alert("Create");
         await createWorkflow({ name: title, definition });
       }
       setIsSaved(true);

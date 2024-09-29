@@ -1,7 +1,7 @@
 "use client";
 import { Handle, Node, NodeProps, Position, useReactFlow } from "@xyflow/react";
 import { FormEvent, ReactNode, useId, useRef, useState } from "react";
-import { BookOpenIcon, CirclePlus, CircleX, ClockIcon, Pencil } from "lucide-react";
+import { BookOpenIcon, CirclePlus, CircleX, ClockIcon, Pencil, TrashIcon } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -100,6 +100,11 @@ export default function CustomNode(data: NodeProps<GraphState>) {
       timer: dur,
     });
   }
+  function removeNodeTimer() {
+    reactFlow.updateNodeData(data.id, {
+      timer: undefined,
+    });
+  }
 
   return (
     <Card className="min-w-48">
@@ -155,17 +160,30 @@ export default function CustomNode(data: NodeProps<GraphState>) {
           </Button>
         </DescriptionEditor>
 
-        <TimerEditor
-          state={data.data.label}
-          value={data.data.timer}
-          onValueChange={setNodeTimer}
-          asChild
-        >
-          <Button variant="ghost" className="text-sm font-normal gap-2">
-            <ClockIcon size="1rem" />
-            {data.data.timer ? "Edit timer" : "Add timer"}
-          </Button>
-        </TimerEditor>
+        <div className="flex">
+          <TimerEditor
+            state={data.data.label}
+            value={data.data.timer}
+            onValueChange={setNodeTimer}
+            asChild
+          >
+            <Button variant="ghost" className="text-sm font-normal gap-2 grow">
+              <ClockIcon size="1rem" />
+              {data.data.timer ? "Edit timer" : "Add timer"}
+            </Button>
+          </TimerEditor>
+
+          {data.data.timer && (
+            <Button
+              variant="ghost"
+              className="text-sm font-normal gap-2 grow"
+              title="Remove timer"
+              onClick={() => removeNodeTimer()}
+            >
+              <TrashIcon size="1rem" className="text-red-500" />
+            </Button>
+          )}
+        </div>
         {/* <TimerCheckbox data={data} /> */}
         {/* <EventSection></EventSection> */}
       </CardContent>

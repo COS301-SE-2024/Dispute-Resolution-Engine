@@ -530,13 +530,28 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	}
 
 	//asssign experts to dispute
-	selected, err := h.Model.AssignExpertsToDispute(disputeId)
+	// selected, err := h.Model.AssignExpertsToDispute(disputeId)
+	// if err != nil {
+	// 	logger.WithError(err).Error("Error assigning experts to dispute")
+	// 	c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+	// 	return
+	// }
+	// logger.Info("Assigned experts", selected)
+
+	//assign using mediator assignment algorithm
+	expertIds, err :=  h.MediatorAssignment.AssignMediator()
 	if err != nil {
 		logger.WithError(err).Error("Error assigning experts to dispute")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
 		return
 	}
-	logger.Info("Assigned experts", selected)
+
+	err = h.Model.AssignExpertswithDisputeAndExpertIDs(disputeId, expertIds)
+	if err != nil {
+		logger.WithError(err).Error("Error assigning experts to dispute")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+		return
+	}
 
 	// Respond with success message
 	if !defaultAccount {

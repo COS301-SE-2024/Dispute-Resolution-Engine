@@ -47,6 +47,7 @@ type DisputeModel interface {
 
 	CreateDefaultUser(email string, fullName string, pass string) error
 	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
+	AssignExpertswithDisputeAndExpertIDs(disputeID int64, expertIDs []int) error
 
 	GetWorkflowRecordByID(id uint64) (*models.Workflow, error)
 	CreateActiverWorkflow(workflow *models.ActiveWorkflows) error
@@ -456,6 +457,18 @@ func (m *disputeModelReal) CreateDefaultUser(email string, fullName string, pass
 }
 
 // bandaid fix, will be removed in future
+
+func (m *disputeModelReal) AssignExpertswithDisputeAndExpertIDs(disputeID int64, expertIDs []int) error {
+	logger := utilities.NewLogger().LogWithCaller()
+	for _, expertID := range expertIDs {
+		if err := m.db.Exec("INSERT INTO dispute_experts_view VALUES (?, ?)", disputeID, expertID).Error; err != nil {
+			logger.WithError(err).Error("Error inserting expert into dispute_experts table")
+			return err
+		}
+	}
+	return nil
+}
+
 
 func (m disputeModelReal) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {
 	// Seed the random number generator

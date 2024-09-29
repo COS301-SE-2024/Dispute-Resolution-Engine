@@ -12,10 +12,10 @@ type ScoreModeler interface {
 type LastAssignmentstruct struct {
 }
 
-func (d *LastAssignmentstruct) GetScoreInput(summary models.ExpertSummaryView) *ResultWithID {
+func (d *LastAssignmentstruct) GetScoreInput(summary models.ExpertSummaryView) ResultWithID {
 	lastAssignment := time.Since(summary.LastAssignedDate).Hours() / 24
 	score := &ResultWithID{ID: summary.ExpertID, Result: lastAssignment}
-	return score
+	return *score
 }
 
 type AssignedDisputes struct {

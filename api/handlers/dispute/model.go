@@ -5,6 +5,7 @@ import (
 	"api/auditLogger"
 	"api/env"
 	"api/handlers/notifications"
+	mediatorassignment "api/mediatorAssignment"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
@@ -62,6 +63,7 @@ type Dispute struct {
 	Env                env.Env
 	AuditLogger        auditLogger.DisputeProceedingsLoggerInterface
 	OrchestratorEntity WorkflowOrchestrator
+	MediatorAssignment mediatorassignment.MediatorAssignment
 }
 
 type OrchestratorRequest struct {
@@ -132,6 +134,7 @@ type disputeModelReal struct {
 }
 
 func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
+
 	return Dispute{
 		Email:              notifications.NewHandler(db),
 		JWT:                middleware.NewJwtMiddleware(),
@@ -139,6 +142,7 @@ func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 		Model:              &disputeModelReal{db: db, env: env.NewEnvLoader()},
 		AuditLogger:        auditLogger.NewDisputeProceedingsLogger(db, envReader),
 		OrchestratorEntity: OrchestratorReal{},
+		MediatorAssignment: *mediatorassignment.DefaultAlorithmAssignment(db),
 	}
 }
 

@@ -4,6 +4,8 @@ import (
 	"api/models"
 	"math/rand/v2"
 	"sort"
+
+	"gorm.io/gorm"
 )
 
 // MediatorAssignment struct and interface
@@ -96,6 +98,31 @@ func (m *MediatorAssignment) isExpertRejected(rejectedExperts []models.DisputeEx
 		}
 	}
 	return false
+}
+
+func DefaultAlorithmAssignment(db *gorm.DB) *MediatorAssignment {
+	dbmodel := &DBModelReal{DB: db}
+
+	return &MediatorAssignment{
+		Components: []AlgorithmComponent{
+			&BaseComponent{
+				ScoreModeler: &LastAssignmentstruct{},
+				Function:    &Linear{BaseFunction: BaseFunction{MoveYAxis: 0, MoveXAxis: 0, ApplyCapToValue: true, Cap: 10,}, Multiplier: 1},
+				Operator:    &AddOperator{},
+			},
+			&BaseComponent{
+				ScoreModeler: &AssignedDisputes{},
+				Function:    &Logarithmic{BaseFunction: BaseFunction{MoveYAxis: 0, MoveXAxis: 0, ApplyCapToValue: true, Cap: 10,}, LogBase: 10},
+				Operator:    &AddOperator{},
+			},
+			&BaseComponent{
+				ScoreModeler: &RejectionCount{},
+				Function:    &Expontential{BaseFunction: BaseFunction{MoveYAxis: 0, MoveXAxis: 0, ApplyCapToValue: true, Cap: 10,}, BaseExponent: 10},
+				Operator:    &AddOperator{},
+			},
+		},
+		DB: dbmodel,
+	}
 }
 
 func (m *MediatorAssignment) AddComponent(component AlgorithmComponent) {

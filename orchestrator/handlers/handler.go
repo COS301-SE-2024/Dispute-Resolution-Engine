@@ -170,6 +170,14 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 			h.logger.Info("State deadline: ", active_wf_record.StateDeadline)
 		}
 
+	} else {
+		//set to current state form database
+		wf.Initial = active_wf_record.CurrentState
+		if wf.States[wf.Initial].Timer != nil {
+			h.logger.Info("State has a timer")
+			active_wf_record.StateDeadline = time.Now().Add(wf.States[wf.Initial].Timer.Duration.Duration)
+			h.logger.Info("State deadline: ", active_wf_record.StateDeadline)
+		}
 	}
 
 	// If only the deadline is provided, use the current state from the record

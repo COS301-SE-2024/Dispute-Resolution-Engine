@@ -286,31 +286,6 @@ CREATE TABLE dispute_decisions (
 );
 
 
-
-CREATE OR REPLACE VIEW expert_objections_view AS
-SELECT 
-    eo.id AS objection_id,
-    t.id AS ticket_id,  -- Include the ticket ID in the view
-    t.created_at AS ticket_created_at,  -- Include the ticket's created date
-    t.dispute_id,
-    d.title AS dispute_title,
-    eo.expert_id,
-    expert.first_name || ' ' || expert.surname AS expert_full_name,
-    t.created_by AS user_id,
-    "user".first_name || ' ' || "user".surname AS user_full_name,
-    eo.status AS objection_status
-FROM 
-    expert_objections eo
-JOIN 
-    tickets t ON eo.ticket_id = t.id
-JOIN 
-    disputes d ON t.dispute_id = d.id
-JOIN 
-    users expert ON eo.expert_id = expert.id
-JOIN 
-    users "user" ON t.created_by = "user".id;
-
-
 ------------------------------------------------------------- TABLE CONTENTS
 INSERT INTO Countries (country_code, country_name) VALUES
 ('AF', 'Afghanistan'),

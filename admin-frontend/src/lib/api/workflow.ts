@@ -12,10 +12,11 @@ import {
   type WorkflowListRequest,
   type WorkflowListResponse,
   WorkflowDefinition,
+  State,
 } from "../types/workflow";
 
 import { getAuthToken } from "../jwt";
-import { API_URL, sf, validateResult } from "../utils";
+import { API_URL, durationFromString, durationToString, sf, validateResult } from "../utils";
 
 export async function createWorkflow(req: WorkflowCreateRequest): Promise<WorkflowCreateResponse> {
   console.log("Request in createWorkflow", JSON.stringify(req));
@@ -101,7 +102,13 @@ export async function graphToWorkflow({
                 },
               ])
           ),
-        },
+          timer: node.data.timer
+            ? {
+                duration: durationToString(node.data.timer),
+                on_expire: "timer_expired",
+              }
+            : undefined,
+        } satisfies State,
       ])
     ),
   };
@@ -136,6 +143,9 @@ export async function workflowToGraph(
         initial: workflow.initial == id ? true : undefined,
         description: workflow.states[id].description,
         edges: [],
+        timer: workflow.states[id].timer
+          ? durationFromString(workflow.states[id].timer.duration)
+          : undefined,
       },
       position: { x: 0, y: 0 },
     })),

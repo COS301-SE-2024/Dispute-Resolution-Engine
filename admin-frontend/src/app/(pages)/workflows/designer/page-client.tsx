@@ -37,6 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import WorkflowTitle from "@/components/workflow/workflow-title";
 import { SaveIcon } from "lucide-react";
 import { useCustomId } from "@/lib/hooks/use-customid";
+import { useToast } from "@/lib/hooks/use-toast";
 
 const initialNodes: GraphState[] = [
   {
@@ -193,6 +194,7 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
     reactFlow.setEdges(edges);
   }
 
+  const { toast } = useToast();
   const updateNodeInternals = useUpdateNodeInternals();
   const [result, setResult] = useState("");
   const [error, setError] = useState<string>();
@@ -207,19 +209,27 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
 
   async function saveWorkflow() {
     const definition = await graphToWorkflow(reactFlow.toObject());
-    definition.initial = Object.keys(definition.states)[0];
+    // definition.initial = Object.keys(definition.states)[0];
+    console.log(definition);
 
     console.log(definition);
-    if (workflow) {
-      alert("Update");
-      await updateWorkflow(workflow.id, {
-        definition,
+    try {
+      if (workflow) {
+        await updateWorkflow(workflow.id, {
+          definition,
+        });
+      } else {
+        await createWorkflow({ name: title, definition });
+      }
+      setIsSaved(true);
+    } catch (e: unknown) {
+      const error = e as Error;
+      toast({
+        variant: "error",
+        title: "Failed saving workflow",
+        description: error?.message,
       });
-    } else {
-      alert("Create");
-      await createWorkflow({ name: title, definition });
     }
-    setIsSaved(true);
   }
 
   const [title, setTitle] = useState(workflow?.name ?? "New Workflow");

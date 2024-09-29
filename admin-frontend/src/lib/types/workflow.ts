@@ -17,7 +17,7 @@ export type GraphState = Node<
     label: string;
     description: string;
     initial?: boolean;
-    timer?: Timer;
+    timer?: TimerDuration;
   },
   "customNode"
 >;

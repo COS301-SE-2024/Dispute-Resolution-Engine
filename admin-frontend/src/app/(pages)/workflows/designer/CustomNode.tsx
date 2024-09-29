@@ -1,6 +1,6 @@
 "use client";
 import { Handle, Node, NodeProps, Position, useReactFlow } from "@xyflow/react";
-import { FormEvent, ReactNode, useRef, useState } from "react";
+import { FormEvent, ReactNode, useId, useRef, useState } from "react";
 import { BookOpenIcon, CirclePlus, CircleX, ClockIcon, Pencil } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,9 +91,13 @@ export default function CustomNode(data: NodeProps<GraphState>) {
   }
 
   function setNodeDescription(value: string) {
-    setEditing(false);
     reactFlow.updateNodeData(data.id, {
       description: value,
+    });
+  }
+  function setNodeTimer(dur: TimerDuration) {
+    reactFlow.updateNodeData(data.id, {
+      timer: dur,
     });
   }
 
@@ -151,7 +155,12 @@ export default function CustomNode(data: NodeProps<GraphState>) {
           </Button>
         </DescriptionEditor>
 
-        <TimerEditor state={data.data.label}>
+        <TimerEditor
+          state={data.data.label}
+          value={data.data.timer}
+          onValueChange={setNodeTimer}
+          asChild
+        >
           <Button variant="ghost" className="text-sm font-normal gap-2">
             <ClockIcon size="1rem" />
             {data.data.timer ? "Edit timer" : "Add timer"}
@@ -226,17 +235,32 @@ function TimerEditor({
   const minutes = useRef<HTMLInputElement>(null);
   const seconds = useRef<HTMLInputElement>(null);
 
+  const dayId = useId();
+  const hourId = useId();
+  const minuteId = useId();
+  const secondId = useId();
+
+  const { toast } = useToast();
   function onSubmit() {
-    const dayValue = parseInt(days.current!.value.trim());
-    const hourValue = parseInt(hours.current!.value.trim());
-    const minuteValue = parseInt(minutes.current!.value.trim());
-    const secondValue = parseInt(seconds.current!.value.trim());
-    onValueChange({
-      days: dayValue,
-      hours: hourValue,
-      minutes: minuteValue,
-      seconds: secondValue,
-    });
+    try {
+      const dayValue = parseInt(days.current!.value.trim());
+      const hourValue = parseInt(hours.current!.value.trim());
+      const minuteValue = parseInt(minutes.current!.value.trim());
+      const secondValue = parseInt(seconds.current!.value.trim());
+      onValueChange({
+        days: isNaN(dayValue) ? 0 : dayValue,
+        hours: isNaN(hourValue) ? 0 : hourValue,
+        minutes: isNaN(minuteValue) ? 0 : minuteValue,
+        seconds: isNaN(secondValue) ? 0 : secondValue,
+      });
+    } catch (e: unknown) {
+      const error = e as Error;
+      toast({
+        variant: "error",
+        title: "Failed to update timer",
+        description: error?.message,
+      });
+    }
   }
 
   return (
@@ -248,14 +272,29 @@ function TimerEditor({
           <DialogDescription>Edit the timer for the &quot;{state}&quot; state</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-4">
-          <Label>Days</Label>
-          <Input />
-          <Label>Hours</Label>
-          <Input />
-          <Label>Minutes</Label>
-          <Input />
-          <Label>Second</Label>
-          <Input />
+          <Label htmlFor={dayId}>Days</Label>
+          <Input defaultValue={value?.days} type="number" id={dayId} ref={days} name="days" />
+
+          <Label htmlFor={hourId}>Hours</Label>
+          <Input defaultValue={value?.hours} type="number" id={hourId} ref={hours} name="hours" />
+
+          <Label htmlFor={minuteId}>Minutes</Label>
+          <Input
+            defaultValue={value?.minutes}
+            type="number"
+            id={minuteId}
+            ref={minutes}
+            name="minutes"
+          />
+
+          <Label htmlFor={secondId}>Second</Label>
+          <Input
+            defaultValue={value?.seconds}
+            type="number"
+            id={secondId}
+            name="seconds"
+            ref={seconds}
+          />
         </div>
         <DialogFooter>
           <DialogClose asChild>

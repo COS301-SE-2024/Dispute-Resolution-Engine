@@ -166,4 +166,13 @@ type ActiveWorkflowResponse = ActiveWorkflow;
 
 ## Patching an active workflow
 
-Should be able to adjust the current state and optionally the timer
+- **Endpoint:** `GET /workflows/reset`
+- **Headers:**
+  - `Authorization: Bearer <JWT>`
+
+```ts
+//request
+type Request interface {
+  
+}
+```

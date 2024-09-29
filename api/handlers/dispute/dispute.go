@@ -34,6 +34,7 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.POST("/:id/evidence", h.UploadEvidence)
 	g.POST("/:id/decision", h.SubmitWriteup)
 	g.PUT("/:id/status", h.UpdateStatus)
+	g.GET("/:id/workflow", h.GetWorkflow)
 
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
@@ -832,4 +833,33 @@ func (h Dispute) ViewExpertRejections(c *gin.Context) {
 	logger.Info("Expert rejections retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: rejections})
 
+}
+
+func (h Dispute) GetWorkflow(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	//get dispute id
+	disputeId := c.Param("id")
+	disputeIdInt, err := strconv.Atoi(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Cannot convert dispute ID to integer")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+
+	//get workflow
+	workflow, err := h.WorkflowModel.GetActiveWorkflowByDisputeID(uint64(disputeIdInt))
+	if err != nil {
+		if err.Error() == "record not found" {
+			logger.Error("Workflow not found")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Workflow not found"})
+			return
+		}
+		logger.WithError(err).Error("Failed to get workflow")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get workflow"})
+		return
+	}
+
+	logger.Info("Workflow retrieved successfully")
+	c.JSON(http.StatusOK, models.Response{Data: workflow})
 }

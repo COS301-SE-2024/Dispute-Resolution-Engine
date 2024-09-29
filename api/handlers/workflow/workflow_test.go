@@ -61,6 +61,13 @@ type mockDB struct {
 	ReturnActiveWorkflow   *models.ActiveWorkflows
 }
 
+func (m *mockDB) GetActiveWorkflowByDisputeID(disputeID uint64) (*models.ActiveWorkflows, error) {
+	if m.throwError {
+		return nil, m.Error
+	}
+	return m.ReturnActiveWorkflow, nil
+}
+
 func (m *mockDB) GetWorkflowsWithLimitOffset(limit, offset *int, name *string) (int64, []models.GetWorkflowResponse, error) {
 	if m.throwError {
 		return 0, nil, m.Error

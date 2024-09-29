@@ -4,13 +4,19 @@ import (
 	"api/env"
 	"api/middleware"
 	"api/models"
+	"fmt"
 
 	"gorm.io/gorm"
 )
 
 type AdminAnalyticsDBModel interface {
 	CalculateAverageResolutionTime() (float64, error)
-	GetDisputeGroupingByStatus() (map[string]int64, error)
+	CountRecordsWithGroupBy(
+		tableName string,
+		column *string,
+		value *interface{},
+		groupBy *string,
+	) (map[string]int64, error)
 	GetDisputeGroupingByCountry() (map[string]int, error)
 	
 }
@@ -57,26 +63,57 @@ type DisputeStatusCount struct {
 }
 
 // GetDisputeGroupingByStatus counts the number of disputes grouped by their statuses.
-func (h AdminAnalyticsDBModelReal) GetDisputeGroupingByStatus() (map[string]int64, error) {
-	var results []DisputeStatusCount
-	statusCounts := make(map[string]int64)
+func (h AdminAnalyticsDBModelReal) CountRecordsWithGroupBy(
+	tableName string,
+	column *string,
+	value *interface{},
+	groupBy *string,
+) (map[string]int64, error) {
+	// Result map to store the counts grouped by the `groupBy` column (if provided)
+	recordCounts := make(map[string]int64)
 
-	// Query to count disputes grouped by their status
-	err := h.DB.Model(&models.Dispute{}).
-		Select("status, count(*) as count").
-		Group("status").
-		Scan(&results).Error
+	// Create a struct to hold the result from the query
+	type GroupCount struct {
+		GroupKey string
+		Count    int64
+	}
 
+	// Slice to hold the results of the query
+	var results []GroupCount
+
+	// Start building the base query using the specified table name
+	query := h.DB.Table(tableName)
+
+	// Apply the optional WHERE clause if both column and value are provided
+	if column != nil && value != nil {
+		query = query.Where(fmt.Sprintf("%s = ?", *column), *value)
+	}
+
+	// Apply the optional GROUP BY clause
+	if groupBy != nil {
+		query = query.Select(fmt.Sprintf("%s as group_key, count(*) as count", *groupBy)).
+			Group(*groupBy)
+	} else {
+		query = query.Select("count(*) as count")
+	}
+
+	// Execute the query and scan the results into the slice
+	err := query.Scan(&results).Error
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert the result into a map for easier usage
-	for _, result := range results {
-		statusCounts[result.Status] = result.Count
+	// If grouping was applied, convert the results into the map
+	if groupBy != nil {
+		for _, result := range results {
+			recordCounts[result.GroupKey] = result.Count
+		}
+	} else {
+		// If no grouping, put the count into a map with a generic key
+		recordCounts["total"] = results[0].Count
 	}
 
-	return statusCounts, nil
+	return recordCounts, nil
 }
 
 // GetDisputeGroupingByCountry counts the number of disputes grouped by the country of the complainant.

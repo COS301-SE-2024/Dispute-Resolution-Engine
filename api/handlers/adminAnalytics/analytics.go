@@ -10,9 +10,8 @@ import (
 
 func SetupAnalyticsRoute(router *gin.RouterGroup, h AdminAnalyticsHandler) {
 	router.GET("/time/estimation", h.GetTimeEstimation)
-	router.POST("/dispute/grouping", h.GetDisputeGrouping) //by status or country
+	router.GET("/dispute/countries", h.GetDisputeGrouping) //by status or country
 	router.POST("/stats/:table", h.GetTableStats)
-	router.GET("/stats/:table/summary", h.GetTableSummary)
 
 }
 
@@ -40,42 +39,14 @@ func (h AdminAnalyticsHandler) GetDisputeGrouping(c *gin.Context) {
 	if !h.IsAuthorized(c, "admin", logger) {
 		return
 	}
-
-	// Parse the request body
-	var groupingRequest models.AdminGroupingAnalytics
-	if err := c.BindJSON(&groupingRequest); err != nil {
-		logger.WithError(err).Error("Failed to parse request body")
-		c.JSON(400, models.Response{Error: "Failed to parse request body"})
+	grouping, err := h.DB.GetDisputeGroupingByCountry()
+	if err != nil {
+		logger.WithError(err).Error("Failed to get dispute grouping by country")
+		c.JSON(500, models.Response{Error: "Failed to get dispute grouping by country"})
 		return
 	}
 
-	if groupingRequest.Group == nil || (*groupingRequest.Group != "status" && *groupingRequest.Group != "country") {
-		logger.Error("Invalid request body")
-		c.JSON(400, models.Response{Error: "Invalid request body"})
-		return
-	}
-
-	if *groupingRequest.Group == "status" {
-		grouping, err := h.DB.GetDisputeGroupingByStatus()
-		if err != nil {
-			logger.WithError(err).Error("Failed to get dispute grouping by status")
-			c.JSON(500, models.Response{Error: "Failed to get dispute grouping by status"})
-			return
-		}
-
-		c.JSON(200, models.Response{Data: grouping})
-		return
-	} else {
-		grouping, err := h.DB.GetDisputeGroupingByCountry()
-		if err != nil {
-			logger.WithError(err).Error("Failed to get dispute grouping by country")
-			c.JSON(500, models.Response{Error: "Failed to get dispute grouping by country"})
-			return
-		}
-
-		c.JSON(200, models.Response{Data: grouping})
-		return
-	}
+	c.JSON(200, models.Response{Data: grouping})
 }
 
 func (h AdminAnalyticsHandler) GetTableStats(c *gin.Context) {
@@ -84,15 +55,40 @@ func (h AdminAnalyticsHandler) GetTableStats(c *gin.Context) {
 		return
 	}
 
-}
-
-func (h AdminAnalyticsHandler) GetTableSummary(c *gin.Context) {
-	logger := utilities.NewLogger().LogWithCaller()
-	if !h.IsAuthorized(c, "admin", logger) {
+	table := c.Param("table")
+	if table == "" {
+		logger.Error("Invalid request")
+		c.JSON(400, models.Response{Error: "Invalid request"})
 		return
 	}
 
+	// Get body
+	var body models.AdminTableStats
+	if err := c.BindJSON(&body); err != nil {
+		logger.WithError(err).Error("Failed to bind request body")
+		c.JSON(400, models.Response{Error: "Failed to bind request body"})
+		return
+	}
+
+	var value interface{}
+	if body.Where != nil {
+		// If Where is provided, use its value. Otherwise, leave value as nil.
+		value = body.Where.Value
+	}
+
+	// Call the CountRecordsWithGroupBy function
+	resCount, err := h.DB.CountRecordsWithGroupBy(table, &body.Where.Column, &value, body.Group)
+	if err != nil {
+		logger.WithError(err).Error("Failed to count records")
+		c.JSON(500, models.Response{Error: "Failed to count records"})
+		return
+	}
+
+	// Return the result as a JSON response
+	c.JSON(200, models.Response{Data: resCount})
 }
+
+
 
 func (h AdminAnalyticsHandler) IsAuthorized(c *gin.Context, role string, logger *utilities.Logger) bool {
 	claims, err := h.JWT.GetClaims(c)

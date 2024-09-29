@@ -282,3 +282,15 @@ type NotifyEventOrchestrator struct {
 type AdminGroupingAnalytics struct {
 	Group *string `json:"group"`
 }
+
+type Columnvalue struct {
+	Column string `json:"column"`
+	Value  string `json:"value"`
+}
+
+type AdminTableStats struct {
+	Table string `json:"table"`
+	Group *string `json:"group"`
+	Where *Columnvalue `json:"where"`
+}
+

@@ -9,7 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { DisputeStatusBadge, ExpertStatusBadge } from "@/components/admin/status-badge";
+import {
+  DisputeStatusBadge,
+  ExpertStatusBadge,
+  StatusBadge,
+} from "@/components/admin/status-badge";
 import {
   type UserDetails,
   type DisputeDetails,
@@ -34,6 +38,8 @@ import { DisputeStatusDropdown, ObjectionStatusDropdown } from "@/components/adm
 import { changeObjectionStatus, getExpertObjections } from "@/lib/api/expert";
 import { DISPUTE_DETAILS_KEY, DISPUTE_LIST_KEY } from "@/lib/constants";
 import { ObjectionListResponse, ObjectionStatus } from "@/lib/types/experts";
+import StateSelect from "@/components/workflow/state-select";
+import DeadlineSelect from "@/components/workflow/deadline-select";
 
 export default function DisputeDetails({ id: disputeId }: { id: number }) {
   const { toast } = useToast();
@@ -82,22 +88,42 @@ export default function DisputeDetails({ id: disputeId }: { id: number }) {
               </Button>
             </DialogClose>
           </div>
-          <div className="flex gap-2 items-center">
-            <DisputeStatusDropdown
-              initialValue={details.data.status}
-              onSelect={(val) => status.mutate(val)}
-              disabled={status.isPending}
-            >
-              <DisputeStatusBadge dropdown variant={details.data.status}>
-                {details.data.status}
-              </DisputeStatusBadge>
-            </DisputeStatusDropdown>
-            <span>{details.data.date_filed}</span>
-          </div>
+          <div className="flex gap-2 items-start">
+            <div className="grid grid-cols-2 gap-2 mr-auto">
+              <strong>Status:</strong>
+              <DisputeStatusDropdown
+                initialValue={details.data.status}
+                onSelect={(val) => status.mutate(val)}
+                disabled={status.isPending}
+              >
+                <DisputeStatusBadge dropdown variant={details.data.status}>
+                  {details.data.status}
+                </DisputeStatusBadge>
+              </DisputeStatusDropdown>
+            </div>
 
-          <p>Case Number: {details.data.id}</p>
+            <div className="grid grid-cols-2 gap-x-2">
+              <strong className="text-right">Filed:</strong>
+              <span>{details.data.date_filed}</span>
+              <strong className="text-right">Case number:</strong>
+              <span>{details.data.id}</span>
+            </div>
+          </div>
         </DialogHeader>
         <div className="overflow-y-auto grow space-y-6 pr-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Workflow</CardTitle>
+              <CardDescription>Manage the active workflow of the dispute.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2">
+              <strong>Current State</strong>
+              <strong>State deadline</strong>
+              <StateSelect dispute={disputeId} />
+              <DeadlineSelect dispute={disputeId} />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Overview</CardTitle>
@@ -257,7 +283,7 @@ function Objection({
   const { toast } = useToast();
   const client = useQueryClient();
   const statusMut = useMutation({
-    mutationFn: (data: ObjectionStatus) => changeObjectionStatus(disputeId, id, data),
+    mutationFn: (data: ObjectionStatus) => changeObjectionStatus(id, data),
 
     onSuccess: (data, variables) => {
       client.setQueryData(

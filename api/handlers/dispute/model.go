@@ -6,6 +6,7 @@ import (
 	"api/env"
 	"api/handlers/notifications"
 	"api/handlers/ticket"
+	"api/handlers/workflow"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
@@ -46,7 +47,6 @@ type DisputeModel interface {
 	ObjectExpert(disputeId, expertId, ticketId int64) error
 	ReviewExpertObjection(objectionId int64, approved models.ExpObjStatus) error
 	GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error)
-	
 
 	CreateDefaultUser(email string, fullName string, pass string) error
 	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
@@ -70,6 +70,7 @@ type Dispute struct {
 	Env                env.Env
 	AuditLogger        auditLogger.DisputeProceedingsLoggerInterface
 	OrchestratorEntity WorkflowOrchestrator
+	WorkflowModel      workflow.WorkflowDBModel
 }
 
 type OrchestratorRequest struct {
@@ -148,6 +149,7 @@ func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 		AuditLogger:        auditLogger.NewDisputeProceedingsLogger(db, envReader),
 		OrchestratorEntity: OrchestratorReal{},
 		TicketModel:        ticket.NetTicketModelReal(db, envReader),
+		WorkflowModel:      &workflow.WorkflowModelReal{DB: db},
 	}
 }
 
@@ -409,6 +411,12 @@ func (m *disputeModelReal) GetAdminDisputeDetails(disputeId int64) (models.Admin
 	if dispute.DateResolved != nil {
 		dateResolved := dispute.DateResolved.Format("2006-01-02")
 		adminDisputeDetails.DateResolved = &dateResolved
+	}
+	if adminDisputeDetails.Experts == nil {
+		adminDisputeDetails.Experts = []models.AdminDisputeExperts{}
+	}
+	if adminDisputeDetails.Evidence == nil {
+		adminDisputeDetails.Evidence = []models.Evidence{}
 	}
 
 	return adminDisputeDetails, nil

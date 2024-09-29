@@ -17,7 +17,6 @@ type User struct {
 	PhoneNumber       *string    `json:"phone_number,omitempty" gorm:"type:varchar(20);column:phone_number"`             //need
 	AddressID         *int64     `json:"address_id,omitempty" gorm:"column:address_id"`                                  //what the fuck
 	CreatedAt         time.Time  `json:"created_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`   //Filled in by API
-	UpdatedAt         *time.Time `json:"updated_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:updated_at"`   //Filled in by API
 	LastLogin         *time.Time `json:"last_login" gorm:"type:timestamp;column:last_login"`                             //Filled in by API
 	Status            string     `json:"status" gorm:"type:varchar(20);default:'active';column:status"`                  //Filled in by API
 	Gender            string     `json:"gender" gorm:"type:gender_enum;column:gender"`                                   //check
@@ -47,7 +46,6 @@ type ArchivedDispute struct {
 	ArchivedDisputeSummary
 	Events []Event `json:"events"`
 }
-
 
 type DisputeStatus string
 
@@ -260,12 +258,12 @@ type TicketMessages struct {
 }
 
 type ActiveWorkflows struct {
-	ID               int64           `gorm:"primaryKey;autoIncrement"`
-	Workflow         int64           `gorm:"not null"`                               // Foreign Key to Workflow
-	CurrentState     string          `gorm:"column:current_state;type:varchar(255)"` // Current State
-	DateSubmitted    time.Time       `gorm:"column:date_submitted;type:timestamp"`   // Date the workflow was submitted
-	StateDeadline    time.Time       `gorm:"column:state_deadline;type:timestamp"`   // Deadline for the current state
-	WorkflowInstance json.RawMessage `gorm:"type:jsonb"`
+	ID               int64           `gorm:"primaryKey;autoIncrement" json:"id"`
+	Workflow         int64           `gorm:"not null" json:"workflow"`                                               // Foreign Key to Workflow
+	CurrentState     string          `gorm:"column:current_state;type:varchar(255)" json:"current_state"`            // Current State
+	DateSubmitted    time.Time       `gorm:"column:date_submitted;type:timestamp" json:"date_submitted"`             // Date the workflow was submitted
+	StateDeadline    time.Time       `gorm:"column:state_deadline;type:timestamp" json:"current_deadline,omitempty"` // Deadline for the current state
+	WorkflowInstance json.RawMessage `gorm:"type:jsonb" json:"definition"`
 }
 
 func (ActiveWorkflows) TableName() string {

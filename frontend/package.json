@@ -36,6 +36,7 @@
     "clsx": "^2.1.1",
     "cypress-file-upload": "^5.0.8",
     "framer-motion": "^11.3.30",
+    "he": "^1.2.0",
     "input-otp": "^1.2.4",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.412.0",

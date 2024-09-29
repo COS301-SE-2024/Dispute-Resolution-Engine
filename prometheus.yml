@@ -13,7 +13,7 @@ scrape_configs:
     # scheme defaults to 'http'.
     scrape_interval: 5s
     static_configs:
-      - targets: ["196.29.59.166:9090"]
+      - targets: ["prometheus:9090"]
 
   - job_name: 'cadvisor'
     scrape_interval: 5s

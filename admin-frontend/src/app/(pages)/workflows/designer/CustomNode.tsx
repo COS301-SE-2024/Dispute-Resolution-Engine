@@ -5,9 +5,19 @@ import { CirclePlus, CircleX, Pencil } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { GraphInstance, type GraphState } from "@/lib/types";
 import EditForm from "./edit-form";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 /** The diameter (in pixels) of a single handle */
 const handleDiameter = 20;
@@ -75,6 +85,13 @@ export default function CustomNode(data: NodeProps<GraphState>) {
     });
   }
 
+  function setNodeDescription(value: string) {
+    setEditing(false);
+    reactFlow.updateNodeData(data.id, {
+      description: value,
+    });
+  }
+
   return (
     <Card className="min-w-48">
       <CardHeader className="p-3 flex gap-1 flex-row items-center">
@@ -102,7 +119,7 @@ export default function CustomNode(data: NodeProps<GraphState>) {
           </>
         )}
       </CardHeader>
-      <CardContent style={{ minHeight }} className="relative">
+      <CardContent style={{ minHeight }} className="relative pt-0 mt-0">
         {handles}
         <Handle
           type="source"
@@ -117,9 +134,63 @@ export default function CustomNode(data: NodeProps<GraphState>) {
           +
         </Handle>
         <Handle type="target" position={Position.Left} id="a" style={handleStyle} />
+        <DescriptionEditor
+          value={data.data.description}
+          state={data.data.label}
+          asChild
+          onValueChange={setNodeDescription}
+        >
+          <Button variant="ghost" className="text-sm font-normal">
+            Edit description
+          </Button>
+        </DescriptionEditor>
         {/* <TimerCheckbox data={data} /> */}
         {/* <EventSection></EventSection> */}
       </CardContent>
     </Card>
+  );
+}
+
+function DescriptionEditor({
+  children,
+  asChild,
+  state,
+  value,
+  onValueChange = () => {},
+}: {
+  children: ReactNode;
+  asChild?: boolean;
+  state: string;
+  value: string;
+  onValueChange?: (val: string) => void;
+}) {
+  const area = useRef<HTMLTextAreaElement>(null);
+
+  function onSubmit() {
+    const value = area.current!.value.trim();
+    if (value.length === 0) {
+      return;
+    }
+    onValueChange(value);
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild={asChild}>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit description</DialogTitle>
+          <DialogDescription>
+            Change the description for the &quot;{state}&quot; state
+          </DialogDescription>
+        </DialogHeader>
+        <Textarea ref={area} defaultValue={value} className="resize" />
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button onClick={onSubmit}>Confirm</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

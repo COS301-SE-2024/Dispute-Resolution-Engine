@@ -4,7 +4,7 @@ server:
   http_listen_port: 3100
 
 common:
-  instance_addr: 127.0.0.1
+  instance_addr: loki
   path_prefix: /loki
   storage:
     filesystem:

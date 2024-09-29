@@ -57,7 +57,12 @@ export async function getDisputeWorkflow(id: number): Promise<ActiveWorkflow> {
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },
-  }).then(validateResult<ActiveWorkflow>);
+  })
+    .then(validateResult<ActiveWorkflow>)
+    .then((res) => {
+      console.log(res);
+      return res;
+    });
 }
 
 export async function changeDisputeState(id: number, state: string): Promise<void> {
@@ -65,7 +70,7 @@ export async function changeDisputeState(id: number, state: string): Promise<voi
     method: "PATCH",
     body: JSON.stringify({
       dispute_id: id,
-      state,
+      current_state: state,
     }),
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,

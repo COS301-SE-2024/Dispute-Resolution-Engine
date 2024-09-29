@@ -258,12 +258,12 @@ type TicketMessages struct {
 }
 
 type ActiveWorkflows struct {
-	ID               int64           `gorm:"primaryKey;autoIncrement"`
-	Workflow         int64           `gorm:"not null"`                               // Foreign Key to Workflow
-	CurrentState     string          `gorm:"column:current_state;type:varchar(255)"` // Current State
-	DateSubmitted    time.Time       `gorm:"column:date_submitted;type:timestamp"`   // Date the workflow was submitted
-	StateDeadline    time.Time       `gorm:"column:state_deadline;type:timestamp"`   // Deadline for the current state
-	WorkflowInstance json.RawMessage `gorm:"type:jsonb"`
+	ID               int64           `gorm:"primaryKey;autoIncrement" json:"id"`
+	Workflow         int64           `gorm:"not null" json:"workflow"`                                               // Foreign Key to Workflow
+	CurrentState     string          `gorm:"column:current_state;type:varchar(255)" json:"current_state"`            // Current State
+	DateSubmitted    time.Time       `gorm:"column:date_submitted;type:timestamp" json:"date_submitted"`             // Date the workflow was submitted
+	StateDeadline    time.Time       `gorm:"column:state_deadline;type:timestamp" json:"current_deadline,omitempty"` // Deadline for the current state
+	WorkflowInstance json.RawMessage `gorm:"type:jsonb" json:"definition"`
 }
 
 func (ActiveWorkflows) TableName() string {

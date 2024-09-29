@@ -26,12 +26,10 @@ export default function StateSelect({ dispute }: { dispute: number }) {
 
   const states = useMemo(() => {
     if (query.data) {
-      return Object.entries(query.data.definition.states)
-        .filter(([id]) => id !== query.data.current_state.id)
-        .map(([id, st]) => ({
-          id,
-          label: st.label,
-        }));
+      return Object.entries(query.data.definition.states).map(([id, st]) => ({
+        id,
+        label: st.label,
+      }));
     }
     return undefined;
   }, [query.data]);
@@ -57,11 +55,18 @@ export default function StateSelect({ dispute }: { dispute: number }) {
     },
   });
 
+  function onValueChange(value: string) {
+    if (value === query.data!.current_state) {
+      return;
+    }
+    currentState.mutate(value);
+  }
+
   return (
     <Select
       disabled={!query.isSuccess}
-      defaultValue={query.data?.current_state.id}
-      onValueChange={currentState.mutate}
+      defaultValue={query.data?.current_state}
+      onValueChange={onValueChange}
     >
       <SelectTrigger className="w-[180px]">
         <SelectValue />

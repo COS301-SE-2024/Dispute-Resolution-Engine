@@ -539,7 +539,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	// logger.Info("Assigned experts", selected)
 
 	//assign using mediator assignment algorithm
-	expertIds, err :=  h.MediatorAssignment.AssignMediator()
+	expertIds, err :=  h.MediatorAssignment.AssignMediator(3, int(disputeId))
 	if err != nil {
 		logger.WithError(err).Error("Error assigning experts to dispute")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})

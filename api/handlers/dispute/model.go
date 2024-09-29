@@ -64,7 +64,7 @@ type Dispute struct {
 	Env                env.Env
 	AuditLogger        auditLogger.DisputeProceedingsLoggerInterface
 	OrchestratorEntity WorkflowOrchestrator
-	MediatorAssignment mediatorassignment.MediatorAssignment
+	MediatorAssignment mediatorassignment.AlgorithmAssignment
 }
 
 type OrchestratorRequest struct {
@@ -143,7 +143,7 @@ func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 		Model:              &disputeModelReal{db: db, env: env.NewEnvLoader()},
 		AuditLogger:        auditLogger.NewDisputeProceedingsLogger(db, envReader),
 		OrchestratorEntity: OrchestratorReal{},
-		MediatorAssignment: *mediatorassignment.DefaultAlorithmAssignment(db),
+		MediatorAssignment: mediatorassignment.DefaultAlorithmAssignment(db),
 	}
 }
 

@@ -51,6 +51,6 @@ func (d *DBModelReal) GetExpertSummaryViewByColumnValue(columnName string, colum
 
 func (d *DBModelReal) GetRejectionFromDispute(disputeId int) ([]models.DisputeExpert, error) {
 	var disputeExpert []models.DisputeExpert
-	d.DB.Where("dispute_id = ?", disputeId).Find(&disputeExpert)
+	d.DB.Where("dispute = ?", disputeId).Find(&disputeExpert)
 	return disputeExpert, nil
 }

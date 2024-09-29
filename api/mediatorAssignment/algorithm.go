@@ -2,6 +2,7 @@ package mediatorassignment
 
 import (
 	"api/models"
+	"api/utilities"
 	"math/rand/v2"
 	"sort"
 
@@ -10,6 +11,8 @@ import (
 
 // MediatorAssignment struct and interface
 type AlgorithmAssignment interface {
+	AssignMediator(count, disputeID int) ([]int, error)
+	CalculateScore(summaries []models.ExpertSummaryView, componentID int) []ResultWithID
 }
 
 type MediatorAssignment struct {
@@ -17,34 +20,47 @@ type MediatorAssignment struct {
 	DB         DBModel
 }
 
-func (m *MediatorAssignment) AssignMediator() ([]int, error) {
+func (m *MediatorAssignment) AssignMediator(count, disputeID int) ([]int, error) {
+	logger := utilities.NewLogger().LogWithCaller()
 	// Get all the experts
 	experts, err := m.DB.GetExpertSummaryViews()
 	if err != nil {
 		return nil, err
 	}
 
+	logger.Info("Experts\n", experts)
+
 	// Loop through all the experts
 	var intermediateResults []ResultWithID
 	if len(experts) > 0 {
+		logger.Info("Calculating scores for experts")
 		intermediateResults = m.CalculateScore(experts, 0)
 		for i := 1; i < len(m.Components); i++ {
+			logger.Info("results\n", intermediateResults)
 			intermediateResults = m.Components[i].ApplyOperator(intermediateResults, m.CalculateScore(experts, i))
 		}
 	} else {
 		intermediateResults = m.assignRandomValues(experts)
 	}
+	logger.Info("final\n", intermediateResults)
+
 
 	// Sort the results
 	sort.Slice(intermediateResults, func(i, j int) bool {
 		return intermediateResults[i].Result > intermediateResults[j].Result
 	})
 
+	logger.Info("Sorted results\n", intermediateResults)
 	//get top 10 experts and check they are not rejected
-	topResults, err := m.GetTopResults(intermediateResults, 10, 1)
+	
+
+
+	topResults, err := m.GetTopResults(intermediateResults, count, disputeID)
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Info("Top results\n", topResults)
 
 	// Get the expert IDs
 	var expertIDs []int
@@ -52,6 +68,7 @@ func (m *MediatorAssignment) AssignMediator() ([]int, error) {
 		expertIDs = append(expertIDs, int(result.ID))
 	}
 
+	logger.Info("Expert IDs\n", expertIDs)
 	return expertIDs, nil
 }
 

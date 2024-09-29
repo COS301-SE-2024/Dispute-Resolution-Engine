@@ -47,6 +47,7 @@ type DisputeModel interface {
 
 	ObjectExpert(disputeId, expertId, ticketId int64) error
 	ReviewExpertObjection(objectionId int64, approved models.ExpObjStatus) error
+	GetDisputeIDByTicketID(ticketID int64) (int64, error)
 	GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error)
 
 	CreateDefaultUser(email string, fullName string, pass string) error
@@ -999,3 +1000,22 @@ func (m *disputeModelReal) GetExpertRejections(expertID, disputeID *int64, limit
 
 	return rejections, err
 }
+
+func (m *disputeModelReal) GetDisputeIDByTicketID(ticketID int64) (int64, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var disputeID int64
+	err := m.db.Raw(`SELECT 
+	t.dispute_id
+FROM 
+	expert_objections eo
+JOIN 
+	tickets t ON eo.ticket_id = t.id
+WHERE 
+	eo.id = 4`, ticketID).Scan(&disputeID).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute ID by ticket ID")
+		return 0 , err
+	}
+	return disputeID, err
+}
+

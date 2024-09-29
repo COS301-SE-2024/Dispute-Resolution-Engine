@@ -5,6 +5,7 @@ import (
 	_ "api/docs" // This is important to import your generated docs package
 	"api/env"
 	"api/handlers"
+	adminanalytics "api/handlers/adminAnalytics"
 	"api/handlers/dispute"
 	"api/handlers/orchestratorNotification"
 
@@ -97,6 +98,7 @@ func main() {
 	userHandler := handlers.NewUserHandler(DB)
 	disputeHandler := dispute.NewHandler(DB, envLoader)
 	archiveHandler := handlers.NewArchiveHandler(DB)
+	analyticsHandler := adminanalytics.NewAdminAnalyticsHandler(DB, envLoader)
 	// expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
 
@@ -134,6 +136,10 @@ func main() {
 
 	archiveGroup := router.Group("/archive")
 	handlers.SetupArchiveRoutes(archiveGroup, archiveHandler)
+
+	analyticsGroup := router.Group("/analytics")
+	analyticsGroup.Use(jwt.JWTMiddleware)
+	adminanalytics.SetupAnalyticsRoute(analyticsGroup, analyticsHandler)
 
 	// expertGroup := router.Group("/experts")
 	// handlers.SetupExpertRoutes(expertGroup, expertHandler)

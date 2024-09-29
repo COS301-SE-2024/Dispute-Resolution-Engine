@@ -42,9 +42,6 @@ export default function StateSelect({ dispute }: { dispute: number }) {
       client.invalidateQueries({
         queryKey: [WORKFLOW_STATES_KEY, dispute],
       });
-      toast({
-        title: "Status updated successfully",
-      });
     },
     onError: (error) => {
       toast({
@@ -64,8 +61,8 @@ export default function StateSelect({ dispute }: { dispute: number }) {
 
   return (
     <Select
-      disabled={!query.isSuccess}
-      defaultValue={query.data?.current_state}
+      disabled={!query.isSuccess || currentState.isPending}
+      value={query.data?.current_state}
       onValueChange={onValueChange}
     >
       <SelectTrigger className="w-[180px]">

@@ -1,6 +1,6 @@
 import { type Node, type Edge, type ReactFlowInstance } from "@xyflow/react";
 
-export type disputeDuration = {
+export type TimerDuration = {
   days: number;
   hours: number;
   minutes: number;
@@ -17,6 +17,7 @@ export type GraphState = Node<
     label: string;
     description: string;
     initial?: boolean;
+    timer?: Timer;
   },
   "customNode"
 >;

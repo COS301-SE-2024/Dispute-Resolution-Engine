@@ -2,6 +2,7 @@ package dispute_test
 
 import (
 	"api/handlers/dispute"
+	mediatorassignment "api/mediatorAssignment"
 	"api/models"
 	"bytes"
 	"encoding/json"
@@ -56,6 +57,7 @@ type DisputeErrorTestSuite struct {
 	mockOrchestrator *mockOrchestrator
 	mockEnv          *mockEnv
 	mockTicket		*mockTicketModel
+	mockAlgorithm    *mockAlgorithmModel
 }
 
 func (suite *DisputeErrorTestSuite) SetupTest() {
@@ -66,8 +68,9 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 	suite.mockOrchestrator = &mockOrchestrator{}
 	suite.mockEnv = &mockEnv{}
 	suite.mockTicket = &mockTicketModel{}
+	suite.mockAlgorithm = &mockAlgorithmModel{}
 
-	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock, OrchestratorEntity: suite.mockOrchestrator, Env: suite.mockEnv, TicketModel: suite.mockTicket}
+	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock, OrchestratorEntity: suite.mockOrchestrator, Env: suite.mockEnv, TicketModel: suite.mockTicket, MediatorAssignment:suite.mockAlgorithm}
 	gin.SetMode("release")
 	router := gin.Default()
 	router.Use(suite.jwtMock.JWTMiddleware)
@@ -101,6 +104,32 @@ func createFileField(w *multipart.Writer, field, filename, value string) {
 }
 
 // ---------------------------------------------------------------- MODEL MOCKS
+//mock algorithgm model
+
+type mockAlgorithmModel struct {
+	throwErrors bool
+	Error       error
+	returnValue float64
+}
+
+func (m *mockAlgorithmModel) CalculateScore(summaries []models.ExpertSummaryView, componentID int) []mediatorassignment.ResultWithID {
+	if m.throwErrors {
+		return nil
+	}
+	return []mediatorassignment.ResultWithID{
+		{
+			ID:     1,
+			Result: m.returnValue,
+		},
+	}
+}
+
+func (m *mockAlgorithmModel) AssignMediator(count, disputeID int) ([]int, error) {
+	if m.throwErrors {
+		return nil, m.Error
+	}
+	return []int{1}, nil
+}
 
 //ticket mock
 
@@ -245,6 +274,21 @@ func (m *mockDisputeModel) GetEvidenceByDispute(disputeId int64) ([]models.Evide
 	}
 	return []models.Evidence{}, nil
 }
+
+func (m *mockDisputeModel) GetDisputeIDByTicketID(ticketID int64) (int64, error) {
+	if m.throwErrors {
+		return 0, errors.ErrUnsupported
+	}
+	return 0, nil
+}
+
+func (m *mockDisputeModel) AssignExpertswithDisputeAndExpertIDs(disputeID int64, expertIDs []int) error {
+	if m.throwErrors {
+		return errors.ErrUnsupported
+	}
+	return nil
+}
+
 func (m *mockDisputeModel) GetDisputeExperts(disputeId int64) ([]models.Expert, error) {
 	if m.throwErrors {
 		return nil, errors.ErrUnsupported

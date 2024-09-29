@@ -544,13 +544,28 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	}
 
 	//asssign experts to dispute
-	selected, err := h.Model.AssignExpertsToDispute(disputeId)
+	// selected, err := h.Model.AssignExpertsToDispute(disputeId)
+	// if err != nil {
+	// 	logger.WithError(err).Error("Error assigning experts to dispute")
+	// 	c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+	// 	return
+	// }
+	// logger.Info("Assigned experts", selected)
+
+	//assign using mediator assignment algorithm
+	expertIds, err := h.MediatorAssignment.AssignMediator(3, int(disputeId))
 	if err != nil {
 		logger.WithError(err).Error("Error assigning experts to dispute")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
 		return
 	}
-	logger.Info("Assigned experts", selected)
+
+	err = h.Model.AssignExpertswithDisputeAndExpertIDs(disputeId, expertIds)
+	if err != nil {
+		logger.WithError(err).Error("Error assigning experts to dispute")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+		return
+	}
 
 	// Respond with success message
 	if !defaultAccount {
@@ -740,6 +755,29 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 		logger.WithError(err).Error("failed to review objection")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "failed to review objection"})
 		return
+	}
+
+	if *req.Status == models.ObjectionSustained {
+		disputeId, err := h.Model.GetDisputeIDByTicketID(int64(objectionIdInt))
+		if err != nil {
+			logger.WithError(err).Error("Error getting dispute ID")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error getting dispute ID"})
+			return
+		}
+
+		expertIds, err := h.MediatorAssignment.AssignMediator(3, int(disputeId))
+		if err != nil {
+			logger.WithError(err).Error("Error assigning experts to dispute")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+			return
+		}
+	
+		err = h.Model.AssignExpertswithDisputeAndExpertIDs(disputeId, expertIds)
+		if err != nil {
+			logger.WithError(err).Error("Error assigning experts to dispute")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+			return
+		}
 	}
 
 	logger.Info("Expert objections reviewed successfully")

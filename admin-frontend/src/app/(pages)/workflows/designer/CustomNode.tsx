@@ -49,7 +49,20 @@ export default function CustomNode(data: NodeProps<GraphState>) {
   const reactFlow: GraphInstance = useReactFlow();
 
   function deleteNode() {
-    reactFlow.setNodes((nodes) => nodes.filter((node) => node.id !== data.id));
+    let nodes = reactFlow.getNodes()
+    let edges = reactFlow.getEdges()
+    for (let edge of edges){
+      if (edge.target == data.id){
+        let sourceNode = nodes.find((node) => node.id == edge.source)
+        if (sourceNode && sourceNode.data.edges) {
+          sourceNode.data.edges = sourceNode.data.edges.filter((handle) => handle.id != edge.sourceHandle)
+        }
+      }
+    }
+    edges = edges.filter((edge) => edge.target != data.id)
+    nodes = nodes.filter((node) => node.id != data.id)
+    reactFlow.setNodes(nodes)
+    reactFlow.setEdges(edges)
   }
 
   /** Used to determine when a component the label of a node is being edited */

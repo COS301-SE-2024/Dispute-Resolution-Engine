@@ -188,6 +188,7 @@ func (h *Handler) RestartStateMachine(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"error": "State Has No Timer",
 			})
+			return
 		}
 
 		// Check if the deadline is in the future

@@ -10,7 +10,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { getWorkflowList } from "@/lib/api/workflow";
-import { WORKFLOW_FILTER_KEY, WORKFLOW_LIST_KEY } from "@/lib/constants";
+import { WORKFLOW_LIST_KEY } from "@/lib/constants";
 import { useQuery } from "@tanstack/react-query";
 
 export default function WorkflowFilter({

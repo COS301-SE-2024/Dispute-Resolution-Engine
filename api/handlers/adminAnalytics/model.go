@@ -10,6 +10,8 @@ import (
 
 type AdminAnalyticsDBModel interface {
 	CalculateAverageResolutionTime() (float64, error)
+	GetDisputeGroupingByStatus() (map[string]int64, error)
+	GetDisputeGroupingByCountry() (map[string]int, error)
 	
 }
 
@@ -75,4 +77,38 @@ func (h AdminAnalyticsDBModelReal) GetDisputeGroupingByStatus() (map[string]int6
 	}
 
 	return statusCounts, nil
+}
+
+// GetDisputeGroupingByCountry counts the number of disputes grouped by the country of the complainant.
+func (h AdminAnalyticsDBModelReal) GetDisputeGroupingByCountry() (map[string]int, error) {
+	// This map will store the country as the key and the count of disputes as the value
+	countryCounts := make(map[string]int)
+
+	// Struct to hold the results of the query
+	type CountryDisputeCount struct {
+		Country string
+		Count   int
+	}
+
+	var results []CountryDisputeCount
+
+	// Perform the join and grouping query
+	err := h.DB.
+		Table("disputes").
+		Select("addresses.country, count(disputes.id) as count").
+		Joins("JOIN users ON disputes.complainant = users.id").
+		Joins("JOIN addresses ON users.address_id = addresses.id").
+		Group("addresses.country").
+		Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the results into a map
+	for _, result := range results {
+		countryCounts[result.Country] = result.Count
+	}
+
+	return countryCounts, nil
 }

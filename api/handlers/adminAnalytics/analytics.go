@@ -21,17 +21,28 @@ func (h AdminAnalyticsHandler) GetTimeEstimation(c *gin.Context) {
 		return
 	}
 
-	days, err := h.DB.CalculateAverageResolutionTime()
+	avg, err := h.DB.CalculateAverageResolutionTime()
 	if err != nil {
 		logger.WithError(err).Error("Failed to calculate average resolution time")
-		c.JSON(500, models.Response{Error: "Failed to calculate average resolution time"})
+		c.JSON(500, models.Response{Error: "No disputes Have been resolved yet"})
 		return
 	}
 
 	// Convert the average time (in days) to a time.Duration
-	duration := time.Duration(days * float64(24*time.Hour))
+	duration := time.Duration(avg * float64(24*time.Hour))
 
-	c.JSON(200, models.Response{Data: duration})
+	days := int(duration.Hours() / 24)
+	hours := int(duration.Hours()) % 24
+	minutes := int(duration.Minutes()) % 60
+
+	// Prepare the response
+	c.JSON(200, models.Response{
+		Data: map[string]int{
+			"days":    days,
+			"hours":   hours,
+			"minutes": minutes,
+		},
+	})
 }
 
 func (h AdminAnalyticsHandler) GetDisputeGrouping(c *gin.Context) {

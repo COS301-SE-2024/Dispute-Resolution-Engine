@@ -14,7 +14,9 @@ export type eventType = {
 export type GraphState = Node<
   {
     edges: { id: string }[];
-    label?: any;
+    label: string;
+    description: string;
+    initial?: boolean;
   },
   "customNode"
 >;

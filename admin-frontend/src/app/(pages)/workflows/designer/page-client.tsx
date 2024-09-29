@@ -43,7 +43,7 @@ const initialNodes: GraphState[] = [
     id: "0",
     type: "customNode",
     position: { x: 0, y: 0 },
-    data: { label: "New Node", edges: [] },
+    data: { initial: true, label: "New state", description: "Initial state", edges: [] },
   },
 ];
 
@@ -115,7 +115,7 @@ function Flow({ setIsSaved }: { setIsSaved: any }) {
             x: clientX,
             y: clientY,
           }),
-          data: { label: "New Node", edges: [] },
+          data: { label: "New state", edges: [], description: "New state" },
         };
 
         const newEdge: GraphTrigger = createEdge(

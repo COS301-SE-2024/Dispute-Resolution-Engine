@@ -65,13 +65,15 @@ export default function CustomNode(data: NodeProps<GraphState>) {
   return (
     <Card className="min-w-48">
       <CardHeader className="p-3 flex gap-1 flex-row items-center">
-        <Button
-          variant="ghost"
-          className="rounded-full p-2 items-center justify-center"
-          onClick={deleteNode}
-        >
-          <CircleX size="1rem" />
-        </Button>
+        {!(data.data.initial ?? false) && (
+          <Button
+            variant="ghost"
+            className="rounded-full p-2 items-center justify-center"
+            onClick={deleteNode}
+          >
+            <CircleX size="1rem" />
+          </Button>
+        )}
         {editing ? (
           <EditForm
             value={data.data.label}

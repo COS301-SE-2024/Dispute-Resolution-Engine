@@ -38,7 +38,8 @@ import { DisputeStatusDropdown, ObjectionStatusDropdown } from "@/components/adm
 import { changeObjectionStatus, getExpertObjections } from "@/lib/api/expert";
 import { DISPUTE_DETAILS_KEY, DISPUTE_LIST_KEY } from "@/lib/constants";
 import { ObjectionListResponse, ObjectionStatus } from "@/lib/types/experts";
-import StateSelect from "@/components/dispute/state-select";
+import StateSelect from "@/components/workflow/state-select";
+import DeadlineSelect from "@/components/workflow/deadline-select";
 
 export default function DisputeDetails({ id: disputeId }: { id: number }) {
   const { toast } = useToast();
@@ -87,8 +88,8 @@ export default function DisputeDetails({ id: disputeId }: { id: number }) {
               </Button>
             </DialogClose>
           </div>
-          <div className="flex gap-2 items-center">
-            <div className="grid grid-cols-2 gap-2">
+          <div className="flex gap-2 items-start">
+            <div className="grid grid-cols-2 gap-2 mr-auto">
               <strong>Status:</strong>
               <DisputeStatusDropdown
                 initialValue={details.data.status}
@@ -99,11 +100,9 @@ export default function DisputeDetails({ id: disputeId }: { id: number }) {
                   {details.data.status}
                 </DisputeStatusBadge>
               </DisputeStatusDropdown>
-              <strong>Current State:</strong>
-              <StateSelect dispute={disputeId} />
             </div>
 
-            <div className="ml-auto grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-x-2">
               <strong className="text-right">Filed:</strong>
               <span>{details.data.date_filed}</span>
               <strong className="text-right">Case number:</strong>
@@ -112,6 +111,19 @@ export default function DisputeDetails({ id: disputeId }: { id: number }) {
           </div>
         </DialogHeader>
         <div className="overflow-y-auto grow space-y-6 pr-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>Workflow</CardTitle>
+              <CardDescription>Manage the active workflow of the dispute.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2">
+              <strong>Current State</strong>
+              <strong>State deadline</strong>
+              <StateSelect dispute={disputeId} />
+              <DeadlineSelect dispute={disputeId} />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Overview</CardTitle>

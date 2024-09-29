@@ -77,3 +77,16 @@ export async function changeDisputeState(id: number, state: string): Promise<voi
     },
   });
 }
+
+export async function changeDisputeDeadline(id: number, date: Date): Promise<void> {
+  await sf(`${API_URL}/workflows/reset`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      dispute_id: id,
+      deadline: date.toISOString(),
+    }),
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  });
+}

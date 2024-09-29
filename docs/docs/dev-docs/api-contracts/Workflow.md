@@ -172,7 +172,9 @@ type ActiveWorkflowResponse = ActiveWorkflow;
 
 ```ts
 //request
-type Request interface {
-  
+interface Request  {
+  dispute_id : number;
+  current_state? : string;
+  deadline? : time
 }
 ```

@@ -91,12 +91,12 @@ CREATE TYPE dispute_status AS ENUM (
 CREATE TABLE disputes (
 	id SERIAL PRIMARY KEY,
 	case_date DATE DEFAULT CURRENT_DATE,
-	workflow BIGINT REFERENCES active_workflows(id),
+	workflow BIGINT REFERENCES active_workflows(id) NOT NULL,
 	status dispute_status DEFAULT 'Awaiting Respondant',
 	title VARCHAR(255) NOT NULL,
-	description TEXT,
-	complainant BIGINT REFERENCES users(id),
-	respondant BIGINT REFERENCES users(id),
+	description TEXT NOT NULL,
+	complainant BIGINT REFERENCES users(id) NOT NULL,
+	respondant BIGINT REFERENCES users(id) NOT NULL,
     date_resolved DATE DEFAULT NULL
 );
 
@@ -373,6 +373,29 @@ JOIN
     dispute_experts de ON u.id = de."user"
 GROUP BY 
     u.id, u.first_name, u.surname;
+
+CREATE OR REPLACE VIEW expert_objections_view AS
+SELECT 
+    eo.id AS objection_id,
+    t.id AS ticket_id,  -- Include the ticket ID in the view
+    t.created_at AS ticket_created_at,  -- Include the ticket's created date
+    t.dispute_id,
+    d.title AS dispute_title,
+    eo.expert_id,
+    expert.first_name || ' ' || expert.surname AS expert_full_name,
+    t.created_by AS user_id,
+    "user".first_name || ' ' || "user".surname AS user_full_name,
+    eo.status AS objection_status
+FROM 
+    expert_objections eo
+JOIN 
+    tickets t ON eo.ticket_id = t.id
+JOIN 
+    disputes d ON t.dispute_id = d.id
+JOIN 
+    users expert ON eo.expert_id = expert.id
+JOIN 
+    users "user" ON t.created_by = "user".id;
 
 ------------------------------------------------------------- TABLE CONTENTS
 INSERT INTO Countries (country_code, country_name) VALUES

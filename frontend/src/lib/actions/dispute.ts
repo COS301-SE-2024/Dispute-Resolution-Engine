@@ -73,8 +73,8 @@ export async function rejectExpert(
     };
   }
 
-  const res = await formFetch<ExpertRejectData, string>(
-    `${API_URL}/disputes/${parsed.dispute_id}/experts/reject`,
+  const res = await formFetch<ExpertRejectData, number>(
+    `${API_URL}/disputes/${parsed.dispute_id}/objections`,
     {
       method: "POST",
       headers: {
@@ -88,10 +88,14 @@ export async function rejectExpert(
     }
   );
 
-  if (!res.error) {
-    revalidatePath(`/disputes/${parsed.dispute_id}`);
+  if (res.error) {
+    return res;
   }
-  return res;
+
+  revalidatePath(`/disputes/${parsed.dispute_id}`);
+  return {
+    data: res.data!.toString(),
+  };
 }
 
 export async function uploadEvidence(
@@ -157,7 +161,7 @@ export async function uploadDecision(
     return { error: parseErr.format() };
   }
 
-  const res = await fetch(`${API_URL}/disputes/${parsed?.dispute_id}/evidence`, {
+  const res = await fetch(`${API_URL}/disputes/${parsed?.dispute_id}/decision`, {
     method: "POST",
     headers: {
       // Sub this for the proper getAuthToken thing

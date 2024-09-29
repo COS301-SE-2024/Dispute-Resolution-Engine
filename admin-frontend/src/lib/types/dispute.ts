@@ -83,11 +83,20 @@ export interface UserDetails {
   address: string;
 }
 
+export type ExpertStatus = "Approved" | "Rejected" | "Review";
+export interface ExpertSummary {
+  id: number;
+  full_name: string;
+  status: ExpertStatus;
+}
+
 export interface DisputeDetails extends AdminDispute {
   description: string;
   evidence: Evidence[];
   complainant: UserDetails;
   respondent: UserDetails;
+
+  experts: ExpertSummary[];
 }
 
 export type DisputeDetailsResponse = DisputeDetails;

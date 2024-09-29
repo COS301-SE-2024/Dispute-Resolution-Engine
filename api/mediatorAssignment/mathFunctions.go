@@ -37,7 +37,7 @@ type Logarithmic struct {
 }
 
 func (l *Logarithmic) CalculateScore(inputValue float64) float64 {
-	score := l.MoveYAxis + math.Log(inputValue)/math.Log(l.LogBase) + l.MoveXAxis
+	score := l.MoveYAxis + math.Log(inputValue+l.MoveXAxis)/math.Log(l.LogBase)
 
 	if l.ApplyCapToValue {
 		if score > l.Cap {

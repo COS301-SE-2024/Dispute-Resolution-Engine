@@ -1,7 +1,7 @@
 "use client";
 import { Handle, Node, NodeProps, Position, useReactFlow } from "@xyflow/react";
 import { FormEvent, ReactNode, useRef, useState } from "react";
-import { CirclePlus, CircleX, ClockIcon, Pencil } from "lucide-react";
+import { BookOpenIcon, CirclePlus, CircleX, ClockIcon, Pencil } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -124,7 +124,7 @@ export default function CustomNode(data: NodeProps<GraphState>) {
           </>
         )}
       </CardHeader>
-      <CardContent style={{ minHeight }} className="relative pt-0 mt-0 flex flex-col">
+      <CardContent style={{ minHeight }} className="relative pt-0 mt-0 flex flex-col items-start">
         {handles}
         <Handle
           type="source"
@@ -145,7 +145,8 @@ export default function CustomNode(data: NodeProps<GraphState>) {
           asChild
           onValueChange={setNodeDescription}
         >
-          <Button variant="ghost" className="text-sm font-normal">
+          <Button variant="ghost" className="text-sm font-normal gap-2">
+            <BookOpenIcon size="1rem" />
             Edit description
           </Button>
         </DescriptionEditor>

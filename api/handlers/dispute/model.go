@@ -450,6 +450,7 @@ func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.
 		Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").
 		Joins("JOIN users ON dispute_experts_view.expert = users.id").
 		Where("dispute = ?", disputeId).
+		Where("dispute_experts_view.status = 'Approved'").
 		Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").
 		Find(&experts).Error
 
@@ -1011,7 +1012,7 @@ FROM
 JOIN 
 	tickets t ON eo.ticket_id = t.id
 WHERE 
-	eo.id = 4`, ticketID).Scan(&disputeID).Error
+	eo.id = ?`, ticketID).Scan(&disputeID).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute ID by ticket ID")
 		return 0 , err

@@ -149,7 +149,7 @@ func main() {
 
 	logger.Info("Starting server on port 8080")
 	go func() {
-		if err := router.Run(":8181"); err != nil {
+		if err := router.Run(":8080"); err != nil {
 			logger.WithError(err).Fatal("Failed to start server")
 		} else {
 			logger.Info("Main API server started successfully")

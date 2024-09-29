@@ -13,5 +13,8 @@ export const TICKET_DETAILS_KEY = "ticketDetails";
 /** The React Query key used to store the list of workflows */
 export const WORKFLOW_LIST_KEY = "workflowList";
 
+/** The React Query key used to store the list of workflows */
+export const WORKFLOW_STATES_KEY = "workflowStates";
+
 /** The number of elements to display per page in a table view */
 export const PAGE_SIZE = 10;

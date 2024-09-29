@@ -18,7 +18,7 @@ import { getAuthToken } from "../jwt";
 import { API_URL, sf, validateResult } from "../utils";
 
 export async function createWorkflow(req: WorkflowCreateRequest): Promise<WorkflowCreateResponse> {
-  console.log("Request in createWorkflow", JSON.stringify(req))
+  console.log("Request in createWorkflow", JSON.stringify(req));
   return sf(`${API_URL}/workflows/create`, {
     method: "POST",
     body: JSON.stringify(req),
@@ -105,21 +105,21 @@ export async function graphToWorkflow({
 export async function workflowToGraph(
   workflow: WorkflowDefinition
 ): Promise<[GraphState[], GraphTrigger[]]> {
-  let triggers : GraphTrigger[] = []
-  let currId : number = 0
+  let triggers: GraphTrigger[] = [];
+  let currId: number = 0;
   for (const stateKey in workflow.states) {
     const state = workflow.states[stateKey];
-  
+
     for (const eventKey in state.events) {
       const event = state.events[eventKey];
-      const trigger : GraphTrigger = {
+      const trigger: GraphTrigger = {
         id: (currId++).toString(),
         source: stateKey,
         target: event.next_state,
-        data: {trigger: event.label},
+        data: { trigger: event.label },
         type: "custom-edge",
-      }
-      triggers.push(trigger)
+      };
+      triggers.push(trigger);
     }
   }
   return [

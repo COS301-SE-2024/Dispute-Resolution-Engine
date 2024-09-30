@@ -19,7 +19,7 @@ Welcome to the help section of the Dispute Resolution Engine! This page will gui
 
 You can create an account as a **User** or an **Expert**. Here’s how:
 
-1. Navigate to the [Sign Up](#) page.
+1. Navigate to the [Sign Up](https://capstone-dre.dns.net.za/signup) page.
 2. Choose your account type: 
     - **User**: For individuals seeking to resolve disputes.
     - **Expert**: For professionals offering dispute resolution services.
@@ -34,7 +34,7 @@ Once registered, you'll receive a confirmation email to verify your account.
 
 To log in to your account:
 
-1. Go to the [Login](#) page.
+1. Go to the [Login](https://capstone-dre.dns.net.za/login) page.
 2. Enter your registered email and password.
 3. Click "Log In".
 
@@ -44,7 +44,7 @@ Once logged in, you can access all platform features, including dispute manageme
 
 ## Navigating the Dashboard
 
-After logging in, you will be taken to the dashboard. Here, you can:
+After logging in, you will be taken to the disputes dashboard. Here, you can:
 
 - View active disputes.
 - Access your profile.
@@ -71,7 +71,7 @@ You can interact with your disputes at any time through the dashboard by providi
 
 You can browse through previously resolved disputes at any time, whether logged in or not.
 
-1. Navigate to the [Archive](#) page.
+1. Navigate to the [Archive](https://capstone-dre.dns.net.za/archive) page.
 2. Use the search bar to find specific disputes by keywords, dates, or categories.
 3. Click on any dispute to view its details.
 
@@ -98,8 +98,7 @@ Keep your profile up-to-date to ensure smooth communication on the platform.
 
 If you have any questions or encounter any issues, feel free to reach out to our support team at:
 
-- **Email**: support@disputeresolutionengine.com
-- **Phone**: +1-800-123-4567
+- **Email**: the.techtonic.team@gmail.com
 
 ---
 

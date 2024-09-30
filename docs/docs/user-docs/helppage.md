@@ -1,17 +1,106 @@
-# How To:
+# Help Page
 
-## How to File a dispute?
+Welcome to the help section of the Dispute Resolution Engine! This page will guide you through using our platform, including account creation, managing your profile, and interacting with disputes.
 
-Head to the "Dipsute" and find the "create" button at the bottom left. Once clicked, fill in the Respondants details and the respective details about the dispute. Initially evidence for a dispute is not required, however the should you wish to upload evidence already, please feel free to do so.
+## Table of Contents
+- [Help Page](#help-page)
+	- [Table of Contents](#table-of-contents)
+	- [Creating an Account](#creating-an-account)
+	- [Logging In](#logging-in)
+	- [Navigating the Dashboard](#navigating-the-dashboard)
+	- [Creating and Managing Disputes](#creating-and-managing-disputes)
+	- [Viewing Resolved Disputes (Archive)](#viewing-resolved-disputes-archive)
+	- [Updating Your Profile](#updating-your-profile)
+	- [Contact Us](#contact-us)
 
-## How do I design a "Workflow" for the Dispute?
+---
 
-to be implimented...
+## Creating an Account
 
-## How do I upload evidence?
+You can create an account as a **User** or an **Expert**. Here’s how:
 
-You can upload evidence while creating a dispute initially, otherwise you can head to the "dispute" tab and click on the respective dispute in the side-bar. From there you will find a place from which you can upload your evidence.
+1. Navigate to the [Sign Up](#) page.
+2. Choose your account type: 
+    - **User**: For individuals seeking to resolve disputes.
+    - **Expert**: For professionals offering dispute resolution services.
+3. Fill in your personal information and create a password.
+4. Click the "Create Account" button.
 
-## How do I delete my account?
+Once registered, you'll receive a confirmation email to verify your account.
 
-You cant, teehee ... :-\)
+---
+
+## Logging In
+
+To log in to your account:
+
+1. Go to the [Login](#) page.
+2. Enter your registered email and password.
+3. Click "Log In".
+
+Once logged in, you can access all platform features, including dispute management and your profile page.
+
+---
+
+## Navigating the Dashboard
+
+After logging in, you will be taken to the dashboard. Here, you can:
+
+- View active disputes.
+- Access your profile.
+- Browse resolved disputes in the **Archive**.
+
+The navigation bar at the top of the page allows you to easily move between different sections of the platform.
+
+---
+
+## Creating and Managing Disputes
+
+To create or manage disputes:
+
+1. Log in to your account.
+2. From the dashboard, click on the "Create Dispute" button.
+3. Fill in the necessary details, including parties involved and dispute description.
+4. Submit your dispute, and it will appear in your dashboard where you can track its progress.
+
+You can interact with your disputes at any time through the dashboard by providing updates or viewing resolutions.
+
+---
+
+## Viewing Resolved Disputes (Archive)
+
+You can browse through previously resolved disputes at any time, whether logged in or not.
+
+1. Navigate to the [Archive](#) page.
+2. Use the search bar to find specific disputes by keywords, dates, or categories.
+3. Click on any dispute to view its details.
+
+The archive is a great way to research how similar disputes have been resolved.
+
+---
+
+## Updating Your Profile
+
+To update your profile information:
+
+1. **Sign in** to your account.
+2. Click on your **profile icon** at the top right corner of any page.
+3. You will be taken to your **Profile** page, where you can:
+    - Edit your personal details (name, email, etc.).
+    - Update your address.
+4. Click **Save** to update your information.
+
+Keep your profile up-to-date to ensure smooth communication on the platform.
+
+---
+
+## Contact Us
+
+If you have any questions or encounter any issues, feel free to reach out to our support team at:
+
+- **Email**: support@disputeresolutionengine.com
+- **Phone**: +1-800-123-4567
+
+---
+
+Thank you for using the Dispute Resolution Engine!

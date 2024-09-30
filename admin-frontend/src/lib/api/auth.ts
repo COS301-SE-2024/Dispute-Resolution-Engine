@@ -17,32 +17,36 @@ const loginSchema = z.object({
 });
 
 export async function login(_initialState: any, formData: FormData): Promise<Result<never>> {
-  return resultify(
-    (async () => {
-      // Parse form data
-      const formObject = Object.fromEntries(formData);
-      const { data, error } = loginSchema.safeParse(formObject);
-      if (error) {
-        throw new Error(error.issues[0].message);
-      }
+  try {
+    // Parse form data
+    const formObject = Object.fromEntries(formData);
+    const { data, error } = loginSchema.safeParse(formObject);
+    if (error) {
+      throw new Error(error.issues[0].message);
+    }
 
-      const res = await sf(`${API_URL}/auth/login`, {
-        method: "POST",
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
-      }).then(validateResult<string>);
+    const res = await sf(`${API_URL}/auth/login`, {
+      method: "POST",
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+      }),
+    }).then(validateResult<string>);
 
-      const jwt = jwtDecode(res) as UserJwt;
-      if (jwt.user.role != "admin") {
-        throw new Error("Unauthorized. You are not an admin");
-      }
+    const jwt = jwtDecode(res) as UserJwt;
+    if (jwt.user.role != "admin") {
+      throw new Error("Unauthorized. You are not an admin");
+    }
+    setAuthToken(res);
+  } catch (e) {
+    const error = e as Error;
+    return {
+      error: error.message,
+    };
+  }
 
-      setAuthToken(res);
-      redirect("/");
-    })()
-  );
+  // WARNING: do not move this inside the try block. You will face the eternal wrath of Next.js
+  redirect("/");
 }
 
 export async function signout() {

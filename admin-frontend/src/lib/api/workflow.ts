@@ -12,10 +12,11 @@ import {
   type WorkflowListRequest,
   type WorkflowListResponse,
   WorkflowDefinition,
+  State,
 } from "../types/workflow";
 
 import { getAuthToken } from "../jwt";
-import { API_URL, sf, validateResult } from "../utils";
+import { API_URL, durationFromString, durationToString, sf, validateResult } from "../utils";
 
 export async function createWorkflow(req: WorkflowCreateRequest): Promise<WorkflowCreateResponse> {
   console.log("Request in createWorkflow", JSON.stringify(req));
@@ -53,7 +54,7 @@ export async function getWorkflowDetails(id: number): Promise<WorkflowDetailsRes
   }).then(validateResult<WorkflowDetailsResponse>);
 }
 
-export async function updateWorkflow(id: string, req: WorkflowUpdateRequest): Promise<void> {
+export async function updateWorkflow(id: number, req: WorkflowUpdateRequest): Promise<void> {
   await sf(`${API_URL}/workflows/${id}`, {
     method: "PATCH",
     body: JSON.stringify(req),
@@ -61,6 +62,16 @@ export async function updateWorkflow(id: string, req: WorkflowUpdateRequest): Pr
       Authorization: `Bearer ${getAuthToken()}`,
     },
   });
+}
+
+export async function getWorkflowTriggers(): Promise<string[]> {
+  return sf(`${API_URL}/workflows/triggers`, {
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  })
+    .then(validateResult<{ triggers: string[] }>)
+    .then((res) => res.triggers);
 }
 
 export async function deleteWorkflow(id: string): Promise<void> {
@@ -77,26 +88,37 @@ export async function graphToWorkflow({
   edges,
 }: ReactFlowJsonObject<GraphState, GraphTrigger>): Promise<WorkflowDefinition> {
   // console.log(nodes, edges);
+  const initial = nodes.find((state) => state.data.initial)?.id;
+  if (!initial) {
+    throw new Error("No initial state!");
+  }
+
   return {
-    initial: "Im not sure",
+    initial: initial,
     states: Object.fromEntries(
       nodes.map((node) => [
         node.id,
         {
           label: node.data.label,
-          description: "sure bud",
+          description: node.data.description,
           events: Object.fromEntries(
             edges
               .filter((edge) => edge.source == node.id)
               .map((edge) => [
-                edge.id,
+                edge.data!.trigger,
                 {
-                  label: edge.data ? edge.data.trigger : "default",
+                  label: edge.data ? edge.data.label : "default",
                   next_state: edge.target,
                 },
               ])
           ),
-        },
+          timer: node.data.timer
+            ? {
+                duration: durationToString(node.data.timer),
+                on_expire: "timer_expired",
+              }
+            : undefined,
+        } satisfies State,
       ])
     ),
   };
@@ -116,7 +138,7 @@ export async function workflowToGraph(
         id: (currId++).toString(),
         source: stateKey,
         target: event.next_state,
-        data: { trigger: event.label },
+        data: { trigger: eventKey, label: event.label },
         type: "custom-edge",
       };
       triggers.push(trigger);
@@ -128,7 +150,12 @@ export async function workflowToGraph(
       type: "customNode",
       data: {
         label: workflow.states[id].label,
+        initial: workflow.initial == id ? true : undefined,
+        description: workflow.states[id].description,
         edges: [],
+        timer: workflow.states[id].timer
+          ? durationFromString(workflow.states[id].timer.duration)
+          : undefined,
       },
       position: { x: 0, y: 0 },
     })),

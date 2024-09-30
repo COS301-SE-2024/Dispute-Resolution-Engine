@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Result, resultSchema } from "./types";
+import { Result, resultSchema, TimerDuration } from "./types";
 
 export const API_URL = process.env.API_URL;
 
@@ -63,4 +63,40 @@ export function sf(
     }
     return res;
   });
+}
+
+export function durationFromString(d: string): TimerDuration {
+  const regex = /(\d+h)?(\d+m)?(\d+s)?/g;
+  const dur = regex.exec(d);
+  if (!dur) {
+    throw new Error("bad boy");
+  }
+  let hours = dur[1] ? parseInt(dur[1].substring(0, dur[1].length - 1)) : 0;
+
+  const days = Math.floor(hours / 24);
+  hours = hours % 24;
+
+  const minutes = dur[2] ? parseInt(dur[2].substring(0, dur[2].length - 1)) : 0;
+  const seconds = dur[3] ? parseInt(dur[3].substring(0, dur[3].length - 1)) : 0;
+
+  return { hours, days, minutes, seconds };
+}
+
+export function durationToString(d: TimerDuration): string {
+  console.log("DUR", d);
+  const hours = d.hours + d.days * 24;
+  const { minutes, seconds } = d;
+
+  let result = "";
+  if (hours > 0) {
+    result += `${hours}h`;
+  }
+  if (minutes > 0) {
+    result += `${minutes}m`;
+  }
+  if (seconds > 0) {
+    result += `${seconds}s`;
+  }
+
+  return result;
 }

@@ -74,13 +74,13 @@ type Dispute struct {
 }
 
 type Workflow struct {
-	ID          uint64          `gorm:"primaryKey;autoIncrement"`
-	Name        string          `gorm:"type:varchar(100);not null"`
-	Definition  json.RawMessage `gorm:"column:definition;type:jsonb"`
-	CreatedAt   time.Time       `gorm:"autoCreateTime"`
-	LastUpdated time.Time       `gorm:"autoUpdateTime"`
-	AuthorID    int64           `gorm:"column:author"`
-	Author      *User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"`
+	ID          uint64          `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name        string          `gorm:"type:varchar(100);not null" json:"name"`
+	Definition  json.RawMessage `gorm:"column:definition;type:jsonb" json:"definition"`
+	CreatedAt   time.Time       `gorm:"autoCreateTime" json:"created_at"`
+	LastUpdated time.Time       `gorm:"autoUpdateTime" json:"last_updated"`
+	AuthorID    int64           `gorm:"column:author" json:"author_id"`
+	Author      *User           `gorm:"foreignKey:AuthorID" json:"author,omitempty" json:"author"`
 }
 
 func (Workflow) TableName() string {

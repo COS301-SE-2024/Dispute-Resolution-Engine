@@ -5,17 +5,22 @@ import Link from "next/link";
 
 function SearchResult(props: ArchivedDisputeSummary) {
   return (
-    <tr>
-      <td className="border px-4 py-2">
+    <tr className="border rounded-lg overflow-hidden">
+      <td className="border px-4 py-2 text-center">
         <Link href={`/archive/${props.id}`}>
           <h3 className="hover:underline font-semibold text-lg">{props.title}</h3>
         </Link>
-        <p className="dark:text-white/50">{props.summary}</p>
+        <p>{props.summary}</p>
         <div className="space-x-1 mt-2">
           {props.category.map((cat) => (
             <Badge key={cat}>{cat}</Badge>
           ))}
         </div>
+      </td>
+      <td className="border px-4 py-2 text-center">
+        <p><strong>Date Filed:</strong> {props.date_filed}</p>
+        <p><strong>Date Resolved:</strong> {props.date_resolved ?? "-"}</p>
+        <p><strong>Resolution:</strong> {props.resolution}</p>
       </td>
     </tr>
   );
@@ -23,7 +28,7 @@ function SearchResult(props: ArchivedDisputeSummary) {
 
 export default async function ArchiveBrowse() {
   let response = await getArchives();
-  let data : ArchivedDisputeSummary[];
+  let data: ArchivedDisputeSummary[];
   if (!response.data) {
     data = [];
   } else {
@@ -31,24 +36,30 @@ export default async function ArchiveBrowse() {
   }
 
   return (
-    <div className="pt-8 pl-8">
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-4 text-center">Archived Disputes</h1>
       <main className="mx-20">
-      <table className="min-w-full rounded-lg overflow-hidden">
-        <thead>
-        <tr>
-          <th className="py-2 text-4xl">Archived Disputes</th>
-        </tr>
-        </thead>
-        <tbody className="bg-dre-500">
-        {data.length > 0 ? (
-          data.map((dispute) => <SearchResult key={dispute.id} {...dispute} />)
-        ) : (
-          <tr>
-          <td className="border px-4 py-2">No results</td>
-          </tr>
-        )}
-        </tbody>
-      </table>
+        <table className="min-w-full divide-y rounded-lg overflow-hidden my-4 bg-dre-300">
+          <thead>
+            <tr>
+              <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                Title & Summary
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+                Dates & Resolution
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.length > 0 ? (
+              data.map((dispute) => <SearchResult key={dispute.id} {...dispute} />)
+            ) : (
+              <tr>
+                <td className="border px-4 py-2 text-center" colSpan={2}>No results</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </main>
     </div>
   );

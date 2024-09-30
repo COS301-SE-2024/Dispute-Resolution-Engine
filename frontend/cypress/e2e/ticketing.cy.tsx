@@ -3,9 +3,9 @@ describe("Navigation", () => {
     /**
      * Logs in
      */
-    cy.visit("/login");
-    cy.contains("Email").type("kifane5182@jofuso.com");
-    cy.contains("Password").type("Test1234#");
+    cy.visit("/admin/login");
+    cy.contains("Email").type(Cypress.env('TEST_USER'));
+    cy.contains("Password").type(Cypress.env('TEST_PASSWORD'));
     cy.get("button").contains("Login").click();
 
     /**

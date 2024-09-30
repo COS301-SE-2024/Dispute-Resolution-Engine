@@ -43,7 +43,7 @@ const searchSchema = z.object({
 
 export type SearchParams = z.infer<typeof searchSchema>;
 
-export function SearchResult(props: ArchivedDisputeSummary) {
+function SearchResult(props: ArchivedDisputeSummary) {
   return (
     <li>
       <div className="flex items-center gap-5 mb-3">

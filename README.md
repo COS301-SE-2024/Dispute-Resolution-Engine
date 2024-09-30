@@ -38,6 +38,8 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
 # Documentation
 
+- [Deployment Diagram](./readme-assets/Deployment_20240930.png)
+
 - SRS Documents
   - [Software Requirements](./docs/docs/technical-docs/SoftwareRequirements.md)
   - [Non-functional Requirements](./readme-assets/Non-functional_Requirements.pdf)

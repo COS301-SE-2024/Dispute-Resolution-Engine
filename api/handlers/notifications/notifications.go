@@ -49,7 +49,7 @@ func (e *emailImpl) SendAdminEmail(c *gin.Context, disputeID int64, resEmail str
 		From:    companyEmail,
 		To:      respondentEmail,
 		Subject: "Notification of formal dispute",
-		Body: "Dear valued respondent,\r\n We hope this email finds you well. A dispute has arisen between you and a user of our system.\r\n The dispute details are as followed:\r\n" +
+		Body: "Dear valued respondent,\r\n\r\n We hope this email finds you well. A dispute has arisen between you and a user of our system.\r\n\r\n The dispute details are as followed:\r\n" +
 			"Title: " + title + ".\r\n" +
 			"Summary of dispute: " + summary + ".\r\n" +
 			"Please login to your DRE account and review it .",
@@ -73,9 +73,9 @@ func (e *emailImpl) SendDefaultUserEmail(c *gin.Context, email string, pass stri
 		From:    companyEmail,
 		To:      email,
 		Subject: "Default DRE Account",
-		Body: "Dear valued respondent,\r\n We hope this email finds you well. A dispute has arisen between you and a user of our system.\n The dispute details are as followed: \r\n" +
-			"Title: " + title + ".\r\n" +
-			"Summary of dispute: " + summary + ".\r\n" +
+		Body: "Dear valued respondent,\r\n\r\n We hope this email finds you well. A dispute has arisen between you and a user of our system.\r\n\r\n The dispute details are as followed: \r\n" +
+			"Title: " + title + ".\r\n\r\n" +
+			"Summary of dispute: " + summary + ".\r\n\r\n" +
 			"Please login to your DRE account and review it, use this inbox's email address along with this password: " + pass + " .",
 	}
 
@@ -149,10 +149,10 @@ func (e *emailImpl) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, d
 		logger.WithError(err.Error).Error("Failed to get the complainant details")
 		return
 	}
-	body := "Dear valued user,\r\n We hope this email finds you well. The status of a dispute you are involved with has changed. \r\n"
+	body := "Dear valued user,\r\n\r\nWe hope this email finds you well. The status of a dispute you are involved with has changed. \r\n\r\n"
 	body += "The dispute details are as follows:\r\n"
 	body += "Current status: " + disputeStatus + ".\r\n"
-	body += description + "\r\n"
+	body += description + "\r\n\r\n"
 	body += "Please visit DRE and check your emails regularly for future updates."
 
 	companyEmail, err2 := envLoader.Get("COMPANY_EMAIL")
@@ -197,7 +197,7 @@ func SendMail(email models.Email) error {
 	m.SetHeader("From", email.From)
 	m.SetHeader("To", email.To)
 	m.SetHeader("Subject", email.Subject)
-	m.SetBody("text/html", email.Body)
+	m.SetBody("text/plain", email.Body)
 	logger.WithField("email", email).Info("Sending email")
 
 	if err := d.DialAndSend(m); err != nil {

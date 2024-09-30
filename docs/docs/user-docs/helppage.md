@@ -23,8 +23,13 @@ You can create an account as a **User** or an **Expert**. Here’s how:
 2. Choose your account type: 
     - **User**: For individuals seeking to resolve disputes.
     - **Expert**: For professionals offering dispute resolution services.
+![image](https://github.com/user-attachments/assets/d0faba41-a4b4-48a8-ba61-783e38253e4c)
+
 3. Fill in your personal information and create a password.
-4. Click the "Create Account" button.
+![image](https://github.com/user-attachments/assets/f33322ed-b2ee-4c70-b56f-455553dd636b)
+![image](https://github.com/user-attachments/assets/ad3cab26-8714-42f8-931d-0b28be2090f4)
+
+5. Click the "Create Account" button.
 
 Once registered, you'll receive a confirmation email to verify your account.
 
@@ -36,7 +41,9 @@ To log in to your account:
 
 1. Go to the [Login](https://capstone-dre.dns.net.za/login) page.
 2. Enter your registered email and password.
-3. Click "Log In".
+![image](https://github.com/user-attachments/assets/257b60e1-098c-445f-afd8-05dd88c02005)
+
+4. Click "Log In".
 
 Once logged in, you can access all platform features, including dispute management and your profile page.
 
@@ -47,8 +54,9 @@ Once logged in, you can access all platform features, including dispute manageme
 After logging in, you will be taken to the disputes dashboard. Here, you can:
 
 - View active disputes.
-- Access your profile.
+- Access your profile (top right).
 - Browse resolved disputes in the **Archive**.
+![image](https://github.com/user-attachments/assets/8d256f7e-686e-4c39-982e-0a4a343b13d5)
 
 The navigation bar at the top of the page allows you to easily move between different sections of the platform.
 
@@ -59,9 +67,14 @@ The navigation bar at the top of the page allows you to easily move between diff
 To create or manage disputes:
 
 1. Log in to your account.
-2. From the dashboard, click on the "Create Dispute" button.
-3. Fill in the necessary details, including parties involved and dispute description.
-4. Submit your dispute, and it will appear in your dashboard where you can track its progress.
+2. From the dashboard, click on the "Create" button.
+![image](https://github.com/user-attachments/assets/a03b3a48-a74c-4278-8795-659a67d3722f)
+
+4. Fill in the necessary details, including parties involved and dispute description.
+![image](https://github.com/user-attachments/assets/df804ccd-e552-47e2-ac5b-a0021525bf52)
+![image](https://github.com/user-attachments/assets/6c1ca21b-13cf-43d9-aeca-99d75a8364d5)
+
+6. Submit your dispute, and it will appear in your dashboard where you can track its progress.
 
 You can interact with your disputes at any time through the dashboard by providing updates or viewing resolutions.
 

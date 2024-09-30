@@ -33,43 +33,40 @@ const (
 )
 
 const (
-	// Dispute triggers
-	TriggerComplaintNotCompliant = "complaint_not_compliant"
-	TriggerFeeNotPaid            = "fee_not_paid"
-	TiggerFeePaid                = "fee_paid"
-	TriggerComplaintCompliant    = "complaint_compliant"
-	TriggerTimedOut              = "timed_out"
-	TriggerResponseReceived      = "response_received"
-	TriggerResponseUndelivered   = "response_undelivered"
-	TriggerAdjudicatorAssigned   = "adjudicator_assigned"
-	TriggerDecisionMade          = "decision_made"
-	TriggerPanelAppointed        = "panel_appointed"
+	ObjectionSubmitted = "objection_submitted"
+	ObjectionSustained  = "objection_sustained"
+	ObjectionOverruled  = "objection_overruled"
 
-	// Appeal triggers
-	TriggerNoAppeal         = "no_appeal"
-	TriggerAppealSubmitted  = "appeal_submitted"
-	TriggerAppealOmmission  = "appeal_ommission"
-	TriggerAppealValid      = "appeal_valid"
-	TriggerAppealFeeNotPaid = "appeal_fee_not_paid"
+	EvidenceSubmitted = "evidence_submitted"
+	DecisionSubmitted = "decision_submitted"
+
+	StatusChangedActive = "status_changed_active"
+	StatusChangedReview = "status_changed_review"
+	StatusChangedSettled = "status_changed_settled"
+	StatusChangedRefused = "status_changed_refused"
+	StatusChangedWithdrawn = "status_changed_withdrawn"
+	StatusChangedAppeal = "status_changed_appeal"
+	StatusChangedTransfer = "status_changed_transfer"
+	StatusChangedOther = "status_changed_other"
+	TimerExpired = "timer_expired"
 )
 
 func AllTriggers () []string {
 	return []string{
-		TriggerComplaintNotCompliant,
-		TriggerFeeNotPaid,
-		TiggerFeePaid,
-		TriggerComplaintCompliant,
-		TriggerTimedOut,
-		TriggerResponseReceived,
-		TriggerResponseUndelivered,
-		TriggerAdjudicatorAssigned,
-		TriggerDecisionMade,
-		TriggerPanelAppointed,
-		TriggerNoAppeal,
-		TriggerAppealSubmitted,
-		TriggerAppealOmmission,
-		TriggerAppealValid,
-		TriggerAppealFeeNotPaid,
+		ObjectionSubmitted,
+		ObjectionSustained,
+		ObjectionOverruled,
+		EvidenceSubmitted,
+		DecisionSubmitted,
+		StatusChangedActive,
+		StatusChangedReview,
+		StatusChangedSettled,
+		StatusChangedRefused,
+		StatusChangedWithdrawn,
+		StatusChangedAppeal,
+		StatusChangedTransfer,
+		StatusChangedOther,
+		TimerExpired,
 	}
 }
 

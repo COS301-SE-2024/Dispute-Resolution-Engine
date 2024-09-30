@@ -55,7 +55,7 @@ type DisputeModel interface {
 	AssignExpertswithDisputeAndExpertIDs(disputeID int64, expertIDs []int) error
 
 	GetWorkflowRecordByID(id uint64) (*models.Workflow, error)
-	CreateActiverWorkflow(workflow *models.ActiveWorkflows) error
+	CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int,error)
 	DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error
 
 	GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error)
@@ -244,14 +244,14 @@ func (m *disputeModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, e
 	return &workflow, nil
 }
 
-func (m *disputeModelReal) CreateActiverWorkflow(workflow *models.ActiveWorkflows) error {
+func (m *disputeModelReal) CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int,error) {
 	result := m.db.Create(workflow)
 
 	if result.Error != nil {
-		return result.Error
+		return 0, result.Error
 	}
 
-	return nil
+	return int(workflow.ID), nil
 }
 
 func (m *disputeModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {

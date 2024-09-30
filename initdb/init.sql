@@ -365,15 +365,18 @@ CREATE VIEW expert_summary_view AS
 SELECT 
     u.id AS expert_id,
     u.first_name || ' ' || u.surname AS expert_name,
-    get_rejection_percentage_for_expert(u.id::BIGINT) AS rejection_percentage,
+    COALESCE(get_rejection_percentage_for_expert(u.id::BIGINT), 0) AS rejection_percentage,
     get_last_assigned_date_for_expert(u.id::BIGINT) AS last_assigned_date,
-    get_active_dispute_count_for_expert(u.id::BIGINT) AS active_dispute_count
+    COALESCE(get_active_dispute_count_for_expert(u.id::BIGINT), 0) AS active_dispute_count
 FROM 
     users u
-JOIN 
+LEFT JOIN 
     dispute_experts de ON u.id = de."user"
+WHERE 
+    u.role = 'expert'
 GROUP BY 
     u.id, u.first_name, u.surname;
+
 
 ------------------------------------------------------------- TABLE CONTENTS
 INSERT INTO Countries (country_code, country_name) VALUES

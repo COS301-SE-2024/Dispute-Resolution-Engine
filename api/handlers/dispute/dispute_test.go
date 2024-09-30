@@ -245,11 +245,11 @@ func (m *mockDisputeModel) GetWorkflowRecordByID(id uint64) (*models.Workflow, e
 
 }
 
-func (m *mockDisputeModel) CreateActiverWorkflow(workflow *models.ActiveWorkflows) error {
+func (m *mockDisputeModel) CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int,error) {
 	if m.throwErrors {
-		return errors.ErrUnsupported
+		return 0, errors.ErrUnsupported
 	}
-	return nil
+	return 1, nil
 }
 
 func (m *mockDisputeModel) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {
@@ -321,7 +321,7 @@ func (m *mockDisputeModel) GetDispute(disputeId int64) (models.Dispute, error) {
 	}
 	return models.Dispute{
 		ID:         new(int64),
-		Workflow:   new(int64),
+		Workflow:   1,
 		Respondant: new(int64),
 	}, nil
 }
@@ -1438,7 +1438,7 @@ func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingTitle() {
 	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
-	suite.Equal("missing field in form: title", result.Error)
+	suite.Equal("Please insert a valid title", result.Error)
 }
 
 func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingDescription() {
@@ -1460,7 +1460,7 @@ func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingDescription() {
 	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
-	suite.Equal("missing field in form: description", result.Error)
+	suite.Equal("Please enter a valid description", result.Error)
 }
 
 func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingRespondentFullName() {
@@ -1482,7 +1482,7 @@ func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingRespondentFullName()
 	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
-	suite.Equal("missing field in form: respondent[full_name]", result.Error)
+	suite.Equal("Please enter the respondent full name", result.Error)
 }
 
 func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingRespondentEmail() {
@@ -1504,7 +1504,7 @@ func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingRespondentEmail() {
 	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
-	suite.Equal("missing field in form: respondent[email]", result.Error) // This should match now
+	suite.Equal("Please enter a valid email", result.Error) // This should match now
 }
 
 // ---------------------------------------------------------------- WRITEUP UPLOAD

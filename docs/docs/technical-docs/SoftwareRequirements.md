@@ -99,7 +99,7 @@ The following high-level objectives of the Dispute Resolution Engine are defined
     1. Domain Configuration:
         1. Allows customization of dispute parameters for different fields or domains.
         2. Supports templates and presets for common dispute types.
-    2. Integration Layer: <!--TODO Ask Client for integration need relevance -->
+    2. Integration Layer:
         1. Interfaces with external systems and databases to import/export dispute data.
         2. Supports APIs and data exchange standards for interoperability.
 
@@ -120,8 +120,7 @@ The following high-level objectives of the Dispute Resolution Engine are defined
 2. Resolution Archive
 
     1. Secure Storage:
-        1. Securely stores all dispute records with robust encryption.
-        2. Ensures data integrity and prevents unauthorized access.
+        1. Ensures data integrity and prevents unauthorized access.
     2. Search and Retrieval: (See Wow Factor 1 for Advanced Analytics)
         1. Provides a powerful search engine to query archived disputes.
         2. Supports advanced search filters based on dispute type, resolution outcome, date, involved parties, and other criteria.
@@ -129,26 +128,6 @@ The following high-level objectives of the Dispute Resolution Engine are defined
         1. Maintains a comprehensive audit trail of access and modifications to archived disputes.
         2. Ensures compliance with legal and regulatory requirements for data retention and auditing.
 
-3. Feedback System
-
-    1. Feedback Collection:
-        1. Collects feedback from all parties involved in the dispute resolution process post-resolution.
-        2. Supports multiple feedback formats, including surveys, ratings, and free-form comments.
-    2. Analysis and Reporting:
-        1. Analyzes collected feedback to identify trends, satisfaction levels, and areas for improvement.
-        2. Generates reports and dashboards for developers to review feedback metrics.
-
-4. Language Adaptability
-
-    1. Multilingual User Interface:
-        1. Provides a user interface that supports multiple languages.
-        2. Allows users to select their preferred language for navigation and interaction.
-    2. Translation Services:
-        1. Integrates real-time translation services for chat, messages, and documents.
-        2. Supports both machine translation and manual translation options for accuracy.
-    3. Local Language Processing:
-        1. Implements NLP capabilities for processing and understanding local languages.
-        2. Ensures accurate text analysis, sentiment analysis, and summary generation in various languages.
 
 ### Wow Factors
 
@@ -167,15 +146,6 @@ The following high-level objectives of the Dispute Resolution Engine are defined
         2. Supports the creation of multiple workflow templates for different types of disputes and user roles.
         3. Enables customization of each step in the workflow, including timelines, required actions, notifications, and approval processes.
         4. Integrates with the core workflow engine to ensure seamless execution of custom workflows.
-
-3. AI-driven Mediation Suggestions.
-
-    1. AI Mediation Assistance
-        1. Analyzes the details of the dispute, including evidence, statements, and historical data.
-        2. Uses natural language processing and machine learning algorithms to generate suggestions for potential settlement options and negotiation strategies.
-        3. Provides real-time recommendations to mediators during sessions, helping them navigate complex issues and guide parties towards resolution.
-        4. Continuously learns from past mediation sessions to improve the accuracy and relevance of its suggestions.
-        5. Integrates with the Resolution Support Tools to offer a cohesive mediation assistance experience.
 
 ## User Stories - [Link to User Stories](UserStories.md)
 ![MediationSub](https://github.com/COS301-SE-2024/Dispute-Resolution-Engine/assets/64808970/513c9c44-9535-4593-bd90-c5c6e0d1ffd6)

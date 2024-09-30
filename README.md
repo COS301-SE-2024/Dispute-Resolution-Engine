@@ -30,6 +30,7 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 - [Demo 1](https://www.canva.com/design/DAGG_C4gUMc/uzNI3y3cFbQE9oYkyZo3vw/edit?utm_content=DAGG_C4gUMc&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 - [Demo 2](https://www.canva.com/design/DAGI9uq7XF0/qvU7IogSTW3PETHPllxBAA/edit?utm_content=DAGI9uq7XF0&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 - [Demo 3](https://www.canva.com/design/DAGNfNQm-pE/PPbmWY4BbFiZja1LLa--Aw/edit?utm_content=DAGNfNQm-pE&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+- [Demo 4](https://www.canva.com/design/DAGRp4sar90/_G1R3cxibx1oJOXCS11V8w/edit?utm_content=DAGRp4sar90&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 # Project Management
 
@@ -37,11 +38,21 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
 # Documentation
 
-- [Software Requirements](./docs/docs/technical-docs/SoftwareRequirements.md)
-- [Quality Requirements](./docs/docs/technical-docs/QualityRequirements.md)
-- [Architecture Requirements](./docs/docs/technical-docs/Architecture.md)
-- [Technological Requirements](./docs/docs/technical-docs/TechnologyRequirements.md)
-- [Coding Standards](./docs/docs/CodingStandards.md)
+
+## Diagram(s)
+
+- [Deployment Diagram](./readme-assets/Deployment_20240930.png)
+
+## PDFs
+
+- [Software Requirements](./readme-assets/SRS.pdf)
+- [Architecture Requirements](./readme-assets/Architecture.pdf)
+- [Testing Policy](./readme-assets/Testing_Policy.pdf)
+- [Technological Requirements](./readme-assets/TechReqs.pdf)
+- [Installation Manual](./readme-assets/Installation_Manual.pdf)
+- [Coding Standards](./readme-assets/Coding_Standards.pdf)
+- [Help Page PDF](./readme-assets/Help_Page.pdf)
+
 
 # Meet the Team
 

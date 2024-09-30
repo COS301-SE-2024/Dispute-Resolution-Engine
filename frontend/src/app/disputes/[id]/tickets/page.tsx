@@ -28,11 +28,12 @@ export default async function TicketsPage({ params: { id } }: Props) {
       <main className="p-4 py-6">
         <ul className="space-y-6">
           {data.tickets.map((ticket) => (
-            <Card key={ticket.id} className="p-4 grid grid-cols-[1fr_auto] items-center">
+            <Card key={ticket.id} className="p-4 grid grid-cols-[1fr_auto_auto] items-center gap-3">
               <div className="space-y-2">
                 <CardTitle>{ticket.subject}</CardTitle>
                 <CardDescription>Opened on {ticket.date_created}</CardDescription>
               </div>
+              <p>{ticket.status}</p>
               <Button asChild variant="outline">
                 <Link href={`./tickets/${ticket.id}`}>Read more...</Link>
               </Button>

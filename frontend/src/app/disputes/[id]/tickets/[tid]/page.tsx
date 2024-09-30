@@ -15,6 +15,7 @@ export default async function TicketDetails({ params: { tid } }: Props) {
         <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">
           {details.subject}
         </h1>
+        <p>Status: {details.status}</p>
       </header>
       <main className="p-4 space-y-4 overflow-y-auto">
         <Card>

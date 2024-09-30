@@ -17,10 +17,10 @@ export async function getTicketSummaries(dispute: number): Promise<TicketListRes
     method: "POST",
     body: JSON.stringify({
       filter: [
-        // {
-        //   attr: "dispute_id",
-        //   value: dispute,
-        // },
+        {
+          attr: "dispute_id",
+          value: dispute,
+        },
       ],
     }),
     headers: {

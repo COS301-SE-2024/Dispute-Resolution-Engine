@@ -38,15 +38,17 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
 # Documentation
 
+## Diagram(s)
+
 - [Deployment Diagram](./readme-assets/Deployment_20240930.png)
 
-- SRS Documents
-  - [Software Requirements](./docs/docs/technical-docs/SoftwareRequirements.md)
-  - [Non-functional Requirements](./readme-assets/Non-functional_Requirements.pdf)
-  - [Architecture Requirements](./docs/docs/technical-docs/Architecture.md)
+## PDFs
+
+- [Software Requirements](./readme-assets/SRS.pdf)
+- [Architecture Requirements](./docs/docs/technical-docs/Architecture.md)
 - [Testing Policy](./readme-assets/Testing_Policy.pdf)
 - [Technological Requirements](./docs/TechnologyRequirements.md)
-- [Installation Manual](./readme-assets/Installation_Manual.pdf) 
+- [Installation Manual](./readme-assets/Installation_Manual.pdf)
 - [Coding Standards](./readme-assets/Coding_Standards.pdf)
 - [Help Page PDF](./readme-assets/Help_Page.pdf)
 

@@ -99,7 +99,7 @@ To update your profile information:
 2. Click on your **profile icon** at the top right corner of any page.
 3. You will be taken to your **Profile** page, where you can:
     - Edit your personal details (name, email, etc.).
-![image](https://github.com/user-attachments/assets/b92508e6-eb8d-4d0f-b8cd-7d313b8d65c5)
+![image](https://github.com/user-attachments/assets/6b9b7ce0-4f29-48ae-9dce-d97ce359cecf)
     - Update your address.
 ![image](https://github.com/user-attachments/assets/71cb9237-ba60-45bf-b68d-f164958a7021)
 4. Click **Save** to update your information.

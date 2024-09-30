@@ -69,8 +69,10 @@ export default async function ArchiveBrowse() {
   //     },
   //   ],
   // };
-  const {data, error} = await getArchives()
-  console.log(data)
+  let {data, error} = await getArchives()
+  if(!data){
+    data = []
+  }
   return (
     <div className="pt-8 pl-8">
       <main className="mx-20 grid grid-cols-2">

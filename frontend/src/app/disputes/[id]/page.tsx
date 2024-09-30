@@ -75,9 +75,6 @@ function DisputeHeader2(props: {
         </DisputeDecisionForm>
       )}
 
-      <CreateTicketDialog asChild dispute={props.id}>
-        <Button>Create ticket</Button>
-      </CreateTicketDialog>
       <Button variant="outline" asChild>
         <Link href={`/disputes/${props.id}/tickets`}>Go to tickets</Link>
       </Button>

@@ -110,7 +110,7 @@ func (w OrchestratorReal) MakeRequestToOrchestrator(endpoint string, payload Orc
 
 	if resp.StatusCode == http.StatusInternalServerError {
 		logger.Error("status code error: ", resp.StatusCode)
-		return "", fmt.Errorf("Check theat you gave the correct state name if resetting")
+		return "", fmt.Errorf("Check that you gave the correct state name if resetting")
 	}
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("status code error: ", resp.StatusCode)

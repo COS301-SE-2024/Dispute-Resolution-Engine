@@ -32,7 +32,6 @@ import {
   updateWorkflow,
   workflowToGraph,
 } from "@/lib/api/workflow";
-import { workflowSchema } from "@/lib/schema/workflow";
 import { Textarea } from "@/components/ui/textarea";
 import WorkflowTitle from "@/components/workflow/workflow-title";
 import { SaveIcon } from "lucide-react";
@@ -65,6 +64,7 @@ function Flow({ setIsSaved }: { setIsSaved: any }) {
       onNodesChange(changes);
       setIsSaved(false);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [onNodesChange]
   );
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -73,6 +73,7 @@ function Flow({ setIsSaved }: { setIsSaved: any }) {
       onNodesChange(changes);
       setIsSaved(false);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [onEdgesChange]
   );
   const reactFlowInstance: GraphInstance = useReactFlow();
@@ -100,15 +101,19 @@ function Flow({ setIsSaved }: { setIsSaved: any }) {
       if (connection.sourceHandle === "new") {
         connection.sourceHandle = createId();
         reactFlowInstance.addEdges([createEdge(connection, "bruh")]);
+        updateNodeInternals(connection.source);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [reactFlowInstance, updateNodeInternals]
   );
+
   const { screenToFlowPosition } = useReactFlow();
   const onConnectEnd = useCallback(
     (event: any, connectionState: Omit<ConnectionState, "inProgress">) => {
       if (!connectionState.isValid) {
         const { clientX, clientY } = "changedTouches" in event ? event.changedTouches[0] : event;
+
         const newNode: GraphState = {
           id: createId(),
           type: "customNode",
@@ -132,6 +137,7 @@ function Flow({ setIsSaved }: { setIsSaved: any }) {
         reactFlowInstance.addEdges([newEdge]);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [reactFlowInstance, screenToFlowPosition, updateNodeInternals]
   );
 
@@ -158,6 +164,7 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
       return;
     }
     setWorkflow(workflow);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workflow]);
 
   const reactFlow: GraphInstance = useReactFlow();

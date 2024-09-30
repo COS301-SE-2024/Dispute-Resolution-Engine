@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormProvider, useForm } from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import {
   Card,
   CardContent,
@@ -18,6 +18,7 @@ import { createDispute } from "@/lib/actions/dispute";
 import { Textarea } from "@/components/ui/textarea";
 import FileInput from "@/components/form/file-input";
 import { FormField, FormMessage } from "@/components/ui/form-client";
+import WorkflowSelect from "@/components/form/workflow-select";
 
 const CreateMessage = FormMessage<DisputeCreateData>;
 const CreateField = FormField<DisputeCreateData>;
@@ -34,7 +35,7 @@ export default function CreateDisputeClient() {
     resolver: zodResolver(disputeCreateSchema),
   });
 
-  const { register, setError } = form;
+  const { register, setError, control } = form;
 
   const [files, setFiles] = useState<File[]>([]);
 
@@ -43,6 +44,7 @@ export default function CreateDisputeClient() {
   const onSubmit = async function (dataFromForm: DisputeCreateData) {
     const formdata = new FormData(formRef.current!);
     files.forEach((file) => formdata.append("file", file, file.name));
+    console.log(formdata);
 
     const res = await createDispute(null, formdata);
     if (res && res.error) {
@@ -57,6 +59,7 @@ export default function CreateDisputeClient() {
   const titleId = useId();
   const summaryId = useId();
   const fileId = useId();
+  const workflowId = useId();
 
   return (
     <FormProvider {...form}>
@@ -96,6 +99,25 @@ export default function CreateDisputeClient() {
             <CardDescription>What is the dispute about?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
+            <CreateField id={workflowId} name="workflow" label="Workflow">
+              <Controller
+                name="workflow"
+                control={control}
+                rules={{ required: true }}
+                render={({ field }) => {
+                  const { onChange, value, ...field2 } = field;
+
+                  return (
+                    <WorkflowSelect
+                      id={workflowId}
+                      onValueChange={onChange}
+                      value={value?.toString() ?? undefined}
+                      {...field2}
+                    />
+                  );
+                }}
+              />
+            </CreateField>
             <CreateField id={titleId} name="title" label="Dispute Title">
               <Input id={titleId} placeholder="Dispute Title" {...register("title")} />
             </CreateField>

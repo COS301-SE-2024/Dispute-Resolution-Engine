@@ -38,6 +38,7 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
 # Documentation
 
+
 ## Diagram(s)
 
 - [Deployment Diagram](./readme-assets/Deployment_20240930.png)
@@ -51,6 +52,7 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 - [Installation Manual](./readme-assets/Installation_Manual.pdf)
 - [Coding Standards](./readme-assets/Coding_Standards.pdf)
 - [Help Page PDF](./readme-assets/Help_Page.pdf)
+
 
 # Meet the Team
 

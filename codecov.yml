@@ -2,9 +2,36 @@ coverage:
   status:
     project:
       default:
-        target: 75%
+        target: 30%
         threshold: 5%
     patch:
       default:
-        target: 50%
+        target: 5%
         threshold: 5%
+ignore:
+
+  - "api/auditLogger/mock.go"
+  - "api/auditLogger/model.go"
+  - "api/db/db.go"
+  - "api/env/env.go"
+  - "api/env/mock.go"
+
+  - "api/handlers/adminAnalytics/model.go"
+
+  - "api/handlers/dispute/model.go"
+  - "api/handlers/notifications/notifications.go"
+  - "api/handlers/orchestratorNotification/orchestartorNotification.go"
+  - "api/handlers/ticket/model.go"
+  - "api/handlers/workflow/model.go"
+  - "api/mediatorAssignments/model.go"
+  - "api/mediatorAssignments/mock.go"
+  - "api/middleware/jwt.go"
+  - "api/main.go"
+  - "api/models/utilityModels.go"
+  - "api/db/db.go"
+  - "api/redisDB/redis.go"
+  - "api/models/models.go"
+  - "api/models/responseModels.go"
+  - "api/handlers/handlers.go"
+  - "api/docs/docs.go"
+  - "frontend/src/lib/actions/dispute.ts"

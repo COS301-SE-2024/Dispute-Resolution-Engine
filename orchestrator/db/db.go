@@ -15,8 +15,28 @@ const (
 	retryTimeout     = 2
 )
 
+
+var RequiredEnvVariables = []string{
+	"DATABASE_URL",
+	"DATABASE_PORT",
+	"DATABASE_USER",
+	"DATABASE_PASSWORD",
+	"DATABASE_NAME",
+}
+
 func Init() (*gorm.DB, error) {
 	logger := utilities.NewLogger().LogWithCaller()
+
+	env.LoadFromFile(".env")
+	for _, v := range RequiredEnvVariables {
+		env.Register(v)
+		_, err := env.Get(v)
+		if err != nil {
+			logger.WithError(err).Errorf("Failed to get %s", v)
+			return nil, err
+		}	
+	}
+
 	host, err := env.Get("DATABASE_URL")
 	if err != nil {
 		logger.WithError(err).Error("Failed to get DATABASE_URL")

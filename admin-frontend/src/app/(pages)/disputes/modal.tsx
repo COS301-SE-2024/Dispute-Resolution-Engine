@@ -3,61 +3,84 @@
 import { Button } from "@/components/ui/button";
 
 import { DialogClose, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { UserIcon, X } from "lucide-react";
 import Sidebar from "@/components/admin/sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import Evidence from "./evidence";
 import { Label } from "@/components/ui/label";
-import { StatusBadge, StatusDropdown } from "@/components/admin/status-dropdown";
-import { type UserDetails, type DisputeDetails, DisputeStatus } from "@/lib/types/dispute";
-import { changeDisputeStatus, deleteEvidence } from "@/lib/api/dispute";
+import {
+  DisputeStatusBadge,
+  ExpertStatusBadge,
+  StatusBadge,
+} from "@/components/admin/status-badge";
+import {
+  type UserDetails,
+  type DisputeDetails,
+  type DisputeStatus,
+  type DisputeDetailsResponse,
+  type ExpertSummary,
+} from "@/lib/types/dispute";
+import { changeDisputeStatus, getDisputeDetails } from "@/lib/api/dispute";
 import { useToast } from "@/lib/hooks/use-toast";
-import { useState } from "react";
 
-export default function DisputeDetails({ details }: { details?: DisputeDetails }) {
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Download, EllipsisVertical, FileText, Trash } from "lucide-react";
+import Link from "next/link";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ObjectionStatusBadge } from "@/components/admin/status-badge";
+import { DisputeStatusDropdown, ObjectionStatusDropdown } from "@/components/admin/status-dropdown";
+import { changeObjectionStatus, getExpertObjections } from "@/lib/api/expert";
+import { DISPUTE_DETAILS_KEY, DISPUTE_LIST_KEY } from "@/lib/constants";
+import { ObjectionListResponse, ObjectionStatus } from "@/lib/types/experts";
+import StateSelect from "@/components/workflow/state-select";
+import DeadlineSelect from "@/components/workflow/deadline-select";
+
+export default function DisputeDetails({ id: disputeId }: { id: number }) {
   const { toast } = useToast();
+  const client = useQueryClient();
+  const details = useQuery({
+    queryKey: [DISPUTE_DETAILS_KEY, disputeId],
+    queryFn: async () => getDisputeDetails(disputeId),
+  });
+  const objections = useQuery({
+    queryKey: [DISPUTE_DETAILS_KEY, disputeId, "objections"],
+    queryFn: async () => getExpertObjections(disputeId),
+  });
 
-  const [statusDisabled, setStatusDisabled] = useState(false);
-
-  async function changeStatus(status: DisputeStatus) {
-    setStatusDisabled(true);
-    const { data, error } = await changeDisputeStatus(details!.id, status);
-    setStatusDisabled(false);
-    if (data) {
+  const status = useMutation({
+    mutationFn: (status: DisputeStatus) => changeDisputeStatus(disputeId, status),
+    onSuccess: (data, variables) => {
+      client.setQueryData([DISPUTE_DETAILS_KEY, disputeId], (old: DisputeDetailsResponse) => ({
+        ...old,
+        status: variables,
+      }));
+      client.invalidateQueries({
+        queryKey: [DISPUTE_LIST_KEY],
+      });
       toast({
         title: "Status updated successfully",
       });
-    } else if (error) {
+    },
+    onError: (error) => {
       toast({
         variant: "error",
         title: "Something went wrong",
-        description: error,
+        description: error?.message,
       });
-    }
-  }
-
-  async function deleteEvi(id: string) {
-    const { data, error } = await deleteEvidence(details!.id, id);
-    if (data) {
-      toast({
-        title: "Evidence removed",
-      });
-    } else if (error) {
-      toast({
-        variant: "error",
-        title: "Something went wrong",
-        description: error,
-      });
-    }
-  }
+    },
+  });
 
   return (
-    details && (
+    details.data && (
       <Sidebar open className="p-6 md:pl-8 rounded-l-2xl flex flex-col">
         <DialogHeader className="grid grid-cols-[1fr_auto] gap-2 border-b pb-6 mb-6 border-primary-500/50 space-y-0 items-center">
-          <DialogTitle className="p-2">{details.title}</DialogTitle>
+          <DialogTitle className="p-2">{details.data.title}</DialogTitle>
           <div className="flex justify-end items-start">
             <DialogClose asChild>
               <Button variant="ghost" className="rounded-full aspect-square p-2 m-0">
@@ -65,35 +88,58 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
               </Button>
             </DialogClose>
           </div>
-          <div className="flex gap-2 items-center">
-            <StatusDropdown onSelect={changeStatus} disabled={statusDisabled}>
-              <StatusBadge variant="waiting" dropdown>
-                {details.status}
-              </StatusBadge>
-            </StatusDropdown>
-            <span>{details.date_filed}</span>
-          </div>
+          <div className="flex gap-2 items-start">
+            <div className="grid grid-cols-2 gap-2 mr-auto">
+              <strong>Status:</strong>
+              <DisputeStatusDropdown
+                initialValue={details.data.status}
+                onSelect={(val) => status.mutate(val)}
+                disabled={status.isPending}
+              >
+                <DisputeStatusBadge dropdown variant={details.data.status}>
+                  {details.data.status}
+                </DisputeStatusBadge>
+              </DisputeStatusDropdown>
+            </div>
 
-          <p>Case Number: {details.id}</p>
+            <div className="grid grid-cols-2 gap-x-2">
+              <strong className="text-right">Filed:</strong>
+              <span>{details.data.date_filed}</span>
+              <strong className="text-right">Case number:</strong>
+              <span>{details.data.id}</span>
+            </div>
+          </div>
         </DialogHeader>
         <div className="overflow-y-auto grow space-y-6 pr-3">
           <Card>
             <CardHeader>
+              <CardTitle>Workflow</CardTitle>
+              <CardDescription>Manage the active workflow of the dispute.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2">
+              <strong>Current State</strong>
+              <strong>State deadline</strong>
+              <StateSelect dispute={disputeId} />
+              <DeadlineSelect dispute={disputeId} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Overview</CardTitle>
-              <CardDescription>{details.description}</CardDescription>
+              <CardDescription>{details.data.description}</CardDescription>
             </CardHeader>
             <CardContent>
               <h4 className="mb-1">Evidence</h4>
               <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
-                {details.evidence.length > 0 ? (
-                  details.evidence.map((evidence) => (
+                {details.data.evidence.length > 0 ? (
+                  details.data.evidence.map((evi) => (
                     <Evidence
-                      onDelete={deleteEvi}
-                      key={evidence.id}
-                      id={evidence.id}
-                      label={evidence.label}
+                      key={evi.id}
+                      id={evi.id}
+                      label={evi.label}
                       url="https://google.com"
-                      date={evidence.submitted_at}
+                      date={evi.submitted_at}
                     />
                   ))
                 ) : (
@@ -108,12 +154,40 @@ export default function DisputeDetails({ details }: { details?: DisputeDetails }
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <section className="space-y-3">
                 <CardTitle>Complainant</CardTitle>
-                <UserDetails {...details.complainant} />
+                <UserDetails {...details.data.complainant} />
               </section>
               <section className="space-y-3">
                 <CardTitle>Respondent</CardTitle>
-                <UserDetails {...details.respondent} />
+                <UserDetails {...details.data.respondent} />
               </section>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Experts</CardTitle>
+              <CardDescription>See who is assigned to the case.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
+                {details.data?.experts.length == 0 && (
+                  <li className="text-sm text-black/50 dark:text-white/50">
+                    No experts are assigned to the case.
+                  </li>
+                )}
+                {details.data?.experts.map((exp) => (
+                  <ExpertAssignment key={exp.id} {...exp} />
+                ))}
+              </ul>
+              {!objections.isPending && objections.data!.length > 0 && (
+                <>
+                  <CardTitle className="mt-5 text-lg">Objections</CardTitle>
+                  <ul className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-2">
+                    {objections.data!.map((obj) => (
+                      <Objection key={obj.id} disputeId={disputeId} {...obj} />
+                    ))}
+                  </ul>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -139,5 +213,126 @@ function UserDetails(d: UserDetails) {
         <Textarea disabled value={d.address} />
       </div>
     </>
+  );
+}
+
+function Evidence({
+  id,
+  label,
+  url,
+  date,
+}: {
+  id: string;
+  label: string;
+  url: string;
+  date: string;
+}) {
+  return (
+    <li className="grid grid-cols-[auto_1fr_auto] gap-2 items-center px-3 py-2 border border-primary-500/30 rounded-md">
+      <FileText className="stroke-primary-500" size="1.7rem" />
+      <div>
+        <span className="truncate">{label}</span> <br />
+        <span className="truncate opacity-50">{date}</span>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="rounded-full p-2">
+            <EllipsisVertical />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem asChild>
+            <Link href={url}>
+              <Download className="mr-2" />
+              <span>Download file</span>
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </li>
+  );
+}
+
+function ExpertAssignment({ id, full_name, status }: ExpertSummary) {
+  return (
+    <li className="grid grid-cols-[auto_1fr_auto] gap-2 items-center px-3 py-2 border border-primary-500/30 rounded-md">
+      <UserIcon size="1.7rem" />
+      <span className="truncate">{full_name}</span>
+      <ExpertStatusBadge variant={status}>{status}</ExpertStatusBadge>
+    </li>
+  );
+}
+
+function Objection({
+  disputeId,
+  id,
+  ticket_id,
+  expert_name,
+  user_name,
+  date_submitted,
+  status,
+}: {
+  disputeId: number;
+  id: number;
+  ticket_id: number;
+  expert_name: string;
+  user_name: string;
+  date_submitted: string;
+  status: ObjectionStatus;
+}) {
+  const { toast } = useToast();
+  const client = useQueryClient();
+  const statusMut = useMutation({
+    mutationFn: (data: ObjectionStatus) => changeObjectionStatus(id, data),
+
+    onSuccess: (data, variables) => {
+      client.setQueryData(
+        [DISPUTE_DETAILS_KEY, disputeId, "objections"],
+        (old: ObjectionListResponse) =>
+          old.map((obj) =>
+            obj.id !== id
+              ? obj
+              : {
+                  ...obj,
+                  status: variables,
+                }
+          )
+      );
+      client.invalidateQueries({
+        queryKey: [DISPUTE_LIST_KEY, disputeId],
+      });
+      toast({
+        title: "Objection status updated successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        variant: "error",
+        title: "Something went wrong",
+        description: error?.message,
+      });
+    },
+  });
+
+  return (
+    <li className="grid grid-cols-[1fr_auto] gap-2 items-center px-3 py-2 border border-primary-500/30 rounded-md">
+      <div>
+        <Link
+          className="hover:underline truncate"
+          href={{ pathname: "/tickets", query: { id: ticket_id.toString() } }}
+        >
+          {expert_name}
+        </Link>
+        <br />
+        <span className="truncate opacity-50">
+          by {user_name}, {date_submitted}
+        </span>
+      </div>
+      <ObjectionStatusDropdown onSelect={(s) => statusMut.mutate(s)}>
+        <ObjectionStatusBadge dropdown variant={status}>
+          {status}
+        </ObjectionStatusBadge>
+      </ObjectionStatusDropdown>
+    </li>
   );
 }

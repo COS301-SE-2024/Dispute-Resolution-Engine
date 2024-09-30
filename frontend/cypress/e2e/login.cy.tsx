@@ -1,8 +1,8 @@
 describe("Navigation", () => {
   it("should login to the server", () => {
-    cy.visit("https://capstone-dre.dns.net.za/login");
-    cy.contains("Email").type("sediv39443@alientex.com");
-    cy.contains("Password").type("Password1234#");
+    cy.visit("/login");
+    cy.contains("Email").type(Cypress.env('TEST_USER'));
+    cy.contains("Password").type(Cypress.env('TEST_PASSWORD'));
     cy.get("button").contains("Login").click();
   });
 });

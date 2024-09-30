@@ -30,6 +30,9 @@ jobs:
       
       - name: Create graf.env file
         run: echo "${{ secrets.GRAF_ENV }}" > graf.env
+
+      - name: Create .env file
+        run: echo "${{ secrets.DOCKER_ENV }}" > .env
       
       - name: Tar the repo
         run: |

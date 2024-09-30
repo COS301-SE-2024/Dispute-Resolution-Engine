@@ -1,6 +1,7 @@
 "use server";
 
 import { Result } from "../types";
+import { sf, validateResult } from "../util";
 import { API_URL } from "../utils";
 
 export type Country = {
@@ -14,20 +15,17 @@ export type Language = {
   label: string;
 };
 
-export async function fetchCountries(): Promise<Result<Country[]>> {
-  const result = await fetch(`${API_URL}/utils/countries`, {
+export async function getCountries(): Promise<Country[]> {
+  return sf(`${API_URL}/utils/countries`, {
     cache: "no-store",
-  });
-  return await result.json();
+  }).then(validateResult<Country[]>);
 }
 
-export async function fetchLanguages(): Promise<Result<Language[]>> {
-  return {
-    data: [
-      {
-        id: "en-US",
-        label: "English",
-      },
-    ],
-  };
+export async function fetchLanguages(): Promise<Language[]> {
+  return [
+    {
+      id: "en-US",
+      label: "English",
+    },
+  ];
 }

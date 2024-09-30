@@ -2,6 +2,7 @@ package dispute_test
 
 import (
 	"api/handlers/dispute"
+	mediatorassignment "api/mediatorAssignment"
 	"api/models"
 	"bytes"
 	"encoding/json"
@@ -29,9 +30,11 @@ type mockEvidence struct {
 type mockDisputeModel struct {
 	throwErrors bool
 	evidence    []mockEvidence
+	Get_Experts []models.AdminDisputeExperts
 }
 type mockJwtModel struct {
 	throwErrors bool
+	returnUser  models.UserInfoJWT
 }
 type mockEmailModel struct {
 	throwErrors bool
@@ -40,13 +43,23 @@ type mockEmailModel struct {
 type mockAuditLogger struct {
 }
 
+type mockTicketModel struct {
+	throwErrors bool
+	Error       error
+}
+
 type DisputeErrorTestSuite struct {
 	suite.Suite
-	disputeMock *mockDisputeModel
-	jwtMock     *mockJwtModel
-	emailMock   *mockEmailModel
-	router      *gin.Engine
-	auditMock   *mockAuditLogger
+	disputeMock      *mockDisputeModel
+	jwtMock          *mockJwtModel
+	emailMock        *mockEmailModel
+	router           *gin.Engine
+	auditMock        *mockAuditLogger
+	mockOrchestrator *mockOrchestrator
+	mockEnv          *mockEnv
+
+	mockTicket    *mockTicketModel
+	mockAlgorithm *mockAlgorithmModel
 }
 
 func (suite *DisputeErrorTestSuite) SetupTest() {
@@ -54,13 +67,27 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 	suite.jwtMock = &mockJwtModel{}
 	suite.emailMock = &mockEmailModel{}
 	suite.auditMock = &mockAuditLogger{}
+	suite.mockOrchestrator = &mockOrchestrator{}
+	suite.mockEnv = &mockEnv{}
+	suite.mockTicket = &mockTicketModel{}
+	suite.mockAlgorithm = &mockAlgorithmModel{}
 
-	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock}
+	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock, OrchestratorEntity: suite.mockOrchestrator, Env: suite.mockEnv, TicketModel: suite.mockTicket, MediatorAssignment: suite.mockAlgorithm}
 	gin.SetMode("release")
 	router := gin.Default()
-	router.POST("/:id/evidence", handler.UploadEvidence)
+	router.Use(suite.jwtMock.JWTMiddleware)
+
+	router.GET("/disputes", handler.GetSummaryListOfDisputes)
 	router.POST("/create", handler.CreateDispute)
 	router.GET("/:id", handler.GetDispute)
+
+	router.POST("/disputes", handler.GetSummaryListOfDisputes)
+	router.POST("/:id/objections", handler.ExpertObjection)
+	router.PATCH("/objections/:id", handler.ExpertObjectionsReview)
+	router.POST("/experts/objections", handler.ViewExpertRejections)
+	router.POST("/:id/evidence", handler.UploadEvidence)
+	router.POST("/:id/decision", handler.SubmitWriteup)
+	router.PUT("/:id/status", handler.UpdateStatus)
 
 	suite.router = router
 }
@@ -83,8 +110,158 @@ func createFileField(w *multipart.Writer, field, filename, value string) {
 }
 
 // ---------------------------------------------------------------- MODEL MOCKS
+//mock algorithgm model
+
+type mockAlgorithmModel struct {
+	throwErrors bool
+	Error       error
+	returnValue float64
+}
+
+func (m *mockAlgorithmModel) CalculateScore(summaries []models.ExpertSummaryView, componentID int) []mediatorassignment.ResultWithID {
+	if m.throwErrors {
+		return nil
+	}
+	return []mediatorassignment.ResultWithID{
+		{
+			ID:     1,
+			Result: m.returnValue,
+		},
+	}
+}
+
+func (m *mockAlgorithmModel) AssignMediator(count, disputeID int) ([]int, error) {
+	if m.throwErrors {
+		return nil, m.Error
+	}
+	return []int{1}, nil
+}
+
+//ticket mock
+
+func (m *mockTicketModel) GetAdminTicketList(searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
+	if m.throwErrors {
+		return nil, 0, m.Error
+	}
+	return nil, 0, nil
+}
+
+func (m *mockTicketModel) GetTicketsByUserID(uid int64, searchTerm *string, limit *int, offset *int, sortAttr *models.Sort, filters *[]models.Filter) ([]models.TicketSummaryResponse, int64, error) {
+	if m.throwErrors {
+		return nil, 0, m.Error
+	}
+	return nil, 0, nil
+}
+
+func (m *mockTicketModel) GetTicketDetails(ticketID int64, userID int64) (models.TicketsByUser, error) {
+	if m.throwErrors {
+		return models.TicketsByUser{}, m.Error
+	}
+	return models.TicketsByUser{}, nil
+}
+
+func (m *mockTicketModel) GetAdminTicketDetails(ticketID int64) (models.TicketsByUser, error) {
+	if m.throwErrors {
+		return models.TicketsByUser{}, m.Error
+	}
+	return models.TicketsByUser{}, nil
+}
+
+func (m *mockTicketModel) PatchTicketStatus(status string, ticketID int64) error {
+	if m.throwErrors {
+		return m.Error
+	}
+	return nil
+}
+
+func (m *mockTicketModel) AddUserTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
+	if m.throwErrors {
+		return models.TicketMessage{}, m.Error
+	}
+	return models.TicketMessage{}, nil
+}
+
+func (m *mockTicketModel) AddAdminTicketMessage(ticketID int64, userID int64, message string) (models.TicketMessage, error) {
+	if m.throwErrors {
+		return models.TicketMessage{}, m.Error
+	}
+	return models.TicketMessage{}, nil
+}
+
+func (m *mockTicketModel) CreateTicket(userID int64, dispute int64, subject string, message string) (models.Ticket, error) {
+	if m.throwErrors {
+		return models.Ticket{}, m.Error
+	}
+	return models.Ticket{}, nil
+}
+
+//mock env
+
+type mockEnv struct {
+	throwErrors bool
+	Error       error
+}
+
+func (m *mockEnv) LoadFromFile(files ...string) {
+}
+
+func (m *mockEnv) Register(key string) {
+}
+
+func (m *mockEnv) RegisterDefault(key, fallback string) {
+}
+
+func (m *mockEnv) Get(key string) (string, error) {
+	if m.throwErrors {
+		return "", m.Error
+	}
+	return "", nil
+}
+
+// mock orchestrator
+type mockOrchestrator struct {
+	throwErrors bool
+	Error       error
+}
+
+func (m *mockOrchestrator) MakeRequestToOrchestrator(endpoint string, payload dispute.OrchestratorRequest) (string, error) {
+	if m.throwErrors {
+		return "", m.Error
+	}
+	return "", nil
+}
+
+func (m *mockOrchestrator) SendTriggerToOrchestrator(endpoint string, activerWfId int64, trigger string) (int, error) {
+	if m.throwErrors {
+		return 0, m.Error
+	}
+	return 0, nil
+}
+
 // mock model auditlogger
 func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
+	return nil
+}
+
+func (m *mockDisputeModel) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
+	if m.throwErrors {
+		return nil, errors.ErrUnsupported
+	}
+	return &models.Workflow{}, nil
+
+}
+
+func (m *mockDisputeModel) CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int, error) {
+	if m.throwErrors {
+		return 0, errors.ErrUnsupported
+	}
+	return 1, nil
+}
+
+func (m *mockDisputeModel) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {
+	if m.throwErrors {
+		return errors.ErrUnsupported
+	}
 	return nil
 }
 
@@ -109,6 +286,21 @@ func (m *mockDisputeModel) GetEvidenceByDispute(disputeId int64) ([]models.Evide
 	}
 	return []models.Evidence{}, nil
 }
+
+func (m *mockDisputeModel) GetDisputeIDByTicketID(ticketID int64) (int64, error) {
+	if m.throwErrors {
+		return 0, errors.ErrUnsupported
+	}
+	return 0, nil
+}
+
+func (m *mockDisputeModel) AssignExpertswithDisputeAndExpertIDs(disputeID int64, expertIDs []int) error {
+	if m.throwErrors {
+		return errors.ErrUnsupported
+	}
+	return nil
+}
+
 func (m *mockDisputeModel) GetDisputeExperts(disputeId int64) ([]models.Expert, error) {
 	if m.throwErrors {
 		return nil, errors.ErrUnsupported
@@ -121,16 +313,43 @@ func (m *mockDisputeModel) GetDisputesByUser(userId int64) ([]models.Dispute, er
 	}
 	return []models.Dispute{}, nil
 }
+
+func (m *mockDisputeModel) GetAdminDisputes(searchTerm *string, limit *int, offset *int, sort *models.Sort, filters *[]models.Filter, dateFilter *models.DateFilter) ([]models.AdminDisputeSummariesResponse, int64, error) {
+	if m.throwErrors {
+		return nil, 0, errors.ErrUnsupported
+	}
+	return []models.AdminDisputeSummariesResponse{}, 0, nil
+}
+
 func (m *mockDisputeModel) GetDispute(disputeId int64) (models.Dispute, error) {
 	if m.throwErrors {
 		return models.Dispute{}, errors.ErrUnsupported
 	}
 	return models.Dispute{
 		ID:         new(int64),
-		Workflow:   new(int64),
+		Workflow:   1,
 		Respondant: new(int64),
 	}, nil
 }
+
+func (m *mockDisputeModel) GetAdminDisputeDetails(disputeId int64) (models.AdminDisputeDetailsResponse, error) {
+	if m.throwErrors {
+		return models.AdminDisputeDetailsResponse{}, errors.ErrUnsupported
+	}
+	return models.AdminDisputeDetailsResponse{}, nil
+}
+
+func (m *mockDisputeModel) GetUser(userID int64) (models.UserDetails, error) {
+	if m.throwErrors {
+		return models.UserDetails{}, errors.ErrUnsupported
+	}
+	return models.UserDetails{
+		FullName: "name",
+		Email:    "email",
+		Address:  "address",
+	}, nil
+}
+
 func (m *mockDisputeModel) GetUserByEmail(email string) (models.User, error) {
 	if m.throwErrors {
 		return models.User{}, errors.ErrUnsupported
@@ -138,12 +357,30 @@ func (m *mockDisputeModel) GetUserByEmail(email string) (models.User, error) {
 	return models.User{
 		PhoneNumber:       new(string),
 		AddressID:         new(int64),
-		UpdatedAt:         new(time.Time),
 		LastLogin:         new(time.Time),
 		PreferredLanguage: new(string),
 		Timezone:          new(string),
 	}, nil
 }
+
+func (m *mockDisputeModel) GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error) {
+	if m.throwErrors {
+		return nil, errors.ErrUnsupported
+	}
+	return []models.ExpertObjectionsView{
+		{
+			ObjectionID:     1,
+			ExpertID:        1,
+			ExpertFullName:  "name",
+			DisputeID:       1,
+			DisputeTitle:    "title",
+			UserID:          1,
+			UserFullName:    "name",
+			ObjectionStatus: "status",
+		},
+	}, nil
+}
+
 func (m *mockDisputeModel) CreateDispute(dispute models.Dispute) (int64, error) {
 	if m.throwErrors {
 		return 0, errors.ErrUnsupported
@@ -156,18 +393,32 @@ func (m *mockDisputeModel) UpdateDisputeStatus(disputeId int64, status string) e
 	}
 	return nil
 }
-func (m *mockDisputeModel) ObjectExpert(userId, disputeId, expertId int64, reason string) error {
+func (m *mockDisputeModel) ObjectExpert(disputeId, expertId, ticketId int64) error {
 	if m.throwErrors {
 		return errors.ErrUnsupported
 	}
 	return nil
 }
-func (m *mockDisputeModel) ReviewExpertObjection(userId, disputeId, expertId int64, approved bool) error {
+func (m *mockDisputeModel) ReviewExpertObjection(expertId int64, approved models.ExpObjStatus) error {
 	if m.throwErrors {
 		return errors.ErrUnsupported
 	}
 	return nil
 }
+
+func (m *mockDisputeModel) GetUserById(userId int64) (models.User, error) {
+	if m.throwErrors {
+		return models.User{}, errors.ErrUnsupported
+	}
+	return models.User{
+		PhoneNumber:       new(string),
+		AddressID:         new(int64),
+		LastLogin:         new(time.Time),
+		PreferredLanguage: new(string),
+		Timezone:          new(string),
+	}, nil
+}
+
 func (m *mockJwtModel) GenerateJWT(user models.User) (string, error) {
 	if m.throwErrors {
 		return "", errors.ErrUnsupported
@@ -186,28 +437,34 @@ func (m *mockJwtModel) GetJWT(email string) (string, error) {
 	}
 	return "", nil
 }
-func (m *mockJwtModel) JWTMiddleware(c *gin.Context) {}
+func (m *mockJwtModel) JWTMiddleware(c *gin.Context) {
+	if m.throwErrors {
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		c.Abort()
+		return
+	}
+	c.Next()
+}
 
 func (m *mockJwtModel) GetClaims(c *gin.Context) (models.UserInfoJWT, error) {
 	if m.throwErrors {
 		return models.UserInfoJWT{}, errors.ErrUnsupported
 	}
-	return models.UserInfoJWT{
-		ID:                0,
-		FirstName:         "",
-		Surname:           "",
-		Birthdate:         time.Now(),
-		Nationality:       "",
-		Role:              "",
-		Email:             "",
-		PhoneNumber:       new(string),
-		AddressID:         new(int64),
-		Status:            "",
-		Gender:            "",
-		PreferredLanguage: new(string),
-		Timezone:          new(string),
-	}, nil
+	return m.returnUser, nil
+}
 
+func (m *mockDisputeModel) UploadWriteup(userId, disputeId int64, path string, file io.Reader) error {
+	return nil
+}
+func (m *mockDisputeModel) GenerateAISummary(disputeID int64, disputeDesc string, apiKey string) {
+
+}
+
+func (m *mockDisputeModel) GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error) {
+	if m.throwErrors {
+		return nil, errors.ErrUnsupported
+	}
+	return m.Get_Experts, nil
 }
 
 func (m *mockDisputeModel) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {
@@ -225,48 +482,55 @@ func (m *mockEmailModel) SendDefaultUserEmail(c *gin.Context, email string, pass
 
 }
 
-func (m *mockEmailModel) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string) {
+func (m *mockEmailModel) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus , description string) {
+}
+
+func (m *mockEmailModel) NotifyEvent(c *gin.Context) {
 }
 
 // ---------------------------------------------------------------- Get Summary List Tests
 
 func (suite *DisputeErrorTestSuite) TestGetSummaryListUnauthorized() {
 	suite.jwtMock.throwErrors = true
-	req, _ := http.NewRequest("GET", "/summary", nil)
+	req, _ := http.NewRequest("GET", "/disputes", nil)
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusUnauthorized, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
 	suite.Equal("Unauthorized", result.Error)
 }
 
-// func (suite *DisputeErrorTestSuite) TestGetSummaryListNoDisputes() {
-// 	req, _ := http.NewRequest("GET", "/summary", nil)
-// 	req.Header.Add("Authorization", "Bearer mock")
+func (suite *DisputeErrorTestSuite) TestGetSummaryListNoDisputes() {
+	req, _ := http.NewRequest("GET", "/disputes", nil)
+	req.Header.Add("Authorization", "Bearer mock")
 
-// 	w := httptest.NewRecorder()
-// 	suite.router.ServeHTTP(w, req)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
-// 	var result models.Response
-// 	suite.Equal(http.StatusOK, w.Code)
-// 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-// 	suite.Empty(result.Error)
-// 	suite.Empty(result.Data)
-// }
+	var result struct {
+		Data []models.DisputeSummaryResponse `json:"data"`
+	}
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Empty(result.Data)
+}
 
-// func (suite *DisputeErrorTestSuite) TestGetSummaryListWithDisputes() {
-// 	// Mock disputes
-// 	suite.disputeMock.evidence = []mockEvidence{
-// 		{
-// 			user:    1,
-// 			dispute: 1,
-// 			path:    "path/to/file",
-// 			data:    "evidence data",
-// 		},
-// 	}
+func (suite *DisputeErrorTestSuite) TestGetSummaryListWithDisputes() {
+	// Mock disputes
+	suite.disputeMock.evidence = []mockEvidence{
+		{
+			user:    1,
+			dispute: 1,
+			path:    "path/to/file",
+			data:    "evidence data",
+		},
+	}
+}
 
 // 	req, _ := http.NewRequest("GET", "/summary", nil)
 // 	req.Header.Add("Authorization", "Bearer mock")
@@ -284,27 +548,107 @@ func (suite *DisputeErrorTestSuite) TestGetSummaryListUnauthorized() {
 // 	suite.Equal(len(suite.disputeMock.evidence), len(result.Data.([]models.DisputeSummaryResponse)))
 // }
 
+func (suite *DisputeErrorTestSuite) TestGetSummaryListAdminSuccess() {
+	suite.jwtMock.returnUser.Role = "admin"
+	body := `{}`
+	req, _ := http.NewRequest("POST", "/disputes", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Data map[string]interface{} `json:"data"`
+	}
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+}
+
+func (suite *DisputeErrorTestSuite) TestGetSummaryListAdminSuccess2() {
+	suite.jwtMock.returnUser.Role = "admin"
+	body := `{
+  "limit": 50,
+  "offset": 0,
+  "sort": {
+    "attr": "case_date",
+    "order": "desc"
+  },
+  "filter": [
+    {
+      "attr": "workflow",
+      "value": "1"
+    }
+  ],
+  "dateFilter": {
+    "filed": {
+      "before": "2024-09-20",
+      "after": "2024-01-01"
+    },
+    "resolved": {
+      "before": "2024-09-20"
+    }
+  }
+}`
+	req, _ := http.NewRequest("POST", "/disputes", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Data map[string]interface{} `json:"data"`
+	}
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Data)
+}
+
 func (suite *DisputeErrorTestSuite) TestGetSummaryListErrorRetrievingDisputes() {
 	suite.disputeMock.throwErrors = true
-	req, _ := http.NewRequest("GET", "/summary", nil)
+	req, _ := http.NewRequest("GET", "/disputes", nil)
 	req.Header.Add("Authorization", "Bearer mock")
 
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
-	var result models.Response
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Error while retrieving disputes", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestGetSummaryListAdminBadRequest() {
+	suite.jwtMock.returnUser.Role = "admin"
+	body := `{asdasdas}`
+	req, _ := http.NewRequest("POST", "/disputes", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
 	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
-	suite.Equal("Invalid dispute id 'summary'", result.Error)
 }
 
-func (m *mockDisputeModel) GenerateAISummary(disputeID int64, disputeDesc string, apiKey string) {
+func (suite *DisputeErrorTestSuite) TestGetSummaryListAdminError() {
+	suite.jwtMock.returnUser.Role = "admin"
+	suite.disputeMock.throwErrors = true
+	body := `{}`
+	req, _ := http.NewRequest("POST", "/disputes", bytes.NewBuffer([]byte(body)))
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
 
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
 }
 
 // ---------------------------------------------------------------- EVIDENCE UPLOAD
-
 func (suite *DisputeErrorTestSuite) TestEvidenceUnauthorized() {
 	suite.jwtMock.throwErrors = true
 	req, _ := http.NewRequest("POST", "/1/evidence", nil)
@@ -573,6 +917,7 @@ func (suite *DisputeErrorTestSuite) TestCreateFailed() {
 	createStringField(form, "description", "Desc")
 	createStringField(form, "respondent[full_name]", "First Last")
 	createStringField(form, "respondent[email]", "Email")
+	createStringField(form, "respondent[workflow]", "1")
 	form.Close()
 
 	req, _ := http.NewRequest("POST", "/create", data)
@@ -596,6 +941,7 @@ func (suite *DisputeErrorTestSuite) TestCreateSuccess() {
 	createStringField(form, "description", "Desc")
 	createStringField(form, "respondent[full_name]", "First Last")
 	createStringField(form, "respondent[email]", "Email")
+	createStringField(form, "respondent[workflow]", "1")
 	form.Close()
 
 	req, _ := http.NewRequest("POST", "/create", data)
@@ -621,6 +967,7 @@ func (suite *DisputeErrorTestSuite) TestCreateFileUploads() {
 	createStringField(form, "description", "Desc")
 	createStringField(form, "respondent[full_name]", "First Last")
 	createStringField(form, "respondent[email]", "Email")
+	createStringField(form, "respondent[workflow]", "1")
 
 	createFileField(form, "files", "file1.txt", "contents 1")
 	createFileField(form, "files", "file2.txt", "contents 2")
@@ -760,4 +1107,577 @@ func (suite *DisputeErrorTestSuite) TestGetLoggerInitializationError() {
 	suite.Equal(http.StatusOK, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Data)
+}
+
+func (suite *DisputeErrorTestSuite) TestViewExpertRejectionsInvalidBody() {
+	req, _ := http.NewRequest("POST", "/experts/objections", bytes.NewBuffer([]byte("invalid body")))
+
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+
+	suite.Equal("Invalid Body", result.Error)
+}
+
+//---------------------------------------------------------------- Expert Objection Review
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("POST", "/1/experts/review-rejection", nil)
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewInvalidDisputeID() {
+	req, _ := http.NewRequest("PATCH", "/objections/invalid", nil)
+	req.Header.Add("Authorization", "Bearer mock")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Invalid Dispute ID", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewInvalidRequestBody() {
+	req, _ := http.NewRequest("PATCH", "/objections/1", bytes.NewBuffer([]byte("invalid body")))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Invalid body", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestViewExpertRejectionsErrorRetrieving() {
+	suite.disputeMock.throwErrors = true
+
+	body := `{"Expert_id": 1, "Dispute_id": 1, "Limits": 10, "Offset": 0}`
+	req, _ := http.NewRequest("POST", "/experts/objections", bytes.NewBuffer([]byte(body)))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Internal Server Error", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewErrorReviewingObjection() {
+	reqBody := `{"expert_id": 1, "accepted": true}`
+	req, _ := http.NewRequest("PATCH", "/objections/1", bytes.NewBuffer([]byte(reqBody)))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	suite.disputeMock.throwErrors = true
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Missing fields in request", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewSuccess() {
+	suite.jwtMock.throwErrors = false
+	reqBody := `{"status": "Overruled"}`
+	req, _ := http.NewRequest("PATCH", "/objections/1", bytes.NewBuffer([]byte(reqBody)))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusNoContent, w.Code)
+	suite.Empty(result.Error)
+	fmt.Println("BODY: ", w.Body.String())
+	suite.Equal(nil, result.Data)
+}
+
+//---------------------------------------------------------------- Expert Objection
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionErrorDuringObjection() {
+	reqBody := `{"expert_id": 1, "reason": "Conflict of interest"}`
+	req, _ := http.NewRequest("POST", "/1/objections", bytes.NewBuffer([]byte(reqBody)))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	suite.disputeMock.throwErrors = true
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+
+	suite.Equal("Failed to get Expert ID", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestViewExpertRejectionsSuccess() {
+	suite.disputeMock.throwErrors = false
+	body := `{"Expert_id": 1, "Dispute_id": 1, "Limits": 10, "Offset": 0}`
+	req, _ := http.NewRequest("POST", "/experts/objections", bytes.NewBuffer([]byte(body)))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	// Parse the response into a structured result object
+	var result models.Response
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Empty(result.Error)
+	suite.NotEmpty(result.Data)
+
+	var resultData []models.ExpertObjectionsView
+	dataBytes, _ := json.Marshal(result.Data)
+	json.Unmarshal(dataBytes, &resultData)
+
+	fmt.Println("BODY: ", w.Body.String())
+
+	// Expected result
+	expected := []models.ExpertObjectionsView{
+		{
+			ObjectionID:     1,
+			ExpertID:        1,
+			ExpertFullName:  "name",
+			DisputeID:       1,
+			DisputeTitle:    "title",
+			UserID:          1,
+			UserFullName:    "name",
+			ObjectionStatus: "status",
+		},
+	}
+
+	// Assert the result matches the expected value
+	suite.Equal(expected, resultData)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionSuccess() {
+	reqBody := `{"expert_id": 1, "reason": "Conflict of interest"}`
+	req, _ := http.NewRequest("POST", "/1/objections", bytes.NewBuffer([]byte(reqBody)))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	//inject the mock
+	suite.disputeMock.throwErrors = false
+	suite.disputeMock.Get_Experts = []models.AdminDisputeExperts{
+		{
+			ExpertID: 1,
+			FullName: "name",
+			Status:   string(models.ObjectionOverruled),
+		},
+	}
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusOK, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Empty(result.Error)
+	suite.Equal(float64(0), result.Data)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("POST", "/1/experts/reject", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionInvalidDisputeID() {
+	req, _ := http.NewRequest("POST", "/invalid/objections", nil)
+	req.Header.Add("Authorization", "Bearer mock")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Invalid Dispute ID", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestExpertObjectionInvalidRequestBody() {
+	req, _ := http.NewRequest("POST", "/1/objections", bytes.NewBuffer([]byte("invalid body")))
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
+//---------------------------------------------------------------- Update Dispute Status
+
+func (suite *DisputeErrorTestSuite) TestUpdateStatusInvalidRequestBody() {
+	req, _ := http.NewRequest("PUT", "/dispute/status", bytes.NewBuffer([]byte("invalid body")))
+	req.Header.Add("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusBadRequest, w.Code)
+	var result models.Response
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("Invalid request body", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestUpdateStatusUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("PUT", "/dispute/status", bytes.NewBuffer([]byte(`{"dispute_id": 1, "status": "Resolved"}`)))
+	req.Header.Add("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	var result models.Response
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestUpdateStatusInternalError() {
+	suite.jwtMock.throwErrors = false
+	suite.disputeMock.throwErrors = true
+	req, _ := http.NewRequest("PUT", "/1/status", bytes.NewBuffer([]byte(`{"status": "Resolved"}`)))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer mock")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusInternalServerError, w.Code)
+	var result models.Response
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("Something went wrong", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestUpdateStatusSuccess() {
+	suite.jwtMock.throwErrors = false
+	suite.disputeMock.throwErrors = false
+	req, _ := http.NewRequest("PUT", "/1/status", bytes.NewBuffer([]byte(`{"status": "Resolved"}`)))
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", "Bearer mock")
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusOK, w.Code)
+	var result models.Response
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("Dispute status update successful", result.Data)
+}
+
+// ---------------------------------------------------------------- Create Dispute
+
+func (suite *DisputeErrorTestSuite) TestCreateDisputeUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("POST", "/create", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingTitle() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormField("description")
+	form.CreateFormField("respondent[full_name]")
+	form.CreateFormField("respondent[email]")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Please insert a valid title", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingDescription() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormField("title")
+	form.CreateFormField("respondent[full_name]")
+	form.CreateFormField("respondent[email]")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Please enter a valid description", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingRespondentFullName() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormField("title")
+	form.CreateFormField("description")
+	form.CreateFormField("respondent[email]")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Please enter the respondent full name", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestCreateDisputeMissingRespondentEmail() {
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormField("title")
+	form.CreateFormField("description")
+	form.CreateFormField("respondent[full_name]")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/create", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Please enter a valid email", result.Error) // This should match now
+}
+
+// ---------------------------------------------------------------- WRITEUP UPLOAD
+
+func (suite *DisputeErrorTestSuite) TestWriteupUnauthorized() {
+	suite.jwtMock.throwErrors = true
+	req, _ := http.NewRequest("POST", "/1/decision", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupUnauthorized2() {
+	suite.jwtMock.returnUser.Role = "user"
+	req, _ := http.NewRequest("POST", "/1/decision", nil)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+	suite.Equal("Unauthorized", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupEmptyMultipartForm() {
+	req, _ := http.NewRequest("POST", "/1/decision", bytes.NewBuffer([]byte{}))
+
+	suite.jwtMock.returnUser.Role = "expert"
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", "multipart/form-data")
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result models.Response
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.NotEmpty(result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupErrorOpeningMultipartFile() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	form.CreateFormFile("files", "file1.txt")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusBadRequest, w.Code)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupNoDecision() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "writeup", "file1.txt", "file contents")
+	// createStringField(form, "decision", "")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("missing field in form: decision", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupNoWriteUp() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	// createFileField(form, "writeup", "file1.txt", "file contents")
+	createStringField(form, "decision", "Test")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	var result struct {
+		Error string `json:"error"`
+	}
+	suite.Equal(http.StatusBadRequest, w.Code)
+	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+	suite.Equal("missing field in form: writeup", result.Error)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupErrorDuringUpload() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "writeup", "file1.txt", "file contents")
+	createStringField(form, "decision", "Test")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", form.FormDataContentType())
+
+	suite.disputeMock.throwErrors = true
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusNoContent, w.Code)
+	// suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupInvalidID() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "writeup", "file1.txt", "file contents")
+	createStringField(form, "decision", "Test")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/$/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", form.Boundary()))
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusBadRequest, w.Code)
+}
+
+func (suite *DisputeErrorTestSuite) TestWriteupSuccess() {
+	suite.jwtMock.returnUser.Role = "expert"
+	data := bytes.NewBuffer([]byte{})
+	form := multipart.NewWriter(data)
+	createFileField(form, "writeup", "file1.txt", "file contents")
+	createStringField(form, "decision", "Test")
+	form.Close()
+
+	req, _ := http.NewRequest("POST", "/1/decision", data)
+	req.Header.Add("Authorization", "Bearer mock")
+	req.Header.Add("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", form.Boundary()))
+
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	suite.Equal(http.StatusNoContent, w.Code)
+
 }

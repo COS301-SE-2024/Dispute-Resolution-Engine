@@ -1,0 +1,48 @@
+{
+    "initial": "0",
+    "states": {
+      "0": {
+        "label": "Dispute created",
+        "description": "A new dispute has been created. We are now waiting for the respondent (i.e. the entity you filed a dispute against) to respond with their own evidence",
+        "events": {
+          "3": {
+            "label": "evidence_submitted",
+            "next_state": "1"
+          },
+          "9": {
+            "label": "timer_expired",
+            "next_state": "7"
+          }
+        },
+        "timer": {
+          "duration": "20s",
+          "on_expire": "9"
+        }
+      },
+      "1": {
+        "label": "Dispute active",
+        "description": "The respondent has sent their evidence, and the dispute is now active. An expert now has to review the evidence and submit a writeup",
+        "events": {
+          "6": {
+            "label": "decision_submitted",
+            "next_state": "4"
+          }
+        }
+      },
+      "4": {
+        "label": "Resolved",
+        "description": "The experts have submitted their write-ups detailing their decision. The administrators will now confirm this decision and close the dispute",
+        "events": {}
+      },
+      "7": {
+        "label": "Non-compliance",
+        "description": "The respondent failed to respond to the dispute in time. Experts will now review the evidence from the complainant to determine what the outcome of the dispute is.",
+        "events": {
+          "30": {
+            "label": "decision_submitted",
+            "next_state": "4"
+          }
+        }
+      }
+    }
+  }

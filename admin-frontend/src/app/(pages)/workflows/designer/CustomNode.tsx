@@ -180,8 +180,17 @@ export default function CustomNode(data: NodeProps<GraphState>) {
             asChild
           >
             <Button variant="ghost" className="text-sm font-normal gap-2 grow">
-              <ClockIcon size="1rem" />
-              {data.data.timer ? "Edit timer" : "Add timer"}
+              {data.data.timer ? (
+                <>
+                  <ClockIcon size="1rem" />
+                  Edit timer
+                </>
+              ) : (
+                <>
+                  <PlusIcon size="1rem" />
+                  Add timer
+                </>
+              )}
             </Button>
           </TimerEditor>
 

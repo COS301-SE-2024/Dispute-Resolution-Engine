@@ -36,6 +36,8 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.PUT("/:id/status", h.UpdateStatus)
 	g.GET("/:id/workflow", h.GetWorkflow)
 
+	g.PUT("/statemachine/:id", h.TransitionStateMachine)
+
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
 
@@ -771,7 +773,7 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
 			return
 		}
-	
+
 		err = h.Model.AssignExpertswithDisputeAndExpertIDs(disputeId, expertIds)
 		if err != nil {
 			logger.WithError(err).Error("Error assigning experts to dispute")
@@ -901,3 +903,64 @@ func (h Dispute) GetWorkflow(c *gin.Context) {
 	logger.Info("Workflow retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: workflow})
 }
+
+func (h Dispute) TransitionStateMachine(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	//get body of post
+	var req models.StateMachineTransitionRequest
+	if err := c.BindJSON(&req); err != nil {
+		logger.WithError(err).Error("Failed to bind JSON")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Body"})
+		return
+	}
+
+	//get dispute id
+	disputeId := c.Param("id")
+	disputeIdInt, err := strconv.Atoi(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Cannot convert dispute ID to integer")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+
+	//get dispute
+	dispute, err := h.Model.GetDispute(int64(disputeIdInt))
+	if err != nil {
+		logger.WithError(err).Error("Failed to get dispute")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get dispute"})
+		return
+	}
+
+	url, err := h.Env.Get("ORCH_URL")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	port, err := h.Env.Get("ORCH_PORT")
+	if err != nil {
+		logger.Error(err)
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
+		return
+	}
+
+	//send request
+	code, err := h.OrchestratorEntity.SendTriggerToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, "/event"), dispute.Workflow, req.Trigger)
+	if err != nil {
+		logger.WithError(err).Error("Failed to send trigger to orchestrator")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to send trigger to orchestrator"})
+		return
+	}
+
+	if code != http.StatusOK {
+		logger.Error("Failed to send trigger to orchestrator")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Incorrect trigger"})
+		return
+	}
+
+	logger.Info("State machine transition successful")
+	c.JSON(http.StatusOK, models.Response{Data: "State machine transition successful"})
+}
+

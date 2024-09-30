@@ -238,6 +238,8 @@ func (h *Handler) TransitionStateMachine(c *gin.Context) {
 		})
 		return
 	}
+
+	h.logger.Info("body received: ", Res)
 	// Fire the trigger
 	// The logic for updating the active_workflow entry in the database is in this function
 	current_state, state_deadline := h.controller.FireTrigger(strconv.Itoa(int(Res.ID)), Res.Trigger)

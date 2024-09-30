@@ -88,14 +88,14 @@ type Trigger struct {
 
 type WorkflowOrchestrator interface {
 	MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
+	SendTriggerToOrchestrator(endpoint string, activerWfId int64, trigger string) (int, error)
 }
 
 type OrchestratorReal struct {
 }
 
-func (w OrchestratorReal) SendTriggerToORchestrator(activerWfId int64, trigger string) (int, error) {
+func (w OrchestratorReal) SendTriggerToOrchestrator(endpoint string, activerWfId int64, trigger string) (int, error) {
 	logger := utilities.NewLogger().LogWithCaller()
-	endpoint := "http://localhost:8090/event"
 	payload := Trigger{
 		Id:      activerWfId,
 		Trigger: trigger,

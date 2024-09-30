@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { getDisputeDetails } from "@/lib/api/dispute";
+import { getDisputeDetails, getDisputeWorkflow } from "@/lib/api/dispute";
 import { Metadata } from "next";
 
 import DisputeClientPage from "./client-page";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import WorkflowSelect from "@/components/form/workflow-select";
 import DisputeHeader from "@/components/dispute/dispute-header";
 import Link from "next/link";
+import { State } from "@/lib/interfaces/workflow";
 
 type Props = {
   params: { id: string };
@@ -30,6 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function DisputePage({ params }: Props) {
   const { data, error } = await getDisputeDetails(params.id);
+  const workflow = await getDisputeWorkflow(params.id);
   if (error || !data) {
     return <h1>{error}</h1>;
   }
@@ -41,6 +43,7 @@ export default async function DisputePage({ params }: Props) {
         label={data.title}
         startDate={data.case_date.substring(0, 10)}
         status={data.status}
+        state={workflow.definition.states[workflow.current_state]}
       />
       <Separator />
       <ScrollArea className="grow overflow-y-auto p-4">
@@ -51,7 +54,13 @@ export default async function DisputePage({ params }: Props) {
   );
 }
 
-function DisputeHeader2(props: { id: string; label: string; startDate: string; status: string }) {
+function DisputeHeader2(props: {
+  id: string;
+  label: string;
+  startDate: string;
+  status: string;
+  state: State;
+}) {
   // TODO: Add contracts for this
   const user = (jwtDecode(getAuthToken()) as any).user.id;
   const role = (jwtDecode(getAuthToken()) as any).user.role;

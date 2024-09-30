@@ -56,6 +56,8 @@ func (t *TicketModelReal) CreateTicket(userID int64, dispute int64, subject stri
 	err := t.db.Where("id = ?", dispute).
 		Where("complainant = ? OR respondant = ?", userID, userID).
 		First(&disputeModel).Error
+	err = t.db.Where("id = ?", dispute).
+		Where("expert = ?", userID).First(&disputeModel).Error
 	if err != nil {
 		logger.WithError(err).Error("Error creating ticket")
 		return models.Ticket{}, err
@@ -276,8 +278,8 @@ func (t *TicketModelReal) GetTicketsByUserID(uid int64, searchTerm *string, limi
 			queryString.WriteString(" AND ")
 			countString.WriteString(" AND ")
 		} else {
-			queryString.WriteString(" AND WHERE ")
-			countString.WriteString(" AND WHERE ")
+			queryString.WriteString(" WHERE ")
+			countString.WriteString(" WHERE ")
 		}
 		for i, filter := range *filters {
 			queryString.WriteString("t." + filter.Attr + " = ?")

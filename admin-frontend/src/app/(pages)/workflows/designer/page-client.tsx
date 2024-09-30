@@ -37,6 +37,7 @@ import WorkflowTitle from "@/components/workflow/workflow-title";
 import { SaveIcon } from "lucide-react";
 import { useCustomId } from "@/lib/hooks/use-customid";
 import { useToast } from "@/lib/hooks/use-toast";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const initialNodes: GraphState[] = [
   {
@@ -283,9 +284,12 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
 }
 
 export default function ClientPage({ workflow }: { workflow?: Workflow }) {
+  const [client] = useState(new QueryClient());
   return (
-    <ReactFlowProvider>
-      <InnerPage workflow={workflow} />
-    </ReactFlowProvider>
+    <QueryClientProvider client={client}>
+      <ReactFlowProvider>
+        <InnerPage workflow={workflow} />
+      </ReactFlowProvider>
+    </QueryClientProvider>
   );
 }

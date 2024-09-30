@@ -64,6 +64,16 @@ export async function updateWorkflow(id: number, req: WorkflowUpdateRequest): Pr
   });
 }
 
+export async function getWorkflowTriggers(): Promise<string[]> {
+  return sf(`${API_URL}/workflows/triggers`, {
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  })
+    .then(validateResult<{ triggers: string[] }>)
+    .then((res) => res.triggers);
+}
+
 export async function deleteWorkflow(id: string): Promise<void> {
   await sf(`${API_URL}/workflows/${id}`, {
     method: "DELETE",

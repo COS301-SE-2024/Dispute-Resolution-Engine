@@ -9,7 +9,7 @@ import {
   useUpdateNodeInternals,
 } from "@xyflow/react";
 import { CircleX, InfoIcon, Pencil } from "lucide-react";
-import { ReactNode, useCallback, useState } from "react";
+import { ReactNode, useCallback, useId, useState } from "react";
 
 import { type GraphTrigger, type GraphState, GraphInstance } from "@/lib/types";
 import EditForm from "./edit-form";
@@ -25,6 +25,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import TriggerSelect from "@/components/workflow/trigger-select";
 
 export default function CustomEdge({
   id,
@@ -129,6 +130,9 @@ export default function CustomEdge({
 }
 
 function EditDialog({ asChild, children }: { asChild?: boolean; children: ReactNode }) {
+  const nameId = useId();
+  const eventId = useId();
+
   return (
     <Dialog>
       <DialogTrigger asChild={asChild}>{children}</DialogTrigger>
@@ -142,7 +146,7 @@ function EditDialog({ asChild, children }: { asChild?: boolean; children: ReactN
         </DialogHeader>
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <Label>Label</Label>
+            <Label htmlFor={nameId}>Label</Label>
             <Tooltip>
               <TooltipTrigger>
                 <InfoIcon size="1rem" />
@@ -153,10 +157,10 @@ function EditDialog({ asChild, children }: { asChild?: boolean; children: ReactN
             </Tooltip>
           </div>
 
-          <Input />
+          <Input id={nameId} name="label" />
 
           <div className="flex items-center gap-2 mt-5">
-            <Label>Event</Label>
+            <Label htmlFor={eventId}>Event</Label>
             <Tooltip>
               <TooltipTrigger>
                 <InfoIcon size="1rem" />
@@ -167,7 +171,7 @@ function EditDialog({ asChild, children }: { asChild?: boolean; children: ReactN
             </Tooltip>
           </div>
 
-          <Input />
+          <TriggerSelect id={eventId} />
         </div>
         <DialogFooter>
           <DialogClose asChild>

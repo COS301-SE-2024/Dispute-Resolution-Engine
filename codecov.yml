@@ -21,7 +21,7 @@ ignore:
   - "api/handlers/dispute/model.go"
   - "api/handlers/notifications/notifications.go"
   - "api/handlers/orchestratorNotification/orchestartorNotification.go"
-  - "api/handlers/ticket/model.go""
+  - "api/handlers/ticket/model.go"
   - "api/handlers/workflow/model.go"
   - "api/mediatorAssignments/model.go"
   - "api/mediatorAssignments/mock.go"

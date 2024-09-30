@@ -55,7 +55,7 @@ type DisputeModel interface {
 	AssignExpertswithDisputeAndExpertIDs(disputeID int64, expertIDs []int) error
 
 	GetWorkflowRecordByID(id uint64) (*models.Workflow, error)
-	CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int,error)
+	CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int, error)
 	DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error
 
 	GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error)
@@ -80,11 +80,50 @@ type Dispute struct {
 type OrchestratorRequest struct {
 	ID int64 `json:"id"`
 }
+
+type Trigger struct {
+	Id      int64
+	Trigger string
+}
+
 type WorkflowOrchestrator interface {
 	MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
 }
 
 type OrchestratorReal struct {
+}
+
+func (w OrchestratorReal) SendTriggerToORchestrator(activerWfId int64, trigger string) (int, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	endpoint := "http://localhost:8090/event"
+	payload := Trigger{
+		Id:      activerWfId,
+		Trigger: trigger,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		logger.Error("marshal error: ", err)
+		return http.StatusInternalServerError, err
+	}
+
+	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		logger.Error("post error: ", err)
+		return http.StatusInternalServerError, err
+	}
+	//read body
+	responseBody, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		logger.Error("read body error: ", err)
+		return http.StatusInternalServerError, err
+	}
+
+	// log the response body for debugging
+	logger.Info("Response Body: ", string(responseBody))
+
+	return resp.StatusCode, nil
 }
 
 func (w OrchestratorReal) MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error) {
@@ -244,7 +283,7 @@ func (m *disputeModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, e
 	return &workflow, nil
 }
 
-func (m *disputeModelReal) CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int,error) {
+func (m *disputeModelReal) CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int, error) {
 	result := m.db.Create(workflow)
 
 	if result.Error != nil {
@@ -1015,8 +1054,7 @@ WHERE
 	eo.id = ?`, ticketID).Scan(&disputeID).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute ID by ticket ID")
-		return 0 , err
+		return 0, err
 	}
 	return disputeID, err
 }
-

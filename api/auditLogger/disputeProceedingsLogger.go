@@ -8,21 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type DisputeProceedingsLoggerInterface interface {
-	LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error
-}
-
-
-type DisputeProceedingsLogger struct {
-	DB        *gorm.DB
-	EnvReader env.Env
-}
-
-type LogJson struct {
-	Message string
-	Json    interface{}
-}
-
 // func NewDisputeProceedingsLoggerDBInit() (DisputeProceedingsLoggerInterface,error) {
 // 	DB, err := db.Init()
 // 	if err != nil {
@@ -32,7 +17,7 @@ type LogJson struct {
 // }
 
 func NewDisputeProceedingsLogger(db *gorm.DB, envLoader env.Env) DisputeProceedingsLoggerInterface {
-	return DisputeProceedingsLogger{DB: db, EnvReader: envLoader}
+	return DisputeProceedingsLogger{DB: DisputeProceedingsLoggerReal{DB: db}, EnvReader: envLoader}
 }
 
 func (d DisputeProceedingsLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
@@ -43,10 +28,10 @@ func (d DisputeProceedingsLogger) LogDisputeProceedings(proceedingType models.Ev
 	logger.Info(eventData)
 
 	// Attempt to create a new event log entry in the database
-	err := d.DB.Create(&models.EventLog{
+	err := d.DB.CreateLog(models.EventLog{
 		EventType: proceedingType,
 		EventData: eventData,
-	}).Error
+	})
 
 	// Error handling
 	if err != nil {

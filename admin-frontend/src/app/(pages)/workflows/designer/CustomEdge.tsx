@@ -8,12 +8,23 @@ import {
   useReactFlow,
   useUpdateNodeInternals,
 } from "@xyflow/react";
-import { CircleX, Pencil } from "lucide-react";
-import { useCallback, useState } from "react";
+import { CircleX, InfoIcon, Pencil } from "lucide-react";
+import { ReactNode, useCallback, useState } from "react";
 
 import { type GraphTrigger, type GraphState, GraphInstance } from "@/lib/types";
 import EditForm from "./edit-form";
 import { Button } from "@/components/ui/button";
+import { DialogClose, DialogFooter, DialogHeader } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function CustomEdge({
   id,
@@ -50,7 +61,7 @@ export default function CustomEdge({
       for (let index in nodes) {
         if (deletedEdge && nodes[index].id == deletedEdge.source) {
           (nodes[index] as GraphState).data.edges = (nodes[index] as GraphState).data.edges.filter(
-            (edge) => edge.id != deletedEdge.sourceHandle,
+            (edge) => edge.id != deletedEdge.sourceHandle
           );
           updateNodeInternals(nodes[index].id);
         }
@@ -61,7 +72,7 @@ export default function CustomEdge({
         updateNodeInternals(deletedEdge.source);
       }
     },
-    [id, reactFlow, updateNodeInternals],
+    [id, reactFlow, updateNodeInternals]
   );
 
   /** Used to determine when a component the label of a node is being edited */
@@ -103,17 +114,67 @@ export default function CustomEdge({
                 <CircleX />
               </Button>
               <p className="text-l">{data!.trigger}</p>
-              <Button
-                variant="ghost"
-                className="nodrag nopan rounded-full p-2"
-                onClick={() => setEditing(true)}
-              >
-                <Pencil size="1rem" />
-              </Button>
+
+              <EditDialog asChild>
+                <Button variant="ghost" className="nodrag nopan rounded-full p-2">
+                  <Pencil size="1rem" />
+                </Button>
+              </EditDialog>
             </>
           )}
         </div>
       </EdgeLabelRenderer>
     </>
+  );
+}
+
+function EditDialog({ asChild, children }: { asChild?: boolean; children: ReactNode }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild={asChild}>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit trigger</DialogTitle>
+          <DialogDescription>
+            This action cannot be undone. This will permanently delete your account and remove your
+            data from our servers.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <Label>Label</Label>
+            <Tooltip>
+              <TooltipTrigger>
+                <InfoIcon size="1rem" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-sm">Human-readable label describing the trigger</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          <Input />
+
+          <div className="flex items-center gap-2 mt-5">
+            <Label>Event</Label>
+            <Tooltip>
+              <TooltipTrigger>
+                <InfoIcon size="1rem" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-sm">What event will cause the transition to occur</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          <Input />
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button>Confirm</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

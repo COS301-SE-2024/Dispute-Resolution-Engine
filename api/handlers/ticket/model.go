@@ -56,8 +56,11 @@ func (t *TicketModelReal) CreateTicket(userID int64, dispute int64, subject stri
 	err := t.db.Where("id = ?", dispute).
 		Where("complainant = ? OR respondant = ?", userID, userID).
 		First(&disputeModel).Error
-	err = t.db.Where("id = ?", dispute).
-		Where("expert = ?", userID).First(&disputeModel).Error
+	if err != nil {
+		logger.Warn("User might be an expert")
+		err = t.db.Where("id = ?", dispute).
+			Where("expert = ?", userID).First(&disputeModel).Error
+	}
 	if err != nil {
 		logger.WithError(err).Error("Error creating ticket")
 		return models.Ticket{}, err

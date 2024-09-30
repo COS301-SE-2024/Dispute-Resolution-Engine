@@ -289,7 +289,6 @@ type Columnvalue struct {
 }
 
 type AdminTableStats struct {
-	Group *string `json:"group"`
-	Where *Columnvalue `json:"where"`
+	Group *string      `json:"group,omitempty"`
+	Where *Columnvalue `json:"where,omitempty"`
 }
-

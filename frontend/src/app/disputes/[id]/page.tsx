@@ -14,6 +14,8 @@ import DisputeDecisionForm from "@/components/dispute/decision-form";
 import CreateTicketDialog from "@/components/dispute/ticket-form";
 import { Button } from "@/components/ui/button";
 import WorkflowSelect from "@/components/form/workflow-select";
+import DisputeHeader from "@/components/dispute/dispute-header";
+import Link from "next/link";
 
 type Props = {
   params: { id: string };
@@ -34,7 +36,7 @@ export default async function DisputePage({ params }: Props) {
 
   return (
     <div className="grow overflow-y-auto flex flex-col">
-      <DisputeHeader
+      <DisputeHeader2
         id={data.id}
         label={data.title}
         startDate={data.case_date.substring(0, 10)}
@@ -49,49 +51,25 @@ export default async function DisputePage({ params }: Props) {
   );
 }
 
-function DisputeHeader({
-  id,
-  label,
-  startDate,
-  status: initialStatus,
-}: {
-  id: string;
-  label: string;
-  startDate: string;
-  status: string;
-}) {
+function DisputeHeader2(props: { id: string; label: string; startDate: string; status: string }) {
   // TODO: Add contracts for this
   const user = (jwtDecode(getAuthToken()) as any).user.id;
   const role = (jwtDecode(getAuthToken()) as any).user.role;
 
   return (
-    <header className="p-4 py-6 flex items-start">
-      <div className="grow">
-        <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">{label}</h1>
-        <p className="mb-4">Started: {startDate}</p>
-        {/*TODO: Figure out the conditions for displaying expert rejection */}
-        {role == "expert" && <ExpertRejectForm expertId={user} disputeId={id} />}
+    <DisputeHeader {...props}>
+      {role == "expert" && <ExpertRejectForm expertId={user} disputeId={props.id} />}
 
-        {role == "expert" && (
-          <DisputeDecisionForm disputeId={id} asChild>
-            <Button>Render decision</Button>
-          </DisputeDecisionForm>
-        )}
+      {role == "expert" && (
+        <DisputeDecisionForm disputeId={props.id} asChild>
+          <Button>Render decision</Button>
+        </DisputeDecisionForm>
+      )}
 
-        <CreateTicketDialog asChild dispute={id}>
-          <Button>Create ticket</Button>
-        </CreateTicketDialog>
-
-      </div>
-
-      <dl className="grid grid-cols-2 gap-2">
-        <dt className="text-right font-bold">Dispute ID:</dt>
-        <dd>{id}</dd>
-        <dt className="text-right font-bold">Status:</dt>
-        <dd>
-          <StatusDropdown disputeId={id} status={initialStatus} />
-        </dd>
-      </dl>
-    </header>
+      <CreateTicketDialog asChild dispute={props.id}>
+        <Button>Create ticket</Button>
+      </CreateTicketDialog>
+      <Link href={`/disputes/${props.id}/tickets`}>Go to tickets</Link>
+    </DisputeHeader>
   );
 }

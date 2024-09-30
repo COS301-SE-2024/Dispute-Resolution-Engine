@@ -39,7 +39,7 @@ export async function getTicketDetails(id: number): Promise<Ticket> {
 }
 
 export async function addTicketMessage(id: number, message: string): Promise<TicketMessage> {
-  return sf(`${API_URL}/tickets/${id}/messages`, {
+  const res = await sf(`${API_URL}/tickets/${id}/messages`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
@@ -48,4 +48,6 @@ export async function addTicketMessage(id: number, message: string): Promise<Tic
       message,
     }),
   }).then(validateResult<TicketMessageResponse>);
+  revalidatePath(`/disputes/[id]/tickets/${id}`);
+  return res;
 }

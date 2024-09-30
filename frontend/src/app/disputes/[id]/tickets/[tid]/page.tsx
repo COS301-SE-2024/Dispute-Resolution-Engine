@@ -1,14 +1,6 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getTicketDetails } from "@/lib/api/tickets";
+import MessageForm from "./message-form";
 
 type Props = {
   params: { tid: string };
@@ -24,7 +16,7 @@ export default async function TicketDetails({ params: { tid } }: Props) {
           {details.subject}
         </h1>
       </header>
-      <main className="p-4 space-y-4">
+      <main className="p-4 space-y-4 overflow-y-auto">
         <Card>
           <CardHeader>
             <CardTitle>Description</CardTitle>
@@ -42,17 +34,7 @@ export default async function TicketDetails({ params: { tid } }: Props) {
             </CardContent>
           </Card>
         ))}
-        <Card>
-          <CardHeader>
-            <CardTitle>Send a message</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea />
-          </CardContent>
-          <CardFooter className="justify-end">
-            <Button>Send</Button>
-          </CardFooter>
-        </Card>
+        <MessageForm ticket={parseInt(tid)} />
       </main>
     </div>
   );

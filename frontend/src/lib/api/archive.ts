@@ -19,10 +19,10 @@ export async function searchArchive(
     error: e.message,
   }));
 }
-export async function getArchives(): Promise<Result<ArchivedDisputeSummary[]>> {
+export async function getArchives(): Promise<Result<{archives: ArchivedDisputeSummary[]}>> {
   const res = await fetch(`${API_URL}/archive`, {
     cache: "no-store",
-    method: "POST",
+    method: "GET",
   });
   return res.json().catch(async (e: Error) => ({
     error: e.message,

@@ -109,8 +109,8 @@ func (h Archive) getArchives(c *gin.Context) {
 			Description:  dispute.Description,
 			Summary:      disputeSummary.Summary,
 			Category:     []string{"Dispute"}, // Assuming a default category for now
-			DateFiled:    dispute.CaseDate.Format("2006-08-01"),
-			DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
+			DateFiled:    dispute.CaseDate.Format("2006-01-02"),
+			DateResolved: dispute.DateResolved.Format("2006-01-02"), // Placeholder for resolved date
 			Resolution:   string(dispute.Status),
 		}
 	}

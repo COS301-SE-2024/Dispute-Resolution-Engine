@@ -29,6 +29,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/lib/hooks/use-toast";
 import EditForm from "./edit-form";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 /** The diameter (in pixels) of a single handle */
 const handleDiameter = 20;
@@ -103,7 +106,7 @@ export default function CustomNode(data: NodeProps<GraphState>) {
       description: value,
     });
   }
-  function setNodeTimer(dur: TimerDuration) {
+  function setNodeTimer(dur: TimerDuration | undefined) {
     reactFlow.updateNodeData(data.id, {
       timer: dur,
     });
@@ -244,6 +247,30 @@ function DescriptionEditor({
   );
 }
 
+const timerSchema = z.object({
+  days: z.coerce
+    .number({
+      message: "Invalid day",
+    })
+    .optional(),
+  hours: z.coerce
+    .number({
+      message: "Invalid hours",
+    })
+    .optional(),
+  minutes: z.coerce
+    .number({
+      message: "Invalid minutes",
+    })
+    .optional(),
+  seconds: z.coerce
+    .number({
+      message: "Invalid seconds",
+    })
+    .optional(),
+});
+type TimerData = z.infer<typeof timerSchema>;
+
 function TimerEditor({
   children,
   asChild,
@@ -255,78 +282,101 @@ function TimerEditor({
   asChild?: boolean;
   state: string;
   value?: TimerDuration;
-  onValueChange?: (val: TimerDuration) => void;
+  onValueChange?: (val: TimerDuration | undefined) => void;
 }) {
-  const days = useRef<HTMLInputElement>(null);
-  const hours = useRef<HTMLInputElement>(null);
-  const minutes = useRef<HTMLInputElement>(null);
-  const seconds = useRef<HTMLInputElement>(null);
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+  } = useForm<TimerData>({
+    resolver: zodResolver(timerSchema),
+    defaultValues: {
+      days: value?.days ?? 0,
+      hours: value?.hours ?? 0,
+      minutes: value?.minutes ?? 0,
+      seconds: value?.seconds ?? 0,
+    },
+  });
 
+  const formId = useId();
   const dayId = useId();
   const hourId = useId();
   const minuteId = useId();
   const secondId = useId();
 
-  const { toast } = useToast();
-  function onSubmit() {
-    try {
-      const dayValue = parseInt(days.current!.value.trim());
-      const hourValue = parseInt(hours.current!.value.trim());
-      const minuteValue = parseInt(minutes.current!.value.trim());
-      const secondValue = parseInt(seconds.current!.value.trim());
-      onValueChange({
-        days: isNaN(dayValue) ? 0 : dayValue,
-        hours: isNaN(hourValue) ? 0 : hourValue,
-        minutes: isNaN(minuteValue) ? 0 : minuteValue,
-        seconds: isNaN(secondValue) ? 0 : secondValue,
-      });
-    } catch (e: unknown) {
-      const error = e as Error;
-      toast({
-        variant: "error",
-        title: "Failed to update timer",
-        description: error?.message,
-      });
+  const [open, setOpen] = useState(false);
+  function onSubmit(data: TimerData) {
+    const value = {
+      days: data.days ?? 0,
+      hours: data.hours ?? 0,
+      minutes: data.minutes ?? 0,
+      seconds: data.seconds ?? 0,
+    };
+
+    const total = value.days + value.hours + value.minutes + value.seconds;
+    if (total === 0) {
+      onValueChange(undefined);
+    } else {
+      onValueChange(value);
     }
+    setOpen(false);
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild={asChild}>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{value ? "Edit timer" : "Add timer"}</DialogTitle>
           <DialogDescription>Edit the timer for the &quot;{state}&quot; state</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-4">
-          <Label htmlFor={dayId}>Days</Label>
-          <Input defaultValue={value?.days} type="number" id={dayId} ref={days} name="days" />
+        <form
+          id={formId}
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid grid-cols-2 items-center gap-x-2 gap-y-4"
+        >
+          <div>
+            <Label htmlFor={dayId}>Days</Label>
+            <Input id={dayId} {...register("days")} />
+            {errors.days && (
+              <p role="alert" className="text-red-500 text-sm">
+                {errors.days.message}
+              </p>
+            )}
+          </div>
 
-          <Label htmlFor={hourId}>Hours</Label>
-          <Input defaultValue={value?.hours} type="number" id={hourId} ref={hours} name="hours" />
+          <div>
+            <Label htmlFor={hourId}>Hours</Label>
+            <Input id={hourId} {...register("hours")} />
+            {errors.hours && (
+              <p role="alert" className="text-red-500 text-sm">
+                {errors.hours.message}
+              </p>
+            )}
+          </div>
 
-          <Label htmlFor={minuteId}>Minutes</Label>
-          <Input
-            defaultValue={value?.minutes}
-            type="number"
-            id={minuteId}
-            ref={minutes}
-            name="minutes"
-          />
+          <div>
+            <Label htmlFor={minuteId}>Minutes</Label>
+            <Input id={minuteId} {...register("minutes")} />
+            {errors.minutes && (
+              <p role="alert" className="text-red-500 text-sm">
+                {errors.minutes.message}
+              </p>
+            )}
+          </div>
 
-          <Label htmlFor={secondId}>Second</Label>
-          <Input
-            defaultValue={value?.seconds}
-            type="number"
-            id={secondId}
-            name="seconds"
-            ref={seconds}
-          />
-        </div>
+          <div>
+            <Label htmlFor={secondId}>Seconds</Label>
+            <Input id={secondId} {...register("seconds")} />
+            {errors.seconds && (
+              <p role="alert" className="text-red-500 text-sm">
+                {errors.seconds.message}
+              </p>
+            )}
+          </div>
+        </form>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button onClick={onSubmit}>Confirm</Button>
-          </DialogClose>
+          <Button form={formId}>Confirm</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -13,7 +13,7 @@ export default function Ralph({ className, href }: { className?: string; href?: 
         className="absolute w-[30px] h-[30px] rounded-full blur-[15px] bg-primary-400"
         aria-hidden="true"
       />
-      <Image src="/logo.svg" alt="DRE Logo" width={50} height={50} className="z-10" />
+      <Image src="/admin/logo.svg" alt="DRE Logo" width={50} height={50} className="z-10" />
     </>
   );
 

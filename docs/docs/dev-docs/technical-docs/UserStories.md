@@ -74,3 +74,7 @@ It is worth noting that _concerned parties_ only refer to complainants and respo
 > As an admin I want to manage expert pools so that I can mediators are correctly assigned
 
 > As an admin I want to manage organisations so that I can ensure they are structured correctly
+
+> As an admin I want to see a summary of the number of disputes so that I can get insights into the disputes in the system.
+
+> As an admin I want to see how the number of disputes change over time so that I can get insights into how disputes proceed.

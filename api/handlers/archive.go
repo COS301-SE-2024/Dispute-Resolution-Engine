@@ -38,7 +38,13 @@ func (h Archive) Highlights(c *gin.Context) {
 
 	// Query the database
 	var disputes []models.Dispute
-	if err := h.DB.Model(&models.Dispute{}).Where("resolved = ?", true).Limit(limit).Scan(&disputes).Error; err != nil {
+	if err := h.DB.Model(&models.Dispute{}).
+		Where("status = ?", models.StatusSettled).
+		Or("status = ?", models.StatusRefused).
+		Or("status = ?", models.StatusWithdrawn).
+		Or("status = ?", models.StatusTransfer).
+		Or("status = ?", models.StatusAppeal).
+		Limit(limit).Scan(&disputes).Error; err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving disputes"})
 		return
@@ -126,7 +132,11 @@ func (h Archive) SearchArchive(c *gin.Context) {
 		query = query.Where("title ILIKE ? OR description ILIKE ?", "%"+searchTerm+"%", "%"+searchTerm+"%")
 	}
 
-	query = query.Where("resolved = ?", true)
+	query = query.Where("status = ?", models.StatusSettled).
+	Or("status = ?", models.StatusRefused).
+	Or("status = ?", models.StatusWithdrawn).
+	Or("status = ?", models.StatusTransfer).
+	Or("status = ?", models.StatusAppeal)
 
 	var count int64
 	query = query.Count(&count)

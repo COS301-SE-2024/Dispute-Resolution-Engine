@@ -53,11 +53,11 @@ export type CreateObjectionResponse = number;
   - `Authorization: Bearer <JWT>`
 - **Note:** Should not be accessible by an administrator
 ```ts
-interface ViewExpetRejectionsRequest {
-	Expert_id?  : number
-	Dispute_id? : number
-	Limits?     : number   
-	Offset?     : number 
+interface ViewExpertRejectionsRequest {
+	expert_id?  : number
+	dispute_id? : number
+	limits?     : number   
+	offset?     : number 
 }
 ```
 

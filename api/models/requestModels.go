@@ -131,7 +131,7 @@ type ExpertRejectRequest struct {
 }
 
 type RejectExpertReview struct {
-	Status *ExpObjStatus  `json:"status"`
+	Status *ExpObjStatus `json:"status"`
 }
 
 type DisputeStatusChange struct {
@@ -237,11 +237,11 @@ type TicketCreate struct {
 	Body      string `json:"body"`
 }
 
-type ViewExpetRejectionsRequest struct {
-	Expert_id  *int64 `json:"expert_id,omitempty"`
-	Dispute_id *int64 `json:"dispute_id,omitempty"`
-	Limits     *int   `json:"limits,omitempty"`
-	Offset     *int   `json:"offset,omitempty"`
+type ViewExpertRejectionsRequest struct {
+	ExpertId  *int64 `json:"expert_id,omitempty"`
+	DisputeId *int64 `json:"dispute_id,omitempty"`
+	Limits    *int   `json:"limits,omitempty"`
+	Offset    *int   `json:"offset,omitempty"`
 }
 
 type CreateWorkflow struct {
@@ -278,3 +278,18 @@ type NotifyEventOrchestrator struct {
 	ActiveWorkflowID *int64  `json:"id"`
 	CurrentState     *string `json:"current_state"`
 }
+
+type AdminGroupingAnalytics struct {
+	Group *string `json:"group"`
+}
+
+type Columnvalue struct {
+	Column string `json:"column"`
+	Value  string `json:"value"`
+}
+
+type AdminTableStats struct {
+	Group *string `json:"group"`
+	Where *Columnvalue `json:"where"`
+}
+

@@ -6,6 +6,8 @@ import (
 	"api/env"
 	"api/handlers/notifications"
 	"api/handlers/ticket"
+	"api/handlers/workflow"
+	mediatorassignment "api/mediatorAssignment"
 	"api/middleware"
 	"api/models"
 	"api/utilities"
@@ -45,14 +47,15 @@ type DisputeModel interface {
 
 	ObjectExpert(disputeId, expertId, ticketId int64) error
 	ReviewExpertObjection(objectionId int64, approved models.ExpObjStatus) error
+	GetDisputeIDByTicketID(ticketID int64) (int64, error)
 	GetExpertRejections(expertID, disputeID *int64, limit, offset *int) ([]models.ExpertObjectionsView, error)
-	
 
 	CreateDefaultUser(email string, fullName string, pass string) error
 	AssignExpertsToDispute(disputeID int64) ([]models.User, error)
+	AssignExpertswithDisputeAndExpertIDs(disputeID int64, expertIDs []int) error
 
 	GetWorkflowRecordByID(id uint64) (*models.Workflow, error)
-	CreateActiverWorkflow(workflow *models.ActiveWorkflows) error
+	CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int,error)
 	DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error
 
 	GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error)
@@ -70,6 +73,8 @@ type Dispute struct {
 	Env                env.Env
 	AuditLogger        auditLogger.DisputeProceedingsLoggerInterface
 	OrchestratorEntity WorkflowOrchestrator
+	MediatorAssignment mediatorassignment.AlgorithmAssignment
+	WorkflowModel      workflow.WorkflowDBModel
 }
 
 type OrchestratorRequest struct {
@@ -140,6 +145,7 @@ type disputeModelReal struct {
 }
 
 func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
+
 	return Dispute{
 		Email:              notifications.NewHandler(db),
 		JWT:                middleware.NewJwtMiddleware(),
@@ -147,7 +153,9 @@ func NewHandler(db *gorm.DB, envReader env.Env) Dispute {
 		Model:              &disputeModelReal{db: db, env: env.NewEnvLoader()},
 		AuditLogger:        auditLogger.NewDisputeProceedingsLogger(db, envReader),
 		OrchestratorEntity: OrchestratorReal{},
+		MediatorAssignment: mediatorassignment.DefaultAlorithmAssignment(db),
 		TicketModel:        ticket.NetTicketModelReal(db, envReader),
+		WorkflowModel:      &workflow.WorkflowModelReal{DB: db},
 	}
 }
 
@@ -236,14 +244,14 @@ func (m *disputeModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, e
 	return &workflow, nil
 }
 
-func (m *disputeModelReal) CreateActiverWorkflow(workflow *models.ActiveWorkflows) error {
+func (m *disputeModelReal) CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int,error) {
 	result := m.db.Create(workflow)
 
 	if result.Error != nil {
-		return result.Error
+		return 0, result.Error
 	}
 
-	return nil
+	return int(workflow.ID), nil
 }
 
 func (m *disputeModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {
@@ -410,6 +418,12 @@ func (m *disputeModelReal) GetAdminDisputeDetails(disputeId int64) (models.Admin
 		dateResolved := dispute.DateResolved.Format("2006-01-02")
 		adminDisputeDetails.DateResolved = &dateResolved
 	}
+	if adminDisputeDetails.Experts == nil {
+		adminDisputeDetails.Experts = []models.AdminDisputeExperts{}
+	}
+	if adminDisputeDetails.Evidence == nil {
+		adminDisputeDetails.Evidence = []models.Evidence{}
+	}
 
 	return adminDisputeDetails, nil
 }
@@ -436,6 +450,7 @@ func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.
 		Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").
 		Joins("JOIN users ON dispute_experts_view.expert = users.id").
 		Where("dispute = ?", disputeId).
+		Where("dispute_experts_view.status = 'Approved'").
 		Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").
 		Find(&experts).Error
 
@@ -615,6 +630,17 @@ func (m *disputeModelReal) CreateDefaultUser(email string, fullName string, pass
 }
 
 // bandaid fix, will be removed in future
+
+func (m *disputeModelReal) AssignExpertswithDisputeAndExpertIDs(disputeID int64, expertIDs []int) error {
+	logger := utilities.NewLogger().LogWithCaller()
+	for _, expertID := range expertIDs {
+		if err := m.db.Exec("INSERT INTO dispute_experts_view VALUES (?, ?)", disputeID, expertID).Error; err != nil {
+			logger.WithError(err).Error("Error inserting expert into dispute_experts table")
+			return err
+		}
+	}
+	return nil
+}
 
 func (m disputeModelReal) AssignExpertsToDispute(disputeID int64) ([]models.User, error) {
 	// Seed the random number generator
@@ -975,3 +1001,22 @@ func (m *disputeModelReal) GetExpertRejections(expertID, disputeID *int64, limit
 
 	return rejections, err
 }
+
+func (m *disputeModelReal) GetDisputeIDByTicketID(ticketID int64) (int64, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	var disputeID int64
+	err := m.db.Raw(`SELECT 
+	t.dispute_id
+FROM 
+	expert_objections eo
+JOIN 
+	tickets t ON eo.ticket_id = t.id
+WHERE 
+	eo.id = ?`, ticketID).Scan(&disputeID).Error
+	if err != nil {
+		logger.WithError(err).Error("Error retrieving dispute ID by ticket ID")
+		return 0 , err
+	}
+	return disputeID, err
+}
+

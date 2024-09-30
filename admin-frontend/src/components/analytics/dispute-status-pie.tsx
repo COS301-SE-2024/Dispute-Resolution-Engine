@@ -19,8 +19,6 @@ import {
 } from "@/components/ui/chart";
 import { DISPUTE_STATUS, DisputeStatus } from "@/lib/types";
 
-export const description = "A donut chart with text";
-
 const ACTIVE_STATUS: DisputeStatus[] = ["Awaiting Respondant", "Active", "Review"];
 
 const CHART_COLORS: Record<DisputeStatus, string> = {
@@ -84,6 +82,7 @@ export default function StatusPieChart({
               nameKey="status"
               innerRadius={60}
               paddingAngle={2}
+              isAnimationActive={false}
             >
               <Label
                 content={({ viewBox }) => {

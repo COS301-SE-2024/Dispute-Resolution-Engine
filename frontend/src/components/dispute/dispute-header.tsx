@@ -20,31 +20,31 @@ export default function DisputeHeader({
 }) {
   return (
     <TooltipProvider>
-      <header className="p-4 py-6 grid grid-cols-[1fr_auto]">
+      <header className="p-4 py-6 grid grid-cols-[1fr_auto] items-start">
         <div>
           <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">
             {label}
           </h1>
           <p className="mb-4">Dispute ID: {id}</p>
+          <div className="flex gap-2 items-center">{children}</div>
         </div>
 
-        <dl className="grid grid-cols-2 gap-2">
+        <dl className="grid grid-cols-2 gap-2 items-center">
           <dt className="text-right font-bold">Started:</dt>
           <dd>{startDate}</dd>
           <dt className="text-right font-bold">Status:</dt>
           <dd>{status}</dd>
           <dt className="text-right font-bold">State:</dt>
-          <dd className="flex items-center gap-2">
-            {state.label}
-            <Tooltip>
-              <TooltipTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <dd className="flex items-center gap-2">
+                {state.label}
                 <InfoIcon size="1rem" />
-              </TooltipTrigger>
-              <TooltipContent>{state.description}</TooltipContent>
-            </Tooltip>
-          </dd>
+              </dd>
+            </TooltipTrigger>
+            <TooltipContent>{state.description}</TooltipContent>
+          </Tooltip>
         </dl>
-        <div className="col-span-2 flex gap-2 items-center">{children}</div>
       </header>
     </TooltipProvider>
   );

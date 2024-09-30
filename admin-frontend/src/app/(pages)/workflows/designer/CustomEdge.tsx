@@ -10,9 +10,10 @@ import {
 } from "@xyflow/react";
 import { CircleX, InfoIcon, Pencil } from "lucide-react";
 import { ReactNode, useCallback, useId, useState } from "react";
+import { useForm, SubmitHandler, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-import { type GraphTrigger, type GraphState, GraphInstance } from "@/lib/types";
-import EditForm from "./edit-form";
+import { type GraphTrigger, type GraphState, GraphInstance, TriggerData } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import {
@@ -26,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import TriggerSelect from "@/components/workflow/trigger-select";
+import { z } from "zod";
 
 export default function CustomEdge({
   id,
@@ -76,13 +78,10 @@ export default function CustomEdge({
     [id, reactFlow, updateNodeInternals]
   );
 
-  /** Used to determine when a component the label of a node is being edited */
-  const [editing, setEditing] = useState(false);
-
-  function setEdgeLabel(value: string) {
-    setEditing(false);
+  function updateEdgeData(value: TriggerData) {
     reactFlow.updateEdgeData(id, {
-      trigger: value,
+      trigger: value.trigger,
+      label: value.label,
     });
   }
 
@@ -99,42 +98,65 @@ export default function CustomEdge({
             gap: "12px",
           }}
         >
-          {editing ? (
-            <EditForm
-              value={data!.trigger}
-              onCommit={setEdgeLabel}
-              onCancel={() => setEditing(false)}
-            />
-          ) : (
-            <>
-              <Button
-                variant="ghost"
-                className="nodrag nopan rounded-full p-2"
-                onClick={deleteEdge}
-              >
-                <CircleX />
-              </Button>
-              <p className="text-l">{data!.trigger}</p>
-
-              <EditDialog asChild>
-                <Button variant="ghost" className="nodrag nopan rounded-full p-2">
-                  <Pencil size="1rem" />
-                </Button>
-              </EditDialog>
-            </>
-          )}
+          <Button variant="ghost" className="nodrag nopan rounded-full p-2" onClick={deleteEdge}>
+            <CircleX />
+          </Button>
+          <p className="text-l">{data!.label}</p>
+          <EditDialog asChild onValueChange={updateEdgeData}>
+            <Button variant="ghost" className="nodrag nopan rounded-full p-2">
+              <Pencil size="1rem" />
+            </Button>
+          </EditDialog>
         </div>
       </EdgeLabelRenderer>
     </>
   );
 }
 
-function EditDialog({ asChild, children }: { asChild?: boolean; children: ReactNode }) {
+const editSchema = z.object({
+  trigger: z.string().min(1, "Trigger is required"),
+  label: z.string().trim().min(1, "Label is required"),
+});
+type EditData = z.infer<typeof editSchema>;
+
+function EditDialog({
+  asChild,
+  children,
+  value,
+  onValueChange = () => {},
+}: {
+  asChild?: boolean;
+  children: ReactNode;
+
+  value?: TriggerData;
+  onValueChange: (value: TriggerData) => void;
+}) {
   const nameId = useId();
   const eventId = useId();
+  const formId = useId();
+
+  const [open, setOpen] = useState(true);
+
+  const {
+    handleSubmit,
+    register,
+    formState: { errors },
+    control,
+  } = useForm<EditData>({
+    resolver: zodResolver(editSchema),
+    defaultValues: {
+      label: value?.label,
+      trigger: value?.trigger,
+    },
+  });
+
+  function onSubmit(data: EditData) {
+    setOpen(false);
+    onValueChange(data);
+  }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild={asChild}>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -144,22 +166,8 @@ function EditDialog({ asChild, children }: { asChild?: boolean; children: ReactN
             data from our servers.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-1">
+        <form className="flex flex-col gap-1" id={formId} onSubmit={handleSubmit(onSubmit)}>
           <div className="flex items-center gap-2">
-            <Label htmlFor={nameId}>Label</Label>
-            <Tooltip>
-              <TooltipTrigger>
-                <InfoIcon size="1rem" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-sm">Human-readable label describing the trigger</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-
-          <Input id={nameId} name="label" />
-
-          <div className="flex items-center gap-2 mt-5">
             <Label htmlFor={eventId}>Event</Label>
             <Tooltip>
               <TooltipTrigger>
@@ -171,12 +179,43 @@ function EditDialog({ asChild, children }: { asChild?: boolean; children: ReactN
             </Tooltip>
           </div>
 
-          <TriggerSelect id={eventId} />
-        </div>
+          <Controller
+            name="trigger"
+            control={control}
+            rules={{ required: true }}
+            render={({ field }) => {
+              const { onChange, ...field2 } = field;
+              return <TriggerSelect id={eventId} onValueChange={onChange} {...field2} />;
+            }}
+          />
+          {errors.trigger && (
+            <p role="alert" className="text-red-500 text-sm">
+              {errors.trigger.message}
+            </p>
+          )}
+
+          <div className="flex items-center gap-2 mt-5">
+            <Label htmlFor={nameId}>Label</Label>
+            <Tooltip>
+              <TooltipTrigger>
+                <InfoIcon size="1rem" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-sm">Human-readable label describing the trigger</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          <Input id={nameId} {...register("label")} />
+
+          {errors.label && (
+            <p role="alert" className="text-red-500 text-sm">
+              {errors.label.message}
+            </p>
+          )}
+        </form>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button>Confirm</Button>
-          </DialogClose>
+          <Button form={formId}>Confirm</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -24,10 +24,12 @@ export type GraphState = Node<
 
 export type GraphTrigger = Edge<
   {
+    label: string;
     trigger: string;
   },
   "custom-edge"
 >;
+export type TriggerData = Exclude<GraphTrigger["data"], undefined>;
 
 export type GraphInstance = ReactFlowInstance<GraphState, GraphTrigger>;
 

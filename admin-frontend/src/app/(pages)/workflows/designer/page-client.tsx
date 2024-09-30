@@ -82,7 +82,7 @@ function Flow({ setIsSaved }: { setIsSaved: any }) {
     const edge = {
       ...connection,
       id: createId(),
-      data: { trigger },
+      data: { trigger, label: "Node label" },
       type: "custom-edge",
     } satisfies GraphTrigger;
 

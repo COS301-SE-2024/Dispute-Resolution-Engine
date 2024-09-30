@@ -238,6 +238,8 @@ func (h *Handler) TransitionStateMachine(c *gin.Context) {
 		})
 		return
 	}
+
+	h.logger.Info("body received: ", Res)
 	// Fire the trigger
 	// The logic for updating the active_workflow entry in the database is in this function
 	current_state, state_deadline := h.controller.FireTrigger(strconv.Itoa(int(Res.ID)), Res.Trigger)
@@ -259,9 +261,28 @@ func (h *Handler) TransitionStateMachine(c *gin.Context) {
 			return
 		}
 		// Send http post containing workflow ID and new state to the api:9000/event endpoint
+		awf, err := h.api.FetchActiveWorkflow(int(Res.ID))
+		if err != nil {
+			h.logger.Error("Error fetching active workflow")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Error fetching active workflow",
+			})
+			return
+		}
+
+		label, desc, err := workflow.GetStateDetails(awf.WorkflowInstance, current_state)
+		if err != nil {
+			h.logger.Error("Error getting state details")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Error getting state details",
+			})
+			return
+		}
+
 		request := utilities.APIReq{
 			ID:           int64(Res.ID),
-			CurrentState: current_state,
+			CurrentState: label,
+			Description:  desc,
 		}
 		utilities.APIPostRequest(utilities.API_URL, request)
 	} else {
@@ -275,9 +296,28 @@ func (h *Handler) TransitionStateMachine(c *gin.Context) {
 			return
 		}
 		// Send http post containing workflow ID and new state to the api:9000/event endpoint
+		awf, err := h.api.FetchActiveWorkflow(int(Res.ID))
+		if err != nil {
+			h.logger.Error("Error fetching active workflow")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Error fetching active workflow",
+			})
+			return
+		}
+
+		label, desc, err := workflow.GetStateDetails(awf.WorkflowInstance, current_state)
+		if err != nil {
+			h.logger.Error("Error getting state details")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Error getting state details",
+			})
+			return
+		}
+
 		request := utilities.APIReq{
 			ID:           int64(Res.ID),
-			CurrentState: current_state,
+			CurrentState: label,
+			Description:  desc,
 		}
 		utilities.APIPostRequest(utilities.API_URL, request)
 	}

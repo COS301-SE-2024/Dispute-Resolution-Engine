@@ -43,13 +43,15 @@ func (e *OrchestratorNotification) NotifyEvent(c *gin.Context) {
 		return
 	}
 
-	if req.ActiveWorkflowID == nil || req.CurrentState == nil {
+	if req.ActiveWorkflowID == nil || req.CurrentState == nil || req.Description == nil {
 		logger.Error("Invalid request from Orchestrator")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request"})
 		return
 	}
 
 	//get the dispute details using ID from request body
-	e.EmailSystem.NotifyDisputeStateChanged(c, *req.ActiveWorkflowID, *req.CurrentState)
+	go func() {
+		e.EmailSystem.NotifyDisputeStateChanged(c, *req.ActiveWorkflowID, *req.CurrentState, *req.Description)
+	}()
 	logger.Info("Email notification sent successfully, via Orchestrator")
 }

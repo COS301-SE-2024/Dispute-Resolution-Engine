@@ -57,6 +57,11 @@ func (t *TicketModelReal) CreateTicket(userID int64, dispute int64, subject stri
 		Where("complainant = ? OR respondant = ?", userID, userID).
 		First(&disputeModel).Error
 	if err != nil {
+		logger.Warn("User might be an expert")
+		err = t.db.Where("id = ?", dispute).
+			Where("expert = ?", userID).First(&disputeModel).Error
+	}
+	if err != nil {
 		logger.WithError(err).Error("Error creating ticket")
 		return models.Ticket{}, err
 	}
@@ -265,20 +270,16 @@ func (t *TicketModelReal) GetTicketsByUserID(uid int64, searchTerm *string, limi
 	queryParams = append(queryParams, uid)
 	countParams = append(countParams, uid)
 	if searchTerm != nil {
-		queryString.WriteString(" AND WHERE t.subject LIKE ?")
-		countString.WriteString(" AND WHERE t.subject LIKE ?")
+		queryString.WriteString(" AND t.subject LIKE ?")
+		countString.WriteString(" AND t.subject LIKE ?")
 		queryParams = append(queryParams, "%"+*searchTerm+"%")
 		countParams = append(countParams, "%"+*searchTerm+"%")
 	}
 
 	if filters != nil && len(*filters) > 0 {
-		if searchTerm != nil {
-			queryString.WriteString(" AND ")
-			countString.WriteString(" AND ")
-		} else {
-			queryString.WriteString(" AND WHERE ")
-			countString.WriteString(" AND WHERE ")
-		}
+		queryString.WriteString(" AND ")
+		countString.WriteString(" AND ")
+
 		for i, filter := range *filters {
 			queryString.WriteString("t." + filter.Attr + " = ?")
 			countString.WriteString("t." + filter.Attr + " = ?")

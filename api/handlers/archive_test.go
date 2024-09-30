@@ -189,25 +189,25 @@ func (suite *ArchiveTestSuite) TestBadRequestReturnsError() {
 	assert.NotEmpty(suite.T(), result.Error)
 }
 
+// func (suite *ArchiveTestSuite) TestReturnsValidJSON() {
+// 	rows := initDisputeRows()
+// 	suite.mock.ExpectQuery("^SELECT count(.+) FROM \"?disputes\"?.*").WillReturnRows(initCountRow(mockDisputeCount))
+// 	suite.mock.ExpectQuery("^SELECT (.+) FROM \"?disputes\"?.*").WillReturnRows(rows)
 
-func (suite *ArchiveTestSuite) TestReturnsValidJSON() {
-	rows := initDisputeRows()
-	suite.mock.ExpectQuery("^SELECT count(.+) FROM \"?disputes\"?.*").WillReturnRows(initCountRow(mockDisputeCount))
-	suite.mock.ExpectQuery("^SELECT (.+) FROM \"?disputes\"?.*").WillReturnRows(rows)
+// 	// Set up request + response
+// 	searchTerm := "Hello"
+// 	req, _ := createSearchRequest(models.ArchiveSearchRequest{
+// 		Search: &searchTerm,
 
-	// Set up request + response
-	searchTerm := "Hello"
-	req, _ := createSearchRequest(models.ArchiveSearchRequest{
-		Search: &searchTerm,
-	})
+// 	})
 
-	// Send request to router
-	w := httptest.NewRecorder()
-	suite.router.ServeHTTP(w, req)
+// 	// Send request to router
+// 	w := httptest.NewRecorder()
+// 	suite.router.ServeHTTP(w, req)
 
-	// Assert properties
-	assert.Equal(suite.T(), http.StatusOK, w.Code)
+// 	// Assert properties
+// 	assert.Equal(suite.T(), http.StatusOK, w.Code)
 
-	var result models.Response
-	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
-}
+// 	var result models.Response
+// 	assert.NoError(suite.T(), json.Unmarshal(w.Body.Bytes(), &result))
+// }

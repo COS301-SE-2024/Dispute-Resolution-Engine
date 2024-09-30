@@ -55,7 +55,7 @@ type DisputeModel interface {
 	AssignExpertswithDisputeAndExpertIDs(disputeID int64, expertIDs []int) error
 
 	GetWorkflowRecordByID(id uint64) (*models.Workflow, error)
-	CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int,error)
+	CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int, error)
 	DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error
 
 	GetExperts(disputeID int64) ([]models.AdminDisputeExperts, error)
@@ -80,11 +80,50 @@ type Dispute struct {
 type OrchestratorRequest struct {
 	ID int64 `json:"id"`
 }
+
+type Trigger struct {
+	Id      int64
+	Trigger string
+}
+
 type WorkflowOrchestrator interface {
 	MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error)
+	SendTriggerToOrchestrator(endpoint string, activerWfId int64, trigger string) (int, error)
 }
 
 type OrchestratorReal struct {
+}
+
+func (w OrchestratorReal) SendTriggerToOrchestrator(endpoint string, activerWfId int64, trigger string) (int, error) {
+	logger := utilities.NewLogger().LogWithCaller()
+	payload := Trigger{
+		Id:      activerWfId,
+		Trigger: trigger,
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		logger.Error("marshal error: ", err)
+		return http.StatusInternalServerError, err
+	}
+
+	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		logger.Error("post error: ", err)
+		return http.StatusInternalServerError, err
+	}
+	//read body
+	responseBody, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		logger.Error("read body error: ", err)
+		return http.StatusInternalServerError, err
+	}
+
+	// log the response body for debugging
+	logger.Info("Response Body: ", string(responseBody))
+
+	return resp.StatusCode, nil
 }
 
 func (w OrchestratorReal) MakeRequestToOrchestrator(endpoint string, payload OrchestratorRequest) (string, error) {
@@ -110,7 +149,7 @@ func (w OrchestratorReal) MakeRequestToOrchestrator(endpoint string, payload Orc
 
 	if resp.StatusCode == http.StatusInternalServerError {
 		logger.Error("status code error: ", resp.StatusCode)
-		return "", fmt.Errorf("Check theat you gave the correct state name if resetting")
+		return "", fmt.Errorf("Check that you gave the correct state name if resetting")
 	}
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("status code error: ", resp.StatusCode)
@@ -244,7 +283,7 @@ func (m *disputeModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, e
 	return &workflow, nil
 }
 
-func (m *disputeModelReal) CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int,error) {
+func (m *disputeModelReal) CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int, error) {
 	result := m.db.Create(workflow)
 
 	if result.Error != nil {
@@ -450,7 +489,7 @@ func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.
 		Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").
 		Joins("JOIN users ON dispute_experts_view.expert = users.id").
 		Where("dispute = ?", disputeId).
-		Where("dispute_experts_view.status = 'Approved'").
+		Where("dispute_experts_view.status IN ('Approved', 'Review')").
 		Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").
 		Find(&experts).Error
 
@@ -1015,8 +1054,7 @@ WHERE
 	eo.id = ?`, ticketID).Scan(&disputeID).Error
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute ID by ticket ID")
-		return 0 , err
+		return 0, err
 	}
 	return disputeID, err
 }
-

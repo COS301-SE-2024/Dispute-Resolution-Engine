@@ -11,6 +11,8 @@ import { JWT_KEY } from "../constants";
 import { API_URL } from "@/lib/utils";
 import { getAuthToken } from "../util/jwt";
 import { revalidatePath } from "next/cache";
+import { sf, validateResult } from "../util";
+import { ActiveWorkflow } from "../interfaces/workflow";
 
 export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
   const res = await fetch(`${API_URL}/disputes`, {
@@ -41,9 +43,23 @@ export async function getDisputeDetails(id: string): Promise<Result<DisputeRespo
   console.log(res);
   return res;
 }
+
+export async function getDisputeWorkflow(id: string): Promise<ActiveWorkflow> {
+  return sf(`${API_URL}/disputes/${id}/workflow`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  })
+    .then(validateResult<ActiveWorkflow>)
+    .then((res) => {
+      console.log(res);
+      return res;
+    });
+}
 export async function updateDisputeStatus(
   id: string,
-  status: string,
+  status: string
 ): Promise<Result<DisputeResponse>> {
   const body: DisputeStatusUpdateRequest = { dispute_id: id, status };
   const res = await fetch(`${API_URL}/disputes/dispute/status`, {

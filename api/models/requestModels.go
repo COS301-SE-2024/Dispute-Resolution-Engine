@@ -170,7 +170,7 @@ type Filter struct {
 	Attr string `json:"attr"`
 
 	// The value to search for
-	Value string `json:"value"`
+	Value interface{} `json:"value"`
 }
 
 type DateFilter struct {
@@ -277,6 +277,7 @@ type GetWorkflow struct {
 type NotifyEventOrchestrator struct {
 	ActiveWorkflowID *int64  `json:"id"`
 	CurrentState     *string `json:"current_state"`
+	Description      *string `json:"description"`
 }
 
 type AdminGroupingAnalytics struct {
@@ -289,7 +290,6 @@ type Columnvalue struct {
 }
 
 type AdminTableStats struct {
-	Group *string `json:"group"`
-	Where *Columnvalue `json:"where"`
+	Group *string      `json:"group,omitempty"`
+	Where *Columnvalue `json:"where,omitempty"`
 }
-

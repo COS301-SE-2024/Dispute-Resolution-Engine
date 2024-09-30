@@ -59,8 +59,10 @@ export default function SignupForm() {
 
   async function onSubmit(form: SignupData) {
     const res = await signup(form);
-    if (res.error) {
-      setError("root", { type: "custom", message: res.error });
+    if (res) {
+      if (res.error) {
+        setError("root", { type: "custom", message: res.error });
+      }
     }
   }
 

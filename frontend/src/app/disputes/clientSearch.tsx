@@ -37,7 +37,7 @@ export default function ClientSearch() {
             {filteredData.length > 0 ? (
               filteredData.map((d) => (
                 <li key={d.id}>
-                  <DisputeLink href={`/disputes/${d.id}`} role={d.role} title={d.title} />
+                  <DisputeLink dispute={d.id} role={d.role} title={d.title} />
                 </li>
               ))
             ) : (

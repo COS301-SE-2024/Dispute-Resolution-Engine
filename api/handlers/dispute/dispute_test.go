@@ -58,9 +58,8 @@ type DisputeErrorTestSuite struct {
 	mockOrchestrator *mockOrchestrator
 	mockEnv          *mockEnv
 
-	mockTicket		*mockTicketModel
-	mockAlgorithm    *mockAlgorithmModel
-
+	mockTicket    *mockTicketModel
+	mockAlgorithm *mockAlgorithmModel
 }
 
 func (suite *DisputeErrorTestSuite) SetupTest() {
@@ -73,7 +72,7 @@ func (suite *DisputeErrorTestSuite) SetupTest() {
 	suite.mockTicket = &mockTicketModel{}
 	suite.mockAlgorithm = &mockAlgorithmModel{}
 
-	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock, OrchestratorEntity: suite.mockOrchestrator, Env: suite.mockEnv, TicketModel: suite.mockTicket, MediatorAssignment:suite.mockAlgorithm}
+	handler := dispute.Dispute{Model: suite.disputeMock, JWT: suite.jwtMock, Email: suite.emailMock, AuditLogger: suite.auditMock, OrchestratorEntity: suite.mockOrchestrator, Env: suite.mockEnv, TicketModel: suite.mockTicket, MediatorAssignment: suite.mockAlgorithm}
 	gin.SetMode("release")
 	router := gin.Default()
 	router.Use(suite.jwtMock.JWTMiddleware)
@@ -232,6 +231,13 @@ func (m *mockOrchestrator) MakeRequestToOrchestrator(endpoint string, payload di
 	return "", nil
 }
 
+func (m *mockOrchestrator) SendTriggerToOrchestrator(endpoint string, activerWfId int64, trigger string) (int, error) {
+	if m.throwErrors {
+		return 0, m.Error
+	}
+	return 0, nil
+}
+
 // mock model auditlogger
 func (m *mockAuditLogger) LogDisputeProceedings(proceedingType models.EventTypes, eventData map[string]interface{}) error {
 	return nil
@@ -245,7 +251,7 @@ func (m *mockDisputeModel) GetWorkflowRecordByID(id uint64) (*models.Workflow, e
 
 }
 
-func (m *mockDisputeModel) CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int,error) {
+func (m *mockDisputeModel) CreateActiverWorkflow(workflow *models.ActiveWorkflows) (int, error) {
 	if m.throwErrors {
 		return 0, errors.ErrUnsupported
 	}
@@ -476,7 +482,7 @@ func (m *mockEmailModel) SendDefaultUserEmail(c *gin.Context, email string, pass
 
 }
 
-func (m *mockEmailModel) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string) {
+func (m *mockEmailModel) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus , description string) {
 }
 
 func (m *mockEmailModel) NotifyEvent(c *gin.Context) {

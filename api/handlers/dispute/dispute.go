@@ -98,6 +98,14 @@ func (h Dispute) UploadEvidence(c *gin.Context) {
 
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"dispute_id": disputeId, "user": claims, "message": "Evidence uploaded"})
 	// disputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": user, "message": "Failed login attempt"})
+
+	code, resp, err := h.SendTrigger(logger, int64(disputeId), "evidence_submitted")
+	if err != nil {
+		logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
+
+		return
+	}
+
 	c.JSON(http.StatusCreated, models.Response{
 		Data: "Files uploaded",
 	})
@@ -611,6 +619,17 @@ func (h Dispute) UpdateStatus(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
+
+	trigger := h.mapStatus(disputeStatus.Status)
+	if trigger != "" {
+		code, resp, err := h.SendTrigger(logger, int64(disputeId), trigger)
+		if err != nil {
+			logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
+
+			return
+		}
+	}
+
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": jwtClaims, "message": "Dispute status update successful"})
 	c.JSON(http.StatusOK, models.Response{Data: "Dispute status update successful"})
 }
@@ -714,6 +733,14 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Expert rejected suggestion"})
 	logger.Info("Expert rejected suggestion")
 
+	//send trigger
+	code, resp, err := h.SendTrigger(logger, int64(disputeIdInt), "objection_submitted")
+	if err != nil {
+		logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
+
+		return
+	}
+
 	c.JSON(http.StatusOK, models.Response{Data: ticket.ID})
 }
 
@@ -759,11 +786,19 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 		return
 	}
 
+	disputeId, err := h.Model.GetDisputeIDByTicketID(int64(objectionIdInt))
+	if err != nil {
+		logger.WithError(err).Error("Error getting dispute ID")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error getting dispute ID"})
+		return
+	}
+
 	if *req.Status == models.ObjectionSustained {
-		disputeId, err := h.Model.GetDisputeIDByTicketID(int64(objectionIdInt))
+
+		code, resp, err := h.SendTrigger(logger, int64(disputeId), "objection_sustained")
 		if err != nil {
-			logger.WithError(err).Error("Error getting dispute ID")
-			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error getting dispute ID"})
+			logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
+
 			return
 		}
 
@@ -778,6 +813,13 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 		if err != nil {
 			logger.WithError(err).Error("Error assigning experts to dispute")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+			return
+		}
+	} else {
+		code, resp, err := h.SendTrigger(logger, int64(disputeId), "objection_overruled")
+		if err != nil {
+			logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
+
 			return
 		}
 	}
@@ -846,6 +888,13 @@ func (h Dispute) SubmitWriteup(c *gin.Context) {
 	}
 
 	logger.Info("Write-up uploaded successfully")
+
+	code, resp, err := h.SendTrigger(logger, int64(disputeId), "decision_submitted")
+	if err != nil {
+		logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
+
+		return
+	}
 
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Write-up uploaded"})
 	c.JSON(http.StatusNoContent, nil)
@@ -924,43 +973,63 @@ func (h Dispute) TransitionStateMachine(c *gin.Context) {
 		return
 	}
 
+	//send trigger
+	code, response, err := h.SendTrigger(logger, int64(disputeIdInt), req.Trigger)
+	if err != nil {
+		c.JSON(code, response)
+		return
+	}
+
+	logger.Info("State machine transition successful")
+	c.JSON(http.StatusOK, response)
+}
+
+func (h Dispute) SendTrigger(logger *utilities.Logger, disputeId int64, trigger string) (int, models.Response, error) {
 	//get dispute
-	dispute, err := h.Model.GetDispute(int64(disputeIdInt))
+	dispute, err := h.Model.GetDispute(int64(disputeId))
 	if err != nil {
 		logger.WithError(err).Error("Failed to get dispute")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get dispute"})
-		return
+		return http.StatusInternalServerError, models.Response{Error: "Failed to get dispute"}, err
 	}
 
 	url, err := h.Env.Get("ORCH_URL")
 	if err != nil {
 		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
+		return http.StatusInternalServerError, models.Response{Error: "Internal Server Error"}, err
 	}
 
 	port, err := h.Env.Get("ORCH_PORT")
 	if err != nil {
 		logger.Error(err)
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
-		return
+		return http.StatusInternalServerError, models.Response{Error: "Internal Server Error"}, err
 	}
 
 	//send request
-	code, err := h.OrchestratorEntity.SendTriggerToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, "/event"), dispute.Workflow, req.Trigger)
+	code, err := h.OrchestratorEntity.SendTriggerToOrchestrator(fmt.Sprintf("http://%s:%s%s", url, port, "/event"), dispute.Workflow, trigger)
 	if err != nil {
 		logger.WithError(err).Error("Failed to send trigger to orchestrator")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to send trigger to orchestrator"})
-		return
+		return http.StatusInternalServerError, models.Response{Error: "Failed to send trigger to orchestrator"}, err
 	}
 
 	if code != http.StatusOK {
 		logger.Error("Failed to send trigger to orchestrator")
-		c.JSON(http.StatusInternalServerError, models.Response{Error: "Incorrect trigger"})
-		return
-	}
+		return code, models.Response{Error: "Failed to send trigger to orchestrator"}, nil
 
+	}
 	logger.Info("State machine transition successful")
-	c.JSON(http.StatusOK, models.Response{Data: "State machine transition successful"})
+	return http.StatusOK, models.Response{Data: "State machine transition successful"}, nil
 }
 
+func (h Dispute) mapStatus(status string) string {
+	triggers := map[string]string{
+		"Active":    "status_changed_active",
+		"Review":    "status_changed_review",
+		"Settled":   "status_changed_settled",
+		"Refused":   "status_changed_refused",
+		"Withdrawn": "status_changed_withdrawn",
+		"Transfer":  "status_changed_appeal",
+		"Appeal":    "status_changed_transfer",
+		"Other":     "status_changed_other",
+	}
+	return triggers[status]
+}

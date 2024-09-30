@@ -1,7 +1,15 @@
 "use client";
 import { Handle, Node, NodeProps, Position, useReactFlow } from "@xyflow/react";
 import { FormEvent, ReactNode, useId, useRef, useState } from "react";
-import { BookOpenIcon, CirclePlus, CircleX, ClockIcon, Pencil, TrashIcon } from "lucide-react";
+import {
+  BookOpenIcon,
+  CirclePlus,
+  CircleX,
+  ClockIcon,
+  Pencil,
+  PlusIcon,
+  TrashIcon,
+} from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -144,6 +152,7 @@ export default function CustomNode(data: NodeProps<GraphState>) {
             top: offset(numHandles),
           }}
           position={Position.Right}
+          className="flex items-center justify-center text-center"
         >
           +
         </Handle>

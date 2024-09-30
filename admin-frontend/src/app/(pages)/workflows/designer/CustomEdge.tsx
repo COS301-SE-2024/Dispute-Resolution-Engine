@@ -8,8 +8,8 @@ import {
   useReactFlow,
   useUpdateNodeInternals,
 } from "@xyflow/react";
-import { CircleX, InfoIcon, Pencil } from "lucide-react";
-import { ReactNode, useCallback, useId, useState } from "react";
+import { CircleX, InfoIcon, Pencil, TrashIcon } from "lucide-react";
+import { ReactNode, useCallback, useEffect, useId, useState } from "react";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -97,12 +97,18 @@ export default function CustomEdge({
             display: "flex",
             gap: "12px",
           }}
+          className="flex items-center bg-surface-light-50 dark:bg-surface-dark-900 p-1 rounded-sm"
         >
-          <Button variant="ghost" className="nodrag nopan rounded-full p-2" onClick={deleteEdge}>
-            <CircleX />
+          <Button
+            title="Delete event"
+            variant="ghost"
+            className="nodrag nopan rounded-full p-2"
+            onClick={deleteEdge}
+          >
+            <TrashIcon className="text-red-500" size="1rem" />
           </Button>
-          <p className="text-l">{data!.label}</p>
-          <EditDialog asChild onValueChange={updateEdgeData}>
+          <p className="text-l">{data?.label}</p>
+          <EditDialog asChild value={data} onValueChange={updateEdgeData}>
             <Button variant="ghost" className="nodrag nopan rounded-full p-2">
               <Pencil size="1rem" />
             </Button>
@@ -135,7 +141,10 @@ function EditDialog({
   const eventId = useId();
   const formId = useId();
 
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState<boolean>(!value);
+  useEffect(() => {
+    setOpen(!value);
+  }, [value]);
 
   const {
     handleSubmit,
@@ -158,7 +167,7 @@ function EditDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild={asChild}>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent hideClose={!value}>
         <DialogHeader>
           <DialogTitle>Edit trigger</DialogTitle>
           <DialogDescription>
@@ -170,7 +179,7 @@ function EditDialog({
           <div className="flex items-center gap-2">
             <Label htmlFor={eventId}>Event</Label>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger type="button">
                 <InfoIcon size="1rem" />
               </TooltipTrigger>
               <TooltipContent>
@@ -197,7 +206,7 @@ function EditDialog({
           <div className="flex items-center gap-2 mt-5">
             <Label htmlFor={nameId}>Label</Label>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger type="button">
                 <InfoIcon size="1rem" />
               </TooltipTrigger>
               <TooltipContent>

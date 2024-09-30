@@ -27,7 +27,7 @@ You can create an account as a **User** or an **Expert**. Here’s how:
 3. Fill in your personal information and create a password.
 ![image](https://github.com/user-attachments/assets/f33322ed-b2ee-4c70-b56f-455553dd636b)
 ![image](https://github.com/user-attachments/assets/ad3cab26-8714-42f8-931d-0b28be2090f4)
-4. Click the "Create" button.
+4. Click the "Sign Up" button.
 
 Once registered, you'll receive a confirmation email to verify your account.
 
@@ -40,7 +40,7 @@ To log in to your account:
 1. Go to the [Login](https://capstone-dre.dns.net.za/login) page.
 2. Enter your registered email and password.
 ![image](https://github.com/user-attachments/assets/257b60e1-098c-445f-afd8-05dd88c02005)
-3. Click "Log In".
+3. Click "Login".
 
 Once logged in, you can access all platform features, including dispute management and your profile page.
 

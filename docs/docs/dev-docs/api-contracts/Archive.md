@@ -27,6 +27,11 @@ interface ArchivedDispute extends ArchivedDisputeSummary {
 type SortAttribute = "title" | "date_filed" | "date_resolved" | "date_filed" | "time_taken";
 ```
 
+# Get Archives
+- **Endpoint** `GET /archive`
+```ts
+type ArchiveGetResponse = ArchivedDisputeSummary[];
+```
 # Searching
 
 - **Endpoint:** `POST /disputes/archive/search`

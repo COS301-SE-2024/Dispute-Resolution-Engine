@@ -5,7 +5,7 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
-    baseUrl: 'http://capstone-dre.dns.net.za',
+    baseUrl: 'https://capstone-dre.dns.net.za',
   },
   env: {
     TEST_USER: "gaced90493@rinseart.com",

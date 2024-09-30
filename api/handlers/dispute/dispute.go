@@ -366,35 +366,35 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	// Access form values
 	if form.Value["title"] == nil || len(form.Value["title"]) == 0 {
 		logger.WithError(err).Error("missing field in form: title")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: title"})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Please insert a valid title"})
 		return
 	}
 	title := form.Value["title"][0]
 
 	if form.Value["description"] == nil || len(form.Value["description"]) == 0 {
 		logger.Error("missing field in form: description")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: description"})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Please enter a valid description"})
 		return
 	}
 	description := form.Value["description"][0]
 
 	if form.Value["respondent[email]"] == nil || len(form.Value["respondent[email]"]) == 0 {
 		logger.Error("missing field in form: respondent[email]")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: respondent[email]"})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Please enter a valid email"})
 		return
 	}
 	email := form.Value["respondent[email]"][0]
 
 	if form.Value["respondent[full_name]"] == nil || len(form.Value["respondent[full_name]"]) == 0 || len(strings.Split(form.Value["respondent[full_name]"][0], " ")) < 2 {
 		logger.Error("missing field in form: respondent[full_name]")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: respondent[full_name]"})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Please enter the respondent full name"})
 		return
 	}
 	fullName := form.Value["respondent[full_name]"][0]
 
 	if form.Value["respondent[workflow]"] == nil || len(form.Value["respondent[workflow]"]) == 0 {
 		logger.Error("missing field in form: respondent[workflow]")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: respondent[workflow]"})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Please select a workflow"})
 		return
 	}
 	workflow := form.Value["respondent[workflow]"][0]
@@ -469,7 +469,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 		DateSubmitted:    time.Now(),
 		WorkflowInstance: workflowData.Definition,
 	}
-	err = h.Model.CreateActiverWorkflow(activeWorkflow)
+	id, err := h.Model.CreateActiverWorkflow(activeWorkflow)
 	if err != nil {
 		logger.WithError(err).Error("Error creating active workflow")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error creating active workflow"})
@@ -511,7 +511,7 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	disputeId, err := h.Model.CreateDispute(models.Dispute{
 		Title:       title,
 		CaseDate:    time.Now(),
-		Workflow:    nil,
+		Workflow:    int64(id),
 		Status:      "Awaiting Respondant",
 		Description: description,
 		Complainant: complainantID,
@@ -765,7 +765,7 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 			return
 		}
 
-		expertIds, err := h.MediatorAssignment.AssignMediator(3, int(disputeId))
+		expertIds, err := h.MediatorAssignment.AssignMediator(1, int(disputeId))
 		if err != nil {
 			logger.WithError(err).Error("Error assigning experts to dispute")
 			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})

@@ -4,7 +4,7 @@ import (
 	"api/env"
 	"api/middleware"
 	"api/models"
-	"fmt"
+	"errors"
 
 	"gorm.io/gorm"
 )
@@ -18,7 +18,6 @@ type AdminAnalyticsDBModel interface {
 		groupBy *string,
 	) (map[string]int64, error)
 	GetDisputeGroupingByCountry() (map[string]int, error)
-	
 }
 
 type AdminAnalyticsHandler struct {
@@ -28,15 +27,15 @@ type AdminAnalyticsHandler struct {
 }
 
 type AdminAnalyticsDBModelReal struct {
-	DB *gorm.DB
+	DB  *gorm.DB
 	env env.Env
 }
 
-func NewAdminAnalyticsHandler(db *gorm.DB, envReader env.Env) AdminAnalyticsHandler{
+func NewAdminAnalyticsHandler(db *gorm.DB, envReader env.Env) AdminAnalyticsHandler {
 	return AdminAnalyticsHandler{
-		DB: 	  AdminAnalyticsDBModelReal{DB: db, env: envReader},
+		DB:        AdminAnalyticsDBModelReal{DB: db, env: envReader},
 		EnvReader: envReader,
-		JWT:      middleware.NewJwtMiddleware(),
+		JWT:       middleware.NewJwtMiddleware(),
 	}
 }
 
@@ -69,6 +68,48 @@ func (h AdminAnalyticsDBModelReal) CountRecordsWithGroupBy(
 	value *interface{},
 	groupBy *string,
 ) (map[string]int64, error) {
+	// Define a list of allowed columns for validation
+	allowedColumns := map[string]map[string]bool{
+		"disputes": {
+			"status": true,
+		},
+		"tickets": {
+			"status": true,
+		},
+		"users": {
+			"role":              true,
+			"status":            true,
+			"gender":            true,
+			"preferred_language": true,
+			"timezone":          true,
+		},
+		"expert_objections": {
+			"status": true,
+		},
+	}
+
+	// Validate the table name
+	if _, ok := allowedColumns[tableName]; !ok {
+		return nil, errors.New("invalid table name")
+	}
+
+	// Validate the group by column
+	if groupBy != nil {
+		if _, ok := allowedColumns[tableName][*groupBy]; !ok {
+			return nil, errors.New("invalid group by column name")
+		}
+	}
+
+	// Validate the WHERE clause column and value
+	if column != nil {
+		if value == nil {
+			return nil, errors.New("value must be provided when column is provided")
+		}
+		if _, ok := allowedColumns[tableName][*column]; !ok {
+			return nil, errors.New("invalid column name for WHERE clause")
+		}
+	}
+
 	// Result map to store the counts grouped by the `groupBy` column (if provided)
 	recordCounts := make(map[string]int64)
 
@@ -86,13 +127,12 @@ func (h AdminAnalyticsDBModelReal) CountRecordsWithGroupBy(
 
 	// Apply the optional WHERE clause if both column and value are provided
 	if column != nil && value != nil {
-		query = query.Where(fmt.Sprintf("%s = ?", *column), *value)
+		query = query.Where(gorm.Expr("? = ?", gorm.Expr(*column), *value))
 	}
 
 	// Apply the optional GROUP BY clause
 	if groupBy != nil {
-		query = query.Select(fmt.Sprintf("%s as group_key, count(*) as count", *groupBy)).
-			Group(*groupBy)
+		query = query.Select("? as group_key, count(*) as count", gorm.Expr(*groupBy)).Group(*groupBy)
 	} else {
 		query = query.Select("count(*) as count")
 	}
@@ -115,6 +155,8 @@ func (h AdminAnalyticsDBModelReal) CountRecordsWithGroupBy(
 
 	return recordCounts, nil
 }
+
+
 
 // GetDisputeGroupingByCountry counts the number of disputes grouped by the country of the complainant.
 func (h AdminAnalyticsDBModelReal) GetDisputeGroupingByCountry() (map[string]int, error) {

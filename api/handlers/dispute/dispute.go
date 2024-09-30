@@ -28,11 +28,13 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 	g.GET("/:id", h.GetDispute)
 
 	g.POST("", h.GetSummaryListOfDisputes)
-	g.POST("/:id/experts/reject", h.ExpertObjection)
-	g.POST("/:id/experts/review-rejection", h.ExpertObjectionsReview)
-	g.POST("/experts/rejections", h.ViewExpertRejections)
+	g.POST("/:id/objections", h.ExpertObjection)
+	g.PATCH("/objections/:id", h.ExpertObjectionsReview)
+	g.POST("/experts/objections", h.ViewExpertRejections)
 	g.POST("/:id/evidence", h.UploadEvidence)
+	g.POST("/:id/decision", h.SubmitWriteup)
 	g.PUT("/:id/status", h.UpdateStatus)
+	g.GET("/:id/workflow", h.GetWorkflow)
 
 	//patch is not to be integrated yet
 	// disputeRouter.HandleFunc("/{id}", h.patchDispute).Methods(http.MethodPatch)
@@ -271,6 +273,18 @@ func (h Dispute) GetDispute(c *gin.Context) {
 		return
 	}
 
+	if jwtClaims.Role == "admin" {
+		dispute, err := h.Model.GetAdminDisputeDetails(int64(id))
+		if err != nil {
+			logger.WithError(err).Error("Error retrieving dispute")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving dispute"})
+			return
+		}
+
+		c.JSON(http.StatusOK, models.Response{Data: dispute})
+		return
+	}
+
 	dispute, err := h.Model.GetDispute(int64(id))
 	if err != nil {
 		logger.WithError(err).Error("Error retrieving dispute")
@@ -451,8 +465,8 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 
 	//create active workflow entry
 	activeWorkflow := &models.ActiveWorkflows{
-		Workflow: int64(workflowData.ID),
-		DateSubmitted: time.Now(),
+		Workflow:         int64(workflowData.ID),
+		DateSubmitted:    time.Now(),
 		WorkflowInstance: workflowData.Definition,
 	}
 	err = h.Model.CreateActiverWorkflow(activeWorkflow)
@@ -530,13 +544,28 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 	}
 
 	//asssign experts to dispute
-	selected, err := h.Model.AssignExpertsToDispute(disputeId)
+	// selected, err := h.Model.AssignExpertsToDispute(disputeId)
+	// if err != nil {
+	// 	logger.WithError(err).Error("Error assigning experts to dispute")
+	// 	c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+	// 	return
+	// }
+	// logger.Info("Assigned experts", selected)
+
+	//assign using mediator assignment algorithm
+	expertIds, err := h.MediatorAssignment.AssignMediator(3, int(disputeId))
 	if err != nil {
 		logger.WithError(err).Error("Error assigning experts to dispute")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
 		return
 	}
-	logger.Info("Assigned experts", selected)
+
+	err = h.Model.AssignExpertswithDisputeAndExpertIDs(disputeId, expertIds)
+	if err != nil {
+		logger.WithError(err).Error("Error assigning experts to dispute")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+		return
+	}
 
 	// Respond with success message
 	if !defaultAccount {
@@ -615,7 +644,14 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 	var req models.ExpertRejectRequest
 	if err := c.BindJSON(&req); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: err.Error()})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid json"})
+		return
+	}
+
+	//check empty fields
+	if req.ExpertID == nil || req.Reason == nil {
+		logger.Error("Missing fields in request")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing fields in request"})
 		return
 	}
 
@@ -627,7 +663,46 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 		return
 	}
 
-	err = h.Model.ObjectExpert(claims.ID, int64(disputeIdInt), req.ExpertID, req.Reason)
+	//get Admin
+	admin, err := h.Model.GetUserById(*req.ExpertID)
+	if err != nil {
+		logger.WithError(err).Error("Failed to get Expert ID")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get Expert ID"})
+		return
+	}
+
+	//check that the user is assigned to the dispute
+	assigned, err := h.Model.GetExperts(int64(disputeIdInt))
+	if err != nil {
+		logger.WithError(err).Error("Failed to get assigned experts")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get assigned experts"})
+		return
+	}
+
+	isAsssigned := false
+	for _, expert := range assigned {
+		if expert.ExpertID == *req.ExpertID {
+			isAsssigned = true
+			break
+		}
+	}
+
+	if !isAsssigned {
+		logger.Error("Expert is not assigned to dispute")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Expert is not assigned to dispute"})
+		return
+	}
+
+	//create ticket
+	titleTicket := "Objection against " + admin.FirstName + " " + admin.Surname + "On Dispute " + disputeId
+	ticket, err := h.TicketModel.CreateTicket(claims.ID, int64(disputeIdInt), titleTicket, *req.Reason)
+	if err != nil {
+		logger.WithError(err).Error("Failed to create ticket")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to create ticket"})
+		return
+	}
+
+	err = h.Model.ObjectExpert(int64(disputeIdInt), *req.ExpertID, ticket.ID)
 	if err != nil {
 		logger.WithError(err).Error("Failed to object to expert")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong"})
@@ -636,15 +711,16 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Expert rejected suggestion"})
 	logger.Info("Expert rejected suggestion")
-	c.JSON(http.StatusOK, models.Response{Data: "objection filed successfully"})
+
+	c.JSON(http.StatusOK, models.Response{Data: ticket.ID})
 }
 
 func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	// Get dispute id
-	disputeId := c.Param("id")
-	disputeIdInt, err := strconv.Atoi(disputeId)
+	objectionId := c.Param("id")
+	objectionIdInt, err := strconv.Atoi(objectionId)
 	if err != nil {
 		logger.WithError(err).Error("Cannot convert dispute ID to integer")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
@@ -663,28 +739,121 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 	var req models.RejectExpertReview
 	if err := c.BindJSON(&req); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
-		c.JSON(http.StatusBadRequest, models.Response{Error: "Request failed"})
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid body"})
 		return
 	}
 
-	err = h.Model.ReviewExpertObjection(claims.ID, int64(disputeIdInt), req.ExpertID, req.Accepted)
+	// Check empty fields
+	if req.Status == nil {
+		logger.Error("Missing fields in request")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Missing fields in request"})
+		return
+	}
+
+	err = h.Model.ReviewExpertObjection(int64(objectionIdInt), *req.Status)
 	if err != nil {
 		logger.WithError(err).Error("failed to review objection")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "failed to review objection"})
 		return
 	}
 
+	if *req.Status == models.ObjectionSustained {
+		disputeId, err := h.Model.GetDisputeIDByTicketID(int64(objectionIdInt))
+		if err != nil {
+			logger.WithError(err).Error("Error getting dispute ID")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error getting dispute ID"})
+			return
+		}
+
+		expertIds, err := h.MediatorAssignment.AssignMediator(3, int(disputeId))
+		if err != nil {
+			logger.WithError(err).Error("Error assigning experts to dispute")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+			return
+		}
+	
+		err = h.Model.AssignExpertswithDisputeAndExpertIDs(disputeId, expertIds)
+		if err != nil {
+			logger.WithError(err).Error("Error assigning experts to dispute")
+			c.JSON(http.StatusInternalServerError, models.Response{Error: "Error assigning experts to dispute"})
+			return
+		}
+	}
+
 	logger.Info("Expert objections reviewed successfully")
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Expert objections reviewed successfully"})
 
-	c.JSON(http.StatusOK, models.Response{Data: "Expert objections reviewed successfully"})
+	c.JSON(http.StatusNoContent, models.Response{Data: "Expert objections reviewed successfully"})
+}
+
+func (h Dispute) SubmitWriteup(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+	claims, err := h.JWT.GetClaims(c)
+	if err != nil {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+	if claims.Role != "expert" {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		logger.WithError(err).Error("Error parsing form")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to parse form data"})
+		return
+	}
+
+	if form.Value["decision"] == nil || len(form.Value["decision"]) == 0 {
+		logger.Error("missing field in form: decision")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: decision"})
+		return
+	}
+
+	fileWriteUp := form.File["writeup"]
+	if len(fileWriteUp) == 0 {
+		logger.Error("missing field in form: writeup")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "missing field in form: writeup"})
+		return
+	}
+	id := c.Param("id")
+	disputeId, err := strconv.Atoi(id)
+	if err != nil {
+		logger.WithError(err).Error("Invalid Dispute ID")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+	folder := fmt.Sprintf("%d", disputeId)
+	folderfolder := filepath.Join(folder, "decision")
+	path := filepath.Join(folderfolder, fileWriteUp[0].Filename)
+	file, err := fileWriteUp[0].Open()
+	if err != nil {
+		logger.WithError(err).Error("failed to open file")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong."})
+		return
+	}
+
+	err = h.Model.UploadWriteup(claims.ID, int64(disputeId), path, file)
+	if err != nil {
+		logger.WithError(err).Error("failed to upload write-up")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "Something went wrong."})
+		return
+	}
+
+	logger.Info("Write-up uploaded successfully")
+
+	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Write-up uploaded"})
+	c.JSON(http.StatusNoContent, nil)
 }
 
 func (h Dispute) ViewExpertRejections(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 
 	// get body of post
-	var req models.ViewExpetRejectionsRequest
+	var req models.ViewExpertRejectionsRequest
 	if err := c.BindJSON(&req); err != nil {
 		logger.WithError(err).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Body"})
@@ -692,7 +861,7 @@ func (h Dispute) ViewExpertRejections(c *gin.Context) {
 	}
 
 	//query the database
-	rejections, err := h.Model.GetExpertRejections(req.Expert_id, req.Dispute_id, req.Limits, req.Offset)
+	rejections, err := h.Model.GetExpertRejections(req.ExpertId, req.DisputeId, req.Limits, req.Offset)
 	if err != nil {
 		logger.WithError(err).Error("Failed to retrieve expert rejections")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Internal Server Error"})
@@ -701,4 +870,34 @@ func (h Dispute) ViewExpertRejections(c *gin.Context) {
 
 	logger.Info("Expert rejections retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: rejections})
+
+}
+
+func (h Dispute) GetWorkflow(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+
+	//get dispute id
+	disputeId := c.Param("id")
+	disputeIdInt, err := strconv.Atoi(disputeId)
+	if err != nil {
+		logger.WithError(err).Error("Cannot convert dispute ID to integer")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+		return
+	}
+
+	//get workflow
+	workflow, err := h.WorkflowModel.GetActiveWorkflowByDisputeID(uint64(disputeIdInt))
+	if err != nil {
+		if err.Error() == "record not found" {
+			logger.Error("Workflow not found")
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Workflow not found"})
+			return
+		}
+		logger.WithError(err).Error("Failed to get workflow")
+		c.JSON(http.StatusInternalServerError, models.Response{Error: "Failed to get workflow"})
+		return
+	}
+
+	logger.Info("Workflow retrieved successfully")
+	c.JSON(http.StatusOK, models.Response{Data: workflow})
 }

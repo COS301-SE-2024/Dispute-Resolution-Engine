@@ -55,6 +55,8 @@ It is worth noting that _concerned parties_ only refer to complainants and respo
 
 > As a Mediator I want to be able to deny an assignment to a dispute when there is a conflict of interest so that the dispute remains unbiased.
 
+> As an Expert I want to submit a writeup for a dispute so that I can resolve the dispute
+
 ## Organisation Owner
 
 > As an organisation owner I want to create an organisation so that I can manage that organisation

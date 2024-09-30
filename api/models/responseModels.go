@@ -35,6 +35,20 @@ type DisputeDetailsResponse struct {
 	Evidence    []Evidence    `json:"evidence"`
 	Experts     []Expert      `json:"experts"`
 	Role        string        `json:"role"`
+	Complainant UserDetails   `json:"complainant"`
+	Respondent  UserDetails   `json:"respondent"`
+}
+
+type ExpertSummary struct {
+	ID       string `json:"id"`
+	FullName string `json:"full_name"`
+	Status   string `json:"status"`
+}
+
+type UserDetails struct {
+	FullName string `json:"name" gorm:"column:full_name"`
+	Email    string `json:"email" gorm:"column:email"`
+	Address  string `json:"address" gorm:"column:address"`
 }
 
 type Evidence struct {
@@ -69,6 +83,14 @@ type AdminDisputeSummariesResponse struct {
 	Experts      []AdminDisputeExperts `json:"experts"`
 }
 
+type AdminDisputeDetailsResponse struct {
+	AdminDisputeSummariesResponse
+	Description string      `json:"description"`
+	Evidence    []Evidence  `json:"evidence"`
+	Complainant UserDetails `json:"complainant"`
+	Respondent  UserDetails `json:"respondent"`
+}
+
 type TicketUser struct {
 	ID       string `gorm:"column:first_name" json:"id"`
 	FullName string `gorm:"column:surname" json:"full_name"`
@@ -91,8 +113,9 @@ type TicketMessage struct {
 
 type TicketsByUser struct {
 	TicketSummaryResponse
-	Body     string          `json:"body"`
-	Messages []TicketMessage `json:"messages"`
+	DisputeID int64           `json:"dispute_id"`
+	Body      string          `json:"body"`
+	Messages  []TicketMessage `json:"messages"`
 }
 
 type GetWorkflowResponse struct {
@@ -177,7 +200,6 @@ func (d *DurationWrapper) UnmarshalJSON(b []byte) error {
 	d.Duration = dur
 	return nil
 }
-
 
 type TriggerResponse struct {
 	Trigger []string `json:"triggers"`

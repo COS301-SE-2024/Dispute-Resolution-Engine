@@ -28,8 +28,6 @@ export function resultify<T>(prom: Promise<T>): Promise<Result<T>> {
     }));
 }
 
-
-
 /**
  * Parses the response body into JSON and checks that it conforms to the Result type
  */
@@ -53,9 +51,15 @@ export function sf(
   input: string | URL | globalThis.Request,
   init?: RequestInit
 ): Promise<Response> {
-  return fetch(input, init).then((res) => {
+  return fetch(input, init).then(async (res) => {
     if (!res.ok) {
-      throw new Error(`Request failed with code ${res.status}`);
+      let error = `Request failed with code ${res.status}`;
+      try {
+        const x = resultSchema.parse(await res.json());
+        error = x.error ?? error;
+      } catch (e) {}
+      console.log("Response in sf", JSON.stringify(res));
+      throw new Error(error);
     }
     return res;
   });

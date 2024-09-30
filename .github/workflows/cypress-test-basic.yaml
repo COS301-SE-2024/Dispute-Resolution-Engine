@@ -1,9 +1,14 @@
 name: End-to-end tests
 on:
+  push:
+    branches:
+      - hotfix/cypress-test
   workflow_run:
     workflows: ["Deployment"]
     types:
       - completed
+  workflow_dispatch:
+    
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -16,19 +21,24 @@ jobs:
   cypress-test:
     container:
       image: cypress/included
-    needs: deploy
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Cypress run
-        uses: cypress-io/github-action@v2
+      - uses: actions/setup-node@v4
         with:
-          wait-on: 'http://capstone-dre.dns.net.za'
-          wait-on-timeout: 300
-          working-directory: frontend 
-      # - name: Upload coverage reports to Codecov
-      #   uses: codecov/codecov-action@v4.0.1
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
+          node-version: 20 
+      - name: Run install
+        uses: borales/actions-yarn@v5
+        with:
+          cmd: install
+          dir: 'frontend'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # if needed
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn cypress run

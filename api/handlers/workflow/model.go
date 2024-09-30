@@ -10,6 +10,7 @@ import (
 	"api/utilities"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,6 +33,7 @@ type WorkflowDBModel interface {
 
 	UpdateWorkflow(workflow *models.Workflow) error
 	UpdateActiveWorkflow(workflow *models.ActiveWorkflows) error
+	GetActiveWorkflowByDisputeID(disputeID uint64) (*models.ActiveWorkflows, error)
 
 	DeleteTagsByWorkflowID(workflowID uint64) error
 	DeleteWorkflow(wf *models.Workflow) error
@@ -47,14 +49,14 @@ type Workflow struct {
 	OrchestratorEntity       WorkflowOrchestrator
 }
 
-type workflowModelReal struct {
+type WorkflowModelReal struct {
 	DB  *gorm.DB
 	env env.Env
 }
 
 func NewWorkflowHandler(db *gorm.DB, envReader env.Env) Workflow {
 	return Workflow{
-		DB:                       &workflowModelReal{DB: db, env: envReader},
+		DB:                       &WorkflowModelReal{DB: db, env: envReader},
 		Emailer:                  notifications.NewHandler(db),
 		EnvReader:                env.NewEnvLoader(),
 		Jwt:                      middleware.NewJwtMiddleware(),
@@ -63,7 +65,7 @@ func NewWorkflowHandler(db *gorm.DB, envReader env.Env) Workflow {
 	}
 }
 
-func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int, search *string) (int64, []models.GetWorkflowResponse, error) {
+func (wfmr *WorkflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int, search *string) (int64, []models.GetWorkflowResponse, error) {
 	var workflows []models.Workflow
 	var total int64
 
@@ -127,7 +129,7 @@ func (wfmr *workflowModelReal) GetWorkflowsWithLimitOffset(limit, offset *int, s
 	return total, response, nil
 }
 
-func (wfmr *workflowModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
+func (wfmr *WorkflowModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflow, error) {
 	var workflow models.Workflow
 
 	// Create a query object
@@ -145,7 +147,7 @@ func (wfmr *workflowModelReal) GetWorkflowRecordByID(id uint64) (*models.Workflo
 	return &workflow, nil
 }
 
-func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.DetailedWorkflowResponse, error) {
+func (wfmr *WorkflowModelReal) GetWorkflowByID(id uint64) (*models.DetailedWorkflowResponse, error) {
 	var workflow models.Workflow
 
 	// Create a query object
@@ -190,7 +192,7 @@ func (wfmr *workflowModelReal) GetWorkflowByID(id uint64) (*models.DetailedWorkf
 	return &response, result.Error
 }
 
-func (wfmr *workflowModelReal) FindDisputeByID(id uint64) (*models.Dispute, error) {
+func (wfmr *WorkflowModelReal) FindDisputeByID(id uint64) (*models.Dispute, error) {
 	var dispute models.Dispute
 
 	// Create a query object
@@ -198,7 +200,7 @@ func (wfmr *workflowModelReal) FindDisputeByID(id uint64) (*models.Dispute, erro
 	return &dispute, results.Error
 }
 
-func (wfmr *workflowModelReal) QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error) {
+func (wfmr *WorkflowModelReal) QueryTagsToRelatedWorkflow(workflowID uint64) ([]models.Tag, error) {
 	var tags []models.Tag
 
 	// Create a query object
@@ -219,7 +221,7 @@ func (wfmr *workflowModelReal) QueryTagsToRelatedWorkflow(workflowID uint64) ([]
 	return tags, nil
 }
 
-func (wfmr *workflowModelReal) CreateWorkflow(workflow *models.Workflow) error {
+func (wfmr *WorkflowModelReal) CreateWorkflow(workflow *models.Workflow) error {
 	result := wfmr.DB.Create(workflow)
 
 	if result.Error != nil {
@@ -229,7 +231,7 @@ func (wfmr *workflowModelReal) CreateWorkflow(workflow *models.Workflow) error {
 	return nil
 }
 
-func (wfmr *workflowModelReal) CreateWorkflowTag(tag *models.WorkflowTags) error {
+func (wfmr *WorkflowModelReal) CreateWorkflowTag(tag *models.WorkflowTags) error {
 	result := wfmr.DB.Create(tag)
 
 	if result.Error != nil {
@@ -239,7 +241,7 @@ func (wfmr *workflowModelReal) CreateWorkflowTag(tag *models.WorkflowTags) error
 	return nil
 }
 
-func (wfmr *workflowModelReal) UpdateWorkflow(workflow *models.Workflow) error {
+func (wfmr *WorkflowModelReal) UpdateWorkflow(workflow *models.Workflow) error {
 	result := wfmr.DB.Save(workflow)
 
 	if result.Error != nil {
@@ -249,7 +251,7 @@ func (wfmr *workflowModelReal) UpdateWorkflow(workflow *models.Workflow) error {
 	return nil
 }
 
-func (wfmr *workflowModelReal) DeleteTagsByWorkflowID(workflowID uint64) error {
+func (wfmr *WorkflowModelReal) DeleteTagsByWorkflowID(workflowID uint64) error {
 	result := wfmr.DB.Where("workflow_id = ?", workflowID).Delete(&models.WorkflowTags{})
 
 	if result.Error != nil {
@@ -259,7 +261,7 @@ func (wfmr *workflowModelReal) DeleteTagsByWorkflowID(workflowID uint64) error {
 	return nil
 }
 
-func (wfmr *workflowModelReal) DeleteWorkflow(wf *models.Workflow) error {
+func (wfmr *WorkflowModelReal) DeleteWorkflow(wf *models.Workflow) error {
 	result := wfmr.DB.Delete(wf)
 	if result.Error != nil {
 		return result.Error
@@ -268,7 +270,7 @@ func (wfmr *workflowModelReal) DeleteWorkflow(wf *models.Workflow) error {
 	return nil
 }
 
-func (wfmr *workflowModelReal) CreateActiveWorkflow(workflow *models.ActiveWorkflows) error {
+func (wfmr *WorkflowModelReal) CreateActiveWorkflow(workflow *models.ActiveWorkflows) error {
 	result := wfmr.DB.Create(workflow)
 
 	if result.Error != nil {
@@ -278,7 +280,7 @@ func (wfmr *workflowModelReal) CreateActiveWorkflow(workflow *models.ActiveWorkf
 	return nil
 }
 
-func (wfmr *workflowModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {
+func (wfmr *WorkflowModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkflows) error {
 	result := wfmr.DB.Delete(workflow)
 	if result.Error != nil {
 		return result.Error
@@ -287,7 +289,7 @@ func (wfmr *workflowModelReal) DeleteActiveWorkflow(workflow *models.ActiveWorkf
 	return nil
 }
 
-func (wfmr *workflowModelReal) GetActiveWorkflowByWorkflowID(workflowID uint64) (*models.ActiveWorkflows, error) {
+func (wfmr *WorkflowModelReal) GetActiveWorkflowByWorkflowID(workflowID uint64) (*models.ActiveWorkflows, error) {
 	var activeWorkflow models.ActiveWorkflows
 
 	query := wfmr.DB.First(&activeWorkflow, workflowID)
@@ -295,7 +297,7 @@ func (wfmr *workflowModelReal) GetActiveWorkflowByWorkflowID(workflowID uint64) 
 	return &activeWorkflow, query.Error
 }
 
-func (wfmr *workflowModelReal) UpdateActiveWorkflow(workflow *models.ActiveWorkflows) error {
+func (wfmr *WorkflowModelReal) UpdateActiveWorkflow(workflow *models.ActiveWorkflows) error {
 	result := wfmr.DB.Save(workflow)
 
 	if result.Error != nil {
@@ -384,7 +386,7 @@ func (w OrchestratorReal) SendResetRequestToOrchestrator(endpoint string, payloa
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		logger.Error("marshal error: ", err)
-		return "", fmt.Errorf("internal server error")
+		return "", errors.New("internal server error")
 	}
 	logger.Info("Payload: ", string(payloadBytes))
 
@@ -392,14 +394,39 @@ func (w OrchestratorReal) SendResetRequestToOrchestrator(endpoint string, payloa
 	resp, err := http.Post(endpoint, "application/json", bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		logger.Error("post error: ", err)
-		return "", fmt.Errorf("internal server error")
+		return "", errors.New("failed to send request to orchestrator")
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("error reading response body: ", err)
+		return "", errors.New("failed to read response from orchestrator")
 	}
 
-	//return body response
-	resp.Body.Close()
+	// If the status code is not 200, treat it as an error
+	if resp.StatusCode != http.StatusOK {
+		// Log the full response body for debugging purposes
+		logger.Error("Received non-200 status code: ", resp.Status, "Response Body: ", string(body))
 
-	return "", nil
+		// Return the response body as the error message
+
+		//unmarshal the response body
+		var marshalledResponse map[string]interface{}
+		err := json.Unmarshal(body, &marshalledResponse)
+		if err != nil {
+			logger.Error("error unmarshalling response body: ", err)
+			return "", fmt.Errorf("received error from orchestrator: %s", string(body))
+		}
+		return "", fmt.Errorf(marshalledResponse["error"].(string))
+	}
+
+	// Log the success and return the response body (if any)
+	logger.Info("Orchestrator response: ", string(body))
+	return string(body), nil
 }
+
 
 func (w OrchestratorReal) GetTriggers() (string, error) {
 	logger := utilities.NewLogger().LogWithCaller()
@@ -433,3 +460,19 @@ func (w OrchestratorReal) GetTriggers() (string, error) {
 
 	return responseBody, nil
 }
+
+func (wfmr *WorkflowModelReal) GetActiveWorkflowByDisputeID(disputeID uint64) (*models.ActiveWorkflows, error) {
+	var activeWorkflow models.ActiveWorkflows
+
+	// Perform a join query to get the active workflow using the workflow_id in the Dispute table
+	query := wfmr.DB.
+		Table("active_workflows").
+		Joins("JOIN disputes ON disputes.workflow = active_workflows.id").
+		Where("disputes.id = ?", disputeID).
+		Select("active_workflows.*"). // Select only fields from active_workflows table
+		First(&activeWorkflow)
+
+	return &activeWorkflow, query.Error
+}
+
+

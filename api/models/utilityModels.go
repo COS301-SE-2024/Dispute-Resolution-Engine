@@ -43,7 +43,6 @@ func ConvertUserVerifyToUser(dbUser UserVerify) *User {
 		PhoneNumber:       dbUser.PhoneNumber,
 		AddressID:         dbUser.AddressID,
 		CreatedAt:         dbUser.CreatedAt,
-		LastUpdate:        dbUser.LastUpdate,
 		LastLogin:         dbUser.LastLogin,
 		Status:            dbUser.Status,
 		Gender:            dbUser.Gender,
@@ -94,6 +93,7 @@ type AdminIntermediate struct {
 
 type TicketIntermediate struct {
 	Id             int64     `gorm:"column:id"`
+	DisputeID      int64     `gorm:"column:dispute_id"`
 	CreatedAt      time.Time `gorm:"column:created_at"`
 	Subject        string    `gorm:"column:subject"`
 	Status         string    `gorm:"column:status"`

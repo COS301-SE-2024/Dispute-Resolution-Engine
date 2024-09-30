@@ -24,12 +24,10 @@ You can create an account as a **User** or an **Expert**. Here’s how:
     - **User**: For individuals seeking to resolve disputes.
     - **Expert**: For professionals offering dispute resolution services.
 ![image](https://github.com/user-attachments/assets/d0faba41-a4b4-48a8-ba61-783e38253e4c)
-
 3. Fill in your personal information and create a password.
 ![image](https://github.com/user-attachments/assets/f33322ed-b2ee-4c70-b56f-455553dd636b)
 ![image](https://github.com/user-attachments/assets/ad3cab26-8714-42f8-931d-0b28be2090f4)
-
-5. Click the "Create Account" button.
+4. Click the "Create" button.
 
 Once registered, you'll receive a confirmation email to verify your account.
 
@@ -42,8 +40,7 @@ To log in to your account:
 1. Go to the [Login](https://capstone-dre.dns.net.za/login) page.
 2. Enter your registered email and password.
 ![image](https://github.com/user-attachments/assets/257b60e1-098c-445f-afd8-05dd88c02005)
-
-4. Click "Log In".
+3. Click "Log In".
 
 Once logged in, you can access all platform features, including dispute management and your profile page.
 
@@ -69,12 +66,10 @@ To create or manage disputes:
 1. Log in to your account.
 2. From the dashboard, click on the "Create" button.
 ![image](https://github.com/user-attachments/assets/a03b3a48-a74c-4278-8795-659a67d3722f)
-
-4. Fill in the necessary details, including parties involved and dispute description.
+3. Fill in the necessary details, including parties involved and dispute description.
 ![image](https://github.com/user-attachments/assets/df804ccd-e552-47e2-ac5b-a0021525bf52)
 ![image](https://github.com/user-attachments/assets/6c1ca21b-13cf-43d9-aeca-99d75a8364d5)
-
-6. Submit your dispute, and it will appear in your dashboard where you can track its progress.
+4. Submit your dispute, and it will appear in your dashboard where you can track its progress.
 
 You can interact with your disputes at any time through the dashboard by providing updates or viewing resolutions.
 
@@ -86,7 +81,11 @@ You can browse through previously resolved disputes at any time, whether logged 
 
 1. Navigate to the [Archive](https://capstone-dre.dns.net.za/archive) page.
 2. Use the search bar to find specific disputes by keywords, dates, or categories.
-3. Click on any dispute to view its details.
+![image](https://github.com/user-attachments/assets/b4c27a97-c412-4602-9b31-886037fc671b)
+
+4. Click on any dispute to view its details.
+![image](https://github.com/user-attachments/assets/f672eda3-6e3a-4c28-9da7-06fc57a3f90f)
+
 
 The archive is a great way to research how similar disputes have been resolved.
 
@@ -100,7 +99,9 @@ To update your profile information:
 2. Click on your **profile icon** at the top right corner of any page.
 3. You will be taken to your **Profile** page, where you can:
     - Edit your personal details (name, email, etc.).
+![image](https://github.com/user-attachments/assets/b92508e6-eb8d-4d0f-b8cd-7d313b8d65c5)
     - Update your address.
+![image](https://github.com/user-attachments/assets/71cb9237-ba60-45bf-b68d-f164958a7021)
 4. Click **Save** to update your information.
 
 Keep your profile up-to-date to ensure smooth communication on the platform.

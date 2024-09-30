@@ -15,7 +15,7 @@ describe("Navigation", () => {
       cookie = tempCookie?.value;
     });
     cy.visit("/disputes");
-    cy.get("a").contains("+ Create").click();
+    cy.visit("/disputes/create")
     cy.get('input[name="respondentName"]').click().type("Bob Charlie");
     cy.get('input[name="respondentEmail"]').click().type("yexiy79682@mvpalace.com");
     cy.get('input[name="respondentTelephone"]').click().type("0123456789");

@@ -482,7 +482,7 @@ func (m *mockEmailModel) SendDefaultUserEmail(c *gin.Context, email string, pass
 
 }
 
-func (m *mockEmailModel) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string) {
+func (m *mockEmailModel) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus , description string) {
 }
 
 func (m *mockEmailModel) NotifyEvent(c *gin.Context) {

@@ -85,9 +85,22 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 						}
 						logger.Info("Sanity update of active_workflow entry in database", wf_id, new_state, new_state_deadline)
 						// Send http post containing workflow ID and new state to the api:9000/event endpoint
+						awf, err := s.api.FetchActiveWorkflow(int(wf_id_int))
+						if err != nil {
+							logger.Error("Error fetching active workflow")
+							return
+						}
+				
+						label, desc, err := workflow.GetStateDetails(awf.WorkflowInstance, new_state)
+						if err != nil {
+							logger.Error("Error getting state details")
+							return
+						}
+				
 						request := utilities.APIReq{
 							ID:           int64(wf_id_int),
-							CurrentState: new_state,
+							CurrentState: label,
+							Description:  desc,
 						}
 						utilities.APIPostRequest(utilities.API_URL, request)
 					} else {
@@ -101,9 +114,22 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 						}
 						logger.Info("Sanity update of active_workflow entry in database", wf_id, new_state)
 						// Send http post containing workflow ID and new state to the api:9000/event endpoint
+						awf, err := s.api.FetchActiveWorkflow(int(wf_id_int))
+						if err != nil {
+							logger.Error("Error fetching active workflow")
+							return
+						}
+				
+						label, desc, err := workflow.GetStateDetails(awf.WorkflowInstance, new_state)
+						if err != nil {
+							logger.Error("Error getting state details")
+							return
+						}
+				
 						request := utilities.APIReq{
 							ID:           int64(wf_id_int),
-							CurrentState: new_state,
+							CurrentState: label,
+							Description:  desc,
 						}
 						utilities.APIPostRequest(utilities.API_URL, request)
 					}
@@ -132,9 +158,22 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 							}
 							logger.Info("Updated active_workflow entry in database", wf_id, new_state, new_state_deadline)
 							// Send http post containing workflow ID and new state to the api:9000/event endpoint
+							awf, err := s.api.FetchActiveWorkflow(int(wf_id_int))
+							if err != nil {
+								logger.Error("Error fetching active workflow")
+								return
+							}
+					
+							label, desc, err := workflow.GetStateDetails(awf.WorkflowInstance, new_state)
+							if err != nil {
+								logger.Error("Error getting state details")
+								return
+							}
+					
 							request := utilities.APIReq{
 								ID:           int64(wf_id_int),
-								CurrentState: new_state,
+								CurrentState: label,
+								Description:  desc,
 							}
 							utilities.APIPostRequest(utilities.API_URL, request)
 						} else {
@@ -150,9 +189,22 @@ func (s *StateMachine) Init(wf_id string, wf workflow.Workflow, sch *scheduler.S
 							}
 							logger.Info("Updated active_workflow entry in database", wf_id, new_state)
 							// Send http post containing workflow ID and new state to the api:9000/event endpoint
+							awf, err := s.api.FetchActiveWorkflow(int(wf_id_int))
+							if err != nil {
+								logger.Error("Error fetching active workflow")
+								return
+							}
+					
+							label, desc, err := workflow.GetStateDetails(awf.WorkflowInstance, new_state)
+							if err != nil {
+								logger.Error("Error getting state details")
+								return
+							}
+					
 							request := utilities.APIReq{
 								ID:           int64(wf_id_int),
-								CurrentState: new_state,
+								CurrentState: label,
+								Description:  desc,
 							}
 							utilities.APIPostRequest(utilities.API_URL, request)
 						}

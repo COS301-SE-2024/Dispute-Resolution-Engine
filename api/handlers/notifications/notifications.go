@@ -17,7 +17,7 @@ import (
 
 type EmailSystem interface {
 	SendAdminEmail(c *gin.Context, disputeID int64, resEmail string, title string, summary string)
-	NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string)
+	NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus , description string)
 	SendDefaultUserEmail(c *gin.Context, email string, pass string, title string, summary string)
 }
 
@@ -128,7 +128,7 @@ func (e *emailImpl) SendDefaultUserEmail(c *gin.Context, email string, pass stri
 	c.JSON(http.StatusOK, models.Response{Error: "Email notifications sent successfully"})
 }*/
 
-func (e *emailImpl) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus string) {
+func (e *emailImpl) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, disputeStatus, description string) {
 	logger := utilities.NewLogger().LogWithCaller()
 	envLoader := env.NewEnvLoader()
 
@@ -149,7 +149,12 @@ func (e *emailImpl) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, d
 		logger.WithError(err.Error).Error("Failed to get the complainant details")
 		return
 	}
-	body := "Dear valued user,\r\n We hope this email finds you well. The status of a dispute you are involved with has changed to " + disputeStatus + ". Please visit DRE and check your emails regularly for future updates."
+	body := "Dear valued user,\r\n We hope this email finds you well. The status of a dispute you are involved with has changed. \r\n"
+	body += "The dispute details are as follows:\r\n"
+	body += "Current status: " + disputeStatus + ".\r\n"
+	body += description + "\r\n"
+	body += "Please visit DRE and check your emails regularly for future updates."
+
 	companyEmail, err2 := envLoader.Get("COMPANY_EMAIL")
 	if err2 != nil {
 		utilities.InternalError(c)

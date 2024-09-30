@@ -240,3 +240,21 @@ func (w *Workflow) GetWorkflowString() string {
 
 	return result
 }
+
+func GetStateDetails(jsonData []byte, stateID string) (string, string, error) {
+	var workflow Workflow
+	// Unmarshal the JSON data into the workflow struct
+	err := json.Unmarshal(jsonData, &workflow)
+	if err != nil {
+		return "undefined", "undefined", err
+	}
+
+	// Check if the state exists in the workflow
+	state, exists := workflow.States[stateID]
+	if !exists {
+		return "undefined", "undefined", fmt.Errorf("state ID %s not found", stateID)
+	}
+
+	// Return the label and description of the state
+	return state.Label, state.Description, nil
+}

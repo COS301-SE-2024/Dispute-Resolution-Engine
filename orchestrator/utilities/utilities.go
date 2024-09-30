@@ -20,6 +20,7 @@ const (
 type APIReq struct {
 	ID           int64  `json:"id"`
 	CurrentState string `json:"current_state"`
+	Description  string `json:"description"`
 }
 
 var Log *logrus.Logger
@@ -98,3 +99,4 @@ func APIPostRequest(endpoint string, payload APIReq) (string, error) {
 
 	return string(body), nil
 }
+

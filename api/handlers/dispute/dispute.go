@@ -102,8 +102,6 @@ func (h Dispute) UploadEvidence(c *gin.Context) {
 	code, resp, err := h.SendTrigger(logger, int64(disputeId), "evidence_submitted")
 	if err != nil {
 		logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
-
-		return
 	}
 
 	c.JSON(http.StatusCreated, models.Response{
@@ -609,7 +607,7 @@ func (h Dispute) UpdateStatus(c *gin.Context) {
 		utilities.InternalError(c)
 		return
 	}
-	go h.Email.NotifyDisputeStateChanged(c, int64(disputeId), disputeStatus.Status)
+	// go h.Email.NotifyDisputeStateChanged(c, int64(disputeId), disputeStatus.Status)
 
 	logger.Info("Dispute status updated successfully")
 
@@ -625,8 +623,6 @@ func (h Dispute) UpdateStatus(c *gin.Context) {
 		code, resp, err := h.SendTrigger(logger, int64(disputeId), trigger)
 		if err != nil {
 			logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
-
-			return
 		}
 	}
 
@@ -737,8 +733,6 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 	code, resp, err := h.SendTrigger(logger, int64(disputeIdInt), "objection_submitted")
 	if err != nil {
 		logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
-
-		return
 	}
 
 	c.JSON(http.StatusOK, models.Response{Data: ticket.ID})
@@ -798,8 +792,6 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 		code, resp, err := h.SendTrigger(logger, int64(disputeId), "objection_sustained")
 		if err != nil {
 			logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
-
-			return
 		}
 
 		expertIds, err := h.MediatorAssignment.AssignMediator(1, int(disputeId))
@@ -819,8 +811,6 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 		code, resp, err := h.SendTrigger(logger, int64(disputeId), "objection_overruled")
 		if err != nil {
 			logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
-
-			return
 		}
 	}
 
@@ -892,8 +882,6 @@ func (h Dispute) SubmitWriteup(c *gin.Context) {
 	code, resp, err := h.SendTrigger(logger, int64(disputeId), "decision_submitted")
 	if err != nil {
 		logger.WithError(err).Error(fmt.Sprintf("Failed to send trigger: %s %s %d", resp.Data, resp.Error, code))
-
-		return
 	}
 
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": claims, "message": "Write-up uploaded"})

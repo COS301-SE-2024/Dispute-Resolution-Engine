@@ -45,7 +45,7 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 ## PDFs
 
 - [Software Requirements](./readme-assets/SRS.pdf)
-- [Architecture Requirements](./docs/docs/technical-docs/Architecture.md)
+- [Architecture Requirements](./readme-assets/Architecture.pdf)
 - [Testing Policy](./readme-assets/Testing_Policy.pdf)
 - [Technological Requirements](./docs/TechnologyRequirements.md)
 - [Installation Manual](./readme-assets/Installation_Manual.pdf)

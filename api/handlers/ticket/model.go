@@ -270,8 +270,8 @@ func (t *TicketModelReal) GetTicketsByUserID(uid int64, searchTerm *string, limi
 	queryParams = append(queryParams, uid)
 	countParams = append(countParams, uid)
 	if searchTerm != nil {
-		queryString.WriteString(" AND WHERE t.subject LIKE ?")
-		countString.WriteString(" AND WHERE t.subject LIKE ?")
+		queryString.WriteString(" AND t.subject LIKE ?")
+		countString.WriteString(" AND t.subject LIKE ?")
 		queryParams = append(queryParams, "%"+*searchTerm+"%")
 		countParams = append(countParams, "%"+*searchTerm+"%")
 	}

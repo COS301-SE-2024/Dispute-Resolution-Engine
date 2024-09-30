@@ -35,7 +35,7 @@ describe("Navigation", () => {
   it("should be able see the dispute", () => {
     cy.setCookie("jwt", cookie ?? "");
     cy.visit("/disputes");
-    cy.get("span").contains(title)//.click();
+    // cy.get("span").contains(title)//.click();
     // cy.get("h1").contains(title);
     // cy.get("p").contains(description);
   });

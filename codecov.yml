@@ -9,6 +9,8 @@ coverage:
         target: 5%
         threshold: 5%
 ignore:
+  - "api/auditLogger/mock.go"
+  - "api/auditLogger/model.go"
   - "api/handlers/dispute/model.go"
   - "api/handlers/workflow/model.go"
   - "api/handlers/ticket/model.go"

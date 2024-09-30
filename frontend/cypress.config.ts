@@ -5,9 +5,12 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
-    baseUrl: 'http://localhost:3002',
+    baseUrl: 'https://capstone-dre.dns.net.za',
   },
-
+  env: {
+    TEST_USER: "gaced90493@rinseart.com",
+    TEST_PASSWORD: "Password1234#"
+  },
   component: {
     devServer: {
       framework: "next",

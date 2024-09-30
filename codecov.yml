@@ -34,3 +34,4 @@ ignore:
   - "api/models/responseModels.go"
   - "api/handlers/handlers.go"
   - "api/docs/docs.go"
+  - "frontend/src/lib/actions/dispute.ts"

@@ -38,6 +38,7 @@ import { SaveIcon } from "lucide-react";
 import { useCustomId } from "@/lib/hooks/use-customid";
 import { useToast } from "@/lib/hooks/use-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { usePathname, useRouter } from "next/navigation";
 
 const initialNodes: GraphState[] = [
   {
@@ -214,6 +215,8 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
     setError(undefined);
   }
 
+  const router = useRouter();
+  const pathname = usePathname();
   async function saveWorkflow() {
     const definition = await graphToWorkflow(reactFlow.toObject());
     // definition.initial = Object.keys(definition.states)[0];
@@ -223,11 +226,12 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
     try {
       if (workflow) {
         await updateWorkflow(workflow.id, {
+          name: title,
           definition,
         });
       } else {
-        alert("Create");
-        await createWorkflow({ name: title, definition });
+        const workflow = await createWorkflow({ name: title, definition });
+        router.replace(`${pathname}?id=${workflow.id}`);
       }
       setIsSaved(true);
     } catch (e: unknown) {
@@ -242,13 +246,12 @@ function InnerPage({ workflow }: { workflow?: Workflow }) {
 
   const [title, setTitle] = useState(workflow?.name ?? "New Workflow");
   async function commitTitle(value: string) {
-    if (!workflow) {
-      return;
-    }
-    await updateWorkflow(workflow.id, {
-      name: value,
-    });
     setTitle(value);
+    if (workflow) {
+      await updateWorkflow(workflow.id, {
+        name: value,
+      });
+    }
   }
 
   return (

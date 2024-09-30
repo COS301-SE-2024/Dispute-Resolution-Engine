@@ -14,7 +14,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GraphInstance, TimerDuration, type GraphState } from "@/lib/types";
-import EditForm from "./edit-form";
 import {
   Dialog,
   DialogClose,
@@ -29,6 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/lib/hooks/use-toast";
+import EditForm from "./edit-form";
 
 /** The diameter (in pixels) of a single handle */
 const handleDiameter = 20;

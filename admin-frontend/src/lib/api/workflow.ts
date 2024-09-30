@@ -105,9 +105,9 @@ export async function graphToWorkflow({
             edges
               .filter((edge) => edge.source == node.id)
               .map((edge) => [
-                edge.id,
+                edge.data!.trigger,
                 {
-                  label: edge.data ? edge.data.trigger : "default",
+                  label: edge.data ? edge.data.label : "default",
                   next_state: edge.target,
                 },
               ])
@@ -138,7 +138,7 @@ export async function workflowToGraph(
         id: (currId++).toString(),
         source: stateKey,
         target: event.next_state,
-        data: { trigger: event.label },
+        data: { trigger: eventKey, label: event.label },
         type: "custom-edge",
       };
       triggers.push(trigger);

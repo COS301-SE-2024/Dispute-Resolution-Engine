@@ -16,12 +16,12 @@ export async function getTicketSummaries(dispute: number): Promise<TicketListRes
   return sf(`${API_URL}/tickets`, {
     method: "POST",
     body: JSON.stringify({
-      // filter: [
-      //   {
-      //     attr: "dispute_id",
-      //     value: dispute,
-      //   },
-      // ],
+      filter: [
+        {
+          attr: "dispute_id",
+          value: dispute,
+        },
+      ],
     }),
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,

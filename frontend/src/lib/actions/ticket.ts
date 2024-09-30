@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { TicketCreateResponse } from "../interfaces/ticket";
 import { CreateTicketData, CreateTicketErrors, createTicketSchema } from "../schema/ticket";
 import { Result } from "../types";
@@ -29,6 +30,7 @@ export async function createTicket(
       error: res.error,
     };
   }
+  revalidatePath(`/disputes/${parsed.dispute_id}/tickets`);
   return {
     data: "TODO",
   };

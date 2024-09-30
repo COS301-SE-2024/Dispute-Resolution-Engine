@@ -109,6 +109,12 @@ type AdminDisputeExperts struct {
 	Status   string `gorm:"column:status" json:"status"`
 }
 
+type DisputeExpertsView struct {
+	Dispute int64        `gorm:"column:dispute" json:"dispute"`
+	Expert  int64        `gorm:"column:expert" json:"expert"`
+	Status  ExpertStatus `gorm:"column:status" json:"status"`
+}
+
 // type TicketMessage struct {
 // 	ID
 // }

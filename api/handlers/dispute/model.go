@@ -489,7 +489,7 @@ func (m *disputeModelReal) GetDisputeExperts(disputeId int64) (experts []models.
 		Select("users.id, users.first_name || ' ' || users.surname AS full_name, email, users.phone_number AS phone, role").
 		Joins("JOIN users ON dispute_experts_view.expert = users.id").
 		Where("dispute = ?", disputeId).
-		Where("dispute_experts_view.status = 'Approved'").
+		Where("dispute_experts_view.status IN ('Approved', 'Review')").
 		Where("role = 'Mediator' OR role = 'Arbitrator' OR role = 'Conciliator' OR role = 'expert'").
 		Find(&experts).Error
 

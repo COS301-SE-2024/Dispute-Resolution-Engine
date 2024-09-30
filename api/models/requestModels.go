@@ -170,7 +170,7 @@ type Filter struct {
 	Attr string `json:"attr"`
 
 	// The value to search for
-	Value string `json:"value"`
+	Value interface{} `json:"value"`
 }
 
 type DateFilter struct {

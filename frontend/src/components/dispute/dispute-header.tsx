@@ -26,7 +26,7 @@ export default function DisputeHeader({
         <dt className="text-right font-bold">Status:</dt>
         <dd>{status} (TBD)</dd>
       </dl>
-      <div className="col-span-2 flex gap-2">{children}</div>
+      <div className="col-span-2 flex gap-2 items-center">{children}</div>
     </header>
   );
 }

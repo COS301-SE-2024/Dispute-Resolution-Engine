@@ -69,7 +69,9 @@ function DisputeHeader2(props: { id: string; label: string; startDate: string; s
       <CreateTicketDialog asChild dispute={props.id}>
         <Button>Create ticket</Button>
       </CreateTicketDialog>
-      <Link href={`/disputes/${props.id}/tickets`}>Go to tickets</Link>
+      <Button variant="outline" asChild>
+        <Link href={`/disputes/${props.id}/tickets`}>Go to tickets</Link>
+      </Button>
     </DisputeHeader>
   );
 }

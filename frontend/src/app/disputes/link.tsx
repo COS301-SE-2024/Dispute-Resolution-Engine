@@ -6,13 +6,21 @@ import { Role } from "@/lib/interfaces/dispute";
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 
-export function DisputeLink({ href, role, title }: { title: string; role: Role; href: string }) {
-  const pathname = usePathname();
-  const c = cn(buttonVariants({ variant: pathname == href ? "default" : "ghost" }), "flex");
+export function DisputeLink({
+  dispute,
+  role,
+  title,
+}: {
+  title: string;
+  role: Role;
+  dispute: string;
+}) {
+  const { id } = useParams();
+  const c = cn(buttonVariants({ variant: dispute == id ? "default" : "ghost" }), "flex");
   return (
-    <Link href={href} className={c}>
+    <Link href={`/disputes/${dispute}`} className={c}>
       <span className="grow truncate" title={title}>
         {title}
       </span>

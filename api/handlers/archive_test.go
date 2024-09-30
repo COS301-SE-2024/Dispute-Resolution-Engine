@@ -189,7 +189,6 @@ func (suite *ArchiveTestSuite) TestBadRequestReturnsError() {
 	assert.NotEmpty(suite.T(), result.Error)
 }
 
-
 // func (suite *ArchiveTestSuite) TestReturnsValidJSON() {
 // 	rows := initDisputeRows()
 // 	suite.mock.ExpectQuery("^SELECT count(.+) FROM \"?disputes\"?.*").WillReturnRows(initCountRow(mockDisputeCount))

@@ -277,13 +277,9 @@ func (t *TicketModelReal) GetTicketsByUserID(uid int64, searchTerm *string, limi
 	}
 
 	if filters != nil && len(*filters) > 0 {
-		if searchTerm != nil {
-			queryString.WriteString(" AND ")
-			countString.WriteString(" AND ")
-		} else {
-			queryString.WriteString(" WHERE ")
-			countString.WriteString(" WHERE ")
-		}
+		queryString.WriteString(" AND ")
+		countString.WriteString(" AND ")
+
 		for i, filter := range *filters {
 			queryString.WriteString("t." + filter.Attr + " = ?")
 			countString.WriteString("t." + filter.Attr + " = ?")

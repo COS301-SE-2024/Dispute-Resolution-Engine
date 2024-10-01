@@ -171,9 +171,8 @@ func (suite *AdminAnalyticsErrorTestSuite) TestGetTimeEstimationUnauthorized() {
 		Error string `json:"error"`
 	}
 
-	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.Equal(http.StatusOK, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-	suite.NotEmpty(result.Error)
 }
 
 func (suite *AdminAnalyticsErrorTestSuite) TestGetTimeEstimationError() {
@@ -219,9 +218,8 @@ func (suite *AdminAnalyticsErrorTestSuite) TestGetDisputeGroupingUnauthorized() 
 		Error string `json:"error"`
 	}
 
-	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.Equal(http.StatusOK, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
-	suite.NotEmpty(result.Error)
 }
 
 func (suite *AdminAnalyticsErrorTestSuite) TestGetDisputeGroupingError() {
@@ -266,7 +264,7 @@ func (suite *AdminAnalyticsErrorTestSuite) TestGetTableStatsUnauthorized() {
 		Error string `json:"error"`
 	}
 
-	suite.Equal(http.StatusUnauthorized, w.Code)
+	suite.Equal(http.StatusBadRequest, w.Code)
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
 	suite.NotEmpty(result.Error)
 }

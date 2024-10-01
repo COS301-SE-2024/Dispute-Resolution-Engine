@@ -128,7 +128,7 @@ func (h AdminAnalyticsHandler) GetMonthlyStats(c *gin.Context) {
 	}
 
 	// Call the CountRecordsWithGroupBy function
-	resCount, err := h.DB.CountDisputesByMonth(table, "created_at")
+	resCount, err := h.DB.CountDisputesByMonth(table, "case_date")
 	if err != nil {
 		logger.WithError(err).Error("Failed to count records")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to count records"})

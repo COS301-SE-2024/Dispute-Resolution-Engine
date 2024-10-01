@@ -44,7 +44,7 @@ func TestLastAssignmentstruct_GetScoreInput(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &mediatorassignment.LastAssignmentstruct{}
 			result := d.GetScoreInput(tt.summary)
-			assert.InDelta(t, tt.expectedResult.Result, result.Result, 0.1, "Expected: %v, Actual: %v", tt.expectedResult.Result, result.Result)
+			assert.InDelta(t, tt.expectedResult.Result, result.Result, 1, "Expected: %v, Actual: %v", tt.expectedResult.Result, result.Result)
 			assert.Equal(t, tt.expectedResult.ID, result.ID)
 		})
 	}

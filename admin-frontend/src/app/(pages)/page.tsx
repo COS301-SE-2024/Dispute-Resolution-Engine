@@ -8,10 +8,12 @@ import { QueryProvider } from "./page-client";
 import {
   getDisputeCountByStatus,
   getExpertsObjectionSummary,
+  getMonthlyDisputes,
   getTicketCountByStatus,
 } from "@/lib/api/analytics";
 import { useErrorToast } from "@/lib/hooks/use-query-toast";
 import { ObjectionBarChart } from "@/components/analytics/objections-bars";
+import { MonthlyChart } from "@/components/analytics/monthly-chart";
 
 export default function Home() {
   return (
@@ -39,10 +41,15 @@ function HomeInner() {
   });
   useErrorToast(expertObjections.error, "Failed to fetch objection statistics");
 
+  const monthlyDisputes = useQuery({
+    queryKey: ["monthlyDisputes"],
+    queryFn: () => getMonthlyDisputes(),
+  });
+
   return (
     <div className="flex flex-col">
       <PageHeader label="Dashboard" />
-      <div className="grow md:p-10 md:gap-10 overflow-y-auto flex flex-wrap  items-start justify-start">
+      <div className="grow md:p-10 md:gap-10 overflow-y-auto grid md:grid-cols-2 grid-cols-1  items-start justify-start">
         {disputeStatus.data && (
           <StatusPieChart
             title="Disputes"
@@ -64,6 +71,7 @@ function HomeInner() {
             data={expertObjections.data}
           />
         )}
+        {monthlyDisputes.data && <MonthlyChart data={monthlyDisputes.data} />}
       </div>
     </div>
   );

@@ -40,3 +40,20 @@ export async function getExpertsObjectionSummary(): Promise<Record<string, numbe
     }),
   }).then(validateResult<Record<string, number>>);
 }
+
+export async function getMonthlyDisputes(): Promise<Record<string, number>> {
+  return sf(`${API_URL}/analytics/monthly/disputes`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: JSON.stringify({
+      group: "case_date",
+    }),
+  })
+    .then(validateResult<Record<string, number>>)
+    .then((res) => {
+      console.log(res);
+      return res;
+    });
+}

@@ -28,3 +28,15 @@ export async function getTicketCountByStatus(): Promise<Record<TicketStatus, num
     }),
   }).then(validateResult<Record<TicketStatus, number>>);
 }
+
+export async function getExpertsObjectionSummary(): Promise<Record<string, number>> {
+  return sf(`${API_URL}/analytics/stats/expert_objections_view`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: JSON.stringify({
+      group: "expert_full_name",
+    }),
+  }).then(validateResult<Record<string, number>>);
+}

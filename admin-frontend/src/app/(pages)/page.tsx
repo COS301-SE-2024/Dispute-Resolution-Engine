@@ -5,8 +5,13 @@ import StatusPieChart from "@/components/analytics/dispute-status-pie";
 import TicketStatusPieChart from "@/components/analytics/ticket-status-pie";
 import { useQuery } from "@tanstack/react-query";
 import { QueryProvider } from "./page-client";
-import { getDisputeCountByStatus, getTicketCountByStatus } from "@/lib/api/analytics";
+import {
+  getDisputeCountByStatus,
+  getExpertsObjectionSummary,
+  getTicketCountByStatus,
+} from "@/lib/api/analytics";
 import { useErrorToast } from "@/lib/hooks/use-query-toast";
+import { ObjectionBarChart } from "@/components/analytics/objections-bars";
 
 export default function Home() {
   return (
@@ -28,6 +33,12 @@ function HomeInner() {
   });
   useErrorToast(ticketStatus.error, "Failed to fetch ticket statistics");
 
+  const expertObjections = useQuery({
+    queryKey: ["expertObjections"],
+    queryFn: () => getExpertsObjectionSummary(),
+  });
+  useErrorToast(expertObjections.error, "Failed to fetch objection statistics");
+
   return (
     <div className="flex flex-col">
       <PageHeader label="Dashboard" />
@@ -44,6 +55,13 @@ function HomeInner() {
             title="Tickets"
             description="An overview of the tickets created within the last month"
             data={ticketStatus.data}
+          />
+        )}
+        {expertObjections.data && (
+          <ObjectionBarChart
+            title="Objections"
+            description="How many objections were submitted for each expert"
+            data={expertObjections.data}
           />
         )}
       </div>

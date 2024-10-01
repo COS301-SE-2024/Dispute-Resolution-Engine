@@ -13,6 +13,7 @@ func SetupAnalyticsRoute(router *gin.RouterGroup, h AdminAnalyticsHandler) {
 	router.GET("/time/estimation", h.GetTimeEstimation)
 	router.GET("/dispute/countries", h.GetDisputeGrouping) //by status or country
 	router.POST("/stats/:table", h.GetTableStats)
+	router.POST("/monthly/:table", h.GetMonthlyStats)
 
 }
 
@@ -105,7 +106,38 @@ func (h AdminAnalyticsHandler) GetTableStats(c *gin.Context) {
 	c.JSON(200, models.Response{Data: resCount})
 }
 
+func (h AdminAnalyticsHandler) GetMonthlyStats(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+	if !h.IsAuthorized(c, "admin", logger) {
+		return
+	}
 
+	table := c.Param("table")
+	if table == "" {
+		logger.Error("Invalid request")
+		c.JSON(400, models.Response{Error: "Invalid request"})
+		return
+	}
+
+	// Get body
+	var body models.GroupingAnalytics
+	if err := c.BindJSON(&body); err != nil {
+		logger.WithError(err).Error("Failed to bind request body")
+		c.JSON(400, models.Response{Error: "Failed to bind request body"})
+		return
+	}
+
+	// Call the CountRecordsWithGroupBy function
+	resCount, err := h.DB.CountDisputesByMonth(table, "created_at")
+	if err != nil {
+		logger.WithError(err).Error("Failed to count records")
+		c.JSON(http.StatusBadRequest, models.Response{Error: "Failed to count records"})
+		return
+	}
+
+	// Return the result as a JSON response
+	c.JSON(200, models.Response{Data: resCount})
+}
 
 func (h AdminAnalyticsHandler) IsAuthorized(c *gin.Context, role string, logger *utilities.Logger) bool {
 	claims, err := h.JWT.GetClaims(c)

@@ -18,6 +18,10 @@ type AdminAnalyticsDBModel interface {
 		groupBy *string,
 	) (map[string]int64, error)
 	GetDisputeGroupingByCountry() (map[string]int, error)
+	CountDisputesByMonth(
+		tableName string,
+		dateColumn string,
+	) (map[string]int64, error)
 }
 
 type AdminAnalyticsHandler struct {
@@ -195,3 +199,52 @@ func (h AdminAnalyticsDBModelReal) GetDisputeGroupingByCountry() (map[string]int
 
 	return countryCounts, nil
 }
+
+
+type MonthCount struct {
+	Month        string
+	DisputeCount int64
+}
+func (h AdminAnalyticsDBModelReal) CountDisputesByMonth(
+	tableName string,
+	dateColumn string,
+) (map[string]int64, error) {
+	// Define a list of allowed tables and their date columns for validation
+	allowedDateColumns := map[string]bool{
+		"case_date":     true,
+		"date_resolved": true,
+		"created_at":    true,
+		"resolved_at":   true,
+	}
+
+	// Validate the date column
+	if _, ok := allowedDateColumns[dateColumn]; !ok {
+		return nil, errors.New("invalid date column name")
+	}
+
+	// Result map to store the counts grouped by month
+	recordCounts := make(map[string]int64)
+
+	// Slice to hold the results of the query
+	var results []MonthCount
+
+	// Build and execute the SQL query
+	err := h.DB.Table(tableName).
+		Select("TO_CHAR(" + dateColumn + ", 'YYYY-MM') AS month, COUNT(*) AS dispute_count").
+		Group("TO_CHAR(" + dateColumn + ", 'YYYY-MM')").
+		Order("month").
+		Scan(&results).Error
+
+	// Handle any errors during query execution
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the results into the map
+	for _, result := range results {
+		recordCounts[result.Month] = result.DisputeCount
+	}
+
+	return recordCounts, nil
+}
+

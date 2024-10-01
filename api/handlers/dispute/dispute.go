@@ -25,16 +25,44 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 
 	g.GET("", h.GetSummaryListOfDisputes)
 	g.POST("/create", h.CreateDispute)
-	g.GET("/:id", h.GetDispute)
 
 	g.POST("", h.GetSummaryListOfDisputes)
-	g.POST("/:id/objections", h.ExpertObjection)
 	g.PATCH("/objections/:id", h.ExpertObjectionsReview)
 	g.POST("/experts/objections", h.ViewExpertRejections)
-	g.POST("/:id/evidence", h.UploadEvidence)
-	g.POST("/:id/decision", h.SubmitWriteup)
-	g.PUT("/:id/status", h.UpdateStatus)
-	g.GET("/:id/workflow", h.GetWorkflow)
+
+	disputeGroup := g.Group("/:id")
+	disputeGroup.Use(func(c *gin.Context) {
+		claims, err := h.JWT.GetClaims(c)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			return
+		}
+
+		disputeId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+			return
+		}
+
+		isAuth, err := h.isAuthenticated(claims.ID, int64(disputeId))
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "something went wrong"})
+			return
+		}
+
+		if !isAuth {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			return
+		}
+		c.Next()
+	})
+
+	disputeGroup.GET("/", h.GetDispute)
+	disputeGroup.POST("/objections", h.ExpertObjection)
+	disputeGroup.POST("/evidence", h.UploadEvidence)
+	disputeGroup.POST("/decision", h.SubmitWriteup)
+	disputeGroup.PUT("/status", h.UpdateStatus)
+	disputeGroup.GET("/workflow", h.GetWorkflow)
 
 	g.PUT("/statemachine/:id", h.TransitionStateMachine)
 
@@ -256,6 +284,14 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 }
 
 func (h Dispute) isAuthenticated(userId int64, disputeId int64) (bool, error) {
+	user, err := h.Model.GetUserById(userId)
+	if err != nil {
+		return false, err
+	}
+	if user.Role == "admin" {
+		return true, err
+	}
+
 	dispute, err := h.Model.GetDispute(disputeId)
 	if err != nil {
 		return false, err
@@ -316,16 +352,6 @@ func (h Dispute) GetDispute(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusOK, models.Response{Data: dispute})
-		return
-	}
-
-	isAuth, err := h.isAuthenticated(jwtClaims.ID, int64(id))
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "something went wrong"})
-		return
-	}
-	if !isAuth {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
 

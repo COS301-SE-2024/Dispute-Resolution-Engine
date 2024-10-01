@@ -86,6 +86,10 @@ func (h AdminAnalyticsDBModelReal) CountRecordsWithGroupBy(
 		"expert_objections": {
 			"status": true,
 		},
+		"expert_objections_view": {
+			"expert_full_name": true,
+			"dispute_title":    true,
+		},
 	}
 
 	// Validate the table name

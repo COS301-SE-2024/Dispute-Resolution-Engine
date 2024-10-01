@@ -255,6 +255,32 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: summaries})
 }
 
+func (h Dispute) isAuthenticated(userId int64, disputeId int64) (bool, error) {
+	dispute, err := h.Model.GetDispute(disputeId)
+	if err != nil {
+		return false, err
+	}
+
+	if dispute.Complainant == userId {
+		return true, nil
+	}
+	if *dispute.Respondant == userId {
+		return true, nil
+	}
+
+	experts, err := h.Model.GetDisputeExperts(disputeId)
+	if err != nil {
+		return false, err
+	}
+	for _, expert := range experts {
+		if expert.ID == fmt.Sprintf("%d", userId) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
 // @Summary Get a dispute
 // @Description Get a dispute
 // @Tags dispute
@@ -290,6 +316,16 @@ func (h Dispute) GetDispute(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusOK, models.Response{Data: dispute})
+		return
+	}
+
+	isAuth, err := h.isAuthenticated(jwtClaims.ID, int64(id))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "something went wrong"})
+		return
+	}
+	if !isAuth {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return
 	}
 

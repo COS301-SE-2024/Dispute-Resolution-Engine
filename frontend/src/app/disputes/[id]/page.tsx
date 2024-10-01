@@ -17,6 +17,7 @@ import WorkflowSelect from "@/components/form/workflow-select";
 import DisputeHeader from "@/components/dispute/dispute-header";
 import Link from "next/link";
 import { State } from "@/lib/interfaces/workflow";
+import { getDisputeEstimate } from "@/lib/api/analytics";
 
 type Props = {
   params: { id: string };
@@ -32,8 +33,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DisputePage({ params }: Props) {
   const { data, error } = await getDisputeDetails(params.id);
   const workflow = await getDisputeWorkflow(params.id);
+  const estimate = await getDisputeEstimate(params.id);
   if (error || !data) {
     return <h1>{error}</h1>;
+  }
+
+  let result = "";
+  if (estimate.days > 0) {
+    result += `${estimate.days} days`;
+  }
+
+  if (estimate.hours > 0) {
+    if (result.length > 0) result += ", ";
+    result += `${estimate.hours} hours`;
+  }
+
+  if (estimate.minutes > 0) {
+    if (result.length > 0) result += ", ";
+    result += `${estimate.minutes} minutes`;
   }
 
   return (
@@ -44,6 +61,7 @@ export default async function DisputePage({ params }: Props) {
         startDate={data.case_date.substring(0, 10)}
         status={data.status}
         state={workflow.definition.states[workflow.current_state]}
+        estimate={result}
       />
       <Separator />
       <ScrollArea className="grow overflow-y-auto p-4">
@@ -60,6 +78,7 @@ function DisputeHeader2(props: {
   startDate: string;
   status: string;
   state: State;
+  estimate: string;
 }) {
   // TODO: Add contracts for this
   const user = (jwtDecode(getAuthToken()) as any).user.id;

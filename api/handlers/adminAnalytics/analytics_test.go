@@ -71,6 +71,18 @@ type DisputeStatusCount struct {
 	Count  int64
 }
 
+func (h *mockAdminAnalyticsModel) CountDisputesByMonth(
+	tableName string,
+	dateColumn string,
+) (map[string]int64, error) {
+	return nil, nil
+}
+
+
+func (h *mockAdminAnalyticsModel) CalculateAverageResolutionTimeByMonth() (map[string]float64, error) {
+	return nil, nil
+}
+
 // GetDisputeGroupingByStatus counts the number of disputes grouped by their statuses.
 func (h *mockAdminAnalyticsModel) CountRecordsWithGroupBy(
 	tableName string,

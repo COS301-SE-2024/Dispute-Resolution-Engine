@@ -293,3 +293,7 @@ type AdminTableStats struct {
 	Group *string      `json:"group,omitempty"`
 	Where *Columnvalue `json:"where,omitempty"`
 }
+
+type GroupingAnalytics struct {
+	Group *string `json:"group"`
+}

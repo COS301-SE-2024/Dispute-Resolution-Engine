@@ -581,7 +581,9 @@ func (m *disputeModelReal) UpdateDisputeStatus(disputeId int64, status string) e
 		if err4 != nil {
 			logger.WithError(err4).Error("Something went wrong getting the API key.")
 		}
-		go m.GenerateAISummary(disputeId, dbDispute.Description, apiKey)
+		if dbDispute.DateResolved != nil {
+			go m.GenerateAISummary(disputeId, dbDispute.Description, apiKey)
+		}
 		return err
 	}
 }

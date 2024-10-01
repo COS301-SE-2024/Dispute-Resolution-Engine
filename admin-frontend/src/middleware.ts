@@ -14,7 +14,7 @@ function isPathValid(path: string, validPaths: string[]) {
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname == "/admin/login") {
+  if (request.nextUrl.pathname == "/admin/login" || request.nextUrl.pathname.startsWith("/_next")) {
     return;
   }
 

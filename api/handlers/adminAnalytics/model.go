@@ -10,6 +10,7 @@ import (
 )
 
 type AdminAnalyticsDBModel interface {
+	CalculateAverageResolutionTimeByMonth() (map[string]float64, error)
 	CalculateAverageResolutionTime() (float64, error)
 	CountRecordsWithGroupBy(
 		tableName string,
@@ -18,6 +19,10 @@ type AdminAnalyticsDBModel interface {
 		groupBy *string,
 	) (map[string]int64, error)
 	GetDisputeGroupingByCountry() (map[string]int, error)
+	CountDisputesByMonth(
+		tableName string,
+		dateColumn string,
+	) (map[string]int64, error)
 }
 
 type AdminAnalyticsHandler struct {
@@ -38,6 +43,41 @@ func NewAdminAnalyticsHandler(db *gorm.DB, envReader env.Env) AdminAnalyticsHand
 		JWT:       middleware.NewJwtMiddleware(),
 	}
 }
+
+func (a AdminAnalyticsDBModelReal) CalculateAverageResolutionTimeByMonth() (map[string]float64, error) {
+	// Map to store average resolution times grouped by month
+	averageTimeByMonth := make(map[string]float64)
+
+	// Define a struct to hold the query result
+	type MonthAvgResolution struct {
+		Month       string  // Month in the format 'YYYY-MM'
+		AverageTime float64 // Average resolution time in days
+	}
+
+	// Slice to hold the results of the query
+	var results []MonthAvgResolution
+
+	// Query to calculate the average resolution time grouped by month (ignoring NULLs)
+	err := a.DB.Model(&models.Dispute{}).
+		Select("TO_CHAR(case_date, 'YYYY-MM') AS month, avg(date_resolved - case_date) AS average_time").
+		Where("date_resolved IS NOT NULL").
+		Group("TO_CHAR(case_date, 'YYYY-MM')").
+		Order("month").
+		Scan(&results).Error
+
+	// Handle any errors during the query execution
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the results into the map
+	for _, result := range results {
+		averageTimeByMonth[result.Month] = result.AverageTime
+	}
+
+	return averageTimeByMonth, nil
+}
+
 
 func (a AdminAnalyticsDBModelReal) CalculateAverageResolutionTime() (float64, error) {
 	var averageTime float64
@@ -85,6 +125,10 @@ func (h AdminAnalyticsDBModelReal) CountRecordsWithGroupBy(
 		},
 		"expert_objections": {
 			"status": true,
+		},
+		"expert_objections_view": {
+			"expert_full_name": true,
+			"dispute_title":    true,
 		},
 	}
 
@@ -191,3 +235,52 @@ func (h AdminAnalyticsDBModelReal) GetDisputeGroupingByCountry() (map[string]int
 
 	return countryCounts, nil
 }
+
+
+type MonthCount struct {
+	Month        string
+	DisputeCount int64
+}
+func (h AdminAnalyticsDBModelReal) CountDisputesByMonth(
+	tableName string,
+	dateColumn string,
+) (map[string]int64, error) {
+	// Define a list of allowed tables and their date columns for validation
+	allowedDateColumns := map[string]bool{
+		"case_date":     true,
+		"date_resolved": true,
+		"created_at":    true,
+		"resolved_at":   true,
+	}
+
+	// Validate the date column
+	if _, ok := allowedDateColumns[dateColumn]; !ok {
+		return nil, errors.New("invalid date column name")
+	}
+
+	// Result map to store the counts grouped by month
+	recordCounts := make(map[string]int64)
+
+	// Slice to hold the results of the query
+	var results []MonthCount
+
+	// Build and execute the SQL query
+	err := h.DB.Table(tableName).
+		Select("TO_CHAR(" + dateColumn + ", 'YYYY-MM') AS month, COUNT(*) AS dispute_count").
+		Group("TO_CHAR(" + dateColumn + ", 'YYYY-MM')").
+		Order("month").
+		Scan(&results).Error
+
+	// Handle any errors during query execution
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the results into the map
+	for _, result := range results {
+		recordCounts[result.Month] = result.DisputeCount
+	}
+
+	return recordCounts, nil
+}
+

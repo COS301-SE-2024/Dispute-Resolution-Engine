@@ -1,4 +1,5 @@
 import { Result } from "../types";
+import { sf, validateResult } from "../util";
 import { getAuthToken } from "../util/jwt";
 import { API_URL } from "../utils";
 
@@ -23,4 +24,18 @@ export async function fetchUserCountryDistribution(): Promise<Result<CountryCoun
   return res.json().catch(async (e: Error) => ({
     error: e.message,
   }));
+}
+
+export interface DisputeEstimate {
+  days: number;
+  hours: number;
+  minutes: number;
+}
+export async function getDisputeEstimate(id: string): Promise<DisputeEstimate> {
+  return sf(`${API_URL}/analytics/time/estimation`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+  }).then(validateResult<DisputeEstimate>);
 }

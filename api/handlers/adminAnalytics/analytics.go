@@ -11,11 +11,13 @@ import (
 
 func SetupAnalyticsRoute(router *gin.RouterGroup, h AdminAnalyticsHandler) {
 	router.GET("/time/estimation", h.GetTimeEstimation)
+	router.GET("/time/estimation/monthly", h.GetTimeEstimationByMonth)
 	router.GET("/dispute/countries", h.GetDisputeGrouping) //by status or country
 	router.POST("/stats/:table", h.GetTableStats)
 	router.POST("/monthly/:table", h.GetMonthlyStats)
 
 }
+
 
 func (h AdminAnalyticsHandler) GetTimeEstimation(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
@@ -147,4 +149,22 @@ func (h AdminAnalyticsHandler) IsAuthorized(c *gin.Context, role string, logger 
 		return false
 	}
 	return true
+}
+
+
+func (h AdminAnalyticsHandler) GetTimeEstimationByMonth(c *gin.Context) {
+	logger := utilities.NewLogger().LogWithCaller()
+	if !h.IsAuthorized(c, "admin", logger) {
+		return
+	}
+
+	avg, err := h.DB.CalculateAverageResolutionTimeByMonth()
+	if err != nil {
+		logger.WithError(err).Error("Failed to calculate average resolution time")
+		c.JSON(500, models.Response{Error: "No disputes Have been resolved yet"})
+		return
+	}
+
+	// Prepare the response
+	c.JSON(200, models.Response{Data: avg})
 }

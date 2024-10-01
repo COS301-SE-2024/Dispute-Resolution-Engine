@@ -78,6 +78,11 @@ func (h *mockAdminAnalyticsModel) CountDisputesByMonth(
 	return nil, nil
 }
 
+
+func (h *mockAdminAnalyticsModel) CalculateAverageResolutionTimeByMonth() (map[string]float64, error) {
+	return nil, nil
+}
+
 // GetDisputeGroupingByStatus counts the number of disputes grouped by their statuses.
 func (h *mockAdminAnalyticsModel) CountRecordsWithGroupBy(
 	tableName string,

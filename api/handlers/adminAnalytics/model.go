@@ -10,6 +10,7 @@ import (
 )
 
 type AdminAnalyticsDBModel interface {
+	CalculateAverageResolutionTimeByMonth() (map[string]float64, error)
 	CalculateAverageResolutionTime() (float64, error)
 	CountRecordsWithGroupBy(
 		tableName string,
@@ -42,6 +43,41 @@ func NewAdminAnalyticsHandler(db *gorm.DB, envReader env.Env) AdminAnalyticsHand
 		JWT:       middleware.NewJwtMiddleware(),
 	}
 }
+
+func (a AdminAnalyticsDBModelReal) CalculateAverageResolutionTimeByMonth() (map[string]float64, error) {
+	// Map to store average resolution times grouped by month
+	averageTimeByMonth := make(map[string]float64)
+
+	// Define a struct to hold the query result
+	type MonthAvgResolution struct {
+		Month       string  // Month in the format 'YYYY-MM'
+		AverageTime float64 // Average resolution time in days
+	}
+
+	// Slice to hold the results of the query
+	var results []MonthAvgResolution
+
+	// Query to calculate the average resolution time grouped by month (ignoring NULLs)
+	err := a.DB.Model(&models.Dispute{}).
+		Select("TO_CHAR(case_date, 'YYYY-MM') AS month, avg(date_resolved - case_date) AS average_time").
+		Where("date_resolved IS NOT NULL").
+		Group("TO_CHAR(case_date, 'YYYY-MM')").
+		Order("month").
+		Scan(&results).Error
+
+	// Handle any errors during the query execution
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert the results into the map
+	for _, result := range results {
+		averageTimeByMonth[result.Month] = result.AverageTime
+	}
+
+	return averageTimeByMonth, nil
+}
+
 
 func (a AdminAnalyticsDBModelReal) CalculateAverageResolutionTime() (float64, error) {
 	var averageTime float64

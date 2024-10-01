@@ -12,6 +12,7 @@ describe("Navigation", () => {
      * Check that the right tings are there
      */
     cy.visit("/admin")
+    cy.wait(1000)
     cy.get(':nth-child(2) > .inline-flex').first().click();
     cy.get('div.flex-col > header.flex > .grow').should('be.visible');
     cy.get('input[placeholder="Search tickets..."]').should('be.visible');

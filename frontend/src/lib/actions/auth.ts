@@ -87,22 +87,16 @@ export async function signout() {
   redirect("/login");
 }
 
-export async function verify(
-  _initialState: any,
-  formData: FormData
-): Promise<Result<string, LoginError>> {
+export async function verify(payload: unknown): Promise<never> {
   // Parse the form data
-  const formObject = Object.fromEntries(formData);
-  const { data, error } = verifySchema.safeParse(formObject);
+  const { data, error } = verifySchema.safeParse(payload);
   if (error) {
-    return {
-      error: error.format(),
-    };
+    throw new Error(error.issues[0].message);
   }
 
   // TODO: uncomment once API works
   // Send request to the API
-  const res = await formFetch<LoginData, string>(`${API_URL}/auth/verify`, {
+  const res = await sf(`${API_URL}/auth/verify`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
@@ -110,15 +104,10 @@ export async function verify(
     body: JSON.stringify({
       pin: data.pin,
     }),
-  });
-
-  // Handle Errors
-  if (res.error) {
-    return res;
-  }
+  }).then(validateResult<string>);
 
   // Everything good
-  setAuthToken(res.data);
+  setAuthToken(res);
   redirect("/disputes");
 }
 

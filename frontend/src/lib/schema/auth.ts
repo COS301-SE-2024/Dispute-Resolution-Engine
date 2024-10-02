@@ -31,13 +31,10 @@ export type ResetPassError = z.ZodFormattedError<ResetPassData>;
 
 export const signupSchema = z
   .object({
-    userType: z.enum(["user", "expert"]),
     firstName: z.string().min(1, "Required"),
     lastName: z.string().min(1, "Required"),
     email: z.string().min(1, "Required").email("Please enter a valid email"),
-    gender: z.string().min(1, "Required"),
     nationality: z.string().min(1, "Required"),
-    preferredLanguage: z.string().min(1, "Required"),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters long")
@@ -45,8 +42,6 @@ export const signupSchema = z
       .regex(/[A-Za-z]/gm, "Password must contain at least one letter")
       .regex(/[^\w\d\s:]/gm, "Password must contain a special character"),
     passwordConfirm: z.string(),
-
-    dateOfBirth: z.string().date("Invalid date"),
   })
   .superRefine((arg, ctx) => {
     if (arg.password !== arg.passwordConfirm) {

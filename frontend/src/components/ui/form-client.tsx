@@ -18,18 +18,16 @@ export function FormMessage<T extends FieldValues>({
     formState: { errors },
   } = useFormContext<T>();
   const error = errors[name ?? "root"]?.message as string | undefined;
-  if (!error) {
-    return null;
-  }
-
   return (
-    <p
-      role="alert"
-      className={cn("text-xs font-medium text-red-500 dark:text-red-500", className)}
-      {...props}
-    >
-      {error}
-    </p>
+    error && (
+      <p
+        role="alert"
+        className={cn("text-xs font-medium text-red-500 dark:text-red-500", className)}
+        {...props}
+      >
+        {error}
+      </p>
+    )
   );
 }
 

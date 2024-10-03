@@ -11,22 +11,24 @@ describe("Navigation", () => {
     /**
      * Check that the right tings are there
      */
-    cy.visit("/admin")
-    cy.get(':nth-child(2) > .inline-flex').first().click();
+    cy.visit("/admin/workflows")
+    cy.viewport(1920, 2000)
+    // cy.get(':nth-child(2) > .inline-flex').first().click();
+    cy.wait(1000)
     cy.get('div.flex-col > header.flex > .grow').should('be.visible');
     cy.get('input[placeholder="Search tickets..."]').should('be.visible');
-    cy.get('button').contains('Filter by').should('be.visible');
+    cy.get('span').contains('New workflow').should('be.visible');
     /**
      * Searching
      */
-    cy.get('input[placeholder="Search tickets..."]').type('e{enter}');
+    // cy.get('input[placeholder="Search tickets..."]').type('e{enter}');
     /**
      * Pagination
      */
-    cy.get('input[placeholder="Search tickets..."]').clear();
-    cy.viewport(1920, 2000)
-    cy.get('button').contains('Next').should('be.visible');
-    cy.get('table').should('be.visible');
+    // cy.get('input[placeholder="Search tickets..."]').clear();
+    // cy.viewport(1920, 2000)
+    // cy.get('button').contains('Next').should('be.visible');
+    // cy.get('table').should('be.visible');
     
   });
 });

@@ -1,4 +1,4 @@
-package handlers
+package archive
 
 import (
 	"api/models"
@@ -37,40 +37,12 @@ func (h Archive) Highlights(c *gin.Context) {
 		return
 	}
 
-	// Query the database
-	var disputes []models.Dispute
-	if err := h.DB.Model(&models.Dispute{}).
-		Where("status = ?", models.StatusSettled).
-		Or("status = ?", models.StatusRefused).
-		Or("status = ?", models.StatusWithdrawn).
-		Or("status = ?", models.StatusTransfer).
-		Or("status = ?", models.StatusAppeal).
-		Limit(limit).Scan(&disputes).Error; err != nil {
+	err, summaries := h.Model.GetArchives(&limit)
+	if err != nil {
 		logger.WithError(err).Error("Error retrieving disputes")
 		c.JSON(http.StatusInternalServerError, models.Response{Error: "Error retrieving disputes"})
 		return
 	}
-
-	// Transform the results to ArchivedDisputeSummary
-	summaries := make([]models.ArchivedDisputeSummary, len(disputes))
-	for i, dispute := range disputes {
-		disputeSummary := models.DisputeSummaries{}
-		err := h.DB.Model(models.DisputeSummaries{}).Where("dispute = ?", *dispute.ID).First(&disputeSummary).Error
-		if err != nil {
-			logger.WithError(err).Error("Could not get dispute for id:" + fmt.Sprint(*dispute.ID))
-		}
-		summaries[i] = models.ArchivedDisputeSummary{
-			ID:           *dispute.ID,
-			Title:        dispute.Title,
-			Description:  dispute.Description,
-			Summary:      disputeSummary.Summary,
-			Category:     []string{"Dispute"}, // Assuming a default category for now
-			DateFiled:    dispute.CaseDate.Format("2006-08-01"),
-			DateResolved: dispute.CaseDate.Add(48 * time.Hour).Format("2006-08-01"), // Placeholder for resolved date
-			Resolution:   string(dispute.Status),
-		}
-	}
-
 	// Return the response
 	logger.Info("Successfully retrieved disputes")
 	c.JSON(http.StatusOK, models.Response{Data: models.ArchiveSearchResponse{

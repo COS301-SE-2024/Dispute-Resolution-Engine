@@ -1,4 +1,4 @@
-package handlers_test
+package archive_test
 
 import (
 	"api/handlers"

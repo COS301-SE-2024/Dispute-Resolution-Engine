@@ -6,8 +6,9 @@ import (
 	"api/env"
 	"api/handlers"
 	adminanalytics "api/handlers/adminAnalytics"
+	"api/handlers/archive"
 	"api/handlers/dispute"
-	"api/handlers/orchestratorNotification"
+	orchestratornotification "api/handlers/orchestratorNotification"
 
 	"api/handlers/ticket"
 
@@ -97,7 +98,7 @@ func main() {
 	authHandler := handlers.NewAuthHandler(DB)
 	userHandler := handlers.NewUserHandler(DB)
 	disputeHandler := dispute.NewHandler(DB, envLoader)
-	archiveHandler := handlers.NewArchiveHandler(DB)
+	archiveHandler := archive.NewHandler(DB, envLoader)
 	analyticsHandler := adminanalytics.NewAdminAnalyticsHandler(DB, envLoader)
 	// expertHandler := handlers.NewExpertHandler(DB)
 	utilityHandler := handlers.NewUtilitiesHandler(DB)
@@ -135,7 +136,7 @@ func main() {
 	dispute.SetupRoutes(disputeGroup, disputeHandler)
 
 	archiveGroup := router.Group("/archive")
-	handlers.SetupArchiveRoutes(archiveGroup, archiveHandler)
+	archive.SetupArchiveRoutes(archiveGroup, archiveHandler)
 
 	analyticsGroup := router.Group("/analytics")
 	analyticsGroup.Use(jwt.JWTMiddleware)
@@ -186,6 +187,5 @@ func main() {
 		}
 	}()
 
-	
 	select {}
 }

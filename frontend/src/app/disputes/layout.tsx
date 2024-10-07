@@ -14,8 +14,8 @@ export default function DisputeRootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex items-stretch h-full lg:w-3/4 mx-auto">
-      <div className="flex shrink-0 flex-col gap-4 h-full p-4">
+    <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] h-full">
+      <div className="shrink-0 flex-col gap-4 h-full p-4 hidden md:flex">
         <ClientSearch />
 
         <Button asChild className="mt-auto">
@@ -24,8 +24,8 @@ export default function DisputeRootLayout({
           </Link>
         </Button>
       </div>
-      <Separator orientation="vertical" />
-      {children}
+      <div className="overflow-y-auto">{children}</div>
+      {/* <Separator orientation="vertical" /> */}
     </div>
   );
 }

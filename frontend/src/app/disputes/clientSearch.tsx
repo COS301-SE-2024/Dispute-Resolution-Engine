@@ -1,7 +1,6 @@
 "use client";
 import { getDisputeList } from "@/lib/api/dispute";
 import { DisputeLink } from "./link";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Loader from "@/components/Loader";
@@ -31,7 +30,7 @@ export default function ClientSearch() {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-      <nav className="h-full w-60">
+      <nav className="h-full md:w-60 overflow-y-auto">
         <Suspense fallback={<Loader />}>
           <ul className="space-y-2">
             {filteredData.length > 0 ? (

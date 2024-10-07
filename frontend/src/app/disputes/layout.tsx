@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Metadata } from "next";
 import ClientSearch from "./clientSearch";
+import { MenuIcon } from "lucide-react";
+import DisputeList from "./dispute-list";
 
 export const metadata: Metadata = {
   title: "DRE - Disputes",
@@ -15,7 +17,7 @@ export default function DisputeRootLayout({
 }>) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] h-full">
-      <div className="shrink-0 flex-col gap-4 h-full p-4 hidden md:flex">
+      <div className="flex-col gap-4 h-full p-4 flex row-start-2 md:row-start-1 border-t md:border-r border-dre-200">
         <ClientSearch />
 
         <Button asChild className="mt-auto">

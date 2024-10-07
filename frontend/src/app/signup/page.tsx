@@ -22,7 +22,7 @@ export default function Signup() {
           <footer className="flex items-center flex-wrap gap-2 pb-4">
             <p className="grow">
               Already have an account?{" "}
-              <Link href="/login" className="hover:underline">
+              <Link href="/login" className="hover:underline dark:text-dre-100 text-dre-200">
                 Login
               </Link>
             </p>

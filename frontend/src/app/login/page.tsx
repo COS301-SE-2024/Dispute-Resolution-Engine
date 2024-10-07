@@ -42,8 +42,8 @@ export default function Login() {
           </CardContent>
           <CardFooter className="mt-auto flex justify-between">
             <p>
-              {"Don't have an account?"}
-              <Link href="/signup" className={cn(buttonVariants({ variant: "link" }), "text-left")}>
+              {"Don't have an account? "}
+              <Link href="/signup" className="hover:underline dark:text-dre-100 text-dre-200">
                 Create one
               </Link>
             </p>

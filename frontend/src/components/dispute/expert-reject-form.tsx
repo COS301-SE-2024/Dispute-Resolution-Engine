@@ -12,7 +12,7 @@ import { Form, FormMessage, FormField, FormSubmit } from "../ui/form-server";
 import { ExpertRejectData } from "@/lib/schema/dispute";
 import { rejectExpert } from "@/lib/actions/dispute";
 import { Textarea } from "../ui/textarea";
-import { useId } from "react";
+import { ReactNode, useId } from "react";
 import { DialogDescription } from "@radix-ui/react-dialog";
 
 const RejectForm = Form<ExpertRejectData>;
@@ -23,18 +23,20 @@ export default function ExpertRejectForm({
   name,
   expertId,
   disputeId,
+  children,
+  asChild,
 }: {
   name?: string;
   expertId: string;
   disputeId: string;
+  children: ReactNode;
+  asChild?: boolean;
 }) {
   const reasonId = useId();
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="destructive">Reject</Button>
-      </DialogTrigger>
+      <DialogTrigger asChild={asChild}>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Object to Expert Assignment</DialogTitle>

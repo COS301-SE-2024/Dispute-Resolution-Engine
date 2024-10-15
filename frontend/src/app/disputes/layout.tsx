@@ -4,7 +4,6 @@ import { Separator } from "@/components/ui/separator";
 import { Metadata } from "next";
 import ClientSearch from "./clientSearch";
 import { MenuIcon } from "lucide-react";
-import DisputeList from "./dispute-list";
 
 export const metadata: Metadata = {
   title: "DRE - Disputes",

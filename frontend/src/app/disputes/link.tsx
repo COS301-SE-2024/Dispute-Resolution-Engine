@@ -18,7 +18,7 @@ export function DisputeLink({
   dispute: string;
 }) {
   const { id } = useParams();
-  const c = cn(buttonVariants({ variant: dispute == id ? "default" : "ghost" }), "flex");
+  const c = cn(buttonVariants({ variant: "ghost" }), "flex");
   return (
     <Link href={`/disputes/${dispute}`} className={c}>
       <span className="grow truncate" title={title}>

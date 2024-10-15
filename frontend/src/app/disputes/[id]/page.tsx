@@ -37,7 +37,7 @@ export default async function DisputePage({ params }: Props) {
   }
 
   return (
-    <div className="grow overflow-y-auto flex flex-col">
+    <div className="grid grid-rows-[auto_1fr] overflow-y-hidden">
       <DisputeHeader2
         id={data.id}
         label={data.title}
@@ -45,11 +45,9 @@ export default async function DisputePage({ params }: Props) {
         status={data.status}
         state={workflow.definition.states[workflow.current_state]}
       />
-      <Separator />
-      <ScrollArea className="grow overflow-y-auto p-4">
+      <div className="overflow-y-auto p-5">
         <DisputeClientPage data={data} />
-      </ScrollArea>
-      <Separator />
+      </div>
     </div>
   );
 }

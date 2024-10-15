@@ -20,7 +20,7 @@ export default function DisputeHeader({
 }) {
   return (
     <TooltipProvider>
-      <header className="p-4 py-6 grid grid-cols-1 md:grid-cols-[1fr_auto] items-start gap-y-4">
+      <header className="p-4 py-6 grid grid-cols-1 md:grid-cols-[1fr_auto] items-start gap-y-4 border-b border-primary-500/30">
         <div>
           <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl text-wrap">
             {label}

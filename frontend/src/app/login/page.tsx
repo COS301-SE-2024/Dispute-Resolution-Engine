@@ -18,7 +18,7 @@ export default function Login() {
 
   return (
     <main className="md:pt-3 h-full">
-      <Card variant="page" asChild>
+      <Card asChild>
         <LoginForm className="flex flex-col" action={login}>
           <CardHeader>
             <CardTitle>Login</CardTitle>

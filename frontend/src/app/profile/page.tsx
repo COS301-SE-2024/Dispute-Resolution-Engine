@@ -27,7 +27,7 @@ export default async function Profile() {
 
   return (
     <main className="md:py-3 h-full">
-      <Card variant="page" className="max-h-full flex flex-col" asChild>
+      <Card className="max-h-full flex flex-col" asChild>
         <ProfileUpdateForm action={updateProfile}>
           <CardHeader className="mb-4 space-y-3">
             <CardTitle>Edit Profile</CardTitle>

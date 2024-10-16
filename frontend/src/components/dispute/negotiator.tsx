@@ -3,6 +3,7 @@
 import { Expert } from "@/lib/interfaces/dispute";
 import { Badge } from "@/components/ui/badge";
 import ExpertRejectForm from "./expert-reject-form";
+import { Button } from "../ui/button";
 
 export interface ExpertItemProps extends Expert {
   dispute_id: string;
@@ -28,7 +29,10 @@ export default function ExpertItem(props: ExpertItemProps) {
             disputeId={props.dispute_id}
             expertId={props.id}
             name={props.full_name}
-          />
+            asChild
+          >
+            <Button variant="destructive">Object to expert</Button>
+          </ExpertRejectForm>
         </div>
       </div>
     </section>

@@ -7,6 +7,7 @@ import Loader from "@/components/Loader";
 import { DisputeListResponse } from "@/lib/interfaces/dispute";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { PlusIcon } from "lucide-react";
 
 export default function ClientSearch() {
   const baseDLR = useMemo<DisputeListResponse>(() => [], []);
@@ -50,8 +51,11 @@ export default function ClientSearch() {
         </Suspense>
       </nav>
 
-      <Button asChild>
-        <Link href="/disputes/create">+ Create</Link>
+      <Button asChild className="gap-2 items-center">
+        <Link href="/disputes/create">
+          <PlusIcon size="1rem" />
+          File a new dispute
+        </Link>
       </Button>
     </div>
   );

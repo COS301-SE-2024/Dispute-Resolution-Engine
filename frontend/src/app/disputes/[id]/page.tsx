@@ -19,6 +19,7 @@ import DisputeDecisionForm from "@/components/dispute/decision-form";
 import { jwtDecode } from "jwt-decode";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Content, Header, Root } from "../custom-layout";
 
 type Props = {
   params: { id: string };
@@ -39,7 +40,7 @@ export default async function DisputePage({ params }: Props) {
   }
 
   return (
-    <div className="grid grid-rows-[auto_1fr] overflow-y-hidden">
+    <Root>
       <DisputeHeader
         id={data.id}
         title={data.title}
@@ -48,10 +49,10 @@ export default async function DisputePage({ params }: Props) {
         state={workflow.definition.states[workflow.current_state]}
         estimate="2 days"
       />
-      <div className="overflow-y-auto p-5">
+      <Content>
         <DisputeClientPage data={data} />
-      </div>
-    </div>
+      </Content>
+    </Root>
   );
 }
 
@@ -68,15 +69,18 @@ function DisputeHeader(props: {
 
   return (
     <TooltipProvider>
-      <div className="border-b border-primary-500/30 grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_auto_auto] p-3 gap-3">
-        <Button asChild className="p-2 rounded-full" variant="ghost">
+      <Header className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_auto_auto] gap-3">
+        <Button asChild className="h-fit p-2 rounded-full" variant="ghost">
           <Link href="/disputes">
             <ChevronLeftIcon />
           </Link>
         </Button>
 
-        <section className="mt-1">
-          <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl text-wrap">
+        <section className="mt-1 overflow-x-auto">
+          <h1
+            className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl text-wrap truncate"
+            title={props.title}
+          >
             {props.title}
           </h1>
 
@@ -108,7 +112,7 @@ function DisputeHeader(props: {
 
         <Popover>
           <PopoverTrigger asChild>
-            <Button className="p-2 rounded-full row-start-1 col-start-4" variant="ghost">
+            <Button className="h-fit p-2 rounded-full row-start-1 col-start-4" variant="ghost">
               <EllipsisVerticalIcon />
             </Button>
           </PopoverTrigger>
@@ -137,7 +141,7 @@ function DisputeHeader(props: {
             )}
           </PopoverContent>
         </Popover>
-      </div>
+      </Header>
     </TooltipProvider>
   );
 }

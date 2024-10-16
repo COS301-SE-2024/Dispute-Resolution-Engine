@@ -10,8 +10,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getTicketSummaries } from "@/lib/api/tickets";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
+import { Content, Header, Root } from "../../custom-layout";
 
 type Props = {
   params: { id: string };
@@ -20,15 +21,10 @@ type Props = {
 export default async function TicketsPage({ params: { id } }: Props) {
   const data = await getTicketSummaries(parseInt(id));
   return (
-    <div className="grid grid-rows-[auto_1fr] w-full">
-      <header className="p-4 py-6 border-b border-dre-200/30 grid grid-cols-[auto_1fr_auto] gap-2">
+    <Root>
+      <Header className="grid grid-cols-[auto_1fr_auto] gap-2">
         <div>
-          <Button
-            asChild
-            className="rounded-full aspect-square p-1 justify-center"
-            variant="ghost"
-            title="Back to dispute"
-          >
+          <Button asChild className="rounded-full p-2" variant="ghost" title="Back to dispute">
             <Link href={`/disputes/${id}`}>
               <ChevronLeftIcon />
             </Link>
@@ -41,10 +37,13 @@ export default async function TicketsPage({ params: { id } }: Props) {
           <p>Dispute ID: {id}</p>
         </div>
         <CreateTicketDialog asChild dispute={id}>
-          <Button className="mt-3">Create ticket</Button>
+          <Button className="h-fit self-center gap-1 pl-2">
+            <PlusIcon size="1rem" />
+            Create ticket
+          </Button>
         </CreateTicketDialog>
-      </header>
-      <main className="p-4 py-6">
+      </Header>
+      <Content>
         <ul className="space-y-6">
           {data.tickets.map((ticket) => (
             <Card key={ticket.id} className="p-4 grid grid-cols-[1fr_auto_auto] items-center gap-3">
@@ -59,7 +58,7 @@ export default async function TicketsPage({ params: { id } }: Props) {
             </Card>
           ))}
         </ul>
-      </main>
-    </div>
+      </Content>
+    </Root>
   );
 }

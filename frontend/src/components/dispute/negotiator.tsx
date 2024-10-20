@@ -3,6 +3,7 @@
 import { Expert } from "@/lib/interfaces/dispute";
 import { Badge } from "@/components/ui/badge";
 import ExpertRejectForm from "./expert-reject-form";
+import { Button } from "../ui/button";
 
 export interface ExpertItemProps extends Expert {
   dispute_id: string;
@@ -15,7 +16,7 @@ export default function ExpertItem(props: ExpertItemProps) {
         <h4 className="text-xl font-bold">{props.full_name}</h4>
         <Badge>{props.role}</Badge>
       </div>
-      <div className="flex justify-between flex-wrap gap-3">
+      <div className="flex justify-between flex-wrap gap-3 items-center">
         <dl className="grid grid-cols-2">
           <dt className="font-semibold">Email</dt>
           <dd>{props.email}</dd>
@@ -23,13 +24,14 @@ export default function ExpertItem(props: ExpertItemProps) {
           <dt className="font-semibold">Phone</dt>
           <dd>{props.phone}</dd>
         </dl>
-        <div className="flex gap-2">
-          <ExpertRejectForm
-            disputeId={props.dispute_id}
-            expertId={props.id}
-            name={props.full_name}
-          />
-        </div>
+        <ExpertRejectForm
+          disputeId={props.dispute_id}
+          expertId={props.id}
+          expertName={props.full_name}
+          asChild
+        >
+          <Button variant="destructive">Object to expert</Button>
+        </ExpertRejectForm>
       </div>
     </section>
   );

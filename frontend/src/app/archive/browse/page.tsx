@@ -5,8 +5,8 @@ import Link from "next/link";
 
 function SearchResult(props: ArchivedDisputeSummary) {
   return (
-    <tr className="border rounded-lg overflow-hidden">
-      <td className="border px-4 py-2 text-center">
+    <tr className="rounded-lg overflow-hidden hover:bg-gray-200 dark:hover:bg-blue-600">
+      <td className="border-gray-500 px-4 py-2 text-left">
         <Link href={`/archive/${props.id}`}>
           <h3 className="hover:underline font-semibold text-lg">{props.title}</h3>
         </Link>
@@ -17,10 +17,16 @@ function SearchResult(props: ArchivedDisputeSummary) {
           ))}
         </div>
       </td>
-      <td className="border px-4 py-2 text-center">
-        <p><strong>Date Filed:</strong> {props.date_filed}</p>
-        <p><strong>Date Resolved:</strong> {props.date_resolved ?? "-"}</p>
-        <p><strong>Resolution:</strong> {props.resolution}</p>
+      <td className="border-gray-500 px-8 py-2 text-left">
+        <p>
+          <strong>Date Filed:</strong> {props.date_filed}
+        </p>
+        <p>
+          <strong>Date Resolved:</strong> {props.date_resolved ?? "-"}
+        </p>
+        <p>
+          <strong>Resolution:</strong> {props.resolution}
+        </p>
       </td>
     </tr>
   );
@@ -36,26 +42,30 @@ export default async function ArchiveBrowse() {
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4 text-center">Archived Disputes</h1>
-      <main className="mx-20">
-        <table className="min-w-full divide-y rounded-lg overflow-hidden my-4 bg-dre-300">
-          <thead>
+    <div className="p-8 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold mb-8 text-center text-gray-800 dark:text-gray-100">
+        Archived Disputes
+      </h1>
+      <main className="mx-auto">
+        <table className="min-w-full  bg-white dark:bg-blue-950 rounded-xl shadow-lg overflow-hidden">
+          <thead className="bg-gray-50 dark:bg-blue-900">
             <tr>
-              <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
                 Title & Summary
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
                 Dates & Resolution
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-600 dark:divide-gray-700">
             {data.length > 0 ? (
               data.map((dispute) => <SearchResult key={dispute.id} {...dispute} />)
             ) : (
               <tr>
-                <td className="border px-4 py-2 text-center" colSpan={2}>No results</td>
+                <td className="px-6 py-4 text-center text-gray-500 dark:text-gray-400" colSpan={2}>
+                  No disputes found
+                </td>
               </tr>
             )}
           </tbody>

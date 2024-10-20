@@ -650,6 +650,14 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 func (h Dispute) UpdateStatus(c *gin.Context) {
 	var disputeStatus models.DisputeStatusChange
 	logger := utilities.NewLogger().LogWithCaller()
+	claims, err := h.JWT.GetClaims(c)
+
+	if err != nil || claims.Role != "admin" {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
 	if err := c.BindJSON(&disputeStatus); err != nil {
 		logger.WithError(err).Error("Invalid request body")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
@@ -814,7 +822,7 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 
 	// Get info from token
 	claims, err := h.JWT.GetClaims(c)
-	if err != nil {
+	if err != nil || claims.Role != "admin" {
 		logger.WithError(err).Error("Unauthorized access attempt", claims, err)
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return

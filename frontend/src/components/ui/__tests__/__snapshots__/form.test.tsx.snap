@@ -2,6 +2,6 @@
 
 exports[`renders correctly 1`] = `
 <button
-  className="inline-flex items-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:ring-offset-zinc-950 dark:focus-visible:ring-zinc-300 bg-dre-200 text-zinc-50 hover:bg-dre-200/90 dark:bg-dre-200 dark:text-white dark:hover:bg-dre-200/90 h-10 px-4 py-2"
+  className="py-2 px-3 inline-flex items-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:ring-offset-slate-950 dark:focus-visible:ring-slate-300 bg-primary-500 text-slate-50 hover:bg-primary-500/90 dark:bg-primary-500 dark:text-white dark:hover:bg-primary-500/90"
 />
 `;

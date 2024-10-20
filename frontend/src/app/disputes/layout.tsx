@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Metadata } from "next";
 import ClientSearch from "./clientSearch";
+import { MenuIcon } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "DRE - Disputes",
@@ -14,17 +15,8 @@ export default function DisputeRootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex items-stretch h-full lg:w-3/4 mx-auto">
-      <div className="flex shrink-0 flex-col gap-4 h-full p-4">
-        <ClientSearch />
-
-        <Button asChild className="mt-auto">
-          <Link href="/disputes/create" className="w-full">
-            + Create
-          </Link>
-        </Button>
-      </div>
-      <Separator orientation="vertical" />
+    <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] overflow-y-hidden">
+      <ClientSearch />
       {children}
     </div>
   );

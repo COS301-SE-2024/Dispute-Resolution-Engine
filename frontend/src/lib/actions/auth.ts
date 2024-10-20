@@ -1,6 +1,5 @@
 "use server";
 
-import { Result } from "@/lib/types";
 import {
   LoginData,
   LoginError,
@@ -8,61 +7,55 @@ import {
   ResetLinkError,
   ResetPassData,
   ResetPassError,
-  SignupData,
   loginSchema,
   resetLinkSchema,
   resetPassSchema,
   signupSchema,
   verifySchema,
 } from "@/lib/schema/auth";
-import { API_URL, formFetch, safeFetch } from "@/lib/utils";
+import { Result } from "@/lib/types";
+import { API_URL, formFetch, resultify, safeFetch } from "@/lib/utils";
 import { cookies } from "next/headers";
 
-import { JWT_KEY, JWT_VERIFY_TIMEOUT } from "../constants";
 import { redirect } from "next/navigation";
+import { JWT_KEY, JWT_VERIFY_TIMEOUT } from "../constants";
+import { validateResult } from "../util";
 import { getAuthToken, setAuthToken } from "../util/jwt";
 
-export async function signup(payload: unknown): Promise<Result<string>> {
-  const { data, error } = signupSchema.safeParse(payload);
+export const signup = async (payload: unknown) =>
+  resultify(async () => {
+    const { data, error } = signupSchema.safeParse(payload);
+    if (error) {
+      throw new Error(error.issues[0].message);
+    }
 
-  if (error) {
-    return {
-      error: error.issues[0].message,
-    };
-  }
+    // TODO: uncomment once API works
+    const res = await fetch(`${API_URL}/auth/signup`, {
+      method: "POST",
+      body: JSON.stringify({
+        first_name: data.firstName,
+        surname: data.lastName,
+        nationality: data.nationality,
 
-  // TODO: uncomment once API works
-  const res = await formFetch<SignupData, string>(`${API_URL}/auth/signup`, {
-    method: "POST",
-    body: JSON.stringify({
-      first_name: data.firstName,
-      surname: data.lastName,
-      email: data.email,
-      phone_number: "0110110110",
+        email: data.email,
+        password: data.password,
 
-      password: data.password,
+        phone_number: "0110110110",
+        birthdate: "2004-01-15",
+        gender: "Male",
+        timezone: ".",
+        preferred_language: "English",
+        user_type: "user",
+      }),
+    }).then(validateResult<string>);
 
-      birthdate: data.dateOfBirth,
-      gender: data.gender,
-      nationality: data.nationality,
-
-      timezone: ".",
-      preferred_language: data.preferredLanguage,
-      user_type: data.userType,
-    }),
+    setAuthToken(res, JWT_VERIFY_TIMEOUT);
+    redirect("/signup/verify");
   });
-
-  if (res.error) {
-    return { error: res.error._errors[0] };
-  }
-
-  setAuthToken(res.data, JWT_VERIFY_TIMEOUT);
-  redirect("/signup/verify");
-}
 
 export async function login(
   _initialState: any,
-  formData: FormData,
+  formData: FormData
 ): Promise<Result<string, LoginError>> {
   // Parse form data
   const formObject = Object.fromEntries(formData);
@@ -95,40 +88,30 @@ export async function signout() {
   redirect("/login");
 }
 
-export async function verify(
-  _initialState: any,
-  formData: FormData,
-): Promise<Result<string, LoginError>> {
-  // Parse the form data
-  const formObject = Object.fromEntries(formData);
-  const { data, error } = verifySchema.safeParse(formObject);
-  if (error) {
-    return {
-      error: error.format(),
-    };
-  }
+export const verify = (payload: unknown) =>
+  resultify(async () => {
+    // Parse the form data
+    const { data, error } = verifySchema.safeParse(payload);
+    if (error) {
+      throw new Error(error.issues[0].message);
+    }
 
-  // TODO: uncomment once API works
-  // Send request to the API
-  const res = await formFetch<LoginData, string>(`${API_URL}/auth/verify`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${getAuthToken()}`,
-    },
-    body: JSON.stringify({
-      pin: data.pin,
-    }),
+    // TODO: uncomment once API works
+    // Send request to the API
+    const res = await fetch(`${API_URL}/auth/verify`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: JSON.stringify({
+        pin: data.pin,
+      }),
+    }).then(validateResult<string>);
+
+    // Everything good
+    setAuthToken(res);
+    redirect("/disputes");
   });
-
-  // Handle Errors
-  if (res.error) {
-    return res;
-  }
-
-  // Everything good
-  setAuthToken(res.data);
-  redirect("/disputes");
-}
 
 export async function resendOTP(_initialState: any, _: FormData): Promise<Result<string>> {
   // Retrieve the temporary JWT
@@ -146,7 +129,7 @@ export async function resendOTP(_initialState: any, _: FormData): Promise<Result
 
 export async function sendResetLink(
   _initialState: any,
-  formData: FormData,
+  formData: FormData
 ): Promise<Result<string, ResetLinkError>> {
   // Parse form data
   const formObject = Object.fromEntries(formData);
@@ -174,7 +157,7 @@ export async function sendResetLink(
 
 export async function resetPassword(
   _initialState: any,
-  formData: FormData,
+  formData: FormData
 ): Promise<Result<string, ResetPassError>> {
   // Parse form data
   const formObject = Object.fromEntries(formData);

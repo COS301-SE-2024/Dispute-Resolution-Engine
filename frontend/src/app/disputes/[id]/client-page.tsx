@@ -38,7 +38,7 @@ export default function DisputeClientPage({ data }: { data: DisputeResponse }) {
           <CardTitle>Description</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-white/70 mt-4">{data.description}</p>
+          <p className="text-sm dark:text-white/70 mt-4">{data.description}</p>
         </CardContent>
       </Card>
       <Card className="mb-4">

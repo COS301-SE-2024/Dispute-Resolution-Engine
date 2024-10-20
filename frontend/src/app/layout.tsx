@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import Navbar from "@/components/navbar";
 import Providers from "./providers";
+import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,10 +19,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={cn(inter.className, "grid grid-rows-[auto_1fr]")}>
         <Providers>
           <Navbar />
-          <div className="pt-20 h-full overflow-y-auto">{children}</div>
+          {children}
         </Providers>
       </body>
     </html>

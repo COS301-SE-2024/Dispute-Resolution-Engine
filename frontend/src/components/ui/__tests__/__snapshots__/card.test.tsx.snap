@@ -2,6 +2,6 @@
 
 exports[`renders correctly 1`] = `
 <div
-  className="rounded-lg dark:bg-dre-bg-light/5 border border-zinc-200 bg-white text-zinc-950 shadow-sm dark:border-dre-100/50 dark:text-dre-bg-light"
+  className="bg-surface-light-50 dark:bg-surface-dark-800 rounded-lg dark:border dark:border-primary-500/10 max-w-5xl mx-auto shadow-md"
 />
 `;

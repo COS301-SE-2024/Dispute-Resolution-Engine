@@ -283,7 +283,7 @@ func (h Auth) Verify(c *gin.Context) {
 	}
 	if !valid {
 		logger.Error("Invalid pin")
-		h.DisputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": userVerify, "message": "Invalid pin"})
+		h.DisputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": jwtUser, "message": "Invalid pin"})
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid pin"})
 		return
 	}
@@ -456,7 +456,7 @@ func (h Auth) ResetPassword(c *gin.Context) {
 	}
 
 	//send an email to the user with a temporary link to reset the password
-	linkURL := fmt.Sprintf("%s/reset-password/%s", frontendBase, jwt)
+	linkURL := fmt.Sprintf("%s/reset/%s", frontendBase, jwt)
 	email := models.Email{
 		From:    companyEmail,
 		To:      user.Email,

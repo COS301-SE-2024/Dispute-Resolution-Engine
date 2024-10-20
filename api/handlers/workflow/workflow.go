@@ -138,6 +138,10 @@ func (w Workflow) StoreWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
 	var workflow models.CreateWorkflow
 
+	if (!w.IsAuthorized(c, "admin", logger)) {
+		return
+	}
+
 	// Bind incoming JSON to the struct
 	err := c.BindJSON(&workflow)
 	if err != nil {
@@ -253,6 +257,11 @@ func ValidateWorkflowDefinition(definition models.WorkflowOrchestrator) error {
 
 func (w Workflow) UpdateWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
+
+	if (!w.IsAuthorized(c, "admin", logger)) {
+		return
+	}
+
 	id := c.Param("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
@@ -353,6 +362,12 @@ func (w Workflow) UpdateWorkflow(c *gin.Context) {
 
 func (w Workflow) DeleteWorkflow(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
+
+	if (!w.IsAuthorized(c, "admin", logger)) {
+		return
+	}
+
+
 	id := c.Param("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
@@ -602,6 +617,14 @@ func (w Workflow) GetTriggers(c *gin.Context) {
 	c.JSON(http.StatusOK, models.Response{Data: response})
 }
 
-
+func (h Workflow) IsAuthorized(c *gin.Context, role string, logger *utilities.Logger) bool {
+	claims, err := h.Jwt.GetClaims(c)
+	if err != nil || claims.Role != role {
+		logger.WithError(err).Error("Unauthorized")
+		c.JSON(401, models.Response{Error: "Unauthorized"})
+		return false
+	}
+	return true
+}
 
 

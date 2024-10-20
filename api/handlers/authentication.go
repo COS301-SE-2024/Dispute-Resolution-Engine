@@ -283,7 +283,7 @@ func (h Auth) Verify(c *gin.Context) {
 	}
 	if !valid {
 		logger.Error("Invalid pin")
-		h.DisputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": userVerify, "message": "Invalid pin"})
+		h.DisputeProceedingsLogger.LogDisputeProceedings(models.Users, map[string]interface{}{"user": jwtUser, "message": "Invalid pin"})
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid pin"})
 		return
 	}

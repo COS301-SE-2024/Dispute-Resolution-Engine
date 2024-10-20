@@ -711,7 +711,7 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 	}
 
 	//create ticket
-	titleTicket := "Objection against " + admin.FirstName + " " + admin.Surname + "On Dispute " + disputeId
+	titleTicket := "Objection against " + admin.FirstName + " " + admin.Surname + " on Dispute " + disputeId
 	ticket, err := h.TicketModel.CreateTicket(claims.ID, int64(disputeIdInt), titleTicket, *req.Reason)
 	if err != nil {
 		logger.WithError(err).Error("Failed to create ticket")

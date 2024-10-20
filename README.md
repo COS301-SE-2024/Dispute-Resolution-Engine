@@ -27,6 +27,8 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
 # Demo Presentations
 
+- [Final Demo Video](https://drive.google.com/file/d/1apXwR0nj-HXgry6CooUNxjuNAe6-gowL/view?usp=sharing)
+
 - [Demo 1](https://www.canva.com/design/DAGG_C4gUMc/uzNI3y3cFbQE9oYkyZo3vw/edit?utm_content=DAGG_C4gUMc&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 - [Demo 2](https://www.canva.com/design/DAGI9uq7XF0/qvU7IogSTW3PETHPllxBAA/edit?utm_content=DAGI9uq7XF0&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 - [Demo 3](https://www.canva.com/design/DAGNfNQm-pE/PPbmWY4BbFiZja1LLa--Aw/edit?utm_content=DAGNfNQm-pE&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
@@ -38,6 +40,9 @@ Team Email: [the.techtonic.team@gmail.com](mailto:the.techtonic.team@gmail.com)
 
 # Documentation
 
+## Help Page
+
+- [Tutorial](https://cos301-se-2024.github.io/Dispute-Resolution-Engine/docs/user-docs/helppage)
 
 ## Diagram(s)
 

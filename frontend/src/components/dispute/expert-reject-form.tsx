@@ -8,30 +8,52 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "../ui/button";
-import { Form, FormMessage, FormField, FormSubmit } from "../ui/form-server";
-import { ExpertRejectData } from "@/lib/schema/dispute";
+import { FormMessage, FormField } from "../ui/form-client";
+import { ExpertRejectData, expertRejectSchema } from "@/lib/schema/dispute";
 import { rejectExpert } from "@/lib/actions/dispute";
 import { Textarea } from "../ui/textarea";
 import { ReactNode, useId } from "react";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { FormProvider, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 
-const RejectForm = Form<ExpertRejectData>;
-const RejectMessage = FormMessage<ExpertRejectData>;
-const RejectField = FormField<ExpertRejectData>;
+export const RejectMessage = FormMessage<ExpertRejectData>;
+export const RejectField = FormField<ExpertRejectData>;
 
 export default function ExpertRejectForm({
-  name,
+  expertName,
   expertId,
   disputeId,
   children,
   asChild,
 }: {
-  name?: string;
+  expertName: string;
   expertId: string;
   disputeId: string;
   children: ReactNode;
   asChild?: boolean;
 }) {
+  const form = useForm<ExpertRejectData>({
+    resolver: zodResolver(expertRejectSchema),
+  });
+  const { register, handleSubmit, setError } = form;
+  const router = useRouter();
+
+  async function onSubmit(data: ExpertRejectData) {
+    rejectExpert(data)
+      .then((id) => {
+        router.push(`/disputes/${disputeId}/tickets/${id}`);
+      })
+      .catch((e: Error) => {
+        setError("root", {
+          type: "custom",
+          message: e.message,
+        });
+      });
+  }
+
+  const formId = useId();
   const reasonId = useId();
 
   return (
@@ -40,31 +62,31 @@ export default function ExpertRejectForm({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Object to Expert Assignment</DialogTitle>
-          {name && <DialogDescription>Objecting to {name}</DialogDescription>}
+          <DialogDescription>Objecting to {expertName}</DialogDescription>
         </DialogHeader>
-        <RejectForm action={rejectExpert} className="space-y-2 w-full">
-          <input type="hidden" name="expert_id" value={expertId} />
-          <input type="hidden" name="dispute_id" value={disputeId} />
-          <RejectField id={reasonId} name="reason" label="Reason" className="col-span-2">
-            {name ? (
-              <Textarea
-                id={reasonId}
-                placeholder={`Why do you object to ${name}? (min. 20 characters)`}
-                name="reason"
-              />
-            ) : (
-              <Textarea
-                id={reasonId}
-                placeholder={"Why do you object to this assignment? (min. 20 characters)"}
-                name="reason"
-              />
-            )}
-          </RejectField>
-          <div className="flex justify-end gap-2 items-center">
-            <RejectMessage />
-            <FormSubmit>Submit</FormSubmit>
+
+        <FormProvider {...form}>
+          <div className="grid grid-rows-[1fr_auto] gap-5">
+            <form id={formId} onSubmit={handleSubmit(onSubmit)}>
+              <input type="hidden" value={disputeId} {...register("dispute_id")} />
+              <input type="hidden" value={expertId} {...register("expert_id")} />
+
+              <RejectField name="reason" label="Reason" className="col-span-2" id={reasonId}>
+                <Textarea
+                  id={reasonId}
+                  placeholder={`Tell us what's on your mind!`}
+                  {...register("reason")}
+                />
+              </RejectField>
+            </form>
+            <div className="flex justify-end gap-2 items-center">
+              <RejectMessage />
+              <Button form={formId} type="submit" variant="outline">
+                Submit objection
+              </Button>
+            </div>
           </div>
-        </RejectForm>
+        </FormProvider>
       </DialogContent>
     </Dialog>
   );

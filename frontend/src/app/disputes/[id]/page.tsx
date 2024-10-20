@@ -13,13 +13,25 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 import { getAuthToken } from "@/lib/util/jwt";
-import ExpertRejectForm from "@/components/dispute/expert-reject-form";
 import DisputeDecisionForm from "@/components/dispute/decision-form";
 
 import { jwtDecode } from "jwt-decode";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Content, Header, Root } from "../custom-layout";
+import { ReactNode } from "react";
+import { DialogHeader } from "@/components/ui/dialog";
+import { FormSubmit } from "@/components/ui/form-server";
+import { Textarea } from "@/components/ui/textarea";
+import { rejectExpert } from "@/lib/actions/dispute";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import ExpertRejectForm from "@/components/dispute/expert-reject-form";
 
 type Props = {
   params: { id: string };
@@ -131,7 +143,7 @@ function DisputeHeader(props: {
                     <span>Render decision</span>
                   </Button>
                 </DisputeDecisionForm>
-                <ExpertRejectForm expertId={user} disputeId={props.id} asChild>
+                <ExpertRejectForm expertName="expert" expertId={user} disputeId={props.id} asChild>
                   <Button className="gap-2 p-2 text-red-500" variant="ghost">
                     <TriangleAlertIcon />
                     <span>Object to assignment</span>

@@ -19,7 +19,7 @@ export type DisputeCreateError = z.ZodFormattedError<DisputeCreateData>;
 export const expertRejectSchema = z.object({
   dispute_id: z.string().min(1),
   expert_id: z.string().min(1),
-  reason: z.string().min(20),
+  reason: z.string().trim().min(5, "Must provide at least 5 characters"),
 });
 export type ExpertRejectData = z.infer<typeof expertRejectSchema>;
 export type ExpertRejectError = z.ZodFormattedError<ExpertRejectData>;

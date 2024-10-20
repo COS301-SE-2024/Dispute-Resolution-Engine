@@ -21,9 +21,6 @@ func SetupAnalyticsRoute(router *gin.RouterGroup, h AdminAnalyticsHandler) {
 
 func (h AdminAnalyticsHandler) GetTimeEstimation(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	if !h.IsAuthorized(c, "admin", logger) {
-		return
-	}
 
 	avg, err := h.DB.CalculateAverageResolutionTime()
 	if err != nil {

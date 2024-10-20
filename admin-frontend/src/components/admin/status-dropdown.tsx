@@ -10,9 +10,11 @@ import {
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { ReactNode } from "react";
-import { DisputeStatus } from "@/lib/types/dispute";
+
 import { TICKET_STATUS, TicketStatus } from "@/lib/types/tickets";
-import { TicketStatusBadge } from "./status-badge";
+import { DisputeStatusBadge, ObjectionStatusBadge, TicketStatusBadge } from "./status-badge";
+import { DISPUTE_STATUS, DisputeStatus } from "@/lib/types/dispute";
+import { OBJECTION_STATUS, ObjectionStatus } from "@/lib/types/experts";
 
 const statusVariants = cva("", {
   variants: {
@@ -37,33 +39,36 @@ const statusVariants = cva("", {
   },
 });
 
-export interface StatusProps extends VariantProps<typeof statusVariants> {
+type Variant = VariantProps<typeof statusVariants>["variant"];
+
+const STATUS_VARIANTS: {
+  status: DisputeStatus;
+  variant: Variant;
+}[] = [
+  { status: "Awaiting Respondant", variant: "waiting" },
+  { status: "Active", variant: "active" },
+  { status: "Review", variant: "error" },
+  { status: "Refused", variant: "error" },
+  { status: "Appeal", variant: "inactive" },
+  { status: "Settled", variant: "inactive" },
+  { status: "Withdrawn", variant: "inactive" },
+  { status: "Transfer", variant: "inactive" },
+  { status: "Other", variant: "inactive" },
+] as const;
+
+export interface StatusProps {
+  value: DisputeStatus;
   dropdown?: boolean;
-  children?: ReactNode;
 }
 
-export function StatusBadge({ children, variant, dropdown = false }: StatusProps) {
-  return (
-    <Badge
-      className={cn(
-        dropdown && "pl-1",
-        statusVariants({
-          variant,
-        })
-      )}
-    >
-      {dropdown && <ChevronDown size="1rem" />}
-      {children}
-    </Badge>
-  );
-}
-
-export function StatusDropdown({
+export function DisputeStatusDropdown({
   onSelect = () => {},
+  initialValue,
   children,
   disabled,
 }: {
   onSelect?: (status: DisputeStatus) => void;
+  initialValue?: DisputeStatus;
   children: ReactNode;
   disabled?: boolean;
 }) {
@@ -73,21 +78,11 @@ export function StatusDropdown({
         {children}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="rounded-md">
-        <DropdownMenuItem onSelect={() => onSelect("Awaiting respondent")}>
-          <StatusBadge variant="waiting">Awaiting respondent</StatusBadge>
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onSelect("Active")}>
-          <StatusBadge variant="active">Active</StatusBadge>
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onSelect("Review")}>
-          <StatusBadge variant="error">Review</StatusBadge>
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onSelect("Settled")}>
-          <StatusBadge variant="inactive">Settled</StatusBadge>
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => onSelect("Refused")}>
-          <StatusBadge variant="inactive">Refused</StatusBadge>
-        </DropdownMenuItem>
+        {DISPUTE_STATUS.filter((status) => status !== initialValue).map((value) => (
+          <DropdownMenuItem key={value} onSelect={() => onSelect(value)}>
+            <DisputeStatusBadge variant={value}>{value}</DisputeStatusBadge>
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -111,6 +106,33 @@ export function TicketStatusDropdown({
         {TICKET_STATUS.map((status) => (
           <DropdownMenuItem key={status} onSelect={() => onSelect(status)}>
             <TicketStatusBadge variant={status}>{status}</TicketStatusBadge>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+export function ObjectionStatusDropdown({
+  onSelect = () => {},
+  initialValue,
+  children,
+  disabled,
+}: {
+  onSelect?: (status: ObjectionStatus) => void;
+  initialValue?: ObjectionStatus;
+  children: ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger disabled={disabled} className="disabled:opacity-50">
+        {children}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="rounded-md">
+        {OBJECTION_STATUS.filter((status) => status !== initialValue).map((value) => (
+          <DropdownMenuItem key={value} onSelect={() => onSelect(value)}>
+            <ObjectionStatusBadge variant={value}>{value}</ObjectionStatusBadge>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

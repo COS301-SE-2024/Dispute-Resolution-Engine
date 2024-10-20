@@ -1,4 +1,5 @@
 import {
+  ArchivedDisputeSummary,
   ArchiveGetResponse,
   ArchiveSearchRequest,
   ArchiveSearchResponse,
@@ -13,6 +14,15 @@ export async function searchArchive(
     cache: "no-store",
     method: "POST",
     body: JSON.stringify(params),
+  });
+  return res.json().catch(async (e: Error) => ({
+    error: e.message,
+  }));
+}
+export async function getArchives(): Promise<Result<{archives: ArchivedDisputeSummary[]}>> {
+  const res = await fetch(`${API_URL}/archive`, {
+    cache: "no-store",
+    method: "GET",
   });
   return res.json().catch(async (e: Error) => ({
     error: e.message,

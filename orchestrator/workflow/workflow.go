@@ -33,20 +33,42 @@ const (
 )
 
 const (
-	// Dispute triggers
-	TriggerComplaintNotCompliant = "complaint_not_compliant"
-	TriggerFeeNotPaid            = "fee_not_paid"
-	TriggerComplaintCompliant    = "complaint_compliant"
-	TriggerTimedOut              = "timed_out"
-	TriggerResponseReceived      = "response_received"
-	TriggerResponseUndelivered   = "response_undelivered"
-	TriggerNoAppeal              = "no_appeal"
+	ObjectionSubmitted = "objection_submitted"
+	ObjectionSustained  = "objection_sustained"
+	ObjectionOverruled  = "objection_overruled"
 
-	// Appeal triggers
-	TriggerAppealSubmitted  = "appeal_submitted"
-	TriggerAppealOmmission  = "appeal_ommission"
-	TriggerAppealFeeNotPaid = "appeal_fee_not_paid"
+	EvidenceSubmitted = "evidence_submitted"
+	DecisionSubmitted = "decision_submitted"
+
+	StatusChangedActive = "status_changed_active"
+	StatusChangedReview = "status_changed_review"
+	StatusChangedSettled = "status_changed_settled"
+	StatusChangedRefused = "status_changed_refused"
+	StatusChangedWithdrawn = "status_changed_withdrawn"
+	StatusChangedAppeal = "status_changed_appeal"
+	StatusChangedTransfer = "status_changed_transfer"
+	StatusChangedOther = "status_changed_other"
+	TimerExpired = "timer_expired"
 )
+
+func AllTriggers() []string {
+	return []string{
+		ObjectionSubmitted,
+		ObjectionSustained,
+		ObjectionOverruled,
+		EvidenceSubmitted,
+		DecisionSubmitted,
+		StatusChangedActive,
+		StatusChangedReview,
+		StatusChangedSettled,
+		StatusChangedRefused,
+		StatusChangedWithdrawn,
+		StatusChangedAppeal,
+		StatusChangedTransfer,
+		StatusChangedOther,
+		TimerExpired,
+	}
+}
 
 // ----------------------------Timers--------------------------------
 type TimerInterface interface {
@@ -114,7 +136,6 @@ type StateInterface interface {
 	SetTimer(timer Timer)
 }
 
-
 type State struct {
 	// Human-readable label of the state
 	Label string `json:"label"`
@@ -124,7 +145,7 @@ type State struct {
 	Description string `json:"description"`
 
 	// All the outgoing triggers of the state, keyed by their IDs
-	Triggers map[string]Trigger `json:"triggers,omitempty"`
+	Triggers map[string]Trigger `json:"events,omitempty"`
 
 	// The optional timer associated with a state
 	Timer *Timer `json:"timer,omitempty"`
@@ -168,7 +189,6 @@ type WorkflowInterface interface {
 	GetWorkflowString() string
 }
 
-
 type Workflow struct {
 	// The ID of the initial state of the workflow
 	Initial string `json:"initial"`
@@ -190,7 +210,6 @@ func CreateWorkflow(initialId string, initial State) Workflow {
 func (w *Workflow) GetInitialState() State {
 	return w.States[w.Initial]
 }
-
 
 func (w *Workflow) GetWorkflowString() string {
 	result := fmt.Sprintf("Initial State: %s\n", w.Initial)
@@ -220,4 +239,22 @@ func (w *Workflow) GetWorkflowString() string {
 	}
 
 	return result
+}
+
+func GetStateDetails(jsonData []byte, stateID string) (string, string, error) {
+	var workflow Workflow
+	// Unmarshal the JSON data into the workflow struct
+	err := json.Unmarshal(jsonData, &workflow)
+	if err != nil {
+		return "undefined", "undefined", err
+	}
+
+	// Check if the state exists in the workflow
+	state, exists := workflow.States[stateID]
+	if !exists {
+		return "undefined", "undefined", fmt.Errorf("state ID %s not found", stateID)
+	}
+
+	// Return the label and description of the state
+	return state.Label, state.Description, nil
 }

@@ -3,14 +3,16 @@ describe("Navigation", () => {
     /**
      * Logs in
      */
-    cy.visit("/login");
-    cy.contains("Email").type("kifane5182@jofuso.com");
-    cy.contains("Password").type("Test1234#");
+    cy.visit("/admin/login");
+    cy.contains("Email").type(Cypress.env('TEST_USER'));
+    cy.contains("Password").type(Cypress.env('TEST_PASSWORD'));
     cy.get("button").contains("Login").click();
 
     /**
      * Check that the right tings are there
      */
+    cy.visit("/admin")
+    cy.wait(1000)
     cy.get(':nth-child(2) > .inline-flex').first().click();
     cy.get('div.flex-col > header.flex > .grow').should('be.visible');
     cy.get('input[placeholder="Search tickets..."]').should('be.visible');

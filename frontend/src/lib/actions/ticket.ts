@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { TicketCreateResponse } from "../interfaces/ticket";
 import { CreateTicketData, CreateTicketErrors, createTicketSchema } from "../schema/ticket";
 import { Result } from "../types";
 import { getAuthToken } from "../util/jwt";
@@ -16,26 +18,20 @@ export async function createTicket(
     };
   }
 
-  const res = await formFetch<CreateTicketData, string>(
-    `${API_URL}/disputes/${parsed.dispute}/tickets`,
-    {
-      method: "POST",
-      headers: {
-        // Sub this for the proper getAuthToken thing
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
-      body: JSON.stringify({
-        subject: parsed.subject,
-        body: parsed.body,
-      }),
-    }
-  );
+  const res = await formFetch<CreateTicketData, TicketCreateResponse>(`${API_URL}/tickets/create`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: JSON.stringify(parsed),
+  });
   if (res.error) {
     return {
       error: res.error,
     };
   }
+  revalidatePath(`/disputes/${parsed.dispute_id}/tickets`);
   return {
-    data: "Ticket created",
+    data: "TODO",
   };
 }

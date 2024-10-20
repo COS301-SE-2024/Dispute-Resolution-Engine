@@ -38,7 +38,7 @@ export default function CreateTicketDialog({
           <DialogDescription>Got something on your mind? Tell us!</DialogDescription>
         </DialogHeader>
         <TicketForm action={createTicket} className="space-y-2 w-full">
-          <input type="hidden" name="dispute" value={dispute} />
+          <input type="hidden" name="dispute_id" value={dispute} />
           <TicketField id={subjectId} name="subject" label="Subject">
             <Input
               id={subjectId}
@@ -46,10 +46,10 @@ export default function CreateTicketDialog({
               placeholder="Why are you creating a ticket? (required)"
             />
           </TicketField>
-          <TicketField id={bodyId} name="subject" label="Subject">
+          <TicketField id={bodyId} name="body" label="Body">
             <Textarea
               id={bodyId}
-              placeholder="Provide some more details (min. characters)"
+              placeholder="Provide some more details (min. 10 characters)"
               name="body"
             />
           </TicketField>

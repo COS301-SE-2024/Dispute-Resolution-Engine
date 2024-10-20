@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { getDisputeDetails } from "@/lib/api/dispute";
+import { getDisputeDetails, getDisputeWorkflow } from "@/lib/api/dispute";
 import { Metadata } from "next";
 
 import DisputeClientPage from "./client-page";
@@ -10,8 +10,14 @@ import ExpertRejectForm from "@/components/dispute/expert-reject-form";
 import { getAuthToken } from "@/lib/util/jwt";
 
 import { jwtDecode } from "jwt-decode";
+import DisputeDecisionForm from "@/components/dispute/decision-form";
 import CreateTicketDialog from "@/components/dispute/ticket-form";
 import { Button } from "@/components/ui/button";
+import WorkflowSelect from "@/components/form/workflow-select";
+import DisputeHeader from "@/components/dispute/dispute-header";
+import Link from "next/link";
+import { State } from "@/lib/interfaces/workflow";
+import { getDisputeEstimate } from "@/lib/api/analytics";
 
 type Props = {
   params: { id: string };
@@ -26,17 +32,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function DisputePage({ params }: Props) {
   const { data, error } = await getDisputeDetails(params.id);
+  const workflow = await getDisputeWorkflow(params.id);
+  const estimate = await getDisputeEstimate(params.id);
   if (error || !data) {
     return <h1>{error}</h1>;
   }
 
+  let result = "";
+  if (estimate.days > 0) {
+    result += `${estimate.days} days`;
+  }
+
+  if (estimate.hours > 0) {
+    if (result.length > 0) result += ", ";
+    result += `${estimate.hours} hours`;
+  }
+
+  if (estimate.minutes > 0) {
+    if (result.length > 0) result += ", ";
+    result += `${estimate.minutes} minutes`;
+  }
+
   return (
     <div className="grow overflow-y-auto flex flex-col">
-      <DisputeHeader
+      <DisputeHeader2
         id={data.id}
         label={data.title}
         startDate={data.case_date.substring(0, 10)}
         status={data.status}
+        state={workflow.definition.states[workflow.current_state]}
+        estimate={result}
       />
       <Separator />
       <ScrollArea className="grow overflow-y-auto p-4">
@@ -47,41 +72,31 @@ export default async function DisputePage({ params }: Props) {
   );
 }
 
-function DisputeHeader({
-  id,
-  label,
-  startDate,
-  status: initialStatus,
-}: {
+function DisputeHeader2(props: {
   id: string;
   label: string;
   startDate: string;
   status: string;
+  state: State;
+  estimate: string;
 }) {
   // TODO: Add contracts for this
   const user = (jwtDecode(getAuthToken()) as any).user.id;
   const role = (jwtDecode(getAuthToken()) as any).user.role;
 
   return (
-    <header className="p-4 py-6 flex items-start">
-      <div className="grow">
-        <h1 className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl">{label}</h1>
-        <p className="mb-4">Started: {startDate}</p>
-        {/*TODO: Figure out the conditions for displaying expert rejection */}
-        {role == "expert" && <ExpertRejectForm expertId={user} disputeId={id} />}
-        <CreateTicketDialog asChild dispute={id}>
-          <Button>Create ticket</Button>
-        </CreateTicketDialog>
-      </div>
+    <DisputeHeader {...props}>
+      {role == "expert" && <ExpertRejectForm expertId={user} disputeId={props.id} />}
 
-      <dl className="grid grid-cols-2 gap-2">
-        <dt className="text-right font-bold">Dispute ID:</dt>
-        <dd>{id}</dd>
-        <dt className="text-right font-bold">Status:</dt>
-        <dd>
-          <StatusDropdown disputeId={id} status={initialStatus} />
-        </dd>
-      </dl>
-    </header>
+      {role == "expert" && (
+        <DisputeDecisionForm disputeId={props.id} asChild>
+          <Button>Render decision</Button>
+        </DisputeDecisionForm>
+      )}
+
+      <Button variant="outline" asChild>
+        <Link href={`/disputes/${props.id}/tickets`}>Go to tickets</Link>
+      </Button>
+    </DisputeHeader>
   );
 }

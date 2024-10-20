@@ -26,6 +26,7 @@ import {
 import { useRef } from "react";
 import SearchFilters from "./filters";
 import { Badge } from "@/components/ui/badge";
+import { escape } from "querystring";
 
 const searchSchema = z.object({
   q: z.string().optional(),
@@ -85,7 +86,7 @@ export default async function ArchiveSearch({ searchParams }: { searchParams: un
   if (!params.q) {
     redirect("/archive");
   }
-
+  params.q = escape(params.q)
   const { data, error } = await searchArchive({
     search: params.q,
     offset: params.offset * PAGE_SIZE,

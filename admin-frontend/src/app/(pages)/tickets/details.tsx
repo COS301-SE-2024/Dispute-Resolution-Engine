@@ -21,8 +21,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FormEvent } from "react";
 import { TICKET_DETAILS_KEY, TICKET_LIST_KEY } from "@/lib/constants";
+import Link from "next/link";
 
-export default function TicketDetails({ ticketId }: { ticketId: string }) {
+export default function TicketDetails({ ticketId }: { ticketId: number }) {
   const { data, error } = useQuery({
     queryKey: [TICKET_DETAILS_KEY, ticketId],
     queryFn: async () => getTicketDetails(ticketId),
@@ -81,13 +82,16 @@ export default function TicketDetails({ ticketId }: { ticketId: string }) {
     <Sidebar open className="p-6 md:pl-8 rounded-l-2xl flex flex-col">
       {data && (
         <>
-          <SidebarHeader title={data.subject} className="flex gap-2 items-center">
+          <SidebarHeader title={data.subject} className="flex gap-2 items-center flex-wrap">
             <TicketStatusDropdown onSelect={status.mutate}>
               <TicketStatusBadge variant={data.status} dropdown>
                 {data.status}
               </TicketStatusBadge>
             </TicketStatusDropdown>
-            <span>{data.date_created}</span>
+            <span className="grow">{data.date_created}</span>
+            <Link href={{ pathname: "/disputes", query: { id: data.dispute_id } }}>
+              Go to dispute
+            </Link>
           </SidebarHeader>
           <div className="overflow-y-auto grow space-y-6 pr-3">
             <Card>

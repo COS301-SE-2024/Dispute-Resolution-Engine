@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type UpdateUser struct {
 	FirstName          string  `json:"first_name"`
@@ -124,18 +126,16 @@ type ExpertApproveRequest struct {
 }
 
 type ExpertRejectRequest struct {
-	ExpertID int64  `json:"expert_id"`
-	Reason   string `json:"reason"`
+	ExpertID *int64  `json:"expert_id"`
+	Reason   *string `json:"reason"`
 }
 
 type RejectExpertReview struct {
-	ExpertID int64 `json:"expert_id"`
-	Accepted bool  `json:"accepted"`
+	Status *ExpObjStatus `json:"status"`
 }
 
 type DisputeStatusChange struct {
-	DisputeID int64  `json:"dispute_id"`
-	Status    string `json:"status"`
+	Status string `json:"status"`
 }
 
 type RecommendExpert struct {
@@ -170,7 +170,7 @@ type Filter struct {
 	Attr string `json:"attr"`
 
 	// The value to search for
-	Value string `json:"value"`
+	Value interface{} `json:"value"`
 }
 
 type DateFilter struct {
@@ -209,25 +209,52 @@ type AdminDisputesRequest struct {
 	DateFilter *DateFilter `json:"dateFilter,omitempty"`
 }
 
-type ViewExpetRejectionsRequest struct {
-	Expert_id *int64 `json:"expert_id,omitempty"`
-	Dispute_id *int64 `json:"dispute_id,omitempty"`
-	Limits *int `json:"limits,omitempty"`
+type TicketsRequest struct {
+	// Search term for the title of disputes
+	Search *string `json:"search,omitempty"`
+
+	// Pagination parameters
+	Limit  *int `json:"limit,omitempty"`
 	Offset *int `json:"offset,omitempty"`
+
+	Sort *Sort `json:"sort,omitempty"`
+
+	// The filters to apply to data
+	Filter []Filter `json:"filter,omitempty"`
+}
+
+type PatchTicketStatus struct {
+	Status string `json:"status"`
+}
+
+type TicketMessageCreate struct {
+	Message string `json:"message"`
+}
+
+type TicketCreate struct {
+	DisputeID int64  `json:"dispute_id"`
+	Subject   string `json:"subject"`
+	Body      string `json:"body"`
+}
+
+type ViewExpertRejectionsRequest struct {
+	ExpertId  *int64 `json:"expert_id,omitempty"`
+	DisputeId *int64 `json:"dispute_id,omitempty"`
+	Limits    *int   `json:"limits,omitempty"`
+	Offset    *int   `json:"offset,omitempty"`
 }
 
 type CreateWorkflow struct {
-	Name       string                 `json:"name,omitempty"`
-	Definition map[string]interface{} `json:"definition,omitempty"`
-	Category   []int64                `json:"category,omitempty"`
-	Author     *int64                 `json:"author,omitempty"`
+	Name       string               `json:"name,omitempty"`
+	Definition WorkflowOrchestrator `json:"definition,omitempty"`
+	// Category   []int64                `json:"category,omitempty"`
 }
 
 type UpdateWorkflow struct {
-	Name               *string                 `json:"name,omitempty"`
-	WorkflowDefinition *map[string]interface{} `json:"definition,omitempty"`
-	Category           *[]int64                `json:"category,omitempty"`
-	Author             *int64                  `json:"author,omitempty"`
+	Name               *string               `json:"name,omitempty"`
+	WorkflowDefinition *WorkflowOrchestrator `json:"definition,omitempty"`
+	// Category           *[]int64                `json:"category,omitempty"`
+	// Author             *int64                  `json:"author,omitempty"`
 }
 
 type NewActiveWorkflow struct {
@@ -236,7 +263,37 @@ type NewActiveWorkflow struct {
 }
 
 type ResetActiveWorkflow struct {
-	DisputeID    *int64    `json:"dispute_id,omitempty"`
-	CurrentState *string   `json:"current_state,omitempty"`
+	DisputeID    *int64     `json:"dispute_id,omitempty"`
+	CurrentState *string    `json:"current_state,omitempty"`
 	Deadline     *time.Time `json:"deadline,omitempty"`
+}
+
+type GetWorkflow struct {
+	Search *string `json:"search,omitempty"`
+	Limit  *int    `json:"limit,omitempty"`
+	Offset *int    `json:"offset,omitempty"`
+}
+
+type NotifyEventOrchestrator struct {
+	ActiveWorkflowID *int64  `json:"id"`
+	CurrentState     *string `json:"current_state"`
+	Description      *string `json:"description"`
+}
+
+type AdminGroupingAnalytics struct {
+	Group *string `json:"group"`
+}
+
+type Columnvalue struct {
+	Column string `json:"column"`
+	Value  string `json:"value"`
+}
+
+type AdminTableStats struct {
+	Group *string      `json:"group,omitempty"`
+	Where *Columnvalue `json:"where,omitempty"`
+}
+
+type GroupingAnalytics struct {
+	Group *string `json:"group"`
 }

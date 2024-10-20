@@ -1,16 +1,20 @@
 import { Filter, Sort } from ".";
 
 export const DISPUTE_STATUS = [
-  "Awaiting respondent",
+  "Awaiting Respondant",
   "Active",
   "Review",
+  "Appeal",
   "Settled",
   "Refused",
+  "Withdrawn",
+  "Transfer",
+  "Other",
 ] as const;
 export type DisputeStatus = (typeof DISPUTE_STATUS)[number];
 
-type FilterAttribute = "status" | "workflow";
-type SortAttribute = "title" | "status" | "workflow" | "date_filed" | "date_resolved";
+export type DisputeFilter = Filter<"status" | "workflow">;
+export type DisputeSort = Sort<"title" | "status" | "workflow" | "date_filed" | "date_resolved">;
 
 export interface AdminDisputesRequest {
   // Search term for the title of disputes
@@ -20,10 +24,10 @@ export interface AdminDisputesRequest {
   limit?: number;
   offset?: number;
 
-  sort?: Sort<SortAttribute>;
+  sort?: DisputeSort;
 
   // The filters to apply to data
-  filter?: Filter<FilterAttribute>[];
+  filter?: DisputeFilter[];
 
   dateFilter?: {
     filed?: {
@@ -48,7 +52,7 @@ export interface AdminDisputesRequest {
 export interface AdminDispute {
   id: string;
   title: string;
-  status: string;
+  status: DisputeStatus;
 
   // The workflow that the dispute follows
   workflow: {
@@ -61,7 +65,10 @@ export interface AdminDispute {
   // Optional because dispute may still be active (i.e. no resolved date)
   date_resolved?: string;
 }
-export type AdminDisputesResponse = Array<AdminDispute>;
+export type AdminDisputesResponse = {
+  disputes: Array<AdminDispute>;
+  total: number;
+};
 
 export interface Evidence {
   id: string;
@@ -76,11 +83,20 @@ export interface UserDetails {
   address: string;
 }
 
+export type ExpertStatus = "Approved" | "Rejected" | "Review";
+export interface ExpertSummary {
+  id: number;
+  full_name: string;
+  status: ExpertStatus;
+}
+
 export interface DisputeDetails extends AdminDispute {
   description: string;
   evidence: Evidence[];
   complainant: UserDetails;
   respondent: UserDetails;
+
+  experts: ExpertSummary[];
 }
 
 export type DisputeDetailsResponse = DisputeDetails;

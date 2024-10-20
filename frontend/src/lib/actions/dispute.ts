@@ -10,7 +10,7 @@ import {
   expertRejectSchema,
 } from "../schema/dispute";
 import { Result } from "../types";
-import { API_URL, formFetch } from "../utils";
+import { API_URL, formFetch, resultify } from "../utils";
 
 import { DisputeCreateResponse, DisputeEvidenceUploadResponse } from "../interfaces/dispute";
 import { revalidatePath } from "next/cache";
@@ -63,27 +63,28 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
   redirect(`/disputes/${res.data.id}`);
 }
 
-export async function rejectExpert(data: unknown): Promise<number> {
-  const { data: parsed, error: parseErr } = expertRejectSchema.safeParse(data);
-  if (parseErr) {
-    throw new Error(parseErr.issues[0].message);
-  }
+export const rejectExpert = (data: unknown) =>
+  resultify(async () => {
+    const { data: parsed, error: parseErr } = expertRejectSchema.safeParse(data);
+    if (parseErr) {
+      throw new Error(parseErr.issues[0].message);
+    }
 
-  const res = await sf(`${API_URL}/disputes/${parsed.dispute_id}/objections`, {
-    method: "POST",
-    headers: {
-      // Sub this for the proper getAuthToken thing
-      Authorization: `Bearer ${getAuthToken()}`,
-    },
-    body: JSON.stringify({
-      expert_id: parseInt(parsed.expert_id),
-      reason: parsed.reason,
-    }),
-  }).then(validateResult<number>);
+    const res = await sf(`${API_URL}/disputes/${parsed.dispute_id}/objections`, {
+      method: "POST",
+      headers: {
+        // Sub this for the proper getAuthToken thing
+        Authorization: `Bearer ${getAuthToken()}`,
+      },
+      body: JSON.stringify({
+        expert_id: parseInt(parsed.expert_id),
+        reason: parsed.reason,
+      }),
+    }).then(validateResult<number>);
 
-  revalidatePath(`/disputes/${parsed.dispute_id}`);
-  return res;
-}
+    revalidatePath(`/disputes/${parsed.dispute_id}`);
+    return res;
+  });
 
 export async function uploadEvidence(
   _initial: unknown,

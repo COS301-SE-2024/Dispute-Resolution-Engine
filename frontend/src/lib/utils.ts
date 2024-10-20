@@ -13,6 +13,14 @@ export type Slottable<P> = P & {
 
 export const API_URL = process.env.API_URL;
 
+export async function resultify<T>(p: () => Promise<T>): Promise<Result<T>> {
+  return p()
+    .then((data) => ({ data }))
+    .catch((err) => ({
+      error: (err as Error).message,
+    }));
+}
+
 export async function safeFetch<T>(
   input: string | URL | globalThis.Request,
   init?: RequestInit

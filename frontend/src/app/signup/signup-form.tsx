@@ -24,12 +24,13 @@ export function SignupForm({ id }: { id?: string }) {
   const { control, register, handleSubmit, setError } = useFormContext<SignupData>();
 
   async function onSubmit(data: SignupData) {
-    await signup(data).catch((e: Error) => {
+    const { error } = await signup(data);
+    if (error) {
       setError("root", {
         type: "custom",
-        message: e.message,
+        message: error,
       });
-    });
+    }
   }
 
   const emailId = useId();

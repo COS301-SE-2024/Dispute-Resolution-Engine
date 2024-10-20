@@ -5,8 +5,8 @@ import Link from "next/link";
 
 function SearchResult(props: ArchivedDisputeSummary) {
   return (
-    <tr className="rounded-lg overflow-hidden">
-      <td className=" border-gray-500 px-4 py-2 text-left">
+    <tr className="rounded-lg overflow-hidden hover:bg-gray-200 dark:hover:bg-blue-600">
+      <td className="border-gray-500 px-4 py-2 text-left">
         <Link href={`/archive/${props.id}`}>
           <h3 className="hover:underline font-semibold text-lg">{props.title}</h3>
         </Link>

@@ -15,7 +15,24 @@ exports[`renders correctly 1`] = `
   <style
     dangerouslySetInnerHTML={
       {
-        "__html": "[data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}",
+        "__html": "
+[data-radix-scroll-area-viewport] {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+[data-radix-scroll-area-viewport]::-webkit-scrollbar {
+  display: none;
+}
+:where([data-radix-scroll-area-viewport]) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+:where([data-radix-scroll-area-content]) {
+  flex-grow: 1;
+}
+",
       }
     }
   />
@@ -30,10 +47,10 @@ exports[`renders correctly 1`] = `
     }
   >
     <div
+      data-radix-scroll-area-content=""
       style={
         {
-          "display": "table",
-          "minWidth": "100%",
+          "minWidth": undefined,
         }
       }
     />

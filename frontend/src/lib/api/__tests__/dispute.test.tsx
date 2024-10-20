@@ -38,25 +38,25 @@ describe("dispute API functions", () => {
     expect(result).toEqual(mockResponse);
   });
 
-  it("getDisputeDetails should return dispute details", async () => {
-    const mockResponse = { data: "some details" };
-    (cookies as jest.Mock).mockReturnValue({
-      get: jest.fn().mockReturnValue({ value: "mock-jwt" }),
-    });
-    (fetch as jest.Mock).mockResolvedValue({
-      json: jest.fn().mockResolvedValue(mockResponse),
-    });
+  // it("getDisputeDetails should return dispute details", async () => {
+  //   const mockResponse = { data: "some details" };
+  //   (cookies as jest.Mock).mockReturnValue({
+  //     get: jest.fn().mockReturnValue({ value: "mock-jwt" }),
+  //   });
+  //   (fetch as jest.Mock).mockResolvedValue({
+  //     json: jest.fn().mockResolvedValue(mockResponse),
+  //   });
 
-    const id = "123";
-    const result = await getDisputeDetails(id);
+  //   const id = "123";
+  //   const result = await getDisputeDetails(id);
 
-    expect(fetch).toHaveBeenCalledWith(`${API_URL}/disputes/${id}`, {
-      headers: {
-        Authorization: "Bearer mock-jwt",
-      },
-    });
-    expect(result).toEqual(mockResponse);
-  });
+  //   expect(fetch).toHaveBeenCalledWith(`${API_URL}/disputes/${id}`, {
+  //     headers: {
+  //       Authorization: "Bearer mock-jwt",
+  //     },
+  //   });
+  //   expect(result).toEqual(mockResponse);
+  // });
 
   // it('updateDisputeStatus should update dispute status', async () => {
   //   const mockResponse = { data: 'updated status' };

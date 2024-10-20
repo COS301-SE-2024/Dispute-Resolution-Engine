@@ -25,16 +25,44 @@ func SetupRoutes(g *gin.RouterGroup, h Dispute) {
 
 	g.GET("", h.GetSummaryListOfDisputes)
 	g.POST("/create", h.CreateDispute)
-	g.GET("/:id", h.GetDispute)
 
 	g.POST("", h.GetSummaryListOfDisputes)
-	g.POST("/:id/objections", h.ExpertObjection)
 	g.PATCH("/objections/:id", h.ExpertObjectionsReview)
 	g.POST("/experts/objections", h.ViewExpertRejections)
-	g.POST("/:id/evidence", h.UploadEvidence)
-	g.POST("/:id/decision", h.SubmitWriteup)
-	g.PUT("/:id/status", h.UpdateStatus)
-	g.GET("/:id/workflow", h.GetWorkflow)
+
+	disputeGroup := g.Group("/:id")
+	disputeGroup.Use(func(c *gin.Context) {
+		claims, err := h.JWT.GetClaims(c)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			return
+		}
+
+		disputeId, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid Dispute ID"})
+			return
+		}
+
+		isAuth, err := h.isAuthenticated(claims.ID, int64(disputeId))
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, models.Response{Error: "something went wrong"})
+			return
+		}
+
+		if !isAuth {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+			return
+		}
+		c.Next()
+	})
+
+	disputeGroup.GET("/", h.GetDispute)
+	disputeGroup.POST("/objections", h.ExpertObjection)
+	disputeGroup.POST("/evidence", h.UploadEvidence)
+	disputeGroup.POST("/decision", h.SubmitWriteup)
+	disputeGroup.PUT("/status", h.UpdateStatus)
+	disputeGroup.GET("/workflow", h.GetWorkflow)
 
 	g.PUT("/statemachine/:id", h.TransitionStateMachine)
 
@@ -253,6 +281,40 @@ func (h Dispute) GetSummaryListOfDisputes(c *gin.Context) {
 	h.AuditLogger.LogDisputeProceedings(models.Disputes, map[string]interface{}{"user": jwtClaims, "message": "Dispute summaries retrieved"})
 	logger.Info("Dispute summaries retrieved successfully")
 	c.JSON(http.StatusOK, models.Response{Data: summaries})
+}
+
+func (h Dispute) isAuthenticated(userId int64, disputeId int64) (bool, error) {
+	user, err := h.Model.GetUserById(userId)
+	if err != nil {
+		return false, err
+	}
+	if user.Role == "admin" {
+		return true, err
+	}
+
+	dispute, err := h.Model.GetDispute(disputeId)
+	if err != nil {
+		return false, err
+	}
+
+	if dispute.Complainant == userId {
+		return true, nil
+	}
+	if *dispute.Respondant == userId {
+		return true, nil
+	}
+
+	experts, err := h.Model.GetDisputeExperts(disputeId)
+	if err != nil {
+		return false, err
+	}
+	for _, expert := range experts {
+		if expert.ID == fmt.Sprintf("%d", userId) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 // @Summary Get a dispute
@@ -588,6 +650,14 @@ func (h Dispute) CreateDispute(c *gin.Context) {
 func (h Dispute) UpdateStatus(c *gin.Context) {
 	var disputeStatus models.DisputeStatusChange
 	logger := utilities.NewLogger().LogWithCaller()
+	claims, err := h.JWT.GetClaims(c)
+
+	if err != nil || claims.Role != "admin" {
+		logger.Error("Unauthorized access attempt")
+		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
+		return
+	}
+
 	if err := c.BindJSON(&disputeStatus); err != nil {
 		logger.WithError(err).Error("Invalid request body")
 		c.JSON(http.StatusBadRequest, models.Response{Error: "Invalid request body"})
@@ -711,7 +781,7 @@ func (h Dispute) ExpertObjection(c *gin.Context) {
 	}
 
 	//create ticket
-	titleTicket := "Objection against " + admin.FirstName + " " + admin.Surname + " on Dispute " + disputeId
+	titleTicket := "Objection against " + admin.FirstName + " " + admin.Surname + "On Dispute " + disputeId
 	ticket, err := h.TicketModel.CreateTicket(claims.ID, int64(disputeIdInt), titleTicket, *req.Reason)
 	if err != nil {
 		logger.WithError(err).Error("Failed to create ticket")
@@ -752,7 +822,7 @@ func (h Dispute) ExpertObjectionsReview(c *gin.Context) {
 
 	// Get info from token
 	claims, err := h.JWT.GetClaims(c)
-	if err != nil {
+	if err != nil || claims.Role != "admin" {
 		logger.WithError(err).Error("Unauthorized access attempt", claims, err)
 		c.JSON(http.StatusUnauthorized, models.Response{Error: "Unauthorized"})
 		return

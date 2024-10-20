@@ -2,14 +2,12 @@ services:
   static:
     image: nginx
     volumes:
-      - evi_files:/
+      - evi_files:/usr/share/nginx/html
     container_name: static-files
     restart: unless-stopped
-    networks:
-      - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.files.rule=Host(`${DOMAIN}`) && (PathPrefix(`/filestorage`)"
+      - "traefik.http.routers.files.rule=Host(`${DOMAIN}`) && PathPrefix(`/filestorage`)"
       - "traefik.http.routers.files.entrypoints=${ENTRY_POINTS}"
       - "traefik.http.middlewares.fileStrip.stripprefix.prefixes=/filestorage"
       - "traefik.http.routers.files.middlewares=fileStrip@docker"
@@ -29,7 +27,7 @@ services:
           path: ./frontend
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.fe.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`) && !PathPrefix(`/grafana`) && !PathPrefix(`/filestorage)"
+      - "traefik.http.routers.fe.rule=Host(`${DOMAIN}`) && !PathPrefix(`/admin`) && !PathPrefix(`/grafana`) && !PathPrefix(`/filestorage`)"
       - "traefik.http.routers.fe.entrypoints=${ENTRY_POINTS}"
       - "traefik.http.routers.fe.middlewares=clickJack@docker"
       - "${FE_CA}"

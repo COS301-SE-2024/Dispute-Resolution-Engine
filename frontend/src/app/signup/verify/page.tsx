@@ -29,10 +29,10 @@ export default function Verify() {
           </CardContent>
           <CardFooter asChild className="flex items-center flex-wrap gap-2">
             <footer>
-              <p className="grow">
+              <div className="grow">
                 {"Didn't receive the code? "}
                 <ResendForm />
-              </p>
+              </div>
               <Button form={formId} type="submit">
                 Confirm
               </Button>

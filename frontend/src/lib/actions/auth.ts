@@ -22,8 +22,7 @@ import { JWT_KEY, JWT_VERIFY_TIMEOUT } from "../constants";
 import { validateResult } from "../util";
 import { getAuthToken, setAuthToken } from "../util/jwt";
 
-export const signup = async (payload: unknown) =>
-  resultify(async () => {
+export const signup = async (payload: unknown) => {
     const { data, error } = signupSchema.safeParse(payload);
     if (error) {
       throw new Error(error.issues[0].message);
@@ -48,10 +47,11 @@ export const signup = async (payload: unknown) =>
         user_type: "user",
       }),
     }).then(validateResult<string>);
-
+    console.log("RECEVIED: ", res)
     setAuthToken(res, JWT_VERIFY_TIMEOUT);
+    console.log("JWT SET: ")
     redirect("/signup/verify");
-  });
+}
 
 export async function login(
   _initialState: any,

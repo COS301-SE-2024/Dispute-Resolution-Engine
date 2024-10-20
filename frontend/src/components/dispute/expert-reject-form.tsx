@@ -41,16 +41,20 @@ export default function ExpertRejectForm({
   const router = useRouter();
 
   async function onSubmit(data: ExpertRejectData) {
-    rejectExpert(data)
-      .then((id) => {
-        router.push(`/disputes/${disputeId}/tickets/${id}`);
-      })
-      .catch((e: Error) => {
-        setError("root", {
-          type: "custom",
-          message: e.message,
-        });
-      });
+    const res = await rejectExpert(data)
+    if (res.data) {
+      router.push(`/disputes/${disputeId}/tickets/${res.data}`);  
+    }
+    // rejectExpert(data)
+    //   .then((id) => {
+    //     router.push(`/disputes/${disputeId}/tickets/${id}`);
+    //   })
+    //   .catch((e: Error) => {
+    //     setError("root", {
+    //       type: "custom",
+    //       message: e.message,
+    //     });
+    //   });
   }
 
   const formId = useId();

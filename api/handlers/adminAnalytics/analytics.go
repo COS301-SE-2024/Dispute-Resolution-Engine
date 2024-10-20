@@ -21,9 +21,6 @@ func SetupAnalyticsRoute(router *gin.RouterGroup, h AdminAnalyticsHandler) {
 
 func (h AdminAnalyticsHandler) GetTimeEstimation(c *gin.Context) {
 	logger := utilities.NewLogger().LogWithCaller()
-	if !h.IsAuthorized(c, "admin", logger) {
-		return
-	}
 
 	avg, err := h.DB.CalculateAverageResolutionTime()
 	if err != nil {
@@ -142,7 +139,6 @@ func (h AdminAnalyticsHandler) GetMonthlyStats(c *gin.Context) {
 }
 
 func (h AdminAnalyticsHandler) IsAuthorized(c *gin.Context, role string, logger *utilities.Logger) bool {
-	return true
 	claims, err := h.JWT.GetClaims(c)
 	if err != nil || claims.Role != role {
 		logger.WithError(err).Error("Unauthorized")

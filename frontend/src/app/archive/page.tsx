@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { fetchArchiveHighlights } from "@/lib/api/archive";
-import { ArchivedDisputeSummary } from "@/lib/interfaces/archive";
+import { ArchivedDisputeSummary, ArchiveSearchResponse } from "@/lib/interfaces/archive";
 import { ExternalLink } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 function ArchivedDispute(props: ArchivedDisputeSummary) {
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col max-w-sm">
       <CardHeader className="flex flex-row items-center justify-between flex-wrap">
         <div>
           <CardTitle>{props.title}</CardTitle>
@@ -41,12 +41,12 @@ function ArchivedDispute(props: ArchivedDisputeSummary) {
     </Card>
   );
 }
+
 export default async function Archive() {
   const { data, error } = await fetchArchiveHighlights(3);
   if (error) {
     return <h1>{error}</h1>;
   }
-
   return (
     <div className="flex flex-col items-center justify-center h-full gap-5 w-2/3 mx-auto">
       <header className="mx-auto w-fit text-center">

@@ -132,8 +132,11 @@ func (e *emailImpl) NotifyDisputeStateChanged(c *gin.Context, disputeID int64, d
 	logger := utilities.NewLogger().LogWithCaller()
 	envLoader := env.NewEnvLoader()
 
+
+
+
 	var dbDispute models.Dispute
-	e.db.Where("\"id\" = ?", disputeID).First(&dbDispute)
+	e.db.Where("\"workflow\" = ?", disputeID).First(&dbDispute)
 
 	logger.Info("dispute:", dbDispute)
 	

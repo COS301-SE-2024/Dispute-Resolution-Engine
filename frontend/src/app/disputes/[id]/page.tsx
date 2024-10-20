@@ -32,6 +32,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import ExpertRejectForm from "@/components/dispute/expert-reject-form";
+import { getDisputeEstimate } from "@/lib/api/analytics";
 
 type Props = {
   params: { id: string };
@@ -47,8 +48,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DisputePage({ params }: Props) {
   const { data, error } = await getDisputeDetails(params.id);
   const workflow = await getDisputeWorkflow(params.id);
+  const estimate = await getDisputeEstimate(params.id);
   if (error || !data) {
     return <h1>{error}</h1>;
+  }
+
+  let result = "";
+  if (estimate.days > 0) {
+    result += `${estimate.days} days`;
+  }
+
+  if (estimate.hours > 0) {
+    if (result.length > 0) result += ", ";
+    result += `${estimate.hours} hours`;
+  }
+
+  if (estimate.minutes > 0) {
+    if (result.length > 0) result += ", ";
+    result += `${estimate.minutes} minutes`;
   }
 
   return (
@@ -59,7 +76,7 @@ export default async function DisputePage({ params }: Props) {
         date={data.case_date}
         status={data.status}
         state={workflow.definition.states[workflow.current_state]}
-        estimate="2 days"
+        estimate={result}
       />
       <Content>
         <DisputeClientPage data={data} />

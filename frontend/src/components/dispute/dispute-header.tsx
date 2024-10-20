@@ -10,6 +10,7 @@ export default function DisputeHeader({
   status,
   children,
   state,
+  estimate,
 }: {
   id: string;
   label: string;
@@ -17,6 +18,7 @@ export default function DisputeHeader({
   status: string;
   state: State;
   children?: ReactNode | ReactNode[];
+  estimate: string;
 }) {
   return (
     <TooltipProvider>
@@ -42,6 +44,8 @@ export default function DisputeHeader({
             </TooltipTrigger>
             <TooltipContent>{state.description}</TooltipContent>
           </Tooltip>
+          <dt className="text-right font-bold">Estimated time:</dt>
+          <dd>{estimate}</dd>
         </dl>
 
         <div className="md:col-span-2 flex gap-2 items-center">{children}</div>

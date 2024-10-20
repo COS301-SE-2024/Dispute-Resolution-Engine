@@ -39,7 +39,7 @@ export default function Splash() {
       <div className="flex justify-center">
         <RalphTextGlasses size={400} />
       </div>
-      <div className="bg-dre-400 bg-opacity-30 w-fit rounded-3xl mt-9 border-dre-200 border-2">
+      <div className="bg-dre-400 bg-opacity-30 w-fit rounded-3xl mt-9 border-dre-200 border-2 mb-12">
         <h1 className="dark:text-white text-black font-bold text-center text-4xl mt-8 pt-2">
           More About Us
         </h1>

@@ -27,6 +27,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.0.7",
+    "@sentry/nextjs": "^8",
     "@swc-node/core": "^1.13.3",
     "@swc-node/register": "^1.10.9",
     "@swc/core": "^1.7.6",

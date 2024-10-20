@@ -26,7 +26,7 @@ export default function ResetPage({ params }: Props) {
 
   return (
     <main className="md:pt-3 h-full">
-      <Card variant="page" asChild>
+      <Card asChild>
         <ResetForm action={resetPassword} className="flex flex-col">
           <CardHeader>
             <CardTitle>Reset Password</CardTitle>

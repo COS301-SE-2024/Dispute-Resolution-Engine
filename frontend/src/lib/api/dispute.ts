@@ -28,19 +28,18 @@ export async function getDisputeList(): Promise<Result<DisputeListResponse>> {
 }
 
 export async function getDisputeDetails(id: string): Promise<Result<DisputeResponse>> {
-  const res = await fetch(`${API_URL}/disputes/${id}`, {
+  const res = (await sf(`${API_URL}/disputes/${id}`, {
     headers: {
       Authorization: `Bearer ${getAuthToken()}`,
     },
   })
-    .then(function (res) {
-      return res.json();
-    })
+    .then(async (res) => ({
+      data: await validateResult<DisputeResponse>(res),
+    }))
     .catch((e: Error) => ({
       error: e.message,
-    }));
+    }))) as Result<DisputeResponse>;
 
-  console.log(res);
   return res;
 }
 

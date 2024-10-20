@@ -10,12 +10,13 @@ import {
   expertRejectSchema,
 } from "../schema/dispute";
 import { Result } from "../types";
-import { API_URL, formFetch } from "../utils";
+import { API_URL, formFetch, resultify } from "../utils";
 
 import { DisputeCreateResponse, DisputeEvidenceUploadResponse } from "../interfaces/dispute";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getAuthToken } from "../util/jwt";
+import { sf, validateResult } from "../util";
 
 export async function createDispute(_initial: unknown, data: FormData): Promise<Result<string>> {
   const { data: parsed, error: parseErr } = disputeCreateSchema.safeParse(Object.fromEntries(data));
@@ -62,20 +63,14 @@ export async function createDispute(_initial: unknown, data: FormData): Promise<
   redirect(`/disputes/${res.data.id}`);
 }
 
-export async function rejectExpert(
-  _initial: unknown,
-  data: FormData
-): Promise<Result<string, ExpertRejectError>> {
-  const { data: parsed, error: parseErr } = expertRejectSchema.safeParse(Object.fromEntries(data));
-  if (parseErr) {
-    return {
-      error: parseErr.format(),
-    };
-  }
+export const rejectExpert = (data: unknown) =>
+  resultify(async () => {
+    const { data: parsed, error: parseErr } = expertRejectSchema.safeParse(data);
+    if (parseErr) {
+      throw new Error(parseErr.issues[0].message);
+    }
 
-  const res = await formFetch<ExpertRejectData, number>(
-    `${API_URL}/disputes/${parsed.dispute_id}/objections`,
-    {
+    const res = await sf(`${API_URL}/disputes/${parsed.dispute_id}/objections`, {
       method: "POST",
       headers: {
         // Sub this for the proper getAuthToken thing
@@ -85,18 +80,11 @@ export async function rejectExpert(
         expert_id: parseInt(parsed.expert_id),
         reason: parsed.reason,
       }),
-    }
-  );
+    }).then(validateResult<number>);
 
-  if (res.error) {
+    revalidatePath(`/disputes/${parsed.dispute_id}`);
     return res;
-  }
-
-  revalidatePath(`/disputes/${parsed.dispute_id}`);
-  return {
-    data: res.data!.toString(),
-  };
-}
+  });
 
 export async function uploadEvidence(
   _initial: unknown,

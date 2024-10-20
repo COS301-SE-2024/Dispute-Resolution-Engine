@@ -20,7 +20,7 @@ export default async function ArchivedPageDispute({ params }: { params: { id: st
   }
 
   return (
-    <Card variant="page" className="md:mt-10">
+    <Card className="md:mt-10">
       <CardHeader>
         <div className="flex items-center flex-wrap mb-3 gap-2 ">
           <BackButton

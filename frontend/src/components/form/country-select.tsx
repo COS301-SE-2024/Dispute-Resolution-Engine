@@ -26,8 +26,8 @@ export default function CountrySelect({
 
   return (
     <Select {...props}>
-      <SelectTrigger disabled={query.isPending}>
-        <SelectValue id={id} placeholder="Select a country" />
+      <SelectTrigger disabled={query.isPending} id={id}>
+        <SelectValue placeholder="Select a country" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>

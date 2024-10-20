@@ -1,34 +1,33 @@
-
-# Frequently Asked Questions (FAQ):
-Have a question about our site here are some commonly asked questions.
+# Frequently Asked Questions (FAQ)
+Have a question about our site? Here are some commonly asked questions.
 
 ## What is the purpose of DRE?
 
-The purpose of the Dispute Resolution Engine is to make the dispute resoltuion process more affordable and less time consuming, giving it a unique edge over other Alternate Dispute Resolution methods. Our system also encourages an unbiased and fair dispute resolution, through letting a computer algorithm select valid expert candidates to aid in the resolution process.
+The purpose of the Dispute Resolution Engine (DRE) is to make the dispute resolution process more affordable and less time-consuming, giving it a unique edge over other Alternate Dispute Resolution (ADR) methods. Our system also encourages an unbiased and fair resolution process by using a computer algorithm to select valid expert candidates to aid in resolving disputes.
 
 ## What is an Expert?
 
-An expert is an individual who can have one or more of the following roles: Mediator, Adjudicator, Arbitrator, Administrator. When you file your dispute, is will typically first be processed by an Administrator. From this point the Administrator will oversee, and interviene, the resolution process. Once the dispute case reaches a state where parties are ready to proceed with the resolution process, experts will be assigned to the case. The experts assigned will be a fully qualified to either  Mediate, Adjudicate or Arbitrate for your dispute.
+An expert is an individual who can serve in one or more of the following roles: Mediator, Adjudicator, Arbitrator, or Administrator. When you file a dispute, it will typically first be processed by an Administrator. From this point, the Administrator will oversee and intervene in the resolution process. Once the dispute reaches a stage where all parties are ready to proceed, experts will be assigned to the case. The assigned experts will be fully qualified to mediate, adjudicate, or arbitrate your dispute.
 
 ## What do I need to file a dispute or open a case?
 
-To file a dispute, you will need the other parties full name, email address and phone number. Evidence does not need to filed initially, but would be beneficial for more serious disputes. Once the case was submitted it will be reviewed by an administrator.
+To file a dispute, you will need the full name, email address, and phone number of the other party. While evidence is not required at the initial stage, it is beneficial for more serious disputes. Once the case is submitted, it will be reviewed by an Administrator.
 
-## How will I know when there is a change to a case/dispute I am involved with?
+## How will I know when there is a change to a case or dispute I am involved with?
 
-The system communicates and notifies relevant parties primerily via email. Hence, all important events and status changes, that pertain to a case you are involved with, will trigger a relevant email notification to be send to the parties.
+The system primarily communicates and notifies relevant parties via email. All important events and status changes related to a case you are involved with will trigger a relevant email notification sent to the involved parties.
 
-## If I want to file a case/dispute, do all participants need to have a registered account?
+## Do all participants need a registered account to file a case or dispute?
 
-The answer is yes, all parties that participate in the dispute will need to have a registered account. This is to aid in ensuring fairness throughout the dispute resolution process, by allowing us to accoractely "record-keep" events and communications petaining to a case.
+Yes, all parties involved in the dispute must have a registered account. This helps ensure fairness throughout the dispute resolution process by allowing us to accurately record events and communications related to the case.
 
-## What happens if I am not happy with the Expert assigned to my case/dispute?
+## What happens if I am not happy with the Expert assigned to my case or dispute?
 
-Once Experts are assigned to the case, if you have a valid reason to as to why an Expert is not suited to you case, you can submit your objection and reason through the system. The administrator of your case will then review your objection and either "overrule" or "sustain" your reason.
+If you have a valid reason to believe that an assigned expert is not suitable for your case, you can submit your objection and reasoning through the system. The Administrator overseeing your case will review your objection and either "overrule" or "sustain" it.
 
-## How many Experts will be assigned to my case/dispute?
+## How many Experts will be assigned to my case or dispute?
 
-A minimum of one expert will always be assigned to a dispute however,depending on the serverity of the case is more than one expert may be assigned. If you feel that your case will need more experts than what we recommnd or assign, you are welcome to request more.
+A minimum of one expert will always be assigned to a dispute. However, depending on the severity of the case, more than one expert may be assigned. If you feel that your case requires more experts than recommended or assigned, you are welcome to request additional experts.
 
 # Found a bug or have an issue?
 Contact us directly:

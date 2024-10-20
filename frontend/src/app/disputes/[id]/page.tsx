@@ -1,22 +1,37 @@
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { getDisputeDetails, getDisputeWorkflow } from "@/lib/api/dispute";
 import { Metadata } from "next";
-
 import DisputeClientPage from "./client-page";
-import StatusDropdown from "@/app/disputes/[id]/dropdown";
-import ExpertRejectForm from "@/components/dispute/expert-reject-form";
-import { getAuthToken } from "@/lib/util/jwt";
-
-import { jwtDecode } from "jwt-decode";
-import DisputeDecisionForm from "@/components/dispute/decision-form";
-import CreateTicketDialog from "@/components/dispute/ticket-form";
 import { Button } from "@/components/ui/button";
-import WorkflowSelect from "@/components/form/workflow-select";
-import DisputeHeader from "@/components/dispute/dispute-header";
 import Link from "next/link";
 import { State } from "@/lib/interfaces/workflow";
+import {
+  BadgeCheckIcon,
+  ChevronLeftIcon,
+  EllipsisVerticalIcon,
+  InfoIcon,
+  TicketCheckIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
+import { getAuthToken } from "@/lib/util/jwt";
+import DisputeDecisionForm from "@/components/dispute/decision-form";
+
+import { jwtDecode } from "jwt-decode";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Content, Header, Root } from "../custom-layout";
+import { ReactNode } from "react";
+import { DialogHeader } from "@/components/ui/dialog";
+import { FormSubmit } from "@/components/ui/form-server";
+import { Textarea } from "@/components/ui/textarea";
+import { rejectExpert } from "@/lib/actions/dispute";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import ExpertRejectForm from "@/components/dispute/expert-reject-form";
 import { getDisputeEstimate } from "@/lib/api/analytics";
 
 type Props = {
@@ -54,49 +69,134 @@ export default async function DisputePage({ params }: Props) {
   }
 
   return (
-    <div className="grow overflow-y-auto flex flex-col">
-      <DisputeHeader2
+    <Root>
+      <DisputeHeader
         id={data.id}
-        label={data.title}
-        startDate={data.case_date.substring(0, 10)}
+        title={data.title}
+        date={data.case_date}
         status={data.status}
         state={workflow.definition.states[workflow.current_state]}
         estimate={result}
       />
-      <Separator />
-      <ScrollArea className="grow overflow-y-auto p-4">
+      <Content>
         <DisputeClientPage data={data} />
-      </ScrollArea>
-      <Separator />
-    </div>
+      </Content>
+    </Root>
   );
 }
 
-function DisputeHeader2(props: {
+function DisputeHeader(props: {
   id: string;
-  label: string;
-  startDate: string;
+  title: string;
+  date: string;
   status: string;
   state: State;
   estimate: string;
 }) {
-  // TODO: Add contracts for this
   const user = (jwtDecode(getAuthToken()) as any).user.id;
   const role = (jwtDecode(getAuthToken()) as any).user.role;
 
   return (
-    <DisputeHeader {...props}>
-      {role == "expert" && <ExpertRejectForm expertId={user} disputeId={props.id} />}
+    <TooltipProvider>
+      <Header className="grid grid-cols-[auto_1fr_auto] md:grid-cols-[auto_1fr_auto_auto] gap-3">
+        <Button asChild className="h-fit p-2 rounded-full" variant="ghost">
+          <Link href="/disputes">
+            <ChevronLeftIcon />
+          </Link>
+        </Button>
 
-      {role == "expert" && (
-        <DisputeDecisionForm disputeId={props.id} asChild>
-          <Button>Render decision</Button>
-        </DisputeDecisionForm>
-      )}
+        <section className="mt-1 overflow-x-auto">
+          <h1
+            className="scroll-m-20 text-2xl font-extrabold tracking-tight lg:text-2xl text-wrap truncate"
+            title={props.title}
+          >
+            {props.title}
+          </h1>
 
-      <Button variant="outline" asChild>
-        <Link href={`/disputes/${props.id}/tickets`}>Go to tickets</Link>
-      </Button>
-    </DisputeHeader>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <p className="inline-flex items-center gap-2">
+                Filed: {props.date}
+                <InfoIcon size="1rem" />
+              </p>
+            </TooltipTrigger>
+            <TooltipContent>{`Estimated to take ${props.estimate}`}</TooltipContent>
+          </Tooltip>
+        </section>
+
+        <dl className="col-start-2 md:col-start-3 mt-1 grid grid-cols-[auto_1fr] gap-x-2">
+          <dt className="font-bold">Status:</dt>
+          <dd>{props.status}</dd>
+          <dt className="font-bold">State:</dt>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <dd className="flex items-center gap-2">
+                {props.state.label}
+                <InfoIcon size="1rem" />
+              </dd>
+            </TooltipTrigger>
+            <TooltipContent>{props.state.description}</TooltipContent>
+          </Tooltip>
+        </dl>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button className="h-fit p-2 rounded-full row-start-1 col-start-4" variant="ghost">
+              <EllipsisVerticalIcon />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="flex flex-col p-2">
+            <Button className="gap-2 p-2" variant="ghost" asChild>
+              <Link href={`/disputes/${props.id}/tickets`}>
+                <TicketCheckIcon />
+                <span>Dispute tickets</span>
+              </Link>
+            </Button>
+            {role == "expert" && (
+              <>
+                <DisputeDecisionForm disputeId={props.id} asChild>
+                  <Button className="gap-2 p-2" variant="ghost">
+                    <BadgeCheckIcon />
+                    <span>Render decision</span>
+                  </Button>
+                </DisputeDecisionForm>
+                <ExpertRejectForm expertName="expert" expertId={user} disputeId={props.id} asChild>
+                  <Button className="gap-2 p-2 text-red-500" variant="ghost">
+                    <TriangleAlertIcon />
+                    <span>Object to assignment</span>
+                  </Button>
+                </ExpertRejectForm>
+              </>
+            )}
+          </PopoverContent>
+        </Popover>
+      </Header>
+    </TooltipProvider>
   );
 }
+
+// function DisputeHeader2(props: {
+//   id: string;
+//   label: string;
+//   startDate: string;
+//   status: string;
+//   state: State;
+// }) {
+//   // TODO: Add contracts for this
+
+//   return (
+//     <DisputeHeader {...props}>
+//       {role == "expert" && <ExpertRejectForm expertId={user} disputeId={props.id} />}
+
+//       {role == "expert" && (
+//         <DisputeDecisionForm disputeId={props.id} asChild>
+//           <Button>Render decision</Button>
+//         </DisputeDecisionForm>
+//       )}
+
+//       <Button variant="outline" asChild>
+//         <Link href={`/disputes/${props.id}/tickets`}>Go to tickets</Link>
+//       </Button>
+//     </DisputeHeader>
+//   );
+// }

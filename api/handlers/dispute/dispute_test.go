@@ -1161,6 +1161,7 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewInvalidRequestBody
 	req.Header.Add("Authorization", "Bearer mock")
 	req.Header.Add("Content-Type", "application/json")
 
+	suite.jwtMock.returnUser.Role = "admin"
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
@@ -1195,6 +1196,7 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewErrorReviewingObje
 	req.Header.Add("Authorization", "Bearer mock")
 	req.Header.Add("Content-Type", "application/json")
 
+	suite.jwtMock.returnUser.Role = "admin"
 	suite.disputeMock.throwErrors = true
 
 	w := httptest.NewRecorder()
@@ -1213,6 +1215,8 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionsReviewSuccess() {
 	req, _ := http.NewRequest("PATCH", "/objections/1", bytes.NewBuffer([]byte(reqBody)))
 	req.Header.Add("Authorization", "Bearer mock")
 	req.Header.Add("Content-Type", "application/json")
+
+	suite.jwtMock.returnUser.Role = "admin"
 
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
@@ -1233,7 +1237,7 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionErrorDuringObjection() {
 	req.Header.Add("Content-Type", "application/json")
 
 	suite.disputeMock.throwErrors = true
-
+	suite.jwtMock.returnUser.Role = "admin"
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
@@ -1291,7 +1295,7 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionSuccess() {
 	req, _ := http.NewRequest("POST", "/1/objections", bytes.NewBuffer([]byte(reqBody)))
 	req.Header.Add("Authorization", "Bearer mock")
 	req.Header.Add("Content-Type", "application/json")
-
+	suite.jwtMock.returnUser.Role = "admin"
 	//inject the mock
 	suite.disputeMock.throwErrors = false
 	suite.disputeMock.Get_Experts = []models.AdminDisputeExperts{
@@ -1328,7 +1332,7 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionUnauthorized() {
 func (suite *DisputeErrorTestSuite) TestExpertObjectionInvalidDisputeID() {
 	req, _ := http.NewRequest("POST", "/invalid/objections", nil)
 	req.Header.Add("Authorization", "Bearer mock")
-
+	suite.jwtMock.returnUser.Role = "admin"
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
@@ -1343,7 +1347,7 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionInvalidRequestBody() {
 	req, _ := http.NewRequest("POST", "/1/objections", bytes.NewBuffer([]byte("invalid body")))
 	req.Header.Add("Authorization", "Bearer mock")
 	req.Header.Add("Content-Type", "application/json")
-
+	suite.jwtMock.returnUser.Role = "admin"
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
 
@@ -1358,9 +1362,9 @@ func (suite *DisputeErrorTestSuite) TestExpertObjectionInvalidRequestBody() {
 func (suite *DisputeErrorTestSuite) TestUpdateStatusInvalidRequestBody() {
 	req, _ := http.NewRequest("PUT", "/dispute/status", bytes.NewBuffer([]byte("invalid body")))
 	req.Header.Add("Content-Type", "application/json")
+	suite.jwtMock.returnUser.Role = "admin"
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
-
 	suite.Equal(http.StatusBadRequest, w.Code)
 	var result models.Response
 	suite.NoError(json.Unmarshal(w.Body.Bytes(), &result))
@@ -1383,6 +1387,7 @@ func (suite *DisputeErrorTestSuite) TestUpdateStatusUnauthorized() {
 func (suite *DisputeErrorTestSuite) TestUpdateStatusInternalError() {
 	suite.jwtMock.throwErrors = false
 	suite.disputeMock.throwErrors = true
+	suite.jwtMock.returnUser.Role = "admin"
 	req, _ := http.NewRequest("PUT", "/1/status", bytes.NewBuffer([]byte(`{"status": "Resolved"}`)))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer mock")
@@ -1398,6 +1403,7 @@ func (suite *DisputeErrorTestSuite) TestUpdateStatusInternalError() {
 func (suite *DisputeErrorTestSuite) TestUpdateStatusSuccess() {
 	suite.jwtMock.throwErrors = false
 	suite.disputeMock.throwErrors = false
+	suite.jwtMock.returnUser.Role = "admin"
 	req, _ := http.NewRequest("PUT", "/1/status", bytes.NewBuffer([]byte(`{"status": "Resolved"}`)))
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer mock")

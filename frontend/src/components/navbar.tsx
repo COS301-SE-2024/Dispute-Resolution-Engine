@@ -10,7 +10,7 @@ const link = cn(buttonVariants({ variant: "link" }), "text-white");
 export default function Navbar() {
   const result = cookies().get("jwt");
   return (
-    <nav className="bg-dre-200 px-4 py-2 flex items-center fixed w-full z-50 ">
+    <nav className="bg-dre-200 px-4 py-2 flex items-center">
       <Link href="/splash">
         <Image src="/logo.svg" alt="DRE Logo" width={64} height={64} />
       </Link>

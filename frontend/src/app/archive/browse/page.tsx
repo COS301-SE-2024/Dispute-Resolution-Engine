@@ -5,8 +5,8 @@ import Link from "next/link";
 
 function SearchResult(props: ArchivedDisputeSummary) {
   return (
-    <tr className="border rounded-lg overflow-hidden">
-      <td className="border px-4 py-2 text-center">
+    <tr className="rounded-lg overflow-hidden">
+      <td className=" border-gray-500 px-4 py-2 text-left">
         <Link href={`/archive/${props.id}`}>
           <h3 className="hover:underline font-semibold text-lg">{props.title}</h3>
         </Link>
@@ -17,7 +17,7 @@ function SearchResult(props: ArchivedDisputeSummary) {
           ))}
         </div>
       </td>
-      <td className="border px-4 py-2 text-center">
+      <td className="border-gray-500 px-8 py-2 text-left">
         <p>
           <strong>Date Filed:</strong> {props.date_filed}
         </p>
@@ -151,8 +151,8 @@ export default async function ArchiveBrowse() {
         Archived Disputes
       </h1>
       <main className="mx-auto">
-        <table className="min-w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-          <thead className="bg-gray-50 dark:bg-gray-700">
+        <table className="min-w-full  bg-white dark:bg-blue-950 rounded-xl shadow-lg overflow-hidden">
+          <thead className="bg-gray-50 dark:bg-blue-900">
             <tr>
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 dark:text-gray-200 uppercase tracking-wider">
                 Title & Summary

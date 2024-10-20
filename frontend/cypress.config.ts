@@ -8,8 +8,8 @@ export default defineConfig({
     baseUrl: 'https://capstone-dre.dns.net.za',
   },
   env: {
-    TEST_USER: "gaced90493@rinseart.com",
-    TEST_PASSWORD: "Password1234#"
+    TEST_USER: "johndoe@example.com",
+    TEST_PASSWORD: "qwerty12345!"
   },
   component: {
     devServer: {

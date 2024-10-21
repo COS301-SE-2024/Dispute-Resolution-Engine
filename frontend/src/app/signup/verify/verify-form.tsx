@@ -21,13 +21,13 @@ export function Providers({ children }: { children?: ReactNode | ReactNode[] }) 
 export function VerifyForm({ id }: { id?: string }) {
   const { control, setError, handleSubmit } = useFormContext<VerifyData>();
   async function onSubmit(data: VerifyData) {
-    console.log("submit");
-    await verify(data).catch((e: Error) => {
+    const res = await verify(data);
+    if (res?.error) {
       setError("root", {
         type: "custom",
-        message: e.message,
+        message: res.error,
       });
-    });
+    }
   }
 
   const pinId = useId();

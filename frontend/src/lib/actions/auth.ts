@@ -22,35 +22,45 @@ import { JWT_KEY, JWT_VERIFY_TIMEOUT } from "../constants";
 import { validateResult } from "../util";
 import { getAuthToken, setAuthToken } from "../util/jwt";
 
-export const signup = async (payload: unknown) => {
-    const { data, error } = signupSchema.safeParse(payload);
-    if (error) {
-      throw new Error(error.issues[0].message);
-    }
+export async function signup(payload: unknown): Promise<Result<null> | undefined> {
+  const { data, error } = signupSchema.safeParse(payload);
+  if (error) {
+    return {
+      error: error.issues[0].message,
+    };
+  }
 
-    // TODO: uncomment once API works
-    const res = await fetch(`${API_URL}/auth/signup`, {
-      method: "POST",
-      body: JSON.stringify({
-        first_name: data.firstName,
-        surname: data.lastName,
-        nationality: data.nationality,
+  // TODO: uncomment once API works
+  const res = (await fetch(`${API_URL}/auth/signup`, {
+    method: "POST",
+    body: JSON.stringify({
+      first_name: data.firstName,
+      surname: data.lastName,
+      nationality: data.nationality,
 
-        email: data.email,
-        password: data.password,
+      email: data.email,
+      password: data.password,
 
-        phone_number: "0110110110",
-        birthdate: "2004-01-15",
-        gender: "Male",
-        timezone: ".",
-        preferred_language: "English",
-        user_type: "user",
-      }),
-    }).then(validateResult<string>);
-    console.log("RECEVIED: ", res)
-    setAuthToken(res, JWT_VERIFY_TIMEOUT);
-    console.log("JWT SET: ")
-    redirect("/signup/verify");
+      phone_number: "0110110110",
+      birthdate: "2004-01-15",
+      gender: "Male",
+      timezone: ".",
+      preferred_language: "English",
+      user_type: "user",
+    }),
+  })
+    .then(validateResult<string>)
+    .then((data) => ({ data }))
+    .catch((err) => ({
+      error: (err as Error).message,
+    }))) as Result<string>;
+
+  if (res.error) {
+    return res;
+  }
+
+  setAuthToken(res.data!, JWT_VERIFY_TIMEOUT);
+  redirect("/signup/verify");
 }
 
 export async function login(
@@ -88,30 +98,38 @@ export async function signout() {
   redirect("/login");
 }
 
-export const verify = (payload: unknown) =>
-  resultify(async () => {
-    // Parse the form data
-    const { data, error } = verifySchema.safeParse(payload);
-    if (error) {
-      throw new Error(error.issues[0].message);
-    }
+export async function verify(payload: unknown): Promise<Result<null> | undefined> {
+  // Parse the form data
+  const { data, error } = verifySchema.safeParse(payload);
+  if (error) {
+    return {
+      error: error.issues[0].message,
+    };
+  }
 
-    // TODO: uncomment once API works
-    // Send request to the API
-    const res = await fetch(`${API_URL}/auth/verify`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
-      body: JSON.stringify({
-        pin: data.pin,
-      }),
-    }).then(validateResult<string>);
+  // TODO: uncomment once API works
+  // Send request to the API
+  const res = (await fetch(`${API_URL}/auth/verify`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${getAuthToken()}`,
+    },
+    body: JSON.stringify({
+      pin: data.pin,
+    }),
+  })
+    .then(validateResult<string>)
+    .then((data) => ({ data }))
+    .catch((err) => ({ error: (err as Error).message }))) as Result<string>;
 
-    // Everything good
-    setAuthToken(res);
-    redirect("/disputes");
-  });
+  if (res.error) {
+    return res;
+  }
+
+  // Everything good
+  setAuthToken(res.data!);
+  redirect("/disputes");
+}
 
 export async function resendOTP(_initialState: any, _: FormData): Promise<Result<string>> {
   // Retrieve the temporary JWT

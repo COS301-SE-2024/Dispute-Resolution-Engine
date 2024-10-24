@@ -24,11 +24,11 @@ export function SignupForm({ id }: { id?: string }) {
   const { control, register, handleSubmit, setError } = useFormContext<SignupData>();
 
   async function onSubmit(data: SignupData) {
-    const { error } = await signup(data);
-    if (error) {
+    const res = await signup(data);
+    if (res && res.error) {
       setError("root", {
         type: "custom",
-        message: error,
+        message: res.error!,
       });
     }
   }
